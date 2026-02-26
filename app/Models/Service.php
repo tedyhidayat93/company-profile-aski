@@ -25,12 +25,16 @@ class Service extends Model
         'category_id',
         'meta_title',
         'meta_description',
+        'is_active',
+        'sequence',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'compare_at_price' => 'decimal:2',
         'is_featured' => 'boolean',
+        'is_active' => 'boolean',
+        'sequence' => 'integer',
         'deleted_at' => 'datetime',
     ];
 

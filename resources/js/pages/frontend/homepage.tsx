@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { dashboard, login } from '@/routes';
 import { type SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { AlignEndVerticalIcon, ArrowRightIcon, Facebook, Instagram, Linkedin, Mail, Megaphone, Phone, RefreshCcwDot, Video, X } from 'lucide-react';
+import { AlignEndVerticalIcon, ArrowRightIcon, Facebook, Instagram, Linkedin, Mail, Megaphone, Phone, PhoneCall, RefreshCcwDot, Video, X } from 'lucide-react';
 import { useState } from 'react';
 import BgHero from '@/assets/images/bg-hero.png';
 import catalog, { index } from '@/routes/catalog';
@@ -456,7 +456,7 @@ export default function Homepage({products: initialProducts}: {products: ApiResp
         </section>
 
         {/* Article section */}
-        <section id="article" className="py-20 bg-white">
+        <section id="article" className="py-20 bg-white dark:bg-gray-900">
           <div className="container mx-auto px-4">
             <div className="mb-12 text-center">
               <h2 className="mb-4">Artikel Terbaru</h2>
@@ -559,13 +559,14 @@ export default function Homepage({products: initialProducts}: {products: ApiResp
         </section>
 
         {/* CTA Section */}
-        <section id="contact" className="bg-orange-500 py-20 text-white">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="mb-6 text-5xl font-extrabold">Butuh Kontainer untuk Bisnis Anda?</h2>
-            <p className="mx-auto mb-8 text-white max-w-2xl text-lg">
+        <section id="contact" className="bg-orange-200 py-20 text-white">
+          <div className="container mx-auto px-4 text-center flex flex-col justify-center items-center">
+            <h2 className="mb-6 text-5xl font-[800]! text-black">Butuh Kontainer untuk Bisnis Anda?</h2>
+            <p className="mx-auto mb-8 text-slate-800 max-w-2xl">
               Dapatkan penawaran terbaik untuk sewa atau beli kontainer berkualitas. Cocok untuk berbagai kebutuhan usaha mulai dari gudang, kantor, hingga ruang komersial.
             </p>
-            <button className="btn text-primary bg-white cursor-pointer animate-bounce hover:bg-gray-100 px-8 py-3 text-lg">Hubungi Kami Sekarang Juga !</button>
+            <a href="tel:+628123456789" className="btn flex! w-max items-center gap-2 text-white bg-green-600 cursor-pointer animate-bounce! hover:bg-green-500 shadow-lg p-4! px-7! rounded-full! text-base"> 
+              <PhoneCall className="h-5 w-5" /> Hubungi Kami via WhatsApp</a>
           </div>
         </section>
       </main>

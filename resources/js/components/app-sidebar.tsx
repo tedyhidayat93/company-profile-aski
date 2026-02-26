@@ -22,7 +22,9 @@ import {
   LayoutGrid,
   ListOrdered,
   Lock,
+  MessageCircleQuestion,
   Shield,
+  ShoppingCart,
   Tag,
   Users,
 } from 'lucide-react';
@@ -38,100 +40,54 @@ const mainNavGroups: NavGroupItem[] = [
           href: '/cpanel',
           icon: LayoutGrid,
         },
-      ],
-    },
-  },
-  {
-    group: {
-      title: 'CMS',
-      items: [
         {
-          title: 'Katalog Produk',
-          href: '/cms/catalog',
-          icon: LayoutGrid,
+          title: 'Daftar Pesanan',
+          href: '/cpanel/crm/orders',
+          icon: ShoppingCart,
         },
         {
-          title: 'Artikel/Berita',
-          href: '/cms/articles',
+          title: 'Posting Artikel',
+          href: '/cpanel/cms/article',
           icon: FileText,
         },
         {
-          title: 'Merek',
-          href: '/cms/brands',
+          title: 'Produk',
+          href: '/cpanel/cms/product',
+          icon: LayoutGrid,
+        },
+        {
+          title: 'Pelanggan',
+          href: '/cpanel/crm/customer',
+          icon: Users,
+        },
+        {
+          title: 'Brand',
+          href: '/cpanel/cms/brand',
           icon: Tag,
         },
         {
           title: 'Layanan',
-          href: '/cms/services',
+          href: '/cpanel/cms/service',
           icon: HandHeart,
         },
         {
           title: 'Kategori',
-          href: '/cms/categories',
+          href: '/cpanel/cms/category',
           icon: Folder,
         },
         {
           title: 'Tag',
-          href: '/cms/tags',
+          href: '/cpanel/cms/tag',
           icon: Tag,
         },
+        {
+          title: 'FAQ',
+          href: '/cpanel/cms/faq',
+          icon: MessageCircleQuestion,
+        }
       ],
-    },
-  },
-  {
-    group: {
-      title: 'CRM',
-      items: [
-        {
-          title: 'Pelanggan',
-          href: '/crm/customers',
-          icon: Users,
-        },
-        {
-          title: 'Daftar Pesanan',
-          href: '/crm/orders',
-          icon: ListOrdered,
-        },
-        {
-          title: 'Faktur',
-          href: '/crm/invoices',
-          icon: FileText,
-        },
-        {
-          title: 'Laporan',
-          href: '/crm/reports',
-          icon: BarChart,
-        },
-      ],
-    },
-  },
-  {
-    group: {
-      title: 'SISTEM',
-      items: [
-        {
-          title: 'Role',
-          href: '/system/roles',
-          icon: Shield,
-        },
-        {
-          title: 'Hak Akses',
-          href: '/system/permissions',
-          icon: Lock,
-        },
-        {
-          title: 'Aktivitas',
-          href: '/system/activity-logs',
-          icon: Activity,
-        },
-        {
-          title: 'Pengguna',
-          href: '/system/users',
-          icon: Users,
-        },
-      ],
-    },
-  },
+    }
+  }
 ];
 
 const footerNavItems: NavItem[] = [

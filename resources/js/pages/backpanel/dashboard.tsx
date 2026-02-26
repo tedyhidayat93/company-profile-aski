@@ -34,9 +34,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 const stats = [
   { name: 'Total Produk', value: '1,234', icon: Package, change: '+12%', changeType: 'increase' },
   { name: 'Total Artikel', value: '89', icon: FileText, change: '+5%', changeType: 'increase' },
-  { name: 'Total Customer', value: '5,678', icon: Users, change: '+8.2%', changeType: 'increase' },
+  { name: 'Total Pelanggan', value: '5,678', icon: Users, change: '+8.2%', changeType: 'increase' },
   {
-    name: 'Total Order',
+    name: 'Total Pesanan',
     value: '3,456',
     icon: ShoppingCart,
     change: '-2.1%',
@@ -139,27 +139,23 @@ export default function Dashboard() {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Dashboard" />
 
-      <div className="flex h-4 flex-wrap p-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-      </div>
-
       <div className="space-y-6 p-6">
         {/* Stats Overview */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
-            <Card key={stat.name}>
+            <Card className="shadow-card" key={stat.name}>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-muted-foreground text-sm font-medium">{stat.name}</p>
+                    <p className="text-muted-foreground text-xs font-medium">{stat.name}</p>
                     <p className="text-2xl font-bold">{stat.value}</p>
-                    <p
+                    {/* <p
                       className={`text-sm ${stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}`}
                     >
                       {stat.change} dari bulan lalu
-                    </p>
+                    </p> */}
                   </div>
-                  <div className="bg-primary/10 rounded-lg p-3">
+                  <div className="bg-primary/10 rounded-lg p-2">
                     <stat.icon className="text-primary h-6 w-6" />
                   </div>
                 </div>
@@ -169,11 +165,11 @@ export default function Dashboard() {
         </div>
 
         {/* Order Status Overview */}
-        <Card>
+        <Card className="shadow-card">
           <CardHeader>
-            <CardTitle>Status Pemesanan</CardTitle>
+            <CardTitle>Informasi Pemesanan</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               {orderStats.map((stat) => (
                 <Card key={stat.name}>
@@ -191,12 +187,74 @@ export default function Dashboard() {
                 </Card>
               ))}
             </div>
+            {/* Recent Orders */}
+            <Card className="shadow-card">
+              <CardHeader className="mb-0! flex flex-row items-center justify-between border-b">
+                <CardTitle>5 Pesanan Terbaru</CardTitle>
+                <Link href="/backpanel/orders" className="text-primary text-sm hover:underline">
+                  Lihat Semua Pesanan
+                </Link>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pl-6!">ID Pesanan</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Produk</TableHead>
+                      <TableHead>Tanggal</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead className="pr-6! text-center">Aksi</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentOrders.map((order) => (
+                      <TableRow key={order.id} className="hover:bg-muted/50">
+                        <TableCell className="pl-6 font-medium">{order.id}</TableCell>
+                        <TableCell>{order.customer}</TableCell>
+                        <TableCell>{order.product}</TableCell>
+                        <TableCell>{order.date}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              order.status === 'completed'
+                                ? 'default'
+                                : order.status === 'processing'
+                                  ? 'secondary'
+                                  : 'outline'
+                            }
+                            className="whitespace-nowrap"
+                          >
+                            {order.status === 'completed'
+                              ? 'Selesai'
+                              : order.status === 'processing'
+                                ? 'Diproses'
+                                : 'Menunggu'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="pr-6! font-medium">{order.amount}</TableCell>
+                        <TableCell className="pr-6!">
+                          <Link
+                            href="#"
+                            className="text-primary flex items-center gap-1 text-sm font-medium hover:underline"
+                          >
+                            <Eye className="h-4 w-4" />
+                            Detail
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </CardContent>
         </Card>
 
         <div className="grid gap-6 xl:grid-cols-2">
           {/* Top Searched Products */}
-          <Card>
+          <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between border-b">
               <CardTitle>Produk Paling Banyak Dicari</CardTitle>
             </CardHeader>
@@ -221,7 +279,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Latest Products */}
-          <Card>
+          <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between border-b">
               <CardTitle>Produk Terbaru</CardTitle>
             </CardHeader>
@@ -250,69 +308,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Recent Orders */}
-        <Card className="pb-0!">
-          <CardHeader className="mb-0! flex flex-row items-center justify-between border-b">
-            <CardTitle>5 Pesanan Terbaru</CardTitle>
-            <Link href="/backpanel/orders" className="text-primary text-sm hover:underline">
-              Lihat Semua Pesanan
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-6!">ID Pesanan</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Produk</TableHead>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead className="pr-6! text-center">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentOrders.map((order) => (
-                  <TableRow key={order.id} className="hover:bg-muted/50">
-                    <TableCell className="pl-6 font-medium">{order.id}</TableCell>
-                    <TableCell>{order.customer}</TableCell>
-                    <TableCell>{order.product}</TableCell>
-                    <TableCell>{order.date}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          order.status === 'completed'
-                            ? 'default'
-                            : order.status === 'processing'
-                              ? 'secondary'
-                              : 'outline'
-                        }
-                        className="whitespace-nowrap"
-                      >
-                        {order.status === 'completed'
-                          ? 'Selesai'
-                          : order.status === 'processing'
-                            ? 'Diproses'
-                            : 'Menunggu'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="pr-6! font-medium">{order.amount}</TableCell>
-                    <TableCell className="pr-6!">
-                      <Link
-                        href="#"
-                        className="text-primary flex items-center gap-1 text-sm font-medium hover:underline"
-                      >
-                        <Eye className="h-4 w-4" />
-                        Detail
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
       </div>
     </AppLayout>
   );

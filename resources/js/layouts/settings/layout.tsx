@@ -31,6 +31,11 @@ const sidebarNavItems: NavItem[] = [
     href: editAppearance(),
     icon: null,
   },
+  {
+    title: 'Konfigurasi',
+    href: '/cpanel/settings/configuration/site',
+    icon: null,
+  },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {

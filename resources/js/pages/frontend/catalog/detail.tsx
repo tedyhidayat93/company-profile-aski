@@ -482,7 +482,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     type="submit"
                                     className="cursor-pointer"
                                 >
-                                    Kirim Pesanan
+                                    Buat Pesanan
                                 </Button>
                             </div>
                         </form>
