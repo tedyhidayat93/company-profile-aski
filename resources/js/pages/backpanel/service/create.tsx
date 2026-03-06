@@ -10,7 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, DollarSign } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { formatCurrencyInput, parseCurrencyInput } from '@/utils/currency';
 
 interface Category {
   id: number;
@@ -46,6 +47,7 @@ export default function ServiceCreate({ categories }: Props) {
     price: '',
     compare_at_price: '',
     duration: '',
+    image: null as File | null,
     is_active: true,
     is_featured: false,
     category_id: '',
@@ -53,9 +55,37 @@ export default function ServiceCreate({ categories }: Props) {
     meta_description: '',
   });
 
+  // State for formatted currency display
+  const [formattedPrice, setFormattedPrice] = useState('');
+  const [formattedComparePrice, setFormattedComparePrice] = useState('');
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setData(name as keyof typeof data, value);
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCurrencyInput(e.target.value);
+    setFormattedPrice(formatted);
+    const rawValue = parseCurrencyInput(formatted);
+    setData('price', rawValue.toString());
+  };
+
+  const handleComparePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCurrencyInput(e.target.value);
+    setFormattedComparePrice(formatted);
+    const rawValue = parseCurrencyInput(formatted);
+    setData('compare_at_price', rawValue.toString());
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setData('image', e.target.files[0]);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setData('image', null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -63,7 +93,14 @@ export default function ServiceCreate({ categories }: Props) {
     
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value?.toString() || '');
+      if (key === 'image' && value instanceof File) {
+        formData.append(key, value);
+      } else if (key === 'is_active' || key === 'is_featured') {
+        // Convert boolean to string for FormData
+        formData.append(key, value ? '1' : '0');
+      } else if (key !== 'image') {
+        formData.append(key, value?.toString() || '');
+      }
     });
 
     router.post('/cpanel/cms/service', formData, {
@@ -154,20 +191,18 @@ export default function ServiceCreate({ categories }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Harga *</Label>
+                  <Label htmlFor="price">Harga</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">Rp</span>
                     <Input
                       id="price"
                       name="price"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={data.price}
-                      onChange={handleInputChange}
-                      placeholder="0.00"
+                      type="text"
+                      value={formattedPrice}
+                      onChange={handlePriceChange}
+                      placeholder="0"
                       className="pl-10"
-                      required
+                      maxLength={15} // Maksimal 15 digit untuk mencegah overflow
                     />
                   </div>
                   {errors.price && <p className="text-sm text-red-600">{errors.price}</p>}
@@ -176,26 +211,75 @@ export default function ServiceCreate({ categories }: Props) {
                 <div className="space-y-2">
                   <Label htmlFor="compare_at_price">Harga Perbandingan</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">Rp</span>
                     <Input
                       id="compare_at_price"
                       name="compare_at_price"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={data.compare_at_price}
-                      onChange={handleInputChange}
-                      placeholder="0.00"
+                      type="text"
+                      value={formattedComparePrice}
+                      onChange={handleComparePriceChange}
+                      placeholder="0"
                       className="pl-10"
+                      maxLength={15} // Maksimal 15 digit untuk mencegah overflow
                     />
                   </div>
                   {errors.compare_at_price && <p className="text-sm text-red-600">{errors.compare_at_price}</p>}
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="image">Gambar</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  <div className="text-center">
+                    {data.image ? (
+                      <div className="space-y-4">
+                        <div className="relative inline-block">
+                          <img
+                            src={URL.createObjectURL(data.image)}
+                            alt="Preview"
+                            className="h-32 w-32 object-cover rounded-lg mx-auto"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <p className="text-sm text-gray-600">{data.image.name}</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                        <div className="flex text-sm text-gray-600">
+                          <label
+                            htmlFor="image"
+                            className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                          >
+                            <span>Upload file</span>
+                            <input
+                              id="image"
+                              name="image"
+                              type="file"
+                              className="sr-only"
+                              accept="image/*"
+                              onChange={handleImageChange}
+                            />
+                          </label>
+                          <p className="pl-1">atau drag and drop</p>
+                        </div>
+                        <p className="text-xs text-gray-500">PNG, JPG, GIF, SVG up to 2MB</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {errors.image && <p className="text-sm text-red-600">{errors.image}</p>}
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="is_active">Status *</Label>
+                  <Label htmlFor="is_active">Status</Label>
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="is_active"

@@ -66,7 +66,7 @@ class BrandController extends Controller
 
         $brand = Brand::create($validated);
 
-        return redirect()->route('cms.brands.index')
+        return redirect()->route('cms.brand.index')
             ->with('success', 'Merek berhasil dibuat');
     }
 
@@ -113,7 +113,9 @@ class BrandController extends Controller
             $validated['slug'] = Str::slug($validated['name']);
         }
 
+        // Handle image upload
         if ($request->hasFile('logo')) {
+            // Delete old image if exists
             if ($brand->logo) {
                 Storage::disk('public')->delete($brand->logo);
             }
@@ -122,12 +124,20 @@ class BrandController extends Controller
             $validated['logo'] = $path;
         }
 
-        $validated['is_active'] = $validated['is_active'] ?? $brand->is_active;
+        // Handle image removal
+        if ($request->input('remove_logo') && $brand->logo) {
+            Storage::disk('public')->delete($brand->logo);
+            $validated['logo'] = null;
+        }
+
+        $validated['is_active'] = isset($validated['is_active']) 
+            ? (bool) $validated['is_active'] 
+            : $brand->is_active;
         $validated['position'] = $validated['position'] ?? $brand->position;
 
         $brand->update($validated);
 
-        return redirect()->route('cms.brands.index')
+        return redirect()->route('cms.brand.index')
             ->with('success', 'Merek berhasil diperbarui');
     }
 
@@ -141,7 +151,7 @@ class BrandController extends Controller
 
         $brand->delete();
 
-        return redirect()->route('cms.brands.index')
+        return redirect()->route('cms.brand.index')
             ->with('success', 'Merek berhasil dihapus');
     }
 
@@ -151,7 +161,7 @@ class BrandController extends Controller
         $brand->is_active = !$brand->is_active;
         $brand->save();
 
-        return redirect()->route('cms.brands.index')
+        return redirect()->route('cms.brand.index')
             ->with('success', 'Status merek berhasil diperbarui');
     }
 
@@ -168,7 +178,7 @@ class BrandController extends Controller
                 ->update(['position' => $brandData['position']]);
         }
 
-        return redirect()->route('cms.brands.index')
+        return redirect()->route('cms.brand.index')
             ->with('success', 'Posisi merek berhasil diperbarui');
     }
 }

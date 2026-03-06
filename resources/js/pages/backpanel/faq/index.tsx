@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,6 +58,21 @@ interface Props {
 }
 
 export default function FaqIndex({ faqs, filters }: Props) {
+  const { props } = usePage();
+  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
+  
+  // Tampilkan flash messages
+  React.useEffect(() => {
+    if (flash.success) {
+      console.log('Success:', flash.success);
+      alert(flash.success);
+    }
+    if (flash.error) {
+      console.log('Error:', flash.error);
+      alert(flash.error);
+    }
+  }, [flash]);
+
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'CMS',
@@ -120,14 +135,6 @@ export default function FaqIndex({ faqs, filters }: Props) {
 
   const handleToggleStatus = (id: number) => {
     router.patch(`/cpanel/cms/faq/${id}/toggle-status`);
-  };
-
-  const getActiveBadge = (isActive: boolean) => {
-    return isActive ? (
-      <Badge variant="default">Aktif</Badge>
-    ) : (
-      <Badge variant="secondary">Tidak Aktif</Badge>
-    );
   };
 
   return (
@@ -218,7 +225,18 @@ export default function FaqIndex({ faqs, filters }: Props) {
                       <Badge variant="outline">{faq.category}</Badge>
                     </TableCell>
                     <TableCell>
-                      {getActiveBadge(faq.is_active)}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleToggleStatus(faq.id)}
+                        className="p-1"
+                      >
+                        {faq.is_active ? (
+                          <ToggleRight className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <ToggleLeft className="h-5 w-5 text-gray-400" />
+                        )}
+                      </Button>
                     </TableCell>
                     <TableCell>
                       {new Date(faq.created_at).toLocaleDateString()}
@@ -236,17 +254,6 @@ export default function FaqIndex({ faqs, filters }: Props) {
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleToggleStatus(faq.id)}
-                            className="text-blue-600"
-                          >
-                            {faq.is_active ? (
-                              <ToggleLeft className="mr-2 h-4 w-4" />
-                            ) : (
-                              <ToggleRight className="mr-2 h-4 w-4" />
-                            )}
-                            Toggle Status
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDelete(faq.id)}

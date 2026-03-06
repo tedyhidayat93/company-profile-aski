@@ -45,15 +45,17 @@ class FaqController extends Controller
             'answer' => 'required|string',
             'category' => 'required|string|max:100',
             'position' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
+            'is_active' => 'sometimes|boolean',
         ]);
 
         $validated['position'] = $validated['position'] ?? 0;
-        $validated['is_active'] = $validated['is_active'] ?? true;
+        $validated['is_active'] = isset($validated['is_active']) 
+            ? (bool) $validated['is_active'] 
+            : true;
 
         $faq = Faq::create($validated);
 
-        return redirect()->route('cms.faqs.index')
+        return redirect()->route('cms.faq.index')
             ->with('success', 'FAQ berhasil dibuat');
     }
 
@@ -84,15 +86,17 @@ class FaqController extends Controller
             'answer' => 'required|string',
             'category' => 'required|string|max:100',
             'position' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
+            'is_active' => 'sometimes|boolean',
         ]);
 
         $validated['position'] = $validated['position'] ?? $faq->position;
-        $validated['is_active'] = $validated['is_active'] ?? $faq->is_active;
+        $validated['is_active'] = isset($validated['is_active']) 
+            ? (bool) $validated['is_active'] 
+            : $faq->is_active;
 
         $faq->update($validated);
 
-        return redirect()->route('cms.faqs.index')
+        return redirect()->route('cms.faq.index')
             ->with('success', 'FAQ berhasil diperbarui');
     }
 
@@ -102,7 +106,7 @@ class FaqController extends Controller
 
         $faq->delete();
 
-        return redirect()->route('cms.faqs.index')
+        return redirect()->route('cms.faq.index')
             ->with('success', 'FAQ berhasil dihapus');
     }
 
@@ -112,7 +116,7 @@ class FaqController extends Controller
         $faq->is_active = !$faq->is_active;
         $faq->save();
 
-        return redirect()->route('cms.faqs.index')
+        return redirect()->route('cms.faq.index')
             ->with('success', 'Status FAQ berhasil diperbarui');
     }
 
@@ -129,7 +133,7 @@ class FaqController extends Controller
                 ->update(['position' => $faqData['position']]);
         }
 
-        return redirect()->route('cms.faqs.index')
+        return redirect()->route('cms.faq.index')
             ->with('success', 'Posisi FAQ berhasil diperbarui');
     }
 }

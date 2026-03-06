@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,6 +62,21 @@ interface Props {
 }
 
 export default function BrandIndex({ brands, filters }: Props) {
+  const { props } = usePage();
+  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
+  
+  // Tampilkan flash messages
+  React.useEffect(() => {
+    if (flash.success) {
+      console.log('Success:', flash.success);
+      alert(flash.success);
+    }
+    if (flash.error) {
+      console.log('Error:', flash.error);
+      alert(flash.error);
+    }
+  }, [flash]);
+
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'CMS',

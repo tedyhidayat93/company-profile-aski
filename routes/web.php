@@ -9,8 +9,11 @@ use App\Http\Controllers\BackPanel\CMS\ServiceController;
 use App\Http\Controllers\BackPanel\CMS\BrandController;
 use App\Http\Controllers\BackPanel\CMS\TagController;
 use App\Http\Controllers\BackPanel\CMS\FaqController;
+use App\Http\Controllers\BackPanel\CMS\ClientController;
+use App\Http\Controllers\BackPanel\CMS\TestimonialController;
 use App\Http\Controllers\BackPanel\CMS\ProductController;
 use App\Http\Controllers\BackPanel\CMS\ArticleController;
+use App\Http\Controllers\BackPanel\CRM\OrderController;
 use App\Http\Controllers\BackPanel\CRM\CustomerController;
 use App\Http\Controllers\BackPanel\Settings\{
     ProfileController,
@@ -18,6 +21,11 @@ use App\Http\Controllers\BackPanel\Settings\{
     TwoFactorAuthenticationController,
     SettingsController,
     ConfigurationController
+};
+use App\Http\Controllers\BackPanel\Authorization\{
+    RoleController,
+    PermissionController,
+    UserManagementController
 };
 use Illuminate\Support\Facades\Route;
 
@@ -33,11 +41,11 @@ Route::get('/catalog/{category}', function($category) {
     return 'Catalog category: ' . $category;
 })->name('catalog.category');
 
-Route::prefix('blog')->group(function () {
-    Route::get('/', [BlogController::class, 'index'])->name('blog.index');
-    Route::get('/{slug}', [BlogController::class, 'show'])->name('blog.show');
-    Route::get('/category/{slug}', [BlogController::class, 'category'])->name('blog.category');
-    Route::get('/tag/{slug}', [BlogController::class, 'tag'])->name('blog.tag');
+Route::prefix('blog')->name('blog.')->group(function () {
+    Route::get('/', [BlogController::class, 'index'])->name('index');
+    Route::get('/{slug}', [BlogController::class, 'show'])->name('show');
+    Route::get('/category/{slug}', [BlogController::class, 'category'])->name('category');
+    Route::get('/tag/{slug}', [BlogController::class, 'tag'])->name('tag');
 });
 
 
@@ -51,118 +59,186 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('cms')->name('cms.')->group(function () {
             // Categories
             Route::prefix('category')->name('category.')->group(function () {
-                // Categories
-                Route::get('', [CategoryController::class, 'index'])->name('categories.index');
-                Route::get('create', [CategoryController::class, 'create'])->name('categories.create');
-                Route::post('', [CategoryController::class, 'store'])->name('categories.store');
-                Route::get('{id}', [CategoryController::class, 'show'])->name('categories.show');
-                Route::get('edit/{id}', [CategoryController::class, 'edit'])->name('categories.edit');
-                Route::put('{id}', [CategoryController::class, 'update'])->name('categories.update');
-                Route::delete('{id}', [CategoryController::class, 'destroy'])->name('categories.destroy');
-                Route::patch('{id}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('categories.toggle-status');
-                Route::get('tree', [CategoryController::class, 'getTree'])->name('categories.tree');
+                Route::get('/', [CategoryController::class, 'index'])->name('index');
+                Route::get('/create', [CategoryController::class, 'create'])->name('create');
+                Route::post('/', [CategoryController::class, 'store'])->name('store');
+                Route::get('/{id}', [CategoryController::class, 'show'])->name('show');
+                Route::get('/edit/{id}', [CategoryController::class, 'edit'])->name('edit');
+                Route::match(['post', 'put'], '/{id}', [CategoryController::class, 'update'])->name('update');
+                Route::delete('/{id}', [CategoryController::class, 'destroy'])->name('destroy');
+                Route::patch('/{id}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('toggle-status');
+                Route::get('/tree', [CategoryController::class, 'getTree'])->name('tree');
             });
 
             // Services
             Route::prefix('service')->name('service.')->group(function () {
-                Route::get('', [ServiceController::class, 'index'])->name('services.index');
-                Route::get('create', [ServiceController::class, 'create'])->name('services.create');
-                Route::post('', [ServiceController::class, 'store'])->name('services.store');
-                Route::get('{id}', [ServiceController::class, 'show'])->name('services.show');
-                Route::get('edit/{id}', [ServiceController::class, 'edit'])->name('services.edit');
-                Route::put('{id}', [ServiceController::class, 'update'])->name('services.update');
-                Route::delete('{id}', [ServiceController::class, 'destroy'])->name('services.destroy');
-                Route::patch('{id}/toggle-status', [ServiceController::class, 'toggleStatus'])->name('services.toggle-status');
-                Route::patch('{id}/toggle-featured', [ServiceController::class, 'toggleFeatured'])->name('services.toggle-featured');
+                Route::get('', [ServiceController::class, 'index'])->name('index');
+                Route::get('create', [ServiceController::class, 'create'])->name('create');
+                Route::post('', [ServiceController::class, 'store'])->name('store');
+                Route::get('{id}', [ServiceController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [ServiceController::class, 'edit'])->name('edit');
+                Route::match(['post', 'put'], '{id}', [ServiceController::class, 'update'])->name('update');
+                Route::delete('{id}', [ServiceController::class, 'destroy'])->name('destroy');
+                Route::patch('{id}/toggle-status', [ServiceController::class, 'toggleStatus'])->name('toggle-status');
+                Route::patch('{id}/toggle-featured', [ServiceController::class, 'toggleFeatured'])->name('toggle-featured');
+            });
+
+            // Clients
+            Route::prefix('client')->name('client.')->group(function () {
+                Route::get('', [ClientController::class, 'index'])->name('index');
+                Route::get('create', [ClientController::class, 'create'])->name('create');
+                Route::post('', [ClientController::class, 'store'])->name('store');
+                Route::get('{id}', [ClientController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [ClientController::class, 'edit'])->name('edit');
+                Route::match(['post', 'put'], '{id}', [ClientController::class, 'update'])->name('update');
+                Route::delete('{id}', [ClientController::class, 'destroy'])->name('destroy');
+                Route::patch('{id}/toggle-status', [ClientController::class, 'toggleStatus'])->name('toggle-status');
+            });
+
+            // Testimonials
+            Route::prefix('testimonial')->name('testimonial.')->group(function () {
+                Route::get('', [TestimonialController::class, 'index'])->name('index');
+                Route::get('create', [TestimonialController::class, 'create'])->name('create');
+                Route::post('', [TestimonialController::class, 'store'])->name('store');
+                Route::get('{id}', [TestimonialController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [TestimonialController::class, 'edit'])->name('edit');
+                Route::match(['post', 'put'], '{id}', [TestimonialController::class, 'update'])->name('update');
+                Route::delete('{id}', [TestimonialController::class, 'destroy'])->name('destroy');
+                Route::patch('{id}/toggle-status', [TestimonialController::class, 'toggleStatus'])->name('toggle-status');
             });
 
             // Brands
             Route::prefix('brand')->name('brand.')->group(function () {
-                Route::get('', [BrandController::class, 'index'])->name('brands.index');
-                Route::get('create', [BrandController::class, 'create'])->name('brands.create');
-                Route::post('', [BrandController::class, 'store'])->name('brands.store');
-                Route::get('{id}', [BrandController::class, 'show'])->name('brands.show');
-                Route::get('edit/{id}', [BrandController::class, 'edit'])->name('brands.edit');
-                Route::put('{id}', [BrandController::class, 'update'])->name('brands.update');
-                Route::delete('{id}', [BrandController::class, 'destroy'])->name('brands.destroy');
-                Route::patch('{id}/toggle-status', [BrandController::class, 'toggleStatus'])->name('brands.toggle-status');
-                Route::patch('update-position', [BrandController::class, 'updatePosition'])->name('brands.update-position');
+                Route::get('', [BrandController::class, 'index'])->name('index');
+                Route::get('create', [BrandController::class, 'create'])->name('create');
+                Route::post('', [BrandController::class, 'store'])->name('store');
+                Route::get('{id}', [BrandController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [BrandController::class, 'edit'])->name('edit');
+                Route::match(['post', 'put'], '{id}', [BrandController::class, 'update'])->name('update');
+                Route::delete('{id}', [BrandController::class, 'destroy'])->name('destroy');
+                Route::patch('{id}/toggle-status', [BrandController::class, 'toggleStatus'])->name('toggle-status');
+                Route::patch('update-position', [BrandController::class, 'updatePosition'])->name('update-position');
             });
 
             // Tags
             Route::prefix('tag')->name('tag.')->group(function () {
-                Route::get('', [TagController::class, 'index'])->name('tags.index');
-                Route::get('create', [TagController::class, 'create'])->name('tags.create');
-                Route::post('', [TagController::class, 'store'])->name('tags.store');
-                Route::get('{id}', [TagController::class, 'show'])->name('tags.show');
-                Route::get('edit/{id}', [TagController::class, 'edit'])->name('tags.edit');
-                Route::put('{id}', [TagController::class, 'update'])->name('tags.update');
-                Route::delete('{id}', [TagController::class, 'destroy'])->name('tags.destroy');
+                Route::get('', [TagController::class, 'index'])->name('index');
+                Route::get('create', [TagController::class, 'create'])->name('create');
+                Route::post('', [TagController::class, 'store'])->name('store');
+                Route::get('{id}', [TagController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [TagController::class, 'edit'])->name('edit');
+                Route::put('{id}', [TagController::class, 'update'])->name('update');
+                Route::delete('{id}', [TagController::class, 'destroy'])->name('destroy');
             });
 
             // FAQs
             Route::prefix('faq')->name('faq.')->group(function () {
-                Route::get('', [FaqController::class, 'index'])->name('faqs.index');
-                Route::get('create', [FaqController::class, 'create'])->name('faqs.create');
-                Route::post('', [FaqController::class, 'store'])->name('faqs.store');
-                Route::get('{id}', [FaqController::class, 'show'])->name('faqs.show');
-                Route::get('edit/{id}', [FaqController::class, 'edit'])->name('faqs.edit');
-                Route::put('{id}', [FaqController::class, 'update'])->name('faqs.update');
-                Route::delete('{id}', [FaqController::class, 'destroy'])->name('faqs.destroy');
-                Route::patch('{id}/toggle-status', [FaqController::class, 'toggleStatus'])->name('faqs.toggle-status');
-                Route::patch('update-position', [FaqController::class, 'updatePosition'])->name('faqs.update-position');
+                Route::get('', [FaqController::class, 'index'])->name('index');
+                Route::get('create', [FaqController::class, 'create'])->name('create');
+                Route::post('', [FaqController::class, 'store'])->name('store');
+                Route::get('{id}', [FaqController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [FaqController::class, 'edit'])->name('edit');
+                Route::match(['post', 'put'], '{id}', [FaqController::class, 'update'])->name('update');
+                Route::delete('{id}', [FaqController::class, 'destroy'])->name('destroy');
+                Route::patch('{id}/toggle-status', [FaqController::class, 'toggleStatus'])->name('toggle-status');
+                Route::patch('update-position', [FaqController::class, 'updatePosition'])->name('update-position');
             });
 
             // Products
             Route::prefix('product')->name('product.')->group(function () {
-                Route::get('', [ProductController::class, 'index'])->name('products.index');
-                Route::get('create', [ProductController::class, 'create'])->name('products.create');
-                Route::post('', [ProductController::class, 'store'])->name('products.store');
-                Route::get('{id}', [ProductController::class, 'show'])->name('products.show');
-                Route::get('edit/{id}', [ProductController::class, 'edit'])->name('products.edit');
-                Route::put('{id}', [ProductController::class, 'update'])->name('products.update');
-                Route::delete('{id}', [ProductController::class, 'destroy'])->name('products.destroy');
-                Route::patch('{id}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
-                Route::patch('{id}/toggle-featured', [ProductController::class, 'toggleFeatured'])->name('products.toggle-featured');
-                Route::patch('{id}/toggle-bestseller', [ProductController::class, 'toggleBestseller'])->name('products.toggle-bestseller');
-                Route::patch('update-position', [ProductController::class, 'updatePosition'])->name('products.update-position');
+                Route::get('', [ProductController::class, 'index'])->name('index');
+                Route::get('create', [ProductController::class, 'create'])->name('create');
+                Route::post('', [ProductController::class, 'store'])->name('store');
+                Route::get('{id}', [ProductController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [ProductController::class, 'edit'])->name('edit');
+                Route::match(['post', 'put'], '{id}', [ProductController::class, 'update'])->name('update');
+                Route::delete('{id}', [ProductController::class, 'destroy'])->name('destroy');
+                Route::patch('{id}/toggle-status', [ProductController::class, 'toggleStatus'])->name('toggle-status');
+                Route::patch('{id}/toggle-featured', [ProductController::class, 'toggleFeatured'])->name('toggle-featured');
+                Route::patch('{id}/toggle-bestseller', [ProductController::class, 'toggleBestseller'])->name('toggle-bestseller');
+                Route::patch('update-position', [ProductController::class, 'updatePosition'])->name('update-position');
             });
 
             // Articles
             Route::prefix('article')->name('article.')->group(function () {
-                Route::get('', [ArticleController::class, 'index'])->name('articles.index');
-                Route::get('create', [ArticleController::class, 'create'])->name('articles.create');
-                Route::post('', [ArticleController::class, 'store'])->name('articles.store');
-                Route::get('{id}', [ArticleController::class, 'show'])->name('articles.show');
-                Route::get('edit/{id}', [ArticleController::class, 'edit'])->name('articles.edit');
-                Route::put('{id}', [ArticleController::class, 'update'])->name('articles.update');
-                Route::delete('{id}', [ArticleController::class, 'destroy'])->name('articles.destroy');
-                Route::patch('{id}/toggle-status', [ArticleController::class, 'toggleStatus'])->name('articles.toggle-status');
-                Route::patch('update-position', [ArticleController::class, 'updatePosition'])->name('articles.update-position');
+                Route::get('', [ArticleController::class, 'index'])->name('index');
+                Route::get('create', [ArticleController::class, 'create'])->name('create');
+                Route::post('', [ArticleController::class, 'store'])->name('store');
+                Route::get('{id}', [ArticleController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [ArticleController::class, 'edit'])->name('edit');
+                Route::put('{id}', [ArticleController::class, 'update'])->name('update');
+                Route::delete('{id}', [ArticleController::class, 'destroy'])->name('destroy');
+                Route::patch('{id}/toggle-status', [ArticleController::class, 'toggleStatus'])->name('toggle-status');
+                Route::patch('update-position', [ArticleController::class, 'updatePosition'])->name('update-position');
             });    
         });
     
         // CRM
         Route::prefix('crm')->name('crm.')->group(function () {
+            // Orders
+            Route::prefix('orders')->name('orders.')->group(function () {
+                Route::get('', [OrderController::class, 'index'])->name('index');
+                Route::get('create', [OrderController::class, 'create'])->name('create');
+                Route::post('', [OrderController::class, 'store'])->name('store');
+                Route::get('{id}', [OrderController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [OrderController::class, 'edit'])->name('edit');
+                Route::put('{id}', [OrderController::class, 'update'])->name('update');
+                Route::delete('{id}', [OrderController::class, 'destroy'])->name('destroy');
+                Route::patch('{id}/status', [OrderController::class, 'updateStatus'])->name('updateStatus');
+            });
+            
             // Customers
             Route::prefix('customer')->name('customer.')->group(function () {
-                Route::get('', [CustomerController::class, 'index'])->name('customers.index');
-                Route::get('create', [CustomerController::class, 'create'])->name('customers.create');
-                Route::post('', [CustomerController::class, 'store'])->name('customers.store');
-                Route::get('{id}', [CustomerController::class, 'show'])->name('customers.show');
-                Route::get('edit/{id}', [CustomerController::class, 'edit'])->name('customers.edit');
-                Route::put('{id}', [CustomerController::class, 'update'])->name('customers.update');
-                Route::delete('{id}', [CustomerController::class, 'destroy'])->name('customers.destroy');
-                Route::patch('{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('customers.toggle-status');
+                Route::get('', [CustomerController::class, 'index'])->name('index');
+                Route::get('create', [CustomerController::class, 'create'])->name('create');
+                Route::post('', [CustomerController::class, 'store'])->name('store');
+                Route::get('{id}', [CustomerController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [CustomerController::class, 'edit'])->name('edit');
+                Route::put('{id}', [CustomerController::class, 'update'])->name('update');
+                Route::delete('{id}', [CustomerController::class, 'destroy'])->name('destroy');
+                Route::patch('{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('toggle-status');
             });
         });
     
-        // System
-        Route::get('system', function () {
-            // Role
-            // Permission
-            // Log Activity
+        // Authorization Management
+        Route::prefix('authorization')->name('authorization.')->group(function () {
             // User Management
+            Route::prefix('user-management')->name('users.')->group(function () {
+                Route::get('', [UserManagementController::class, 'index'])->name('index');
+                Route::get('create', [UserManagementController::class, 'create'])->name('create');
+                Route::post('', [UserManagementController::class, 'store'])->name('store');
+                Route::get('{id}', [UserManagementController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [UserManagementController::class, 'edit'])->name('edit');
+                Route::put('{id}', [UserManagementController::class, 'update'])->name('update');
+                Route::delete('{id}', [UserManagementController::class, 'destroy'])->name('destroy');
+                Route::patch('{id}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('toggle-status');
+            });
+
+            // Role Management
+            Route::prefix('roles')->name('roles.')->group(function () {
+                Route::get('', [RoleController::class, 'index'])->name('index');
+                Route::get('create', [RoleController::class, 'create'])->name('create');
+                Route::post('', [RoleController::class, 'store'])->name('store');
+                Route::get('{id}', [RoleController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [RoleController::class, 'edit'])->name('edit');
+                Route::put('{id}', [RoleController::class, 'update'])->name('update');
+                Route::delete('{id}', [RoleController::class, 'destroy'])->name('destroy');
+                Route::patch('{id}/toggle-status', [RoleController::class, 'toggleStatus'])->name('toggle-status');
+                Route::get('{id}/permissions', [RoleController::class, 'permissions'])->name('permissions');
+                Route::put('{id}/permissions', [RoleController::class, 'syncPermissions'])->name('sync-permissions');
+            });
+
+            // Permission Management
+            Route::prefix('permissions')->name('permissions.')->group(function () {
+                Route::get('', [PermissionController::class, 'index'])->name('index');
+                Route::get('create', [PermissionController::class, 'create'])->name('create');
+                Route::post('', [PermissionController::class, 'store'])->name('store');
+                Route::get('{id}', [PermissionController::class, 'show'])->name('show');
+                Route::get('edit/{id}', [PermissionController::class, 'edit'])->name('edit');
+                Route::put('{id}', [PermissionController::class, 'update'])->name('update');
+                Route::delete('{id}', [PermissionController::class, 'destroy'])->name('destroy');
+                Route::get('groups', [PermissionController::class, 'groups'])->name('groups');
+            });
         });
 
         // Settings

@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react';
 
 interface HeaderTitleProps {
   title: string;
-  description: string;
+  description?: string;
   addButtonText?: string;
   addButtonHref?: string;
   children?: React.ReactNode;

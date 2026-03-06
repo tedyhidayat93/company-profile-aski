@@ -14,16 +14,48 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = Category::with('parent')
-            ->when($request->type, function ($query, $type) {
-                return $query->ofType($type);
-            })
-            ->when($request->search, function ($query, $search) {
-                return $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            })
-            ->orderBy('lft')
-            ->paginate(10);
+        $viewMode = $request->get('view', 'table');
+        
+        if ($viewMode === 'tree') {
+            // Tree view - no pagination, get all categories with children
+            $categories = Category::with('parent')
+                ->when($request->type && $request->type !== 'all', function ($query, $type) {
+                    return $query->ofType($type);
+                })
+                ->when($request->search, function ($query, $search) {
+                    return $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                })
+                ->orderBy('lft')
+                ->get();
+                
+            // Transform to match expected structure for tree view
+            $categories = [
+                'data' => $categories,
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => count($categories),
+                'total' => count($categories),
+                'links' => [
+                    'first' => '',
+                    'last' => '',
+                    'prev' => null,
+                    'next' => null,
+                ]
+            ];
+        } else {
+            // Table view - with pagination
+            $categories = Category::with('parent')
+                ->when($request->type && $request->type !== 'all', function ($query, $type) {
+                    return $query->ofType($type);
+                })
+                ->when($request->search, function ($query, $search) {
+                    return $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                })
+                ->orderBy('lft')
+                ->paginate(10);
+        }
 
         $parentCategories = Category::with('children')
             ->root()
@@ -34,7 +66,7 @@ class CategoryController extends Controller
         return Inertia::render('backpanel/category/index', [
             'categories' => $categories,
             'parentCategories' => $parentCategories,
-            'filters' => $request->only(['search', 'type'])
+            'filters' => $request->only(['search', 'type', 'view'])
         ]);
     }
 
@@ -66,8 +98,8 @@ class CategoryController extends Controller
 
         $category = Category::create($validated);
 
-        return redirect()->route('cms.categories.index')
-            ->with('success', 'Category created successfully');
+        return redirect()->route('cms.category.index')
+            ->with('success', 'Kategori berhasil dibuat');
     }
 
     public function show($id)
@@ -95,7 +127,7 @@ class CategoryController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'type' => 'required|string|in:product,service,blog',
             'parent_id' => 'nullable|exists:categories,id',
-            'is_active' => 'boolean',
+            'is_active' => 'sometimes|boolean',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
         ]);
@@ -113,12 +145,15 @@ class CategoryController extends Controller
             $validated['image'] = $path;
         }
 
-        $validated['is_active'] = $validated['is_active'] ?? $category->is_active;
+        // Handle is_active field properly
+        $validated['is_active'] = isset($validated['is_active']) 
+            ? (bool) $validated['is_active'] 
+            : $category->is_active;
 
         $category->update($validated);
 
-        return redirect()->route('cms.categories.index')
-            ->with('success', 'Category updated successfully');
+        return redirect()->route('cms.category.index')
+            ->with('success', 'Kategori berhasil diperbarui');
     }
 
     public function destroy($id)
@@ -126,8 +161,8 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
 
         if ($category->children()->count() > 0) {
-            return redirect()->route('cms.categories.index')
-                ->with('error', 'Cannot delete category with subcategories');
+            return redirect()->route('cms.category.index')
+            ->with('error', 'Tidak dapat menghapus kategori yang memiliki subkategori');
         }
 
         if ($category->image) {
@@ -136,14 +171,14 @@ class CategoryController extends Controller
 
         $category->delete();
 
-        return redirect()->route('cms.categories.index')
-            ->with('success', 'Category deleted successfully');
+        return redirect()->route('cms.category.index')
+            ->with('success', 'Kategori berhasil dihapus');
     }
 
     public function getTree(Request $request)
     {
         $categories = Category::with('children')
-            ->when($request->type, function ($query, $type) {
+            ->when($request->type && $request->type !== 'all', function ($query, $type) {
                 return $query->ofType($type);
             })
             ->root()
@@ -154,7 +189,7 @@ class CategoryController extends Controller
         return response()->json([
             'success' => true,
             'data' => $categories,
-            'message' => 'Category tree retrieved successfully'
+            'message' => 'Struktur kategori berhasil diambil'
         ]);
     }
 
@@ -164,8 +199,8 @@ class CategoryController extends Controller
         $category->is_active = !$category->is_active;
         $category->save();
 
-        return redirect()->route('cms.categories.index')
-            ->with('success', 'Category status updated successfully');
+        return redirect()->route('cms.category.index')
+            ->with('success', 'Status kategori berhasil diperbarui');
     }
 
     public function create()

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Upload, Globe } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Globe } from 'lucide-react';
 
 interface Brand {
   id: number;
@@ -31,6 +31,77 @@ interface Props {
 }
 
 export default function BrandEdit({ brand }: Props) {
+  const { props } = usePage();
+  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
+  
+  // Tampilkan flash messages
+  React.useEffect(() => {
+    if (flash.success) {
+      console.log('Success:', flash.success);
+      alert(flash.success);
+    }
+    if (flash.error) {
+      console.log('Error:', flash.error);
+      alert(flash.error);
+    }
+  }, [flash]);
+
+  const { data, setData, post, processing, errors, reset } = useForm({
+    name: brand.name,
+    slug: brand.slug,
+    description: brand.description || '',
+    logo: null as File | null,
+    website: brand.website || '',
+    is_active: brand.is_active,
+    position: brand.position,
+    meta_title: brand.meta_title || '',
+    meta_description: brand.meta_description || '',
+    remove_logo: false,
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setData(name as keyof typeof data, value);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setData('logo', e.target.files[0]);
+      setData('remove_logo', false); // Reset remove flag when new image is selected
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setData('logo', null);
+    setData('remove_logo', true); // Set remove flag
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (key === 'logo' && value instanceof File) {
+        formData.append(key, value);
+      } else if (key === 'is_active') {
+        formData.append(key, value ? '1' : '0');
+      } else if (key === 'remove_logo' && value === true) {
+        formData.append(key, '1'); // Add remove flag only if true
+      } else if (key !== 'logo' && key !== 'remove_logo') {
+        formData.append(key, value?.toString() || '');
+      }
+    });
+
+    // Add method spoofing for PUT
+    formData.append('_method', 'PUT');
+
+    router.post(`/cpanel/cms/brand/${brand.id}`, formData, {
+      onSuccess: () => {
+        reset();
+      },
+    });
+  };
+
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'CMS',
@@ -41,123 +112,58 @@ export default function BrandEdit({ brand }: Props) {
       href: '/cpanel/cms/brand',
     },
     {
-      title: 'Edit',
+      title: 'Ubah',
       href: `/cpanel/cms/brand/edit/${brand.id}`,
     },
   ];
 
-  const [imagePreview, setImagePreview] = useState<string>('');
-
-  const { data, setData, put, processing, errors, reset } = useForm({
-    name: brand.name,
-    slug: brand.slug,
-    description: brand.description || '',
-    logo: null as File | null,
-    website: brand.website || '',
-    is_active: brand.is_active,
-    position: brand.position,
-    meta_title: brand.meta_title || '',
-    meta_description: brand.meta_description || '',
-  });
-
-  React.useEffect(() => {
-    if (brand.logo) {
-      setImagePreview(`/storage/${brand.logo}`);
-    }
-  }, [brand.logo]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setData(name as keyof typeof data, value);
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setData('logo', file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'logo' && value instanceof File) {
-        formData.append('logo', value);
-      } else if (key !== 'logo') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
-
-    formData.append('_method', 'PUT');
-
-    router.post(`/cpanel/cms/brand/${brand.id}`, formData, {
-      onSuccess: () => {
-        reset();
-      },
-    });
-  };
-
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Edit Merek" />
+      <Head title="Ubah Merek" />
       
       <div className="space-y-6 p-6">
-        <div className="flex items-center space-x-4">
-          <Link href="/cpanel/cms/brand">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Kembali ke Merek
-            </Button>
-          </Link>
-          <div>
-            <p className="text-muted-foreground">Perbarui informasi merek di bawah ini</p>
-          </div>
-        </div>
+        <HeaderTitle
+          title="Ubah Merek"
+          description="Ubah informasi merek yang ada"
+        />
 
         <Card>
           <CardHeader>
-            <CardTitle>Detail Merek</CardTitle>
+            <CardTitle>Form Merek</CardTitle>
             <CardDescription>
-              Ubah informasi untuk "{brand.name}".
+              Ubah informasi merek di bawah
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nama *</Label>
                   <Input
                     id="name"
                     name="name"
+                    type="text"
                     value={data.name}
                     onChange={handleInputChange}
-                    placeholder="Nama merek"
+                    placeholder="Masukkan nama merek"
                     required
                   />
                   {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="slug">Slug</Label>
                   <Input
                     id="slug"
                     name="slug"
+                    type="text"
                     value={data.slug}
                     onChange={handleInputChange}
-                    placeholder="merek-slug"
+                    placeholder="slug-otomatis"
                   />
                   {errors.slug && <p className="text-sm text-red-600">{errors.slug}</p>}
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="website">Website</Label>
                   <div className="relative">
@@ -165,6 +171,7 @@ export default function BrandEdit({ brand }: Props) {
                     <Input
                       id="website"
                       name="website"
+                      type="url"
                       value={data.website}
                       onChange={handleInputChange}
                       placeholder="https://example.com"
@@ -173,7 +180,7 @@ export default function BrandEdit({ brand }: Props) {
                   </div>
                   {errors.website && <p className="text-sm text-red-600">{errors.website}</p>}
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="position">Posisi</Label>
                   <Input
@@ -204,25 +211,66 @@ export default function BrandEdit({ brand }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="logo">Logo</Label>
-                <Input
-                  id="logo"
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  <div className="text-center">
+                    {data.logo || brand.logo ? (
+                      <div className="space-y-4">
+                        <div className="relative inline-block">
+                          <img
+                            src={data.logo ? URL.createObjectURL(data.logo) : `/storage/${brand.logo}`}
+                            alt="Preview"
+                            className="h-32 w-32 object-cover rounded-lg mx-auto"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <label
+                              htmlFor="logo-hidden"
+                              className="cursor-pointer bg-white text-gray-800 px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-100"
+                            >
+                              Change
+                            </label>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {data.logo ? data.logo.name : 'Logo saat ini'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                        <div className="flex text-sm text-gray-600">
+                          <label
+                            htmlFor="logo-hidden"
+                            className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                          >
+                            <span>Upload file</span>
+                          </label>
+                          <p className="pl-1">atau drag and drop</p>
+                        </div>
+                        <p className="text-xs text-gray-500">PNG, JPG, GIF, SVG up to 2MB</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* Hidden input field for image upload - always present */}
+                <input
+                  id="logo-hidden"
+                  name="logo"
                   type="file"
+                  className="sr-only"
                   accept="image/*"
                   onChange={handleImageChange}
                 />
-                {imagePreview && (
-                  <div className="mt-2">
-                    <img 
-                      src={imagePreview} 
-                      alt="Preview" 
-                      className="h-32 w-32 object-cover rounded-md border"
-                    />
-                  </div>
-                )}
                 {errors.logo && <p className="text-sm text-red-600">{errors.logo}</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="meta_title">Meta Title</Label>
                   <Input
@@ -234,15 +282,16 @@ export default function BrandEdit({ brand }: Props) {
                   />
                   {errors.meta_title && <p className="text-sm text-red-600">{errors.meta_title}</p>}
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="meta_description">Meta Description</Label>
-                  <Input
+                  <Textarea
                     id="meta_description"
                     name="meta_description"
                     value={data.meta_description}
                     onChange={handleInputChange}
                     placeholder="SEO meta description"
+                    rows={3}
                   />
                   {errors.meta_description && <p className="text-sm text-red-600">{errors.meta_description}</p>}
                 </div>
@@ -252,20 +301,21 @@ export default function BrandEdit({ brand }: Props) {
                 <Checkbox
                   id="is_active"
                   checked={data.is_active}
-                  onCheckedChange={(checked) => setData('is_active', checked as boolean)}
+                  onCheckedChange={(checked) => setData('is_active', checked)}
                 />
                 <Label htmlFor="is_active">Aktif</Label>
               </div>
 
               <div className="flex justify-end space-x-2">
                 <Link href="/cpanel/cms/brand">
-                  <Button type="button" variant="outline">
+                  <Button variant="outline">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
                     Batal
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
                   <Save className="mr-2 h-4 w-4" />
-                  {processing ? 'Memperbarui...' : 'Perbarui Merek'}
+                  {processing ? 'Menyimpan...' : 'Simpan'}
                 </Button>
               </div>
             </form>

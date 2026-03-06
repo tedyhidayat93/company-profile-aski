@@ -21,11 +21,11 @@ const sidebarNavItems: NavItem[] = [
     href: editPassword(),
     icon: null,
   },
-  {
-    title: 'Autentikasi Dua Faktor',
-    href: show(),
-    icon: null,
-  },
+  // {
+  //   title: 'Autentikasi Dua Faktor',
+  //   href: show(),
+  //   icon: null,
+  // },
   {
     title: 'Tampilan',
     href: editAppearance(),

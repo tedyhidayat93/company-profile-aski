@@ -46,7 +46,12 @@ export default function FaqCreate() {
     
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value?.toString() || '');
+      if (key === 'is_active') {
+        // Convert boolean to string for FormData
+        formData.append(key, value ? '1' : '0');
+      } else {
+        formData.append(key, value?.toString() || '');
+      }
     });
 
     router.post('/cpanel/cms/faq', formData, {

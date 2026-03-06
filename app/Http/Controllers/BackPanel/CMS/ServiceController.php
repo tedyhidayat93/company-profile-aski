@@ -66,11 +66,12 @@ class ServiceController extends Controller
             'description' => 'nullable|string',
             'short_description' => 'nullable|string|max:500',
             'sku' => 'nullable|string|max:100|unique:services,sku',
-            'price' => 'required|numeric|min:0',
-            'compare_at_price' => 'nullable|numeric|min:0',
+            'price' => 'nullable|numeric|min:0|max:9999999999999.99',
+            'compare_at_price' => 'nullable|numeric|min:0|max:9999999999999.99',
             'duration' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
-            'is_featured' => 'boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'is_active' => 'sometimes|boolean',
+            'is_featured' => 'sometimes|boolean',
             'category_id' => 'nullable|exists:categories,id',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
@@ -80,12 +81,22 @@ class ServiceController extends Controller
             $validated['slug'] = Str::slug($validated['name']);
         }
 
-        $validated['is_featured'] = $validated['is_featured'] ?? false;
-        $validated['is_active'] = $validated['is_active'] ?? true;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $path = $image->store('services', 'public');
+            $validated['image'] = $path;
+        }
+
+        $validated['is_featured'] = isset($validated['is_featured']) 
+            ? (bool) $validated['is_featured'] 
+            : false;
+        $validated['is_active'] = isset($validated['is_active']) 
+            ? (bool) $validated['is_active'] 
+            : true;
 
         $service = Service::create($validated);
 
-        return redirect()->route('cms.services.index')
+        return redirect()->route('cms.service.index')
             ->with('success', 'Layanan berhasil dibuat');
     }
 
@@ -133,11 +144,12 @@ class ServiceController extends Controller
                 'max:100',
                 Rule::unique('services')->ignore($service->id),
             ],
-            'price' => 'required|numeric|min:0',
-            'compare_at_price' => 'nullable|numeric|min:0',
+            'price' => 'nullable|numeric|min:0|max:9999999999999.99',
+            'compare_at_price' => 'nullable|numeric|min:0|max:9999999999999.99',
             'duration' => 'nullable|string|max:255',
-            'is_active' => 'boolean',
-            'is_featured' => 'boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'is_active' => 'sometimes|boolean',
+            'is_featured' => 'sometimes|boolean',
             'category_id' => 'nullable|exists:categories,id',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
@@ -147,12 +159,25 @@ class ServiceController extends Controller
             $validated['slug'] = Str::slug($validated['name']);
         }
 
-        $validated['is_featured'] = $validated['is_featured'] ?? $service->is_featured;
-        $validated['is_active'] = $validated['is_active'] ?? $service->is_active;
+        if ($request->hasFile('image')) {
+            if ($service->image) {
+                Storage::disk('public')->delete($service->image);
+            }
+            $image = $request->file('image');
+            $path = $image->store('services', 'public');
+            $validated['image'] = $path;
+        }
+
+        $validated['is_featured'] = isset($validated['is_featured']) 
+            ? (bool) $validated['is_featured'] 
+            : $service->is_featured;
+        $validated['is_active'] = isset($validated['is_active']) 
+            ? (bool) $validated['is_active'] 
+            : $service->is_active;
 
         $service->update($validated);
 
-        return redirect()->route('cms.services.index')
+        return redirect()->route('cms.service.index')
             ->with('success', 'Layanan berhasil diperbarui');
     }
 
@@ -162,7 +187,7 @@ class ServiceController extends Controller
 
         $service->delete();
 
-        return redirect()->route('cms.services.index')
+        return redirect()->route('cms.service.index')
             ->with('success', 'Layanan berhasil dihapus');
     }
 
@@ -172,7 +197,7 @@ class ServiceController extends Controller
         $service->is_active = !$service->is_active;
         $service->save();
 
-        return redirect()->route('cms.services.index')
+        return redirect()->route('cms.service.index')
             ->with('success', 'Status layanan berhasil diperbarui');
     }
 
@@ -182,7 +207,7 @@ class ServiceController extends Controller
         $service->is_featured = !$service->is_featured;
         $service->save();
 
-        return redirect()->route('cms.services.index')
+        return redirect()->route('cms.service.index')
             ->with('success', 'Status unggulan layanan berhasil diperbarui');
     }
 }

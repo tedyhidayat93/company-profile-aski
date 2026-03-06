@@ -43,7 +43,7 @@ export default function FaqEdit({ faq }: Props) {
     },
   ];
 
-  const { data, setData, put, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, errors, reset } = useForm({
     question: faq.question,
     answer: faq.answer,
     category: faq.category,
@@ -61,7 +61,12 @@ export default function FaqEdit({ faq }: Props) {
     
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value?.toString() || '');
+      if (key === 'is_active') {
+        // Convert boolean to string for FormData
+        formData.append(key, value ? '1' : '0');
+      } else {
+        formData.append(key, value?.toString() || '');
+      }
     });
 
     formData.append('_method', 'PUT');

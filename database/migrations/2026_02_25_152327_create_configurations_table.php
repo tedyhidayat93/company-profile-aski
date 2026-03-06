@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('group', ['site', 'email', 'system', 'payment', 'shipping', 'other'])->default('other');
             $table->string('key');
             $table->string('value');
-            $table->longtext('type')->enum(['text', 'number', 'select', 'checkbox', 'radio', 'file', 'image', 'textarea', 'wysiwyg'])->default('text');
+            $table->enum('type', ['text', 'number', 'select', 'checkbox', 'radio', 'file', 'image', 'textarea', 'wysiwyg', 'other'])->default('text');
             $table->timestamps();
         });
     }

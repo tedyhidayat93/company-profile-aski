@@ -1,4 +1,3 @@
-import React from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import ConfigurationLayout from './layout';
+import HeadingSmall from '@/components/heading-small';
+import { type BreadcrumbItem } from '@/types';
+import AppLayout from '@/layouts/app-layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import { Plus, Edit, Trash2, MoreHorizontal, Settings, Globe, Mail, Phone, MapPin } from 'lucide-react';
 
 interface Configuration {
@@ -36,6 +38,17 @@ export default function ShippingConfiguration({ configurations, currentGroup }: 
       value: config.value
     }))
   });
+
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: 'Pengaturan',
+      href: '/cpanel/settings',
+    },
+    {
+      title: 'Konfigurasi Pengiriman',
+      href: '/cpanel/settings/configuration/shipping',
+    },
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,22 +193,24 @@ export default function ShippingConfiguration({ configurations, currentGroup }: 
   };
 
   return (
-    <ConfigurationLayout>
-      <Head title={`${getGroupTitle(currentGroup)} - Konfigurasi`} />
-      
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              {getGroupIcon(currentGroup)}
-              <span>{getGroupTitle(currentGroup)}</span>
-            </CardTitle>
-            <CardDescription>
-              Kelola pengaturan untuk {getGroupTitle(currentGroup).toLowerCase()}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+    <AppLayout breadcrumbs={breadcrumbs}>
+      <Head title="Konfigurasi Pengiriman" />
+
+      <SettingsLayout>
+        <div className="space-y-6">
+          <HeadingSmall
+            title="Konfigurasi Pengiriman"
+            description="Kelola pengaturan metode pengiriman, biaya pengiriman, dan konfigurasi logistik untuk sistem e-commerce."
+          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Form Konfigurasi Pengiriman</CardTitle>
+              <CardDescription>
+                Perbarui pengaturan metode pengiriman
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
               {configurations.map((config, index) => (
                 <div key={config.id} className="space-y-2">
                   <Label htmlFor={`config-${config.id}`}>
@@ -232,19 +247,19 @@ export default function ShippingConfiguration({ configurations, currentGroup }: 
                   </Button>
                 </div>
               )}
-            </form>
-          </CardContent>
-        </Card>
+              </form>
+            </CardContent>
+          </Card>
 
-        {configurations.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Daftar Konfigurasi</CardTitle>
-              <CardDescription>
-                Lihat dan kelola semua konfigurasi {getGroupTitle(currentGroup).toLowerCase()}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          {configurations.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Daftar Konfigurasi Pengiriman</CardTitle>
+                <CardDescription>
+                  Lihat dan kelola semua konfigurasi pengiriman
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -303,8 +318,9 @@ export default function ShippingConfiguration({ configurations, currentGroup }: 
               </Table>
             </CardContent>
           </Card>
-        )}
-      </div>
-    </ConfigurationLayout>
+          )}
+        </div>
+      </SettingsLayout>
+    </AppLayout>
   );
 }

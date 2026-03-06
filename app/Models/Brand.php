@@ -40,11 +40,6 @@ class Brand extends Model
         return $query->where('is_active', true);
     }
 
-    public function scopeFeatured($query)
-    {
-        return $query->where('is_featured', true);
-    }
-
     public function scopeOrdered($query)
     {
         return $query->orderBy('position')->orderBy('name');

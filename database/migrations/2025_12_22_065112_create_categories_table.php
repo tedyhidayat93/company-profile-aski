@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->string('image')->nullable();
-            $table->enum('type', ['product', 'service'])->default('product');
+            $table->enum('type', ['product', 'service', 'blog'])->default('product');
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->integer('lft')->nullable();
             $table->integer('rgt')->nullable();

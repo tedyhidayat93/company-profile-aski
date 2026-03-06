@@ -30,6 +30,17 @@ export function NavMain({ items, groupTitle }: NavMainProps) {
   const [isGroupOpen, setIsGroupOpen] = useState(groupTitle === 'CMS');
 
   const isActive = (href: string) => {
+    // Exact match for dashboard
+    if (href === '/cpanel') {
+      return url === href;
+    }
+    
+    // For settings pages, check if it starts with /cpanel/settings/
+    if (href.includes('/settings/')) {
+      return url.startsWith('/cpanel/settings/') || url.startsWith(href);
+    }
+    
+    // For other pages, check if URL starts with href or exact match
     return url.startsWith(href) || url === href;
   };
 

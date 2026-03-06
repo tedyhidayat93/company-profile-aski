@@ -89,8 +89,10 @@ export default function CategoryCreate({ parentCategories }: Props) {
     Object.entries(data).forEach(([key, value]) => {
       if (key === 'image' && value instanceof File) {
         formData.append('image', value);
+      } else if (key === 'parent_id' && value === '0') {
+        // Tidak kirim parent_id jika '0' (root category)
       } else if (key !== 'image') {
-        formData.append(key, value.toString());
+        formData.append(key, (value ?? '').toString());
       }
     });
 
@@ -104,10 +106,10 @@ export default function CategoryCreate({ parentCategories }: Props) {
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Create Category" />
+      <Head title="Buat Kategori" />
       
       <div className="flex h-4 flex-wrap p-6">
-        <h1 className="text-2xl font-bold">Create Category</h1>
+        <h1 className="text-2xl font-bold">Buat Kategori</h1>
       </div>
 
       <div className="space-y-6 p-6">
@@ -115,32 +117,32 @@ export default function CategoryCreate({ parentCategories }: Props) {
           <Link href="/cpanel/cms/category">
             <Button variant="outline" size="sm">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Categories
+              Kembali ke Kategori
             </Button>
           </Link>
           <div>
-            <p className="text-muted-foreground">Add a new category to your system</p>
+            <p className="text-muted-foreground">Tambahkan kategori baru ke sistem Anda</p>
           </div>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Category Details</CardTitle>
+            <CardTitle>Detail Kategori</CardTitle>
             <CardDescription>
-              Fill in the information below to create a new category.
+              Isi informasi di bawah ini untuk membuat kategori baru.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name *</Label>
+                  <Label htmlFor="name">Nama *</Label>
                   <Input
                     id="name"
                     name="name"
                     value={data.name}
                     onChange={handleInputChange}
-                    placeholder="Category name"
+                    placeholder="Nama kategori"
                     required
                   />
                   {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
@@ -153,7 +155,7 @@ export default function CategoryCreate({ parentCategories }: Props) {
                     name="slug"
                     value={data.slug}
                     onChange={handleInputChange}
-                    placeholder="category-slug"
+                    placeholder="slug-kategori"
                   />
                   {errors.slug && <p className="text-sm text-red-600">{errors.slug}</p>}
                 </div>
@@ -161,14 +163,14 @@ export default function CategoryCreate({ parentCategories }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="type">Type *</Label>
+                  <Label htmlFor="type">Tipe *</Label>
                   <Select value={data.type} onValueChange={(value) => setData('type', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder="Pilih tipe" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="product">Product</SelectItem>
-                      <SelectItem value="service">Service</SelectItem>
+                      <SelectItem value="product">Produk</SelectItem>
+                      <SelectItem value="service">Layanan</SelectItem>
                       <SelectItem value="blog">Blog</SelectItem>
                     </SelectContent>
                   </Select>
@@ -176,13 +178,13 @@ export default function CategoryCreate({ parentCategories }: Props) {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="parent_id">Parent Category</Label>
+                  <Label htmlFor="parent_id">Kategori Induk</Label>
                   <Select value={data.parent_id} onValueChange={(value) => setData('parent_id', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select parent (optional)" />
+                      <SelectValue placeholder="Pilih induk (opsional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0">None (Root Category)</SelectItem>
+                      <SelectItem value="0">Tidak Ada (Kategori Utama)</SelectItem>
                       {parentCategories.map((category) => (
                         <SelectItem key={category.id} value={category.id.toString()}>
                           {category.name}
@@ -195,20 +197,20 @@ export default function CategoryCreate({ parentCategories }: Props) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Deskripsi</Label>
                 <Textarea
                   id="description"
                   name="description"
                   value={data.description}
                   onChange={handleInputChange}
-                  placeholder="Category description"
+                  placeholder="Deskripsi kategori"
                   rows={3}
                 />
                 {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="image">Image</Label>
+                <Label htmlFor="image">Gambar</Label>
                 <Input
                   id="image"
                   type="file"
@@ -219,7 +221,7 @@ export default function CategoryCreate({ parentCategories }: Props) {
                   <div className="mt-2">
                     <img 
                       src={imagePreview} 
-                      alt="Preview" 
+                      alt="Pratinjau" 
                       className="h-32 w-32 object-cover rounded-md border"
                     />
                   </div>
@@ -235,7 +237,7 @@ export default function CategoryCreate({ parentCategories }: Props) {
                     name="meta_title"
                     value={data.meta_title}
                     onChange={handleInputChange}
-                    placeholder="SEO meta title"
+                    placeholder="Meta title untuk SEO"
                   />
                   {errors.meta_title && <p className="text-sm text-red-600">{errors.meta_title}</p>}
                 </div>
@@ -247,7 +249,7 @@ export default function CategoryCreate({ parentCategories }: Props) {
                     name="meta_description"
                     value={data.meta_description}
                     onChange={handleInputChange}
-                    placeholder="SEO meta description"
+                    placeholder="Meta description untuk SEO"
                   />
                   {errors.meta_description && <p className="text-sm text-red-600">{errors.meta_description}</p>}
                 </div>
@@ -259,18 +261,18 @@ export default function CategoryCreate({ parentCategories }: Props) {
                   checked={data.is_active}
                   onCheckedChange={(checked) => setData('is_active', checked as boolean)}
                 />
-                <Label htmlFor="is_active">Active</Label>
+                <Label htmlFor="is_active">Aktif</Label>
               </div>
 
               <div className="flex justify-end space-x-2">
                 <Link href="/cpanel/cms/category">
                   <Button type="button" variant="outline">
-                    Cancel
+                    Batal
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
                   <Save className="mr-2 h-4 w-4" />
-                  {processing ? 'Creating...' : 'Create Category'}
+                  {processing ? 'Membuat...' : 'Buat Kategori'}
                 </Button>
               </div>
             </form>

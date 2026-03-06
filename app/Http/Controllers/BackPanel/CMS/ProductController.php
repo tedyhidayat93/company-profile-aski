@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -42,7 +44,8 @@ class ProductController extends Controller
             ->when($request->bestseller !== null, function ($query, $bestseller) {
                 return $query->where('is_bestseller', $bestseller === 'true');
             })
-            ->with(['brand', 'category'])
+            ->with(['brand', 'category', 'coverImage'])
+            ->orderBy('position')
             ->orderBy('name')
             ->paginate(15);
 
@@ -87,12 +90,17 @@ class ProductController extends Controller
             'is_featured' => 'boolean',
             'is_bestseller' => 'boolean',
             'is_new' => 'boolean',
+            'show_price' => 'boolean',
+            'position' => 'nullable|integer|min:0',
             'brand_id' => 'nullable|integer|exists:brands,id',
             'category_id' => 'nullable|integer|exists:categories,id',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'tags' => 'nullable|array',
             'tags.*' => 'nullable|string|max:50',
+            'images' => 'nullable|array|max:5',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'cover_image' => 'nullable|integer|min:0',
         ]);
 
         if (empty($validated['slug'])) {
@@ -106,17 +114,46 @@ class ProductController extends Controller
         $validated['is_featured'] = $validated['is_featured'] ?? false;
         $validated['is_bestseller'] = $validated['is_bestseller'] ?? false;
         $validated['is_new'] = $validated['is_new'] ?? false;
+        $validated['show_price'] = $validated['show_price'] ?? true;
         $validated['track_quantity'] = $validated['track_quantity'] ?? true;
+        $validated['position'] = $validated['position'] ?? 0;
+        
+        // Handle "none" values for brand_id and category_id
+        if ($validated['brand_id'] === 'none') {
+            $validated['brand_id'] = null;
+        }
+        if ($validated['category_id'] === 'none') {
+            $validated['category_id'] = null;
+        }
 
         $product = Product::create($validated);
 
-        return redirect()->route('cms.products.index')
+        // Handle image uploads
+        if ($request->hasFile('images')) {
+            $images = $request->file('images');
+            $coverImageIndex = $validated['cover_image'] ?? 0;
+            
+            foreach ($images as $index => $image) {
+                $path = $image->store('products', 'public');
+                
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $path,
+                    'is_cover' => $index === $coverImageIndex,
+                    'position' => $index,
+                ]);
+            }
+        }
+
+        return redirect()->route('cms.product.index')
             ->with('success', 'Produk berhasil dibuat');
     }
 
     public function show($id)
     {
-        $product = Product::with(['brand', 'category'])->findOrFail($id);
+        $product = Product::with(['brand', 'category', 'images' => function($query) {
+            $query->orderBy('position');
+        }])->findOrFail($id);
 
         return Inertia::render('backpanel/product/show', [
             'product' => $product
@@ -125,7 +162,9 @@ class ProductController extends Controller
 
     public function edit($id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with(['brand', 'category', 'images' => function($query) {
+            $query->orderBy('position');
+        }])->findOrFail($id);
         $brands = Brand::orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
 
@@ -167,12 +206,19 @@ class ProductController extends Controller
             'is_featured' => 'boolean',
             'is_bestseller' => 'boolean',
             'is_new' => 'boolean',
+            'show_price' => 'boolean',
+            'position' => 'nullable|integer|min:0',
             'brand_id' => 'nullable|integer|exists:brands,id',
             'category_id' => 'nullable|integer|exists:categories,id',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'tags' => 'nullable|array',
             'tags.*' => 'nullable|string|max:50',
+            'images' => 'nullable|array|max:5',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'cover_image' => 'nullable|integer|min:0',
+            'remove_images' => 'nullable|array',
+            'remove_images.*' => 'nullable|integer',
         ]);
 
         if (empty($validated['slug'])) {
@@ -186,21 +232,80 @@ class ProductController extends Controller
         $validated['is_featured'] = $validated['is_featured'] ?? $product->is_featured;
         $validated['is_bestseller'] = $validated['is_bestseller'] ?? $product->is_bestseller;
         $validated['is_new'] = $validated['is_new'] ?? $product->is_new;
+        $validated['show_price'] = $validated['show_price'] ?? $product->show_price;
         $validated['track_quantity'] = $validated['track_quantity'] ?? $product->track_quantity;
+        $validated['position'] = $validated['position'] ?? $product->position;
+        
+        // Handle "none" values for brand_id and category_id
+        if ($validated['brand_id'] === 'none') {
+            $validated['brand_id'] = null;
+        }
+        if ($validated['category_id'] === 'none') {
+            $validated['category_id'] = null;
+        }
 
         $product->update($validated);
 
-        return redirect()->route('cms.products.index')
+        // Handle image removals
+        if (isset($validated['remove_images']) && is_array($validated['remove_images'])) {
+            foreach ($validated['remove_images'] as $imageId) {
+                $image = ProductImage::find($imageId);
+                if ($image && $image->product_id === $product->id) {
+                    // Delete file from storage
+                    Storage::disk('public')->delete($image->image_path);
+                    // Delete record
+                    $image->delete();
+                }
+            }
+        }
+
+        // Handle new image uploads
+        if ($request->hasFile('images')) {
+            $images = $request->file('images');
+            $coverImageIndex = $validated['cover_image'] ?? 0;
+            $maxPosition = $product->images()->max('position') ?? 0;
+            
+            foreach ($images as $index => $image) {
+                $path = $image->store('products', 'public');
+                
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $path,
+                    'is_cover' => $index === $coverImageIndex,
+                    'position' => $maxPosition + $index + 1,
+                ]);
+            }
+        }
+
+        // Update cover image if specified
+        if (isset($validated['cover_image']) && $validated['cover_image'] !== '') {
+            // Reset all cover images
+            $product->images()->update(['is_cover' => false]);
+            
+            // Set new cover image
+            $coverImage = $product->images()->where('id', $validated['cover_image'])->first();
+            if ($coverImage) {
+                $coverImage->update(['is_cover' => true]);
+            }
+        }
+
+        return redirect()->route('cms.product.index')
             ->with('success', 'Produk berhasil diperbarui');
     }
 
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with('images')->findOrFail($id);
+
+        // Delete all product images from storage
+        foreach ($product->images as $image) {
+            Storage::disk('public')->delete($image->image_path);
+            $image->delete();
+        }
 
         $product->delete();
 
-        return redirect()->route('cms.products.index')
+        return redirect()->route('cms.product.index')
             ->with('success', 'Produk berhasil dihapus');
     }
 
@@ -210,7 +315,7 @@ class ProductController extends Controller
         $product->status = $product->status === 'published' ? 'draft' : 'published';
         $product->save();
 
-        return redirect()->route('cms.products.index')
+        return redirect()->route('cms.product.index')
             ->with('success', 'Status produk berhasil diperbarui');
     }
 
@@ -220,7 +325,7 @@ class ProductController extends Controller
         $product->is_featured = !$product->is_featured;
         $product->save();
 
-        return redirect()->route('cms.products.index')
+        return redirect()->route('cms.product.index')
             ->with('success', 'Status unggulan produk berhasil diperbarui');
     }
 
@@ -230,7 +335,7 @@ class ProductController extends Controller
         $product->is_bestseller = !$product->is_bestseller;
         $product->save();
 
-        return redirect()->route('cms.products.index')
+        return redirect()->route('cms.product.index')
             ->with('success', 'Status terlaris produk berhasil diperbarui');
     }
 
@@ -247,7 +352,7 @@ class ProductController extends Controller
                 ->update(['position' => $productData['position']]);
         }
 
-        return redirect()->route('cms.products.index')
+        return redirect()->route('cms.product.index')
             ->with('success', 'Posisi produk berhasil diperbarui');
     }
 }

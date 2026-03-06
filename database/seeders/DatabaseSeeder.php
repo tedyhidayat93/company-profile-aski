@@ -19,9 +19,21 @@ class DatabaseSeeder extends Seeder
             ['email' => 'sadmin@alumodasinergi.com'],
             [
                 'name' => 'Super Admin',
-                'password' => 'password',
+                'password' => bcrypt('password'),
                 'email_verified_at' => now(),
+                'is_active' => true,
             ]
         );
+
+        $this->call([
+            PermissionSeeder::class,
+            RoleSeeder::class,
+            ConfigurationSeeder::class,
+            CategorySeeder::class,
+            BrandSeeder::class,
+            ServiceSeeder::class,
+            ClientSeeder::class,
+            FaqSeeder::class,
+        ]);
     }
 }

@@ -29,7 +29,9 @@ class Product extends Model
         'is_featured',
         'is_bestseller',
         'is_new',
+        'show_price',
         'published_at',
+        'position',
         'brand_id',
         'category_id',
         'meta_title',
@@ -45,9 +47,11 @@ class Product extends Model
         'is_featured' => 'boolean',
         'is_bestseller' => 'boolean',
         'is_new' => 'boolean',
+        'show_price' => 'boolean',
         'published_at' => 'datetime',
         'deleted_at' => 'datetime',
         'tags' => 'array',
+        'position' => 'integer',
     ];
 
     protected $attributes = [
@@ -63,6 +67,16 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class);
+    }
+
+    public function coverImage()
+    {
+        return $this->hasOne(ProductImage::class)->where('is_cover', true);
     }
 
     /**

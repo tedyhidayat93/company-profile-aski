@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +12,21 @@ import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Save, Upload, Globe } from 'lucide-react';
 
 export default function BrandCreate() {
+  const { props } = usePage();
+  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
+  
+  // Tampilkan flash messages
+  React.useEffect(() => {
+    if (flash.success) {
+      console.log('Success:', flash.success);
+      alert(flash.success);
+    }
+    if (flash.error) {
+      console.log('Error:', flash.error);
+      alert(flash.error);
+    }
+  }, [flash]);
+
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'CMS',
@@ -64,7 +79,9 @@ export default function BrandCreate() {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (key === 'logo' && value instanceof File) {
-        formData.append('logo', value);
+        formData.append(key, value);
+      } else if (key === 'is_active') {
+        formData.append(key, value ? '1' : '0');
       } else if (key !== 'logo') {
         formData.append(key, value?.toString() || '');
       }

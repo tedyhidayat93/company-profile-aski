@@ -9,7 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import ConfigurationLayout from './layout';
+import HeadingSmall from '@/components/heading-small';
+import { type BreadcrumbItem } from '@/types';
+import AppLayout from '@/layouts/app-layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import { Plus, Edit, Trash2, MoreHorizontal, Settings, Globe, Mail, Phone, MapPin } from 'lucide-react';
 
 interface Configuration {
@@ -28,6 +31,13 @@ interface Props {
   configurations: Configuration[];
   currentGroup: string;
 }
+
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Konfigurasi Situs',
+    href: '/cpanel/settings/configuration/site',
+  },
+];
 
 export default function SiteConfiguration({ configurations, currentGroup }: Props) {
   const { data, setData, post, processing, errors, reset } = useForm({
@@ -180,68 +190,144 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
   };
 
   return (
-    <ConfigurationLayout>
-      <Head title={`${getGroupTitle(currentGroup)} - Konfigurasi`} />
-      
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              {getGroupIcon(currentGroup)}
-              <span>{getGroupTitle(currentGroup)}</span>
-            </CardTitle>
-            <CardDescription>
-              Kelola pengaturan untuk {getGroupTitle(currentGroup).toLowerCase()}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {configurations.map((config, index) => (
-                <div key={config.id} className="space-y-2">
-                  <Label htmlFor={`config-${config.id}`}>
-                    {config.label}
-                    <span className="text-gray-400 ml-2">({config.key})</span>
-                  </Label>
-                  {renderInput(config, index)}
-                  {config.description && (
-                    <p className="text-sm text-gray-500">{config.description}</p>
-                  )}
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline">{config.type}</Badge>
-                    <span className="text-xs text-gray-400">
-                      Diperbarui: {new Date(config.updated_at).toLocaleDateString()}
-                    </span>
+    <AppLayout breadcrumbs={breadcrumbs}>
+      <Head title="Konfigurasi Situs" />
+
+      <SettingsLayout>
+        <div className="space-y-6">
+          <HeadingSmall
+            title="Konfigurasi Situs"
+            description="Kelola pengaturan konfigurasi situs website anda. Atur informasi dasar seperti nama situs, deskripsi, kontak, dan pengaturan penting lainnya."
+          />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Globe className="h-5 w-5" />
+                <span>Pengaturan Situs</span>
+              </CardTitle>
+              <CardDescription>
+                Kelola pengaturan untuk konfigurasi situs
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {configurations.map((config, index) => (
+                  <div key={config.id} className="space-y-2">
+                    <Label htmlFor={`config-${config.id}`}>
+                      {config.label}
+                      <span className="text-gray-400 ml-2">({config.key})</span>
+                    </Label>
+                    {renderInput(config, index)}
+                    {config.description && (
+                      <p className="text-sm text-gray-500">{config.description}</p>
+                    )}
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline">{config.type}</Badge>
+                    </div>
                   </div>
-                </div>
-              ))}
-
-              {configurations.length === 0 && (
-                <div className="text-center py-8">
-                  <Settings className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-semibold text-gray-900">Tidak ada konfigurasi</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Mulai dengan menambah konfigurasi baru.
-                  </p>
-                </div>
-              )}
-
-              {configurations.length > 0 && (
+                ))}
                 <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => reset()}
+                  >
+                    Reset
+                  </Button>
                   <Button type="submit" disabled={processing}>
-                    {processing ? 'Menyimpan...' : 'Simpan Pengaturan'}
+                    {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                   </Button>
                 </div>
-              )}
-            </form>
-          </CardContent>
-        </Card>
+              </form>
+            </CardContent>
+          </Card>
 
-        {configurations.length > 0 && (
+          {/* Add Configuration Form */}
+          <Card id="add-config-form">
+            <CardHeader>
+              <CardTitle>Tambah Konfigurasi Baru</CardTitle>
+              <CardDescription>
+                Tambah konfigurasi baru untuk situs
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  router.post(`/cpanel/settings/configuration/${currentGroup}/create`, formData);
+                }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="new-label">Label</Label>
+                    <Input
+                      id="new-label"
+                      name="label"
+                      placeholder="Nama konfigurasi"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="new-key">Key</Label>
+                    <Input
+                      id="new-key"
+                      name="key"
+                      placeholder="key_konfigurasi"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="new-description">Deskripsi</Label>
+                  <Textarea
+                    id="new-description"
+                    name="description"
+                    placeholder="Deskripsi konfigurasi"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="new-value">Nilai</Label>
+                  <Input
+                    id="new-value"
+                    name="value"
+                    placeholder="Nilai konfigurasi"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="new-type">Tipe</Label>
+                  <Select name="type" defaultValue="text">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih tipe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">Text</SelectItem>
+                      <SelectItem value="number">Number</SelectItem>
+                      <SelectItem value="select">Select</SelectItem>
+                      <SelectItem value="checkbox">Checkbox</SelectItem>
+                      <SelectItem value="radio">Radio</SelectItem>
+                      <SelectItem value="file">File</SelectItem>
+                      <SelectItem value="image">Image</SelectItem>
+                      <SelectItem value="textarea">Textarea</SelectItem>
+                      <SelectItem value="wysiwyg">WYSIWYG</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit">Tambah Konfigurasi</Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Configuration Table */}
           <Card>
             <CardHeader>
               <CardTitle>Daftar Konfigurasi</CardTitle>
               <CardDescription>
-                Lihat dan kelola semua konfigurasi {getGroupTitle(currentGroup).toLowerCase()}
+                Lihat semua konfigurasi yang tersedia
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -303,8 +389,8 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
               </Table>
             </CardContent>
           </Card>
-        )}
-      </div>
-    </ConfigurationLayout>
+        </div>
+      </SettingsLayout>
+    </AppLayout>
   );
 }

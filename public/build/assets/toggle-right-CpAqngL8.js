@@ -1,1 +1,0 @@
-import{c}from"./createLucideIcon-DSdY7eDy.js";const e=[["rect",{width:"20",height:"12",x:"2",y:"6",rx:"6",ry:"6",key:"f2vt7d"}],["circle",{cx:"16",cy:"12",r:"2",key:"4ma0v8"}]],o=c("ToggleRight",e);export{o as T};

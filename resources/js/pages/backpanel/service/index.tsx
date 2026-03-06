@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,8 +21,10 @@ import {
   ToggleRight,
   Star,
   Package,
-  DollarSign
+  DollarSign,
+  Image as ImageIcon
 } from 'lucide-react';
+import { formatPrice } from '@/utils/currency';
 
 interface Service {
   id: number;
@@ -31,9 +33,10 @@ interface Service {
   description?: string;
   short_description?: string;
   sku?: string;
-  price: number;
-  compare_at_price?: number;
+  price: number | null;
+  compare_at_price?: number | null;
   duration?: string;
+  image?: string;
   is_active: boolean;
   is_featured: boolean;
   category_id?: number;
@@ -76,6 +79,21 @@ interface Props {
 }
 
 export default function ServiceIndex({ services, categories, filters }: Props) {
+  const { props } = usePage();
+  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
+  
+  // Tampilkan flash messages
+  React.useEffect(() => {
+    if (flash.success) {
+      console.log('Success:', flash.success);
+      alert(flash.success);
+    }
+    if (flash.error) {
+      console.log('Error:', flash.error);
+      alert(flash.error);
+    }
+  }, [flash]);
+
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'CMS',
@@ -162,13 +180,6 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
     router.patch(`/cpanel/cms/service/${id}/toggle-featured`);
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR'
-    }).format(price);
-  };
-
   const getActiveBadge = (isActive: boolean) => {
     return isActive ? (
       <Badge variant="default">Aktif</Badge>
@@ -247,19 +258,33 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead className="w-[80px]">Gambar</TableHead>
+                  <TableHead>Nama</TableHead>
                   <TableHead>SKU</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead>Harga</TableHead>
+                  <TableHead>Kategori</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Unggulan</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Dibuat</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {services.data.map((service) => (
                   <TableRow key={service.id}>
+                    <TableCell>
+                      {service.image ? (
+                        <img
+                          src={`/storage/${service.image}`}
+                          alt={service.name}
+                          className="h-12 w-12 object-cover rounded-md"
+                        />
+                      ) : (
+                        <div className="h-12 w-12 bg-gray-100 rounded-md flex items-center justify-center">
+                          <ImageIcon className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <div>
                         <div className="font-medium">{service.name}</div>
@@ -279,7 +304,7 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
                         <div className="font-semibold text-green-600">
                           {formatPrice(service.price)}
                         </div>
-                        {service.compare_at_price && service.compare_at_price > service.price && (
+                        {service.compare_at_price && service.price && service.compare_at_price > service.price && (
                           <div className="text-sm text-gray-500 line-through">
                             {formatPrice(service.compare_at_price)}
                           </div>
@@ -287,10 +312,18 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {service.category ? service.category.name : '-'}
+                      {service.category ? (
+                        <Badge variant="outline">{service.category.name}</Badge>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
-                      {getActiveBadge(service.is_active)}
+                      {service.is_active ? (
+                        <Badge variant="default" className="bg-green-100 text-green-800">Aktif</Badge>
+                      ) : (
+                        <Badge variant="secondary">Tidak Aktif</Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -305,21 +338,13 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
                       </Button>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleStatus(service.id)}
-                        className="p-1"
-                      >
-                        {service.is_active ? (
-                          <ToggleRight className="h-5 w-5 text-green-600" />
-                        ) : (
-                          <ToggleLeft className="h-5 w-5 text-gray-400" />
-                        )}
-                      </Button>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(service.created_at).toLocaleDateString()}
+                      <div className="text-sm text-gray-600">
+                        {new Date(service.created_at).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -340,7 +365,7 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
                             className="text-red-600"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            Hapus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

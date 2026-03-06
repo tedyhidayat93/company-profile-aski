@@ -20,6 +20,7 @@ class Service extends Model
         'price',
         'compare_at_price',
         'duration',
+        'image',
         'status',
         'is_featured',
         'category_id',
@@ -30,8 +31,8 @@ class Service extends Model
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'compare_at_price' => 'decimal:2',
+        'price' => 'float',
+        'compare_at_price' => 'float',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
         'sequence' => 'integer',

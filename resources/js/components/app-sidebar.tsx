@@ -15,18 +15,24 @@ import { Link } from '@inertiajs/react';
 import {
   Activity,
   BarChart,
+  BookmarkCheck,
   BookOpen,
   FileText,
   Folder,
   HandHeart,
+  HandshakeIcon,
   LayoutGrid,
   ListOrdered,
   Lock,
   MessageCircleQuestion,
+  MessageSquare,
+  Settings,
   Shield,
+  ShieldEllipsis,
   ShoppingCart,
   Tag,
   Users,
+  UsersIcon,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -61,7 +67,12 @@ const mainNavGroups: NavGroupItem[] = [
           icon: Users,
         },
         {
-          title: 'Brand',
+          title: 'Klien',
+          href: '/cpanel/cms/client',
+          icon: HandshakeIcon,
+        },
+        {
+          title: 'Merek',
           href: '/cpanel/cms/brand',
           icon: Tag,
         },
@@ -78,12 +89,37 @@ const mainNavGroups: NavGroupItem[] = [
         {
           title: 'Tag',
           href: '/cpanel/cms/tag',
-          icon: Tag,
+          icon: BookmarkCheck,
         },
         {
           title: 'FAQ',
           href: '/cpanel/cms/faq',
           icon: MessageCircleQuestion,
+        },
+        {
+          title: 'Testimonial',
+          href: '/cpanel/cms/testimonial',
+          icon: MessageSquare,
+        },
+        {
+          title: 'User',
+          href: '/cpanel/authorization/user-management',
+          icon: UsersIcon,
+        },
+        {
+          title: 'Role',
+          href: '/cpanel/authorization/roles',
+          icon: ShieldEllipsis,
+        },
+        {
+          title: 'Hak Akses',
+          href: '/cpanel/authorization/permissions',
+          icon: Shield,
+        },
+        {
+          title: 'Pengaturan',
+          href: '/cpanel/settings/configuration/site',
+          icon: Settings,
         }
       ],
     }
