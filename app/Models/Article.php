@@ -25,12 +25,16 @@ class Article extends Model
         'meta_keywords',
         'views_count',
         'tags',
+        'position',
+        'is_headline',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
         'deleted_at' => 'datetime',
         'tags' => 'array',
+        'position' => 'integer',
+        'is_headline' => 'boolean',
     ];
 
     protected $attributes = [
@@ -41,27 +45,6 @@ class Article extends Model
     public function author()
     {
         return $this->belongsTo(User::class, 'author_id');
-    }
-
-    /**
-     * Get the tags as an array.
-     *
-     * @return array
-     */
-    public function getTagsAttribute($value)
-    {
-        return json_decode($value, true) ?? [];
-    }
-
-    /**
-     * Set the tags as a JSON string.
-     *
-     * @param  array|string  $value
-     * @return void
-     */
-    public function setTagsAttribute($value)
-    {
-        $this->attributes['tags'] = is_array($value) ? json_encode(array_values(array_unique($value))) : $value;
     }
 
     /**
@@ -127,5 +110,24 @@ class Article extends Model
     {
         return $query->where('published_at', '>=', now()->subDays($days))
             ->orderBy('views_count', 'desc');
+    }
+
+    public function scopeHeadline($query)
+    {
+        return $query->where('is_headline', true);
+    }
+
+    public function scopeWithTags($query, array $tags)
+    {
+        return $query->where(function ($query) use ($tags) {
+            foreach ($tags as $tag) {
+                $query->orWhereJsonContains('tags', $tag);
+            }
+        });
+    }
+
+    public function scopeWithTag($query, string $tag)
+    {
+        return $query->whereJsonContains('tags', $tag);
     }
 }

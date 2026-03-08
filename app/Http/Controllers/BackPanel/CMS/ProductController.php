@@ -179,6 +179,13 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
+        // Normalize currency inputs
+        $request->merge([
+            'price' => normalize_currency($request->price),
+            'compare_at_price' => normalize_currency($request->compare_at_price),
+            'cost_per_item' => normalize_currency($request->cost_per_item),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => [
@@ -196,9 +203,9 @@ class ProductController extends Controller
                 'max:100',
                 Rule::unique('products')->ignore($product->id),
             ],
-            'price' => 'required|numeric|min:0',
-            'compare_at_price' => 'nullable|numeric|min:0',
-            'cost_per_item' => 'nullable|numeric|min:0',
+            'price' => 'required|numeric|min:0|decimal:0,2',
+            'compare_at_price' => 'nullable|numeric|min:0|decimal:0,2',
+            'cost_per_item' => 'nullable|numeric|min:0|decimal:0,2',
             'track_quantity' => 'boolean',
             'quantity' => 'nullable|integer|min:0',
             'barcode' => 'nullable|string|max:100',
@@ -220,7 +227,7 @@ class ProductController extends Controller
             'remove_images' => 'nullable|array',
             'remove_images.*' => 'nullable|integer',
         ]);
-
+        
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['name']);
         }

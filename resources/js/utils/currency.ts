@@ -1,45 +1,61 @@
 // Utility functions for currency formatting
+
 export const formatCurrencyInput = (value: string): string => {
-  // Remove all non-digit characters
-  const cleanValue = value.replace(/[^\d]/g, '');
-  
-  if (cleanValue === '') return '';
-  
-  // Convert to number and format with Indonesian locale (without currency symbol for input)
-  const number = parseFloat(cleanValue);
-  if (isNaN(number)) return '';
-  
-  return new Intl.NumberFormat('id-ID', {
-    style: 'decimal',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2
-  }).format(number);
+  if (!value) return '';
+
+  // Remove everything except digits and comma
+  let clean = value.replace(/[^\d,]/g, '');
+
+  // split decimal
+  const parts = clean.split(',');
+
+  const integerPart = parts[0].replace(/^0+(?=\d)/, '');
+  const decimalPart = parts[1] ?? '';
+
+  const formattedInteger = new Intl.NumberFormat('id-ID').format(
+    Number(integerPart || 0)
+  );
+
+  return decimalPart ? `${formattedInteger},${decimalPart}` : formattedInteger;
 };
 
 export const parseCurrencyInput = (formattedValue: string): number => {
-  // Remove all non-digit characters to get the raw number
-  const cleanValue = formattedValue.replace(/[^\d]/g, '');
-  return cleanValue === '' ? 0 : parseFloat(cleanValue);
+  if (!formattedValue) return 0;
+
+  const normalized = formattedValue
+    .replace(/\./g, '') // remove thousand separator
+    .replace(',', '.'); // convert decimal
+
+  const number = Number(normalized);
+  return isNaN(number) ? 0 : Math.round(number * 100); // Convert to cents
 };
 
 export const formatCurrencyDisplay = (value: number | null | undefined): string => {
   if (value === null || value === undefined || isNaN(value)) {
     return '-';
   }
+
+  // Convert cents to decimal for display
+  const decimalValue = value / 100;
+
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR'
-  }).format(value);
+  }).format(decimalValue);
 };
 
 export const formatPrice = (price: number | null | undefined): string => {
   if (price === null || price === undefined || isNaN(price)) {
     return '-';
   }
+
+  // Convert cents to decimal for display
+  const decimalPrice = price / 100;
+
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(price);
+  }).format(decimalPrice);
 };

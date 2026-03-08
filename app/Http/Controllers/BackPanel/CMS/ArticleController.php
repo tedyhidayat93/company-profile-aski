@@ -32,7 +32,7 @@ class ArticleController extends Controller
                 return $query->where('author_id', $author);
             })
             ->when($request->tag, function ($query, $tag) {
-                return $query->whereJsonContains('tags', $tag);
+                return $query->withTag($tag);
             })
             ->with(['author'])
             ->orderBy('published_at', 'desc')
@@ -72,6 +72,8 @@ class ArticleController extends Controller
             'meta_keywords' => 'nullable|string|max:255',
             'tags' => 'nullable|array',
             'tags.*' => 'nullable|string|max:50',
+            'position' => 'nullable|integer|min:0',
+            'is_headline' => 'nullable|boolean',
         ]);
 
         if (empty($validated['slug'])) {
@@ -79,8 +81,19 @@ class ArticleController extends Controller
         }
 
         if (isset($validated['tags'])) {
-            $validated['tags'] = array_filter($validated['tags']);
+            // If tags come as JSON string from frontend, decode it first
+            if (is_string($validated['tags'])) {
+                $decodedTags = json_decode($validated['tags'], true);
+                $validated['tags'] = is_array($decodedTags) ? array_filter($decodedTags) : [];
+            } else {
+                // If tags come as array, filter empty values
+                $validated['tags'] = array_filter($validated['tags']);
+            }
         }
+
+        // Set default values
+        $validated['position'] = $validated['position'] ?? 0;
+        $validated['is_headline'] = $validated['is_headline'] ?? false;
 
         if ($validated['status'] === 'published' && !isset($validated['published_at'])) {
             $validated['published_at'] = now();
@@ -96,7 +109,7 @@ class ArticleController extends Controller
 
         $article = Article::create($validated);
 
-        return redirect()->route('cms.articles.index')
+        return redirect()->route('cms.article.index')
             ->with('success', 'Artikel berhasil dibuat');
     }
 
@@ -143,6 +156,8 @@ class ArticleController extends Controller
             'meta_keywords' => 'nullable|string|max:255',
             'tags' => 'nullable|array',
             'tags.*' => 'nullable|string|max:50',
+            'position' => 'nullable|integer|min:0',
+            'is_headline' => 'nullable|boolean',
         ]);
 
         if (empty($validated['slug'])) {
@@ -150,8 +165,19 @@ class ArticleController extends Controller
         }
 
         if (isset($validated['tags'])) {
-            $validated['tags'] = array_filter($validated['tags']);
+            // If tags come as JSON string from frontend, decode it first
+            if (is_string($validated['tags'])) {
+                $decodedTags = json_decode($validated['tags'], true);
+                $validated['tags'] = is_array($decodedTags) ? array_filter($decodedTags) : [];
+            } else {
+                // If tags come as array, filter empty values
+                $validated['tags'] = array_filter($validated['tags']);
+            }
         }
+
+        // Set default values
+        $validated['position'] = $validated['position'] ?? 0;
+        $validated['is_headline'] = $validated['is_headline'] ?? false;
 
         if ($validated['status'] === 'published' && !isset($validated['published_at'])) {
             $validated['published_at'] = now();
@@ -172,7 +198,7 @@ class ArticleController extends Controller
 
         $article->update($validated);
 
-        return redirect()->route('cms.articles.index')
+        return redirect()->route('cms.article.index')
             ->with('success', 'Artikel berhasil diperbarui');
     }
 
@@ -187,7 +213,7 @@ class ArticleController extends Controller
 
         $article->delete();
 
-        return redirect()->route('cms.articles.index')
+        return redirect()->route('cms.article.index')
             ->with('success', 'Artikel berhasil dihapus');
     }
 
@@ -208,7 +234,7 @@ class ArticleController extends Controller
         
         $article->save();
 
-        return redirect()->route('cms.articles.index')
+        return redirect()->route('cms.article.index')
             ->with('success', 'Status artikel berhasil diperbarui');
     }
 
@@ -225,7 +251,7 @@ class ArticleController extends Controller
                 ->update(['position' => $articleData['position']]);
         }
 
-        return redirect()->route('cms.articles.index')
+        return redirect()->route('cms.article.index')
             ->with('success', 'Posisi artikel berhasil diperbarui');
     }
 }

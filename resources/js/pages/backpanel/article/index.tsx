@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
@@ -39,6 +40,8 @@ interface Article {
   meta_keywords?: string;
   views_count: number;
   tags?: string[];
+  position?: number;
+  is_headline?: boolean;
   author?: {
     id: number;
     name: string;
@@ -104,26 +107,23 @@ export default function ArticleIndex({ articles, authors, filters }: Props) {
   };
 
   const handleFilterChange = (filterType: string, value: string) => {
-    switch (filterType) {
-      case 'status':
-        setStatusFilter(value);
-        break;
-      case 'author':
-        setAuthorFilter(value);
-        break;
-      case 'tag':
-        setTagFilter(value);
-        break;
-    }
+    const newFilters = {
+      search, 
+      status: filterType === 'status' ? value : statusFilter,
+      author: filterType === 'author' ? value : authorFilter,
+      tag: filterType === 'tag' ? value : tagFilter
+    };
+
+    // Remove empty filters
+    Object.keys(newFilters).forEach(key => {
+      if (newFilters[key as keyof typeof newFilters] === '' || newFilters[key as keyof typeof newFilters] === 'all') {
+        delete newFilters[key as keyof typeof newFilters];
+      }
+    });
 
     router.get(
       '/cpanel/cms/article',
-      { 
-        search: search, 
-        status: filterType === 'status' ? value : statusFilter,
-        author: filterType === 'author' ? value : authorFilter,
-        tag: filterType === 'tag' ? value : tagFilter
-      },
+      newFilters,
       { preserveState: true, preserveScroll: true }
     );
   };
@@ -215,6 +215,8 @@ export default function ArticleIndex({ articles, authors, filters }: Props) {
                   <SelectItem value="tutorial">Tutorial</SelectItem>
                   <SelectItem value="tips">Tips</SelectItem>
                   <SelectItem value="announcement">Pengumuman</SelectItem>
+                  <SelectItem value="teknologi">Teknologi</SelectItem>
+                  <SelectItem value="bisnis">Bisnis</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -226,6 +228,7 @@ export default function ArticleIndex({ articles, authors, filters }: Props) {
                   <TableHead>Judul</TableHead>
                   <TableHead>Penulis</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="w-[80px]">Headline</TableHead>
                   <TableHead>Dibaca</TableHead>
                   <TableHead>Diterbitkan</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
@@ -237,7 +240,7 @@ export default function ArticleIndex({ articles, authors, filters }: Props) {
                     <TableCell>
                       <div className="flex items-center space-x-1">
                         <GripVertical className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm font-medium">{article.id}</span>
+                        <span className="text-sm font-medium">{article.position || article.id}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -272,6 +275,13 @@ export default function ArticleIndex({ articles, authors, filters }: Props) {
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(article.status)}
+                    </TableCell>
+                    <TableCell>
+                      {article.is_headline && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          ⭐ Headline
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">

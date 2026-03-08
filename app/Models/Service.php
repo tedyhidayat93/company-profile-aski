@@ -31,8 +31,8 @@ class Service extends Model
     ];
 
     protected $casts = [
-        'price' => 'float',
-        'compare_at_price' => 'float',
+        'price' => 'integer',
+        'compare_at_price' => 'integer',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
         'sequence' => 'integer',

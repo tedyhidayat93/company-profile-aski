@@ -40,9 +40,9 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'compare_at_price' => 'decimal:2',
-        'cost_per_item' => 'decimal:2',
+        'price' => 'integer',
+        'compare_at_price' => 'integer',
+        'cost_per_item' => 'integer',
         'track_quantity' => 'boolean',
         'is_featured' => 'boolean',
         'is_bestseller' => 'boolean',

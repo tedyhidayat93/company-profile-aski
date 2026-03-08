@@ -350,7 +350,7 @@ export default function Homepage({products: initialProducts}: {products: ApiResp
         </section>
 
         {/* Client Section */}
-        <section className="relative bg-gray-50 py-12 dark:bg-gray-900">
+        <section className="relative bg-white py-12 dark:bg-gray-900">
           <div className="container relative mx-auto px-4">
             <div className="mb-12 text-center">
               <h2 className="mb-4">

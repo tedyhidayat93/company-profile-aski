@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Save, FileText, Upload, Tag as TagIcon, Calendar } from 'lucide-react';
+import TinyMCEEditor from '@/components/TinyMCEEditor';
 
 interface Author {
   id: number;
@@ -31,6 +32,8 @@ interface Article {
   meta_keywords?: string;
   views_count: number;
   tags?: string[];
+  position?: number;
+  is_headline?: boolean;
   author?: {
     id: number;
     name: string;
@@ -60,36 +63,60 @@ export default function ArticleEdit({ article, authors }: Props) {
     },
   ];
 
-  const [tags, setTags] = useState<string[]>(article.tags || []);
+  const [tags, setTags] = useState<string[]>(Array.isArray(article.tags) ? article.tags : []);
   const [tagInput, setTagInput] = useState('');
   const [featuredImagePreview, setFeaturedImagePreview] = useState<string | null>(
     article.featured_image ? `/storage/${article.featured_image}` : null
   );
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
   const { data, setData, put, processing, errors, reset } = useForm({
     title: article.title,
     slug: article.slug,
     content: article.content,
     excerpt: article.excerpt || '',
-    featured_image: null as File | null,
+    featured_image: null,
     status: article.status,
     published_at: article.published_at ? new Date(article.published_at).toISOString().slice(0, 16) : '',
     author_id: article.author_id.toString(),
     meta_title: article.meta_title || '',
     meta_description: article.meta_description || '',
     meta_keywords: article.meta_keywords || '',
-    tags: article.tags || [],
+    tags: Array.isArray(article.tags) ? article.tags : [],
+    position: article.position || 0,
+    is_headline: article.is_headline || false,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setData(name as keyof typeof data, value);
+    const { name, value, type } = e.target as HTMLInputElement;
+    if (type === 'number') {
+      setData(name as keyof typeof data, parseInt(value) || 0);
+    } else {
+      setData(name as keyof typeof data, value);
+    }
+    
+    // Auto-generate slug from title only if slug hasn't been manually edited
+    if (name === 'title' && !slugManuallyEdited) {
+      const slugValue = value
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .trim(); // Remove leading/trailing spaces and hyphens
+      setData('slug', slugValue);
+    }
+  };
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setData('slug', value);
+    setSlugManuallyEdited(true); // Mark as manually edited when user types in slug field
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setData('featured_image', file);
+      setData('featured_image' as any, file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFeaturedImagePreview(reader.result as string);
@@ -123,13 +150,7 @@ export default function ArticleEdit({ article, authors }: Props) {
       }
     });
 
-    formData.append('_method', 'PUT');
-
-    router.post(`/cpanel/cms/article/${article.id}`, formData, {
-      onSuccess: () => {
-        reset();
-      },
-    });
+    put(`/cpanel/cms/article/${article.id}`, formData as any);
   };
 
   return (
@@ -177,9 +198,10 @@ export default function ArticleEdit({ article, authors }: Props) {
                   <Input
                     id="slug"
                     name="slug"
+                    type="text"
                     value={data.slug}
-                    onChange={handleInputChange}
-                    placeholder="artikel-slug"
+                    onChange={handleSlugChange}
+                    placeholder="URL-friendly slug (opsional)"
                   />
                   {errors.slug && <p className="text-sm text-red-600">{errors.slug}</p>}
                 </div>
@@ -201,14 +223,10 @@ export default function ArticleEdit({ article, authors }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="content">Konten *</Label>
-                <Textarea
-                  id="content"
-                  name="content"
+                <TinyMCEEditor
                   value={data.content}
-                  onChange={handleInputChange}
-                  placeholder="Konten lengkap artikel"
-                  rows={12}
-                  required
+                  onChange={(content) => setData('content', content)}
+                  height={500}
                 />
                 {errors.content && <p className="text-sm text-red-600">{errors.content}</p>}
               </div>
@@ -249,7 +267,7 @@ export default function ArticleEdit({ article, authors }: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status *</Label>
                   <Select value={data.status} onValueChange={(value) => setData('status', value)}>
@@ -281,6 +299,37 @@ export default function ArticleEdit({ article, authors }: Props) {
                   </Select>
                   {errors.author_id && <p className="text-sm text-red-600">{errors.author_id}</p>}
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="position">Posisi</Label>
+                  <Input
+                    id="position"
+                    name="position"
+                    type="number"
+                    value={data.position}
+                    onChange={handleInputChange}
+                    placeholder="0"
+                    min="0"
+                  />
+                  {errors.position && <p className="text-sm text-red-600">{errors.position}</p>}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="is_headline"
+                    name="is_headline"
+                    checked={data.is_headline}
+                    onChange={(e) => setData('is_headline', e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <Label htmlFor="is_headline" className="text-sm font-medium">
+                    Jadikan sebagai Headline
+                  </Label>
+                </div>
+                {errors.is_headline && <p className="text-sm text-red-600">{errors.is_headline}</p>}
               </div>
 
               <div className="space-y-2">
@@ -353,6 +402,11 @@ export default function ArticleEdit({ article, authors }: Props) {
                       </button>
                     </div>
                   ))}
+                  {tags.length === 0 && (
+                    <div className="text-xs text-gray-400">
+                      Belum ada tag yang ditambahkan
+                    </div>
+                  )}
                 </div>
               </div>
 

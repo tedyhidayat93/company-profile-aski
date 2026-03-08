@@ -795,7 +795,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
               </div>
 
               <div className="flex justify-end space-x-2">
-                <Link href={`/cpanel/cms/product/${product.id}`}>
+                <Link href={`/cpanel/cms/product`}>
                   <Button variant="outline">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Batal

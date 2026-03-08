@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
@@ -291,33 +292,17 @@ export default function BrandIndex({ brands, filters }: Props) {
             )}
 
             {brands.last_page > 1 && (
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-sm text-gray-700">
-                  Menampilkan {((brands.current_page - 1) * brands.per_page) + 1} hingga{' '}
-                  {Math.min(brands.current_page * brands.per_page, brands.total)} dari{' '}
-                  {brands.total} hasil
-                </div>
-                <div className="flex space-x-2">
-                  {brands.links.prev && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(brands.links.prev || '')}
-                    >
-                      Sebelumnya
-                    </Button>
-                  )}
-                  {brands.links.next && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(brands.links.next || '')}
-                    >
-                      Selanjutnya
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <Pagination
+                currentPage={brands.current_page}
+                totalPages={brands.last_page}
+                total={brands.total}
+                perPage={brands.per_page}
+                onPageChange={(page) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('page', page.toString());
+                  router.get(url.toString());
+                }}
+              />
             )}
           </CardContent>
         </Card>

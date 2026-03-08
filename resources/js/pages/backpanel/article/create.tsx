@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,13 +10,18 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Save, FileText, Upload, Tag as TagIcon, Calendar } from 'lucide-react';
+import TinyMCEEditor from '@/components/TinyMCEEditor';
 
 interface Author {
   id: number;
   name: string;
 }
 
-export default function ArticleCreate() {
+interface Props {
+  authors: Author[];
+}
+
+export default function ArticleCreate({ authors }: Props) {
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'CMS',
@@ -35,6 +40,7 @@ export default function ArticleCreate() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [featuredImagePreview, setFeaturedImagePreview] = useState<string | null>(null);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
   const { data, setData, post, processing, errors, reset } = useForm({
     title: '',
@@ -49,11 +55,30 @@ export default function ArticleCreate() {
     meta_description: '',
     meta_keywords: '',
     tags: [],
+    position: 0,
+    is_headline: false,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setData(name as keyof typeof data, value);
+    
+    // Auto-generate slug from title only if slug hasn't been manually edited
+    if (name === 'title' && !slugManuallyEdited) {
+      const slugValue = value
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .trim(); // Remove leading/trailing spaces and hyphens
+      setData('slug', slugValue);
+    }
+  };
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setData('slug', value);
+    setSlugManuallyEdited(true); // Mark as manually edited when user types in slug field
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,6 +124,7 @@ export default function ArticleCreate() {
         setTags([]);
         setTagInput('');
         setFeaturedImagePreview(null);
+        setSlugManuallyEdited(false);
       },
     });
   };
@@ -148,9 +174,10 @@ export default function ArticleCreate() {
                   <Input
                     id="slug"
                     name="slug"
+                    type="text"
                     value={data.slug}
-                    onChange={handleInputChange}
-                    placeholder="artikel-slug"
+                    onChange={handleSlugChange}
+                    placeholder="URL-friendly slug (opsional)"
                   />
                   {errors.slug && <p className="text-sm text-red-600">{errors.slug}</p>}
                 </div>
@@ -172,14 +199,10 @@ export default function ArticleCreate() {
 
               <div className="space-y-2">
                 <Label htmlFor="content">Konten *</Label>
-                <Textarea
-                  id="content"
-                  name="content"
+                <TinyMCEEditor
                   value={data.content}
-                  onChange={handleInputChange}
-                  placeholder="Konten lengkap artikel"
-                  rows={12}
-                  required
+                  onChange={(content) => setData('content', content)}
+                  height={500}
                 />
                 {errors.content && <p className="text-sm text-red-600">{errors.content}</p>}
               </div>
@@ -220,7 +243,7 @@ export default function ArticleCreate() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status *</Label>
                   <Select value={data.status} onValueChange={(value) => setData('status', value)}>
@@ -243,11 +266,46 @@ export default function ArticleCreate() {
                       <SelectValue placeholder="Pilih penulis" />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* Authors will be populated from controller */}
+                      {authors.map((author) => (
+                        <SelectItem key={author.id} value={author.id.toString()}>
+                          {author.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {errors.author_id && <p className="text-sm text-red-600">{errors.author_id}</p>}
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="position">Posisi</Label>
+                  <Input
+                    id="position"
+                    name="position"
+                    type="number"
+                    value={data.position}
+                    onChange={handleInputChange}
+                    placeholder="0"
+                    min="0"
+                  />
+                  {errors.position && <p className="text-sm text-red-600">{errors.position}</p>}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="is_headline"
+                    name="is_headline"
+                    checked={data.is_headline}
+                    onChange={(e) => setData('is_headline', e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <Label htmlFor="is_headline" className="text-sm font-medium">
+                    Jadikan sebagai Headline
+                  </Label>
+                </div>
+                {errors.is_headline && <p className="text-sm text-red-600">{errors.is_headline}</p>}
               </div>
 
               <div className="space-y-2">
@@ -320,6 +378,11 @@ export default function ArticleCreate() {
                       </button>
                     </div>
                   ))}
+                  {tags.length === 0 && (
+                    <div className="text-xs text-gray-400">
+                      Belum ada tag yang ditambahkan
+                    </div>
+                  )}
                 </div>
               </div>
 
