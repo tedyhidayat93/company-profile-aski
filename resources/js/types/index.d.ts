@@ -46,3 +46,47 @@ export interface User {
   updated_at: string;
   [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Product {
+  id: number;
+  name: string;
+  slug: string;
+  type: string;
+  description: string;
+  short_description?: string;
+  sku: string;
+  price: number;
+  compare_at_price?: number;
+  cost_per_item?: number;
+  track_quantity: boolean;
+  quantity?: number;
+  barcode?: string;
+  status: string;
+  is_featured: boolean;
+  is_bestseller: boolean;
+  is_new: boolean;
+  is_for_sell: boolean;
+  is_rent: boolean;
+  position?: number;
+  brand_id?: number;
+  category_id?: number;
+  image_path?: string; // Processed image path with /storage/ prefix
+  coverImage?: {
+    id: number;
+    image_path: string;
+    is_cover: boolean;
+    position: number;
+  };
+  brand?: {
+    id: number;
+    name: string;
+  };
+  category?: {
+    id: number;
+    name: string;
+  };
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+  [key: string]: unknown;
+}

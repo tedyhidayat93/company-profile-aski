@@ -3,7 +3,6 @@ import { Editor } from '@tinymce/tinymce-react';
 
 // Get API key from environment
 const TINYMCE_API_KEY = import.meta.env.VITE_JWT_TINYMCE || 'no-api-key';
-console.log(TINYMCE_API_KEY)
 interface TinyMCEEditorProps {
   value: string;
   onChange: (content: string) => void;

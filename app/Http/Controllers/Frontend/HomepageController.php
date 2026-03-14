@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
+use App\Models\Service;
+use App\Models\Configuration;
+use App\Models\Client;
+use App\Models\Faq;
+use App\Models\Article;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -11,78 +17,117 @@ class HomepageController extends Controller
 {
     public function index(Request $request): Response
     {
-        
-        $products = [
-            [
-                'id' => 1,
-                'name' => 'Kontainer 20ft Standar',
-                'type' => 'sewa',
-                'category' => 'Standard',
-                'price' => 15000000,
-                'stock' => 12,
-                'image' => 'https://images.unsplash.com/photo-1578163677454-b3933804a354',
-                'description' => 'Kontainer standar 20 kaki, cocok untuk penyimpanan dan pengiriman barang kering.'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Kontainer 40ft High Cube',
-                'type' => 'jual',
-                'category' => 'High Cube',
-                'price' => 28000000,
-                'stock' => 8,
-                'image' => 'https://images.unsplash.com/photo-1602147577110-3a15b7bdfd3d',
-                'description' => 'Kontainer tinggi 40 kaki dengan kapasitas lebih besar untuk volume muatan besar.'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Kontainer 20ft Reefer',
-                'type' => 'sewa',
-                'category' => 'Reefer',
-                'price' => 22000000,
-                'stock' => 5,
-                'image' => 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d',
-                'description' => 'Kontainer pendingin 20 kaki untuk produk makanan dan farmasi.'
-            ],
-            [
-                'id' => 4,
-                'name' => 'Kontainer 40ft Reefer',
-                'type' => 'jual',
-                'category' => 'Reefer',
-                'price' => 45000000,
-                'stock' => 4,
-                'image' => 'https://images.unsplash.com/photo-1590490360182-c33d57733427',
-                'description' => 'Kontainer pendingin 40 kaki dengan suhu terkontrol.'
-            ],
-            [
-                'id' => 5,
-                'name' => 'Kontainer 20ft Open Top',
-                'type' => 'sewa',
-                'category' => 'Open Top',
-                'price' => 18000000,
-                'stock' => 6,
-                'image' => 'https://images.unsplash.com/photo-1592833159155-37a2c3d1f96c',
-                'description' => 'Kontainer open top untuk muatan tinggi atau berat.'
-            ]
-        ];
+        // Get featured products for homepage
+        $products = Product::where('status', 'published')
+            ->where('is_featured', true)
+            ->with(['brand', 'category', 'coverImage'])
+            ->orderBy('position')
+            ->orderBy('name')
+            ->take(6)
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'slug' => $product->slug,
+                    'type' => $product->type,
+                    'category' => $product->category?->name ?? 'Uncategorized',
+                    'price' => $product->price,
+                    'compare_at_price' => $product->compare_at_price,
+                    'stock' => $product->quantity ?? 0,
+                    'image' => $product->coverImage?->image_path ?? '/images/placeholder.png',
+                    'description' => $product->short_description ?? $product->description ?? '',
+                    'is_bestseller' => $product->is_bestseller ?? false,
+                    'show_price' => $product->show_price,
+                    'is_new' => $product->is_new ?? false
+                ];
+            });
 
-        $products = [
-            'status' => 'success',
-            'data' => collect($products)->take(3)->values()->all(),
-            'load_info' => [
-                'request_time' => $request->server('REQUEST_TIME'),
-                'timestamp' => time(),
-                'formatted' => date('Y-m-d H:i:s'),
-                'timezone' => date_default_timezone_get(),
-                'microtime' => microtime(true),
-                'load_time' => round(microtime(true) - LARAVEL_START, 4),
-                'memory_usage' => round(memory_get_usage() / 1024 / 1024, 2) . ' MB',
-            ]
-        ];
+        // Get services for homepage
+        $services = Service::where('is_active', true)
+            ->orderBy('sequence')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($service) {
+                return [
+                    'id' => $service->id,
+                    'title' => $service->name,
+                    'description' => $service->description ?? '',
+                    'image' => $service->image ?? '/images/placeholder.png'
+                ];
+            });
 
+        // Get clients for homepage
+        $clients = Client::where('is_active', true)
+            ->orderBy('sequence')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($client) {
+                return [
+                    'id' => $client->id,
+                    'name' => $client->name,
+                    'logo' => $client->image ? '/storage/clients/' . $client->image : '/images/placeholder.png'
+                ];
+            });
+
+        // Get FAQs for homepage
+        $faqs = Faq::where('is_active', true)
+            ->orderBy('position')
+            ->orderBy('question')
+            ->get()
+            ->map(function ($faq) {
+                return [
+                    'id' => $faq->id,
+                    'question' => $faq->question,
+                    'answer' => $faq->answer
+                ];
+            });
+
+        // Get latest articles for homepage
+        $articles = Article::where('status', 'published')
+            ->where('is_headline', true)
+            ->with(['author'])
+            ->orderBy('published_at', 'desc')
+            ->take(3)
+            ->get()
+            ->map(function ($article) {
+                return [
+                    'id' => $article->id,
+                    'title' => $article->title,
+                    'excerpt' => $article->excerpt ?? '',
+                    'image' => $article->featured_image ?? '/images/placeholder.png',
+                    'category' => 'Artikel',
+                    'date' => $article->published_at?->format('d M Y') ?? '',
+                    'slug' => $article->slug
+                ];
+            });
+
+        // Get homepage configurations
+        $homepageConfigs = Configuration::homepage()
+            ->orderBy('label')
+            ->get()
+            ->map(function ($config) {
+                return [
+                    'id' => $config->id,
+                    'key' => $config->key,
+                    'value' => $config->value,
+                    'type' => $config->type,
+                    'label' => $config->label,
+                    'description' => $config->description,
+                ];
+            });
+
+            // $siteConfig = Configuration::site()->pluck('value', 'key');
         return Inertia::render('frontend/homepage', [
             'canRegister' => false,
             'canForgotPassword' => false,
-            'products' => $products
+            'products' => $products,
+            'services' => $services,
+            'clients' => $clients,
+            'faqs' => $faqs,
+            'articles' => $articles,
+            'homepageConfigs' => $homepageConfigs,
+            // 'siteConfig' => $siteConfig
         ]);
     }
 }

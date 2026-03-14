@@ -3,22 +3,42 @@ import { Filter, Search, ArrowUpDown, ChevronDown, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import ProductCard from '@/components/ProductCard';
+import CategoryFilter from '@/components/CategoryFilter';
+
+interface CategoryOption {
+    label: string;
+    value: string;
+    subcategories?: CategoryOption[];
+}
 
 export interface Product {
     id: number;
     name: string;
+    slug: string;
     type: string;
     category: string;
+    brand?: string;
     price: number;
-    stock: number;
+    compare_at_price?: number;
+    stock: number | null;
     image: string;
     description: string;
+    show_price: boolean;
+    is_bestseller?: boolean;
+    is_new?: boolean;
+    is_featured?: boolean;
+    is_for_sell?: boolean;
+    is_rent?: boolean;
+    sku?: string;
 }
 
 export interface PaginationInfo {
     current_page: number;
     per_page: number;
     total: number;
+    last_page: number;
+    from?: number;
+    to?: number;
 }
 
 export interface LoadInfo {
@@ -40,7 +60,7 @@ export interface ApiResponse<T> {
 
 interface CatalogProps {
     products: ApiResponse<Product>;
-    categories: string[];
+    categories: CategoryOption[];
     types: string[];
     filters: {
         search?: string;
@@ -66,10 +86,11 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
         sort: initialFilters?.sort?.toString() || 'price-asc',
     });
     const [isFiltersOpen, setIsFiltersOpen] = useState(true);
+    const [hasChanges, setHasChanges] = useState(false);
     
     // Extract products and pagination from the API response
     const { data: products, pagination } = initialProducts;
-
+    
     // Update local state when filters from server change
     useEffect(() => {
         setFilters({
@@ -87,12 +108,15 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
         const { name, value } = e.target;
         const newFilters = { ...filters, [name]: value };
         setFilters(newFilters);
-        
+        setHasChanges(true); // Mark that changes have been made
+    };
+
+    const applyFilters = () => {
         // Update URL with new filters
         const params = new URLSearchParams();
         
         // Only include valid filter values in the URL
-        Object.entries(newFilters).forEach(([key, val]) => {
+        Object.entries(filters).forEach(([key, val]) => {
             // Skip functions and empty values
             if (typeof val === 'function' || val === null || val === undefined) return;
             // Convert to string and trim whitespace
@@ -108,6 +132,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
             params.set('sort', 'price-asc');
         }
         
+        setHasChanges(false);
         router.get(`/catalog?${params.toString()}`, {}, {
             preserveState: true,
             only: ['products', 'filters']
@@ -126,6 +151,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
         };
         
         setFilters(resetFilters);
+        setHasChanges(false);
         router.get('/catalog');
     };
 
@@ -138,12 +164,6 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                     onClick={() => setIsFiltersOpen(!isFiltersOpen)}>
                         <h2 className="text-lg font-semibold">Filter</h2>
                         <div className="flex items-center space-x-4">
-                            <button 
-                                onClick={resetFilters}
-                                className="text-sm text-amber-600 hover:text-amber-700"
-                            >
-                                Reset
-                            </button>
                             <ChevronDown className={`w-5 h-5 transform transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
                         </div>
                     </div>
@@ -161,11 +181,11 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                         />
                     </div>
 
-                    <div className={`space-y-6 pt-5 ${isFiltersOpen ? 'block' : 'hidden'}`}>
+                    <div className={`space-y-3 pt-5 ${isFiltersOpen ? 'block' : 'hidden'}`}>
         
                         {/* Type Filter */}
                         <div>
-                            <h3 className="mb-2 font-medium text-sm">Sewa/Jual</h3>
+                            <label className="mb-2 font-medium text-sm text-gray-800 dark:text-white">Sewa/Jual</label>
                             <select
                                 name="type"
                                 value={filters.type || ''}
@@ -175,51 +195,49 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                                 <option value="">Semua</option>
                                 {types.map((type) => (
                                     <option key={type} value={type}>
-                                        {type === 'sewa' ? 'Disewakan' : type === 'jual' ? 'Dijual' : 'Disewakan & Dijual'}
+                                        {type === 'rent' ? 'Disewakan' : type === 'sell' ? 'Dijual' : 'Disewakan & Dijual'}
                                     </option>
                                 ))}
                             </select>
                         </div>
         
-                        {/* Category Filter */}
+                        {/* Category Filter with Search */}
                         <div>
-                            <h3 className="mb-2 font-medium text-sm">Kategori</h3>
-                            <select
-                                name="category"
-                                value={filters.category || ''}
-                                onChange={handleFilterChange}
-                                className="w-full rounded-lg border border-gray-300 p-2 focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
-                            >
-                            <option value="">Semua Kategori</option>
-                            {categories.map(category => (
-                                <option key={category} value={category}>
-                                {category}
-                                </option>
-                            ))}
-                            </select>
+                            <label className="mb-2 font-medium text-sm text-gray-800 dark:text-white">Kategori</label>
+                            <CategoryFilter
+                                categories={categories}
+                                selectedCategory={filters.category}
+                                onCategoryChange={(value) => {
+                                    setFilters(prev => ({ ...prev, category: value }));
+                                    setHasChanges(true);
+                                }}
+                                placeholder="Pilih Kategori"
+                            />
                         </div>
         
                         {/* Price Range */}
                         <div>
-                            <h3 className="mb-2 font-medium text-sm">Rentang Harga</h3>
+                            <label className="mb-2 font-medium text-sm text-gray-800 dark:text-white">Rentang Harga</label>
                             <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <label className="mb-1 block text-sm text-gray-600">Min</label>
+                                <label className="mb-1 block text-xs text-gray-600">Min</label>
                                 <input
                                 type="number"
                                 name="minPrice"
                                 placeholder="Min"
+                                min={0}
                                 value={filters.minPrice}
                                 onChange={handleFilterChange}
                                 className="w-full rounded-lg border border-gray-300 p-2"
                                 />
                             </div>
                             <div>
-                                <label className="mb-1 block text-sm text-gray-600">Max</label>
+                                <label className="mb-1 block text-xs text-gray-600">Max</label>
                                 <input
                                 type="number"
                                 name="maxPrice"
                                 placeholder="Max"
+                                min={0}
                                 value={filters.maxPrice}
                                 onChange={handleFilterChange}
                                 className="w-full rounded-lg border border-gray-300 p-2"
@@ -230,7 +248,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
         
                         {/* Sorting */}
                         <div>
-                            <h3 className="mb-2 font-medium text-sm">Urutkan</h3>
+                            <label className="mb-2 font-medium text-sm text-gray-800 dark:text-white">Urutkan</label>
                             <div className="relative">
                             <select
                                 name="sort"
@@ -246,6 +264,26 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                             <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                             </div>
                         </div>
+                        {/* Apply/Reset Buttons */}
+                        <div className="pt-4 border-t border-gray-200 space-y-2">
+                            <button
+                                onClick={applyFilters}
+                                disabled={!hasChanges}
+                                className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
+                                    hasChanges
+                                        ? 'bg-amber-500 text-white hover:bg-amber-600'
+                                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                }`}
+                            >
+                                Terapkan Filter
+                            </button>
+                            <button
+                                onClick={resetFilters}
+                                className="w-full py-2 px-4 rounded-lg font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                                Reset Filter
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -257,7 +295,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                         Menampilkan {products.length} dari {pagination.total} produk
                     </p>
                     <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600">Tampilkan per halaman:</span>
+                        <span className="text-sm text-gray-800">Tampilkan per halaman:</span>
                         <select 
                             className="rounded-lg border border-gray-300 p-1.5 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                             value={String(filters.perPage || '12')}
@@ -268,13 +306,14 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                             <option value="12">12</option>
                             <option value="24">24</option>
                             <option value="48">48</option>
+                            <option value="100">100</option>
                         </select>
                     </div>
                 </div>
     
                 {products.length === 0 ? (
                     <div className="rounded-lg bg-white p-12 text-center shadow">
-                        <h3 className="mb-2 text-lg font-medium">Produk tidak ditemukan</h3>
+                        <label className="mb-2 text-lg font-medium">Produk tidak ditemukan</label>
                         <p className="mb-4 text-gray-600">Coba ubah filter pencarian Anda</p>
                         <button
                             onClick={resetFilters}

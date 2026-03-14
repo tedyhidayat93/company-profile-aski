@@ -37,6 +37,8 @@ interface Product {
   is_featured: boolean;
   is_bestseller: boolean;
   is_new: boolean;
+  is_for_sell: boolean;
+  is_rent: boolean;
   published_at?: string;
   position?: number;
   brand_id?: number;
@@ -212,6 +214,18 @@ export default function ProductShow({ product }: Props) {
                           <Badge variant="secondary">
                             <Sparkles className="h-3 w-3 mr-1" />
                             Baru
+                          </Badge>
+                        )}
+                        {product.is_for_sell && (
+                          <Badge variant="secondary">
+                            <Package className="h-3 w-3 mr-1" />
+                            Dijual
+                          </Badge>
+                        )}
+                        {product.is_rent && (
+                          <Badge variant="secondary">
+                            <Globe className="h-3 w-3 mr-1" />
+                            Disewakan
                           </Badge>
                         )}
                       </div>

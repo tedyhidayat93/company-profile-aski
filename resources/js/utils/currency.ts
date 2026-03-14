@@ -27,7 +27,7 @@ export const parseCurrencyInput = (formattedValue: string): number => {
     .replace(',', '.'); // convert decimal
 
   const number = Number(normalized);
-  return isNaN(number) ? 0 : Math.round(number * 100); // Convert to cents
+  return isNaN(number) ? 0 : number; // Return as-is, don't convert to cents
 };
 
 export const formatCurrencyDisplay = (value: number | null | undefined): string => {
@@ -35,8 +35,8 @@ export const formatCurrencyDisplay = (value: number | null | undefined): string 
     return '-';
   }
 
-  // Convert cents to decimal for display
-  const decimalValue = value / 100;
+  // Use value directly since it's no longer in cents
+  const decimalValue = value;
 
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -49,8 +49,8 @@ export const formatPrice = (price: number | null | undefined): string => {
     return '-';
   }
 
-  // Convert cents to decimal for display
-  const decimalPrice = price / 100;
+  // Use value directly since it's no longer in cents
+  const decimalPrice = price;
 
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',

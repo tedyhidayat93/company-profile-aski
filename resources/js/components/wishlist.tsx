@@ -8,6 +8,7 @@ interface WishlistItem {
     name: string;
     price: number;
     image: string;
+    slug: string;
 }
 
 interface WishlistProps {
@@ -132,7 +133,7 @@ export default function Wishlist({ isOpen, onClose, items, onRemove }: WishlistP
                                                             <div className="flex justify-center flex-col items-start">
                                                                 <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
                                                                     <Link 
-                                                                        href={`/catalog/${item.id}`}
+                                                                        href={`/catalog/${item.slug}`}
                                                                         className="hover:text-primary"
                                                                         onClick={onClose}
                                                                     >

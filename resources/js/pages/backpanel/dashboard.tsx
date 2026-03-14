@@ -1,3 +1,4 @@
+import React from 'react';
 import HeaderTitle from '@/components/header-title';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +28,8 @@ import {
   TrendingUp,
   TrendingDown,
   Calendar,
+  Plus,
+  Edit,
 } from 'lucide-react';
 import {
   LineChart,
@@ -41,6 +44,7 @@ import {
   AreaChart,
 } from 'recharts';
 import { useState } from 'react';
+import OrderStatusInfoModal from '@/components/order-status-info-modal';
 
 // Type definitions
 interface TrafficData {
@@ -60,6 +64,46 @@ interface WebsiteTrafficData {
 
 type DateFilter = 'today' | 'thisMonth' | 'last3Months' | 'thisYear';
 
+interface Props {
+  stats: Array<{
+    name: string;
+    value: number;
+    icon: string;
+    change: string;
+    changeType: 'increase' | 'decrease';
+  }>;
+  orderStats: Array<{
+    name: string;
+    value: number;
+    icon: string;
+    color: string;
+  }>;
+  topSearchedProducts: Array<{
+    id: number;
+    name: string;
+    searches: number;
+    change: string;
+  }>;
+  latestProducts: Array<{
+    id: number;
+    name: string;
+    sku: string;
+    added: string;
+    status: string;
+    edit_url: string;
+  }>;
+  recentOrders: Array<{
+    id: string;
+    customer: string;
+    product: string;
+    date: string;
+    status: string;
+    amount: string;
+    view_url: string;
+  }>;
+  websiteTrafficData: WebsiteTrafficData;
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Dashboard',
@@ -67,152 +111,64 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-// Dummy data
-const stats = [
-  { name: 'Total Produk', value: '1,234', icon: Package, change: '+12%', changeType: 'increase' },
-  { name: 'Total Artikel', value: '89', icon: FileText, change: '+5%', changeType: 'increase' },
-  { name: 'Total Pelanggan', value: '5,678', icon: Users, change: '+8.2%', changeType: 'increase' },
-  {
-    name: 'Total Pesanan',
-    value: '3,456',
-    icon: ShoppingCart,
-    change: '-2.1%',
-    changeType: 'decrease',
-  },
-];
-
-const orderStats = [
-  { name: 'Menunggu', value: '124', icon: Clock, color: 'bg-yellow-100 text-yellow-800' },
-  { name: 'Diproses', value: '45', icon: Clock, color: 'bg-blue-100 text-blue-800' },
-  { name: 'Selesai', value: '2,890', icon: CheckCircle, color: 'bg-green-100 text-green-800' },
-  { name: 'Dibatalkan', value: '397', icon: XCircle, color: 'bg-red-100 text-red-800' },
-];
-
-const topSearchedProducts = [
-  { id: 1, name: 'Container 20 Feet', searches: 1245, change: '+12%' },
-  { id: 2, name: 'Container 40 Feet', searches: 987, change: '+5%' },
-  { id: 3, name: 'Container Reefer', searches: 756, change: '+8%' },
-  { id: 4, name: 'Container Open Top', searches: 543, change: '-2%' },
-  { id: 5, name: 'Container Flat Rack', searches: 432, change: '+3%' },
-];
-
-const latestProducts = [
-  {
-    id: 101,
-    name: 'Container 20 Feet High Cube',
-    sku: 'CONT-20HC-001',
-    added: '2 jam lalu',
-    status: 'active',
-  },
-  {
-    id: 102,
-    name: 'Container 40 Feet High Cube',
-    sku: 'CONT-40HC-001',
-    added: '5 jam lalu',
-    status: 'active',
-  },
-  { id: 103, name: 'Container 10 Feet', sku: 'CONT-10-001', added: '1 hari lalu', status: 'draft' },
-  {
-    id: 104,
-    name: 'Container 40 Feet Open Top',
-    sku: 'CONT-40OT-001',
-    added: '1 hari lalu',
-    status: 'active',
-  },
-  {
-    id: 105,
-    name: 'Container 20 Feet Reefer',
-    sku: 'CONT-20RF-001',
-    added: '2 hari lalu',
-    status: 'active',
-  },
-];
-
-const recentOrders = [
-  {
-    id: 'ORD-001',
-    customer: 'PT. Maju Jaya',
-    product: 'Container 40 Feet',
-    date: '21 Des 2023',
-    status: 'completed',
-    amount: 'Rp 125.000.000',
-  },
-  {
-    id: 'ORD-002',
-    customer: 'CV. Sejahtera Abadi',
-    product: 'Container 20 Feet',
-    date: '21 Des 2023',
-    status: 'processing',
-    amount: 'Rp 85.000.000',
-  },
-  {
-    id: 'ORD-003',
-    customer: 'PT. Makmur Sentosa',
-    product: 'Container Reefer',
-    date: '20 Des 2023',
-    status: 'pending',
-    amount: 'Rp 210.000.000',
-  },
-  {
-    id: 'ORD-004',
-    customer: 'UD. Barokah Jaya',
-    product: 'Container Open Top',
-    date: '20 Des 2023',
-    status: 'processing',
-    amount: 'Rp 145.000.000',
-  },
-  {
-    id: 'ORD-005',
-    customer: 'PT. Anugrah Sejahtera',
-    product: 'Container 40 Feet',
-    date: '19 Des 2023',
-    status: 'completed',
-    amount: 'Rp 125.000.000',
-  },
-];
-
-// Website traffic data for different time periods
-const websiteTrafficData: WebsiteTrafficData = {
-  today: [
-    { time: '00:00', visitors: 45, pageViews: 120, bounceRate: 52 },
-    { time: '04:00', visitors: 23, pageViews: 58, bounceRate: 61 },
-    { time: '08:00', visitors: 156, pageViews: 420, bounceRate: 38 },
-    { time: '12:00', visitors: 234, pageViews: 580, bounceRate: 32 },
-    { time: '16:00', visitors: 189, pageViews: 490, bounceRate: 35 },
-    { time: '20:00', visitors: 98, pageViews: 245, bounceRate: 42 },
-  ],
-  thisMonth: [
-    { date: '1 Jan', visitors: 1200, pageViews: 3200, bounceRate: 45 },
-    { date: '5 Jan', visitors: 1450, pageViews: 3800, bounceRate: 42 },
-    { date: '10 Jan', visitors: 1650, pageViews: 4200, bounceRate: 40 },
-    { date: '15 Jan', visitors: 1890, pageViews: 4800, bounceRate: 38 },
-    { date: '20 Jan', visitors: 2100, pageViews: 5200, bounceRate: 35 },
-    { date: '25 Jan', visitors: 1950, pageViews: 4900, bounceRate: 37 },
-    { date: '30 Jan', visitors: 2200, pageViews: 5500, bounceRate: 33 },
-  ],
-  last3Months: [
-    { date: 'Nov', visitors: 28000, pageViews: 72000, bounceRate: 38 },
-    { date: 'Des', visitors: 32000, pageViews: 85000, bounceRate: 35 },
-    { date: 'Jan', visitors: 35000, pageViews: 92000, bounceRate: 32 },
-  ],
-  thisYear: [
-    { date: 'Jan', visitors: 35000, pageViews: 92000, bounceRate: 32 },
-    { date: 'Feb', visitors: 33000, pageViews: 88000, bounceRate: 34 },
-    { date: 'Mar', visitors: 38000, pageViews: 98000, bounceRate: 30 },
-    { date: 'Apr', visitors: 42000, pageViews: 110000, bounceRate: 28 },
-    { date: 'Mei', visitors: 45000, pageViews: 118000, bounceRate: 26 },
-    { date: 'Jun', visitors: 48000, pageViews: 125000, bounceRate: 25 },
-    { date: 'Jul', visitors: 46000, pageViews: 120000, bounceRate: 27 },
-    { date: 'Agu', visitors: 44000, pageViews: 115000, bounceRate: 29 },
-    { date: 'Sep', visitors: 41000, pageViews: 108000, bounceRate: 31 },
-    { date: 'Okt', visitors: 39000, pageViews: 102000, bounceRate: 33 },
-    { date: 'Nov', visitors: 37000, pageViews: 97000, bounceRate: 36 },
-    { date: 'Des', visitors: 40000, pageViews: 105000, bounceRate: 34 },
-  ],
+// Icon mapping
+const iconMap: Record<string, any> = {
+  Package,
+  FileText,
+  Users,
+  ShoppingCart,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Eye,
+  Calendar,
+  TrendingUp,
+  TrendingDown,
 };
 
-export default function Dashboard() {
+// Status badge function
+const getStatusBadge = (status: string) => {
+  const statusColors = {
+    pending: 'bg-yellow-100 text-yellow-800',
+    confirmed: 'bg-purple-100 text-purple-800',
+    processing: 'bg-blue-100 text-blue-800',
+    shipped: 'bg-orange-100 text-orange-800',
+    completed: 'bg-green-100 text-green-800',
+    cancelled: 'bg-red-100 text-red-800',
+  };
+
+  const statusLabels = {
+    pending: 'Pesanan Baru',
+    confirmed: 'Dikonfirmasi',
+    processing: 'Diproses',
+    shipped: 'Dikirim',
+    completed: 'Selesai',
+    cancelled: 'Dibatalkan',
+  };
+
+  return (
+    <Badge className={statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
+      {statusLabels[status as keyof typeof statusLabels] || status}
+    </Badge>
+  );
+};
+
+export default function Dashboard({
+  stats,
+  orderStats,
+  topSearchedProducts,
+  latestProducts,
+  recentOrders,
+  websiteTrafficData,
+}: Props) {
   const [dateFilter, setDateFilter] = useState<DateFilter>('thisMonth');
+
+  const handleDateFilterChange = (value: string) => {
+    // Type guard to ensure value is a valid DateFilter
+    if (value === 'today' || value === 'thisMonth' || value === 'last3Months' || value === 'thisYear') {
+      setDateFilter(value);
+    }
+  };
 
   const getCurrentData = (): TrafficData[] => {
     return websiteTrafficData[dateFilter] || websiteTrafficData.thisMonth;
@@ -255,26 +211,29 @@ export default function Dashboard() {
         />
         {/* Stats Overview */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <Card className="shadow-card" key={stat.name}>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-muted-foreground text-xs font-medium">{stat.name}</p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    {/* <p
-                      className={`text-sm ${stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}`}
-                    >
-                      {stat.change} dari bulan lalu
-                    </p> */}
+          {stats.map((stat) => {
+            const Icon = iconMap[stat.icon] || Package;
+            return (
+              <Card className="shadow-card" key={stat.name}>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-xs font-medium">{stat.name}</p>
+                      <p className="text-2xl font-bold">{stat.value.toLocaleString()}</p>
+                      {/* <p
+                        className={`text-sm ${stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}`}
+                      >
+                        {stat.change} dari bulan lalu
+                      </p> */}
+                    </div>
+                    <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
+                      <Icon className="h-6 w-6" />
+                    </div>
                   </div>
-                  <div className="bg-primary/10 rounded-lg p-2">
-                    <stat.icon className="text-primary h-6 w-6" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Website Traffic Chart */}
@@ -282,7 +241,7 @@ export default function Dashboard() {
           <CardHeader>
             <div className="flex flex-row items-center justify-between">
               <CardTitle>Trafik Kunjungan Website</CardTitle>
-              <Select value={dateFilter} onValueChange={setDateFilter}>
+              <Select value={dateFilter} onValueChange={handleDateFilterChange}>
                 <SelectTrigger className="w-[180px]">
                   <Calendar className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Pilih periode" />
@@ -459,25 +418,31 @@ export default function Dashboard() {
         {/* Order Status Overview */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle>Informasi Pemesanan</CardTitle>
+            <div className="flex gap-2 flex-wrap items-center justify-between">
+              <CardTitle>Informasi Pemesanan</CardTitle>  
+              <OrderStatusInfoModal />
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {orderStats.map((stat) => (
-                <Card key={stat.name}>
-                  <CardContent>
-                    <div className="flex items-center gap-4">
-                      <div className={`rounded-full p-3 ${stat.color}`}>
-                        <stat.icon className="h-5 w-5" />
+              {orderStats.map((stat) => {
+                const Icon = iconMap[stat.icon] || Clock;
+                return (
+                  <Card key={stat.name} className='p-3 px-0'>
+                    <CardContent>
+                      <div className="flex items-center gap-4">
+                        <div className={`rounded-full p-3 ${stat.color}`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">{stat.name}</p>
+                          <p className="text-xl font-semibold">{stat.value}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-muted-foreground text-sm">{stat.name}</p>
-                        <p className="text-xl font-semibold">{stat.value}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
             {/* Recent Orders */}
             <Card className="shadow-card">
@@ -508,27 +473,12 @@ export default function Dashboard() {
                         <TableCell>{order.product}</TableCell>
                         <TableCell>{order.date}</TableCell>
                         <TableCell>
-                          <Badge
-                            variant={
-                              order.status === 'completed'
-                                ? 'default'
-                                : order.status === 'processing'
-                                  ? 'secondary'
-                                  : 'outline'
-                            }
-                            className="whitespace-nowrap"
-                          >
-                            {order.status === 'completed'
-                              ? 'Selesai'
-                              : order.status === 'processing'
-                                ? 'Diproses'
-                                : 'Menunggu'}
-                          </Badge>
+                          {getStatusBadge(order.status)}
                         </TableCell>
                         <TableCell className="pr-6! font-medium">{order.amount}</TableCell>
                         <TableCell className="pr-6!">
                           <Link
-                            href="#"
+                            href={order.view_url}
                             className="text-primary flex items-center gap-1 text-sm font-medium hover:underline"
                           >
                             <Eye className="h-4 w-4" />

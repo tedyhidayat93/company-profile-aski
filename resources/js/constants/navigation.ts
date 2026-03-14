@@ -1,10 +1,10 @@
 // resources/js/constants/navigation.ts
 export const NAV_LINKS = [
   { name: 'Beranda', href: '/' },
-  { name: 'Layanan', href: '/layanan' },
-  { name: 'Produk', href: '/produk' },
-  { name: 'Artikel', href: '/artikel' },
-  { name: 'Kontak', href: '/kontak' }
+  { name: 'Layanan', href: '/#services' },
+  { name: 'Produk', href: '/#products' },
+  { name: 'Artikel', href: '/#articles' },
+  { name: 'Kontak', href: '/#contact' }
 ];
 
 export const SOCIAL_LINKS = [

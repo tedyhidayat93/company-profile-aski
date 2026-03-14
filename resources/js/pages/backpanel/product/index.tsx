@@ -45,6 +45,8 @@ interface Product {
   is_featured: boolean;
   is_bestseller: boolean;
   is_new: boolean;
+  is_for_sell: boolean;
+  is_rent: boolean;
   published_at?: string;
   position?: number;
   brand_id?: number;
@@ -54,6 +56,7 @@ interface Product {
   tags: string[];
   created_at: string;
   updated_at: string;
+  image_path?: string;
   brand?: {
     id: number;
     name: string;
@@ -90,7 +93,7 @@ interface Props {
   categories: Array<{ id: number; name: string }>;
   filters: {
     search?: string;
-    type?: string;
+    type_sell?: string;
     brand?: string;
     category?: string;
     status?: string;
@@ -124,7 +127,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
   }, [flash]);
 
   const [search, setSearch] = React.useState(filters.search || '');
-  const [typeFilter, setTypeFilter] = React.useState(filters.type || 'all');
+  const [typeFilter, setTypeFilter] = React.useState(filters.type_sell || 'all');
   const [brandFilter, setBrandFilter] = React.useState(filters.brand || 'all');
   const [categoryFilter, setCategoryFilter] = React.useState(filters.category || 'all');
   const [statusFilter, setStatusFilter] = React.useState(filters.status || 'all');
@@ -135,7 +138,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     setSearch(value);
     const params: { 
       search?: string; 
-      type?: string; 
+      type_sell?: string; 
       brand?: string; 
       category?: string; 
       status?: string; 
@@ -143,7 +146,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       bestseller?: string; 
     } = { search: value };
     
-    if (typeFilter !== 'all') params.type = typeFilter;
+    if (typeFilter !== 'all') params.type_sell = typeFilter;
     if (brandFilter !== 'all') params.brand = brandFilter;
     if (categoryFilter !== 'all') params.category = categoryFilter;
     if (statusFilter !== 'all') params.status = statusFilter;
@@ -157,7 +160,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     setTypeFilter(value);
     const params: { 
       search?: string; 
-      type?: string; 
+      type_sell?: string; 
       brand?: string; 
       category?: string; 
       status?: string; 
@@ -165,7 +168,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       bestseller?: string; 
     } = { search: search };
     
-    if (value !== 'all') params.type = value;
+    if (value !== 'all') params.type_sell = value;
     if (brandFilter !== 'all') params.brand = brandFilter;
     if (categoryFilter !== 'all') params.category = categoryFilter;
     if (statusFilter !== 'all') params.status = statusFilter;
@@ -179,7 +182,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     setBrandFilter(value);
     const params: { 
       search?: string; 
-      type?: string; 
+      type_sell?: string; 
       brand?: string; 
       category?: string; 
       status?: string; 
@@ -187,7 +190,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       bestseller?: string; 
     } = { search: search };
     
-    if (typeFilter !== 'all') params.type = typeFilter;
+    if (typeFilter !== 'all') params.type_sell = typeFilter;
     if (value !== 'all') params.brand = value;
     if (categoryFilter !== 'all') params.category = categoryFilter;
     if (statusFilter !== 'all') params.status = statusFilter;
@@ -201,7 +204,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     setCategoryFilter(value);
     const params: { 
       search?: string; 
-      type?: string; 
+      type_sell?: string; 
       brand?: string; 
       category?: string; 
       status?: string; 
@@ -209,7 +212,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       bestseller?: string; 
     } = { search: search };
     
-    if (typeFilter !== 'all') params.type = typeFilter;
+    if (typeFilter !== 'all') params.type_sell = typeFilter;
     if (brandFilter !== 'all') params.brand = brandFilter;
     if (value !== 'all') params.category = value;
     if (statusFilter !== 'all') params.status = statusFilter;
@@ -223,7 +226,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     setStatusFilter(value);
     const params: { 
       search?: string; 
-      type?: string; 
+      type_sell?: string; 
       brand?: string; 
       category?: string; 
       status?: string; 
@@ -231,7 +234,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       bestseller?: string; 
     } = { search: search };
     
-    if (typeFilter !== 'all') params.type = typeFilter;
+    if (typeFilter !== 'all') params.type_sell = typeFilter;
     if (brandFilter !== 'all') params.brand = brandFilter;
     if (categoryFilter !== 'all') params.category = categoryFilter;
     if (value !== 'all') params.status = value;
@@ -245,7 +248,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     setFeaturedFilter(value);
     const params: { 
       search?: string; 
-      type?: string; 
+      type_sell?: string; 
       brand?: string; 
       category?: string; 
       status?: string; 
@@ -253,7 +256,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       bestseller?: string; 
     } = { search: search };
     
-    if (typeFilter !== 'all') params.type = typeFilter;
+    if (typeFilter !== 'all') params.type_sell = typeFilter;
     if (brandFilter !== 'all') params.brand = brandFilter;
     if (categoryFilter !== 'all') params.category = categoryFilter;
     if (statusFilter !== 'all') params.status = statusFilter;
@@ -267,7 +270,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     setBestsellerFilter(value);
     const params: { 
       search?: string; 
-      type?: string; 
+      type_sell?: string; 
       brand?: string; 
       category?: string; 
       status?: string; 
@@ -275,7 +278,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       bestseller?: string; 
     } = { search: search };
     
-    if (typeFilter !== 'all') params.type = typeFilter;
+    if (typeFilter !== 'all') params.type_sell = typeFilter;
     if (brandFilter !== 'all') params.brand = brandFilter;
     if (categoryFilter !== 'all') params.category = categoryFilter;
     if (statusFilter !== 'all') params.status = statusFilter;
@@ -379,15 +382,16 @@ export default function ProductIndex({ products, brands, categories, filters }: 
               
               <div className="flex flex-wrap gap-2 items-center">
                 <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Tipe</Label>
+                  <Label className="text-xs font-medium text-gray-600">Tipe Jual</Label>
                   <Select value={typeFilter} onValueChange={handleTypeFilter}>
                     <SelectTrigger className="w-[140px]">
                       <SelectValue placeholder="Tipe" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="physical">Fisik</SelectItem>
-                      <SelectItem value="digital">Digital</SelectItem>
+                      <SelectItem value="sell">Jual</SelectItem>
+                      <SelectItem value="rent">Sewa</SelectItem>
+                      <SelectItem value="rent-and-sell">Jual & Sewa</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -487,9 +491,9 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                   <TableRow key={product.id}>
                     <TableCell>
                       <div className="flex items-center space-x-3">
-                        {product.coverImage ? (
+                        {product.image_path ? (
                           <img 
-                            src={`/storage/${product.coverImage.image_path}`} 
+                            src={product.image_path} 
                             alt={product.name}
                             className="h-12 w-12 rounded object-cover"
                           />
@@ -521,6 +525,18 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                               <Badge variant="secondary">
                                 <Sparkles className="h-3 w-3 mr-1" />
                                 Baru
+                              </Badge>
+                            )}
+                            {product.is_for_sell && (
+                              <Badge variant="secondary">
+                                <Package className="h-3 w-3 mr-1" />
+                                Dijual
+                              </Badge>
+                            )}
+                            {product.is_rent && (
+                              <Badge variant="secondary">
+                                <RefreshCw className="h-3 w-3 mr-1" />
+                                Disewakan
                               </Badge>
                             )}
                           </div>
@@ -620,33 +636,17 @@ export default function ProductIndex({ products, brands, categories, filters }: 
             )}
 
             {products.last_page > 1 && (
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-sm text-gray-700">
-                  Showing {((products.current_page - 1) * products.per_page) + 1} to{' '}
-                  {Math.min(products.current_page * products.per_page, products.total)} of{' '}
-                  {products.total} results
-                </div>
-                <div className="flex space-x-2">
-                  {products.links.prev && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(products.links.prev || '')}
-                    >
-                      Previous
-                    </Button>
-                  )}
-                  {products.links.next && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(products.links.next || '')}
-                    >
-                      Next
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <Pagination
+                currentPage={products.current_page}
+                totalPages={products.last_page}
+                total={products.total}
+                perPage={products.per_page}
+                onPageChange={(page) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('page', page.toString());
+                  router.get(url.toString());
+                }}
+              />
             )}
           </CardContent>
         </Card>

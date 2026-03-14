@@ -273,7 +273,7 @@ export default function OrderShow({ order }: Props) {
                         onChange={(e) => setData('status', e.target.value as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'completed' | 'cancelled')}
                         className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                       >
-                        <option value="pending">Menunggu Konfirmasi</option>
+                        <option value="pending">Pesanan Baru</option>
                         <option value="confirmed">Dikonfirmasi</option>
                         <option value="processing">Diproses</option>
                         <option value="shipped">Dikirim</option>

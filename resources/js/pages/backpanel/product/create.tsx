@@ -70,6 +70,8 @@ export default function ProductCreate({ brands, categories }: Props) {
     is_featured: boolean;
     is_bestseller: boolean;
     is_new: boolean;
+    is_for_sell: boolean;
+    is_rent: boolean;
     show_price: boolean;
     position: number;
     brand_id: string | null;
@@ -96,6 +98,8 @@ export default function ProductCreate({ brands, categories }: Props) {
     is_featured: false,
     is_bestseller: false,
     is_new: false,
+    is_for_sell: true,
+    is_rent: true,
     show_price: true,
     position: 0,
     brand_id: null,
@@ -215,9 +219,8 @@ export default function ProductCreate({ brands, categories }: Props) {
           formData.append(`tags[${index}]`, tag);
         });
       } else if (key === 'price' || key === 'compare_at_price' || key === 'cost_per_item') {
-        const rawValue = parseCurrencyInput(value as string);
-        formData.append(key, rawValue.toString());
-      } else if (key === 'track_quantity' || key === 'is_featured' || key === 'is_bestseller' || key === 'is_new' || key === 'show_price') {
+        formData.append(key, value?.toString() || '');
+      } else if (key === 'track_quantity' || key === 'is_featured' || key === 'is_bestseller' || key === 'is_new' || key === 'is_for_sell' || key === 'is_rent' || key === 'show_price') {
         formData.append(key, value ? '1' : '0');
       } else if (key !== 'images' && key !== 'tags') {
         formData.append(key, value?.toString() || '');
@@ -630,6 +633,24 @@ export default function ProductCreate({ brands, categories }: Props) {
                     onCheckedChange={(checked) => setData('is_new', Boolean(checked))}
                   />
                   <Label htmlFor="is_new">Baru</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="is_for_sell"
+                    checked={data.is_for_sell}
+                    onCheckedChange={(checked) => setData('is_for_sell', Boolean(checked))}
+                  />
+                  <Label htmlFor="is_for_sell">Dijual</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="is_rent"
+                    checked={data.is_rent}
+                    onCheckedChange={(checked) => setData('is_rent', Boolean(checked))}
+                  />
+                  <Label htmlFor="is_rent">Disewakan</Label>
                 </div>
 
                 <div className="flex items-center space-x-2">

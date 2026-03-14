@@ -131,9 +131,8 @@ export default function TagEdit({ tag }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="product">Produk</SelectItem>
-                    <SelectItem value="service">Layanan</SelectItem>
-                    <SelectItem value="blog">Blog</SelectItem>
-                    <SelectItem value="category">Kategori</SelectItem>
+                    <SelectItem value="article">Artikel</SelectItem>
+                    <SelectItem value="common">Lainnya</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.type && <p className="text-sm text-red-600">{errors.type}</p>}

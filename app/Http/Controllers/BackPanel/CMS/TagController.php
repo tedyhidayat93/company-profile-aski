@@ -39,7 +39,7 @@ class TagController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:tags,slug',
-            'type' => 'required|string|in:product,service,blog,category',
+            'type' => 'required|string|in:product,article,common',
             'description' => 'nullable|string',
         ]);
 
@@ -49,10 +49,10 @@ class TagController extends Controller
 
         $tag = Tag::create($validated);
 
-        return redirect()->route('cms.tags.index')
+        return redirect()->route('cms.tag.index')
             ->with('success', 'Tag berhasil dibuat');
     }
-
+    
     public function show($id)
     {
         $tag = Tag::findOrFail($id);
@@ -83,7 +83,7 @@ class TagController extends Controller
                 'max:255',
                 Rule::unique('tags')->ignore($tag->id),
             ],
-            'type' => 'required|string|in:product,service,blog,category',
+            'type' => 'required|string|in:product,article,common',
             'description' => 'nullable|string',
         ]);
 
@@ -93,7 +93,7 @@ class TagController extends Controller
 
         $tag->update($validated);
 
-        return redirect()->route('cms.tags.index')
+        return redirect()->route('cms.tag.index')
             ->with('success', 'Tag berhasil diperbarui');
     }
 
@@ -103,7 +103,7 @@ class TagController extends Controller
 
         $tag->delete();
 
-        return redirect()->route('cms.tags.index')
+        return redirect()->route('cms.tag.index')
             ->with('success', 'Tag berhasil dihapus');
     }
 }

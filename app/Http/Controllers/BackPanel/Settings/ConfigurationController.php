@@ -29,7 +29,7 @@ class ConfigurationController extends Controller
     {
         $configurations = Configuration::email()->orderBy('label')->get();
         
-        return Inertia::render('backpanel/settings/configuration/email', [
+        return Inertia::render('backpanel/settings/configuration/site', [
             'configurations' => $configurations,
             'currentGroup' => 'email'
         ]);
@@ -39,7 +39,7 @@ class ConfigurationController extends Controller
     {
         $configurations = Configuration::system()->orderBy('label')->get();
         
-        return Inertia::render('backpanel/settings/configuration/system', [
+        return Inertia::render('backpanel/settings/configuration/site', [
             'configurations' => $configurations,
             'currentGroup' => 'system'
         ]);
@@ -49,7 +49,7 @@ class ConfigurationController extends Controller
     {
         $configurations = Configuration::payment()->orderBy('label')->get();
         
-        return Inertia::render('backpanel/settings/configuration/payment', [
+        return Inertia::render('backpanel/settings/configuration/site', [
             'configurations' => $configurations,
             'currentGroup' => 'payment'
         ]);
@@ -59,7 +59,7 @@ class ConfigurationController extends Controller
     {
         $configurations = Configuration::shipping()->orderBy('label')->get();
         
-        return Inertia::render('backpanel/settings/configuration/shipping', [
+        return Inertia::render('backpanel/settings/configuration/site', [
             'configurations' => $configurations,
             'currentGroup' => 'shipping'
         ]);
@@ -69,9 +69,19 @@ class ConfigurationController extends Controller
     {
         $configurations = Configuration::other()->orderBy('label')->get();
         
-        return Inertia::render('backpanel/settings/configuration/other', [
+        return Inertia::render('backpanel/settings/configuration/site', [
             'configurations' => $configurations,
             'currentGroup' => 'other'
+        ]);
+    }
+
+    public function viewHomepage()
+    {
+        $configurations = Configuration::homepage()->orderBy('label')->get();
+        
+        return Inertia::render('backpanel/settings/configuration/site', [
+            'configurations' => $configurations,
+            'currentGroup' => 'view_homepage'
         ]);
     }
 

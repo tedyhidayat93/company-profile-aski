@@ -4,411 +4,225 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\Category;
+use App\Models\Brand;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CatalogController extends Controller
 {
-    public function show($id)
+    public function show($slug)
     {
-        $products = [
-            [
-                'id' => 1,
-                'name' => 'Kontainer 20ft Standar',
-                'type' => 'sewa',
-                'category' => 'Standard',
-                'price' => 15000000,
-                'stock' => 12,
-                'image' => 'https://images.unsplash.com/photo-1578163677454-b3933804a354',
-                'description' => 'Kontainer standar 20 kaki, cocok untuk penyimpanan dan pengiriman barang kering.',
-                'specifications' => [
-                    'Panjang' => '20 kaki',
-                    'Lebar' => '8 kaki',
-                    'Tinggi' => '8.5 kaki',
-                    'Berat Kosong' => '2.2 ton',
-                    'Kapasitas Muat' => '33.2 m³',
-                    'Kondisi' => 'Baru',
-                    'Tahun Pembuatan' => '2023',
-                ],
-                'features' => [
-                    'Dilengkapi dengan sistem ventilasi',
-                    'Dinding dan lantai kuat',
-                    'Tahan karat dan air',
-                    'Pintu ganda di ujung',
-                    'Sertifikasi internasional'
-                ]
-            ],
-            [
-                'id' => 2,
-                'name' => 'Kontainer 40ft High Cube',
-                'type' => 'jual',
-                'category' => 'High Cube',
-                'price' => 28000000,
-                'stock' => 5,
-                'image' => 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf',
-                'description' => 'Kontainer 40 kaki high cube dengan ketinggian ekstra, ideal untuk muatan tinggi.',
-                'specifications' => [
-                    'Panjang' => '40 kaki',
-                    'Lebar' => '8 kaki',
-                    'Tinggi' => '9.5 kaki',
-                    'Berat Kosong' => '3.8 ton',
-                    'Kapasitas Muat' => '76.3 m³',
-                    'Kondisi' => 'Bekas',
-                    'Tahun Pembuatan' => '2020',
-                ],
-                'features' => [
-                    'Tinggi ekstra untuk muatan tinggi',
-                    'Dinding baja kuat',
-                    'Sistem keamanan ganda',
-                    'Pintu geser',
-                    'Sertifikasi CSC'
-                ]
-            ]
+        $product = Product::published()
+            ->with(['category', 'brand', 'images' => function ($query) {
+                $query->orderBy('position', 'asc');
+            }])
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        // Get related products
+        $relatedProducts = Product::published()
+            ->where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->with(['category', 'coverImage'])
+            ->limit(4)
+            ->get()
+            ->map(function ($product) {
+                // Get cover image with proper path validation like backpanel
+                $coverImagePath = $product->coverImage?->image_path;
+                if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
+                    $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
+                } elseif (!$coverImagePath) {
+                    $coverImagePath = '/images/placeholder.png';
+                }
+                
+                // Check if the image file actually exists
+                $fullPath = public_path($coverImagePath);
+                if (!file_exists($fullPath)) {
+                    $coverImagePath = '/images/placeholder.png';
+                }
+                
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'slug' => $product->slug,
+                    'type' => $product->type,
+                    'show_price' => $product->show_price,
+                    'price' => $product->price,
+                    'compare_at_price' => $product->compare_at_price,
+                    'stock' => $product->track_quantity ? $product->quantity : null,
+                    'image' => $coverImagePath,
+                    'description' => $product->short_description ?? $product->description,
+                    'is_bestseller' => $product->is_bestseller,
+                    'is_new' => $product->is_new,
+                    'is_for_sell' => $product->is_for_sell,
+                    'is_rent' => $product->is_rent,
+                ];
+            });
+
+        $productData = [
+            'id' => $product->id,
+            'name' => $product->name,
+            'slug' => $product->slug,
+            'type' => $product->type,
+            'category' => $product->category?->name ?? 'Uncategorized',
+            'brand' => $product->brand?->name,
+            'price' => $product->price,
+            'compare_at_price' => $product->compare_at_price,
+            'stock' => $product->track_quantity ? $product->quantity : null,
+            'description' => $product->description,
+            'short_description' => $product->short_description,
+            'sku' => $product->sku,
+            'barcode' => $product->barcode,
+            'is_bestseller' => $product->is_bestseller,
+            'is_new' => $product->is_new,
+            'is_featured' => $product->is_featured,
+            'is_for_sell' => $product->is_for_sell,
+            'show_price' => $product->show_price,
+            'is_rent' => $product->is_rent,
+            'images' => $product->images->isNotEmpty() ? $product->images->map(function ($image) {
+                // Use the same path as backpanel - just prepend /storage/ if not already present
+                $imagePath = $image->image_path;
+                if (!str_starts_with($imagePath, '/storage/')) {
+                    $imagePath = '/storage/' . ltrim($imagePath, '/');
+                }
+                
+                // Check if the image file actually exists, otherwise use placeholder
+                $fullPath = public_path($imagePath);
+                if (!file_exists($fullPath)) {
+                    $imagePath = '/images/placeholder.png';
+                }
+                
+                return [
+                    'id' => $image->id,
+                    'path' => $imagePath,
+                    'is_cover' => $image->is_cover,
+                    'position' => $image->position,
+                ];
+            }) : [[
+                'id' => 0,
+                'path' => '/images/placeholder.png',
+                'is_cover' => true,
+                'position' => 0,
+            ]],
+            'tags' => $product->tags,
         ];
 
-        $product = collect($products)->firstWhere('id', (int)$id);
-
-        if (!$product) {
-            abort(404);
-        }
-
         return Inertia::render('frontend/catalog/detail', [
-            'product' => $product,
-            'relatedProducts' => [
-                // Add some related products here
-                [
-                    'id' => 3,
-                    'name' => 'Kontainer 20ft Reefer',
-                    'type' => 'sewa',
-                    'price' => 20000000,
-                    'stock' => 3,
-                    'image' => 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e',
-                    'description' => 'Kontainer berpendingin untuk menyimpan barang yang membutuhkan suhu terkontrol.'
-                ],
-                [
-                    'id' => 4,
-                    'name' => 'Kontainer 40ft Open Top',
-                    'type' => 'jual',
-                    'price' => 25000000,
-                    'stock' => 7,
-                    'image' => 'https://images.unsplash.com/photo-1601057185944-d8f4e572be5c',
-                    'description' => 'Kontainer atap terbuka untuk muatan tinggi yang memudahkan loading dari atas.'
-                ]
-            ]
+            'product' => $productData,
+            'relatedProducts' => $relatedProducts
         ]);
     }
 
     public function index(Request $request)
     {
-        $products = [
-            [
-                'id' => 1,
-                'name' => 'Kontainer 20ft Standar',
-                'type' => 'sewa',
-                'category' => 'Standard',
-                'price' => 15000000,
-                'stock' => 12,
-                'image' => 'https://images.unsplash.com/photo-1578163677454-b3933804a354',
-                'description' => 'Kontainer standar 20 kaki, cocok untuk penyimpanan dan pengiriman barang kering.'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Kontainer 40ft High Cube',
-                'type' => 'jual',
-                'category' => 'High Cube',
-                'price' => 28000000,
-                'stock' => 8,
-                'image' => 'https://images.unsplash.com/photo-1602147577110-3a15b7bdfd3d',
-                'description' => 'Kontainer tinggi 40 kaki dengan kapasitas lebih besar untuk volume muatan besar.'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Kontainer 20ft Reefer',
-                'type' => 'sewa',
-                'category' => 'Reefer',
-                'price' => 22000000,
-                'stock' => 5,
-                'image' => 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d',
-                'description' => 'Kontainer pendingin 20 kaki untuk produk makanan dan farmasi.'
-            ],
-            [
-                'id' => 4,
-                'name' => 'Kontainer 40ft Reefer',
-                'type' => 'jual',
-                'category' => 'Reefer',
-                'price' => 45000000,
-                'stock' => 4,
-                'image' => 'https://images.unsplash.com/photo-1590490360182-c33d57733427',
-                'description' => 'Kontainer pendingin 40 kaki dengan suhu terkontrol.'
-            ],
-            [
-                'id' => 5,
-                'name' => 'Kontainer 20ft Open Top',
-                'type' => 'sewa',
-                'category' => 'Open Top',
-                'price' => 18000000,
-                'stock' => 6,
-                'image' => 'https://images.unsplash.com/photo-1592833159155-37a2c3d1f96c',
-                'description' => 'Kontainer open top untuk muatan tinggi atau berat.'
-            ],
-            [
-                'id' => 6,
-                'name' => 'Kontainer 40ft Open Top',
-                'type' => 'jual',
-                'category' => 'Open Top',
-                'price' => 32000000,
-                'stock' => 3,
-                'image' => 'https://images.unsplash.com/photo-1617957743925-97f99d53c6a3',
-                'description' => 'Kontainer open top 40 kaki untuk alat berat dan mesin.'
-            ],
-            [
-                'id' => 7,
-                'name' => 'Kontainer 20ft Flat Rack',
-                'type' => 'sewa',
-                'category' => 'Flat Rack',
-                'price' => 20000000,
-                'stock' => 5,
-                'image' => 'https://images.unsplash.com/photo-1616401784845-180882ba9ba8',
-                'description' => 'Flat rack 20 kaki untuk muatan lebar dan berat.'
-            ],
-            [
-                'id' => 8,
-                'name' => 'Kontainer 40ft Flat Rack',
-                'type' => 'jual',
-                'category' => 'Flat Rack',
-                'price' => 38000000,
-                'stock' => 2,
-                'image' => 'https://images.unsplash.com/photo-1605733160314-4fc7dac4bb16',
-                'description' => 'Flat rack 40 kaki untuk pengiriman kargo oversize.'
-            ],
-            [
-                'id' => 9,
-                'name' => 'Kontainer 20ft Open Side',
-                'type' => 'sewa',
-                'category' => 'Open Side',
-                'price' => 17000000,
-                'stock' => 7,
-                'image' => 'https://images.unsplash.com/photo-1627308595186-e6ca5e6bb24b',
-                'description' => 'Kontainer open side dengan akses pintu samping.'
-            ],
-            [
-                'id' => 10,
-                'name' => 'Kontainer 40ft Open Side',
-                'type' => 'jual',
-                'category' => 'Open Side',
-                'price' => 30000000,
-                'stock' => 4,
-                'image' => 'https://images.unsplash.com/photo-1600880292089-90a7e086ee0c',
-                'description' => 'Kontainer open side 40 kaki untuk bongkar muat fleksibel.'
-            ],
-            [
-                'id' => 11,
-                'name' => 'ISO Tank 20ft',
-                'type' => 'sewa',
-                'category' => 'Tank',
-                'price' => 25000000,
-                'stock' => 3,
-                'image' => 'https://images.unsplash.com/photo-1597655601841-214a4cfe8b2c',
-                'description' => 'ISO tank untuk pengangkutan cairan kimia atau makanan.'
-            ],
-            [
-                'id' => 12,
-                'name' => 'ISO Tank Chemical',
-                'type' => 'jual',
-                'category' => 'Tank',
-                'price' => 52000000,
-                'stock' => 2,
-                'image' => 'https://images.unsplash.com/photo-1581090700227-1e37b190418e',
-                'description' => 'ISO tank khusus cairan kimia berstandar internasional.'
-            ],
-            // === duplikasi variasi hingga 30 ===
-            [
-                'id' => 13,
-                'name' => 'Kontainer 20ft Standar Bekas',
-                'type' => 'jual',
-                'category' => 'Standard',
-                'price' => 12000000,
-                'stock' => 15,
-                'image' => 'https://images.unsplash.com/photo-1597008641621-9f9c61d5b1df',
-                'description' => 'Kontainer standar bekas layak pakai.'
-            ],
-            [
-                'id' => 14,
-                'name' => 'Kontainer 40ft Standar',
-                'type' => 'sewa-jual',
-                'category' => 'Standard',
-                'price' => 26000000,
-                'stock' => 10,
-                'image' => 'https://images.unsplash.com/photo-1581093588401-22f636be0c4a',
-                'description' => 'Kontainer standar 40 kaki untuk kebutuhan logistik.'
-            ],
-            [
-                'id' => 15,
-                'name' => 'Kontainer 20ft High Cube',
-                'type' => 'sewa',
-                'category' => 'High Cube',
-                'price' => 19000000,
-                'stock' => 6,
-                'image' => 'https://images.unsplash.com/photo-1611095783649-79aaeddb7f34',
-                'description' => 'High Cube 20 kaki dengan tinggi ekstra.'
-            ],
-            [
-                'id' => 16,
-                'name' => 'Kontainer 40ft HC Bekas',
-                'type' => 'jual',
-                'category' => 'High Cube',
-                'price' => 24000000,
-                'stock' => 9,
-                'image' => 'https://images.unsplash.com/photo-1610000020032-6b3d4b2d9b2a',
-                'description' => 'High Cube bekas kondisi siap pakai.'
-            ],
-            [
-                'id' => 17,
-                'name' => 'Reefer Frozen Cargo',
-                'type' => 'sewa',
-                'category' => 'Reefer',
-                'price' => 26000000,
-                'stock' => 4,
-                'image' => 'https://images.unsplash.com/photo-1605902711622-cfb43c4437d1',
-                'description' => 'Reefer untuk muatan beku bersuhu rendah.'
-            ],
-            [
-                'id' => 18,
-                'name' => 'Open Top Project Cargo',
-                'type' => 'sewa-jual',
-                'category' => 'Open Top',
-                'price' => 29000000,
-                'stock' => 5,
-                'image' => 'https://images.unsplash.com/photo-1617957743925-97f99d53c6a3',
-                'description' => 'Open top untuk project cargo.'
-            ],
-            [
-                'id' => 19,
-                'name' => 'Flat Rack Heavy Duty',
-                'type' => 'sewa',
-                'category' => 'Flat Rack',
-                'price' => 34000000,
-                'stock' => 3,
-                'image' => 'https://images.unsplash.com/photo-1605733160314-4fc7dac4bb16',
-                'description' => 'Flat rack heavy duty untuk alat berat.'
-            ],
-            [
-                'id' => 20,
-                'name' => 'Open Side Exhibition',
-                'type' => 'jual',
-                'category' => 'Open Side',
-                'price' => 31000000,
-                'stock' => 2,
-                'image' => 'https://images.unsplash.com/photo-1600880292089-90a7e086ee0c',
-                'description' => 'Kontainer open side untuk pameran.'
-            ],
-            // lanjut ringkas
-            [
-                'id' => 21, 'name' => 'Tank Food Grade', 'type' => 'sewa', 'category' => 'Tank',
-                'price' => 48000000, 'stock' => 2,
-                'image' => 'https://images.unsplash.com/photo-1597655601841-214a4cfe8b2c',
-                'description' => 'ISO tank food grade.'
-            ],
-            [
-                'id' => 22, 'name' => 'Reefer Pharmaceutical', 'type' => 'sewa-jual', 'category' => 'Reefer',
-                'price' => 55000000, 'stock' => 1,
-                'image' => 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d',
-                'description' => 'Reefer khusus farmasi.'
-            ],
-            [
-                'id' => 23, 'name' => 'Standard Container Cargo', 'type' => 'sewa', 'category' => 'Standard',
-                'price' => 16000000, 'stock' => 11,
-                'image' => 'https://images.unsplash.com/photo-1578163677454-b3933804a354',
-                'description' => 'Kontainer standar untuk cargo umum.'
-            ],
-            [
-                'id' => 24, 'name' => 'High Cube Export', 'type' => 'jual', 'category' => 'High Cube',
-                'price' => 30000000, 'stock' => 6,
-                'image' => 'https://images.unsplash.com/photo-1602147577110-3a15b7bdfd3d',
-                'description' => 'High cube siap ekspor.'
-            ],
-            [
-                'id' => 25, 'name' => 'Open Top Construction', 'type' => 'sewa', 'category' => 'Open Top',
-                'price' => 21000000, 'stock' => 7,
-                'image' => 'https://images.unsplash.com/photo-1592833159155-37a2c3d1f96c',
-                'description' => 'Open top untuk material konstruksi.'
-            ],
-            [
-                'id' => 26, 'name' => 'Flat Rack Export', 'type' => 'jual', 'category' => 'Flat Rack',
-                'price' => 40000000, 'stock' => 2,
-                'image' => 'https://images.unsplash.com/photo-1616401784845-180882ba9ba8',
-                'description' => 'Flat rack ekspor.'
-            ],
-            [
-                'id' => 27, 'name' => 'Open Side Retail', 'type' => 'sewa', 'category' => 'Open Side',
-                'price' => 20000000, 'stock' => 5,
-                'image' => 'https://images.unsplash.com/photo-1627308595186-e6ca5e6bb24b',
-                'description' => 'Open side untuk retail.'
-            ],
-            [
-                'id' => 28, 'name' => 'ISO Tank Industrial', 'type' => 'jual', 'category' => 'Tank',
-                'price' => 60000000, 'stock' => 1,
-                'image' => 'https://images.unsplash.com/photo-1581090700227-1e37b190418e',
-                'description' => 'ISO tank kebutuhan industri.'
-            ],
-            [
-                'id' => 29, 'name' => 'Reefer Export Frozen', 'type' => 'sewa', 'category' => 'Reefer',
-                'price' => 29000000, 'stock' => 3,
-                'image' => 'https://images.unsplash.com/photo-1590490360182-c33d57733427',
-                'description' => 'Reefer untuk ekspor frozen food.'
-            ],
-            [
-                'id' => 30, 'name' => 'Standard Warehouse Container', 'type' => 'sewa-jual', 'category' => 'Standard',
-                'price' => 18000000, 'stock' => 9,
-                'image' => 'https://images.unsplash.com/photo-1581093588401-22f636be0c4a',
-                'description' => 'Kontainer standar untuk gudang.'
-            ],
-        ];
+        // Get categories and types from database with hierarchical structure
+        $categories = $this->getHierarchicalCategories();
+        
+        $types = ['sell', 'rent', 'rent-and-sell'];
 
-        $categories = ['Standard', 'High Cube', 'Reefer', 'Open Top', 'Flat Rack', 'Open Side', 'Tank'];
-        $types = ['sewa', 'jual', 'sewa-jual'];
-
-        // Filtering logic
-        $filteredProducts = collect($products)
-            ->when($request->search, function ($collection, $search) {
-                $searchTerm = strtolower($search);
-                return $collection->filter(function ($product) use ($searchTerm) {
-                    return str_contains(strtolower($product['name']), $searchTerm) !== false;
+        // Build query with filters
+        $query = Product::published()
+            ->with(['category', 'brand', 'coverImage'])
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'LIKE', '%' . $search . '%')
+                      ->orWhere('description', 'LIKE', '%' . $search . '%')
+                      ->orWhere('short_description', 'LIKE', '%' . $search . '%')
+                      ->orWhere('sku', 'LIKE', '%' . $search . '%');
                 });
             })
-            ->when($request->type, function ($collection, $type) {
-                return $collection->where('type', $type);
+            ->when($request->type, function ($query, $type) {
+                if($type === 'sell') {
+                    return $query->where('is_for_sell', true);
+                } elseif($type === 'rent') {
+                    return $query->where('is_rent', true);
+                } elseif($type === 'rent-and-sell') {
+                    return $query->where('is_for_sell', true)->where('is_rent', true);
+                }
             })
-            ->when($request->category, function ($collection, $category) {
-                return $collection->where('category', $category);
+            ->when($request->category, function ($query, $category) {
+                $query->whereHas('category', function ($q) use ($category) {
+                    $q->where('name', $category);
+                });
             })
-            ->when($request->minPrice, function ($collection, $minPrice) {
-                return $collection->where('price', '>=', $minPrice);
+            ->when($request->minPrice, function ($query, $minPrice) {
+                $query->where('price', '>=', $minPrice);
             })
-            ->when($request->maxPrice, function ($collection, $maxPrice) {
-                return $collection->where('price', '<=', $maxPrice);
+            ->when($request->maxPrice, function ($query, $maxPrice) {
+                $query->where('price', '<=', $maxPrice);
             });
 
-
-            // Sorting
-        if ($request->sort === 'price-desc') {
-            $filteredProducts = $filteredProducts->sortByDesc('price');
-        } else {
-            $filteredProducts = $filteredProducts->sortBy('price');
+        // Sorting
+        switch ($request->sort) {
+            case 'price-desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'name-asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name-desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'price-asc':
+            default:
+                $query->orderBy('price', 'asc');
+                break;
         }
 
         // Pagination
-        $perPage = 12;
-        $currentPage = $request->input('page', 1);
-        $pagedData = $filteredProducts->forPage($currentPage, $perPage);
+        $perPage = (int) $request->input('perPage', 12);
+        $products = $query->paginate($perPage, ['*'], 'page', $request->input('page', 1));
 
-        $products = [
+        // Transform products for frontend
+        $transformedProducts = $products->getCollection()->map(function ($product) {
+            // Get cover image with proper path validation like backpanel
+                $coverImagePath = $product->coverImage?->image_path;
+                if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
+                    $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
+                } elseif (!$coverImagePath) {
+                    $coverImagePath = '/images/placeholder.png';
+                }
+                
+                // Check if the image file actually exists
+                $fullPath = public_path($coverImagePath);
+                if (!file_exists($fullPath)) {
+                    $coverImagePath = '/images/placeholder.png';
+                }
+                
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'slug' => $product->slug,
+                    'type' => $product->type,
+                    'category' => $product->category?->name ?? 'Uncategorized',
+                    'brand' => $product->brand?->name,
+                    'price' => $product->price,
+                                       'compare_at_price' => $product->compare_at_price,
+                    'compare_at_price' => $product->compare_at_price,
+                    'stock' => $product->track_quantity ? $product->quantity : null,
+                    'image' => $coverImagePath,
+                'description' => $product->short_description ?? $product->description,
+                'is_bestseller' => $product->is_bestseller,
+                'is_new' => $product->is_new,
+                'is_featured' => $product->is_featured,
+                'is_for_sell' => $product->is_for_sell,
+                'is_rent' => $product->is_rent,
+                'show_price' => $product->show_price,
+                'sku' => $product->sku,
+            ];
+        });
+
+        $productsData = [
             'status' => 'success',
-            'data' => $pagedData->values()->all(),
+            'data' => $transformedProducts,
             'pagination' => [
-                'current_page' => $currentPage,
-                'per_page' => $perPage,
-                'total' => $filteredProducts->count(),
+                'current_page' => $products->currentPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+                'last_page' => $products->lastPage(),
+                'from' => $products->firstItem(),
+                'to' => $products->lastItem(),
             ],
             'load_info' => [
                 'request_time' => $request->server('REQUEST_TIME'),
@@ -422,10 +236,176 @@ class CatalogController extends Controller
         ];
 
         return Inertia::render('frontend/catalog/index', [
-            'products' => $products,
+            'products' => $productsData,
             'categories' => $categories,
             'types' => $types,
-            'filters' => $request->only(['search', 'type', 'category', 'minPrice', 'maxPrice', 'sort'])
+            'filters' => $request->only(['search', 'type', 'category', 'minPrice', 'maxPrice', 'sort', 'perPage'])
         ]);
+    }
+
+    // function order frontend
+    public function order(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'company_name' => 'required|string|max:255',
+                'pic_name' => 'required|string|max:255',
+                'phone' => 'required|string|max:20',
+                'email' => 'required|email|max:255',
+                'notes' => 'nullable|string',
+                'product_id' => 'required|integer',
+                'quantity' => 'required|integer|min:1',
+            ]);
+
+            // Get product data from database with cover image
+            $product = \App\Models\Product::with('coverImage')->findOrFail($validated['product_id']);
+            
+            // Get cover image or fallback to product image
+            $productImage = $product->coverImage?->path ?? $product->image;
+
+            // Check if customer exists (optional, for future use)
+            $customer = \App\Models\Customer::where('email', $validated['email'])->first();
+
+            // Create new customer if not found (optional, for future use)
+            if (!$customer) {
+                $customer = \App\Models\Customer::create([
+                    'name' => $validated['pic_name'],
+                    'phone' => $validated['phone'],
+                    'email' => $validated['email'],
+                    'address' => '',
+                    'is_active' => true,
+                ]);
+            }
+
+            // Prepare order data using existing table structure
+            $orderData = [
+                'customer_id' => $customer->id, // Now available after migration
+                'order_number' => \App\Models\Order::generateOrderNumber(),
+                'company_name' => $validated['company_name'],
+                'pic_name' => $validated['pic_name'],
+                'phone' => $validated['phone'],
+                'email' => $validated['email'],
+                'status' => 'pending',
+                'address' => '',
+                'province' => '',
+                'regency' => '',
+                'district' => '',
+                'village' => '',
+                'postal_code' => '',
+                'admin_notes' => '',
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'product_category' => $product->category?->name ?? 'Uncategorized',
+                'product_image' => $productImage,
+                'product_price' => $product->price,
+                'quantity' => $validated['quantity'],
+                'total_price' => $product->price * $validated['quantity'],
+                'notes' => $validated['notes'] ?? '',
+            ];
+
+            $order = \App\Models\Order::create($orderData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pesanan Anda telah diterima. Kami akan segera menghubungi Anda untuk konfirmasi.',
+                'order' => $order
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal. Silakan periksa kembali form Anda.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            // Log error for debugging
+            \Log::error('Order submission error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memproses pesanan. Silakan coba lagi atau hubungi kami langsung.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get hierarchical categories structure
+     */
+    private function getHierarchicalCategories()
+    {
+        // Get all categories ordered by parent and name
+        $allCategories = Category::active()
+            ->where('type', 'product')
+            ->orderBy('parent_id')
+            ->orderBy('name')
+            ->get(['id', 'name', 'parent_id', 'slug']);
+
+        // Build hierarchical structure
+        $categories = [];
+        $categoryMap = [];
+
+        // First pass: create category map
+        foreach ($allCategories as $category) {
+            $categoryMap[$category->id] = [
+                'label' => $category->name,
+                'value' => $category->slug,
+                'subcategories' => []
+            ];
+        }
+
+        // Second pass: build hierarchy
+        foreach ($allCategories as $category) {
+            if (is_null($category->parent_id)) {
+                // This is a parent category
+                $categories[] = &$categoryMap[$category->id];
+            } else {
+                // This is a child category
+                if (isset($categoryMap[$category->parent_id])) {
+                    $categoryMap[$category->parent_id]['subcategories'][] = &$categoryMap[$category->id];
+                }
+            }
+        }
+
+        // If no hierarchical data exists, return flat structure with mock data
+        if (empty($categories)) {
+            return [
+                [
+                    'label' => 'Container',
+                    'value' => 'container',
+                    'subcategories' => [
+                        ['label' => 'Container 20ft', 'value' => 'container-20ft'],
+                        ['label' => 'Container 30ft', 'value' => 'container-30ft'],
+                        ['label' => 'Container 40ft', 'value' => 'container-40ft'],
+                        ['label' => 'Container 45ft', 'value' => 'container-45ft'],
+                    ]
+                ],
+                [
+                    'label' => 'Office Container',
+                    'value' => 'office-container',
+                    'subcategories' => [
+                        ['label' => 'Office Container 20ft', 'value' => 'office-20ft'],
+                        ['label' => 'Office Container 40ft', 'value' => 'office-40ft'],
+                    ]
+                ],
+                [
+                    'label' => 'Toilet Container',
+                    'value' => 'toilet-container',
+                    'subcategories' => [
+                        ['label' => 'Toilet Portable', 'value' => 'toilet-portable'],
+                        ['label' => 'Toilet Container 20ft', 'value' => 'toilet-20ft'],
+                    ]
+                ],
+                [
+                    'label' => 'Gudang',
+                    'value' => 'gudang',
+                    'subcategories' => [
+                        ['label' => 'Gudang Mini', 'value' => 'gudang-mini'],
+                        ['label' => 'Gudang Besar', 'value' => 'gudang-besar'],
+                    ]
+                ]
+            ];
+        }
+
+        return $categories;
     }
 }

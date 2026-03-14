@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\ProductImage;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -22,11 +23,20 @@ class ProductController extends Controller
                     ->orWhere('description', 'like', "%{$search}%")
                     ->orWhere('sku', 'like', "%{$search}%");
             })
-            ->when($request->type, function ($query, $type) {
-                return $query->where('type', $type);
+            ->when($request->type_sell, function ($query, $type) {
+                if($type === 'sell') {
+                    return $query->where('is_for_sell', true);
+                } elseif($type === 'rent') {
+                    return $query->where('is_rent', true);
+                } elseif($type === 'rent-and-sell') {
+                    return $query->where('is_for_sell', true)->where('is_rent', true);
+                }
             })
             ->when($request->brand, function ($query, $brand) {
                 return $query->where('brand_id', $brand);
+            })
+            ->when($request->type, function ($query, $type) {
+                return $query->where('type', $type);
             })
             ->when($request->category, function ($query, $category) {
                 return $query->where('category_id', $category);
@@ -45,9 +55,33 @@ class ProductController extends Controller
                 return $query->where('is_bestseller', $bestseller === 'true');
             })
             ->with(['brand', 'category', 'coverImage'])
-            ->orderBy('position')
-            ->orderBy('name')
-            ->paginate(15);
+            ->orderBy('id', 'desc')
+            // ->orderBy('name')
+            ->paginate(10);
+
+        // Transform products to include proper image paths
+        $transformedProducts = $products->getCollection()->map(function ($product) {
+            // Get cover image with proper path validation
+            $coverImagePath = $product->coverImage?->image_path;
+            if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
+                $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
+            } elseif (!$coverImagePath) {
+                $coverImagePath = '/images/placeholder.png';
+            }
+            
+            // Check if the image file actually exists
+            $fullPath = public_path($coverImagePath);
+            if (!file_exists($fullPath)) {
+                $coverImagePath = '/images/placeholder.png';
+            }
+            
+            // Add the image path to the product
+            $product->image_path = $coverImagePath;
+            return $product;
+        });
+
+        // Replace the collection in the paginator
+        $products->setCollection($transformedProducts);
 
         $brands = Brand::orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
@@ -73,6 +107,13 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        // Normalize currency inputs
+        $request->merge([
+            'price' => normalize_currency($request->price),
+            'compare_at_price' => normalize_currency($request->compare_at_price),
+            'cost_per_item' => normalize_currency($request->cost_per_item),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:products,slug',
@@ -90,6 +131,8 @@ class ProductController extends Controller
             'is_featured' => 'boolean',
             'is_bestseller' => 'boolean',
             'is_new' => 'boolean',
+            'is_for_sell' => 'boolean',
+            'is_rent' => 'boolean',
             'show_price' => 'boolean',
             'position' => 'nullable|integer|min:0',
             'brand_id' => 'nullable|integer|exists:brands,id',
@@ -109,11 +152,14 @@ class ProductController extends Controller
 
         if (isset($validated['tags'])) {
             $validated['tags'] = array_filter($validated['tags']);
+            $this->insertNewTags($validated['tags'], 'product');
         }
 
         $validated['is_featured'] = $validated['is_featured'] ?? false;
         $validated['is_bestseller'] = $validated['is_bestseller'] ?? false;
         $validated['is_new'] = $validated['is_new'] ?? false;
+        $validated['is_for_sell'] = $validated['is_for_sell'] ?? false;
+        $validated['is_rent'] = $validated['is_rent'] ?? false;
         $validated['show_price'] = $validated['show_price'] ?? true;
         $validated['track_quantity'] = $validated['track_quantity'] ?? true;
         $validated['position'] = $validated['position'] ?? 0;
@@ -203,9 +249,9 @@ class ProductController extends Controller
                 'max:100',
                 Rule::unique('products')->ignore($product->id),
             ],
-            'price' => 'required|numeric|min:0|decimal:0,2',
-            'compare_at_price' => 'nullable|numeric|min:0|decimal:0,2',
-            'cost_per_item' => 'nullable|numeric|min:0|decimal:0,2',
+            'price' => 'required|numeric|min:0',
+            'compare_at_price' => 'nullable|numeric|min:0',
+            'cost_per_item' => 'nullable|numeric|min:0',
             'track_quantity' => 'boolean',
             'quantity' => 'nullable|integer|min:0',
             'barcode' => 'nullable|string|max:100',
@@ -213,7 +259,8 @@ class ProductController extends Controller
             'is_featured' => 'boolean',
             'is_bestseller' => 'boolean',
             'is_new' => 'boolean',
-            'show_price' => 'boolean',
+            'is_for_sell' => 'boolean',
+            'is_rent' => 'boolean',
             'position' => 'nullable|integer|min:0',
             'brand_id' => 'nullable|integer|exists:brands,id',
             'category_id' => 'nullable|integer|exists:categories,id',
@@ -234,6 +281,7 @@ class ProductController extends Controller
 
         if (isset($validated['tags'])) {
             $validated['tags'] = array_filter($validated['tags']);
+            $this->insertNewTags($validated['tags'], 'product');
         }
 
         $validated['is_featured'] = $validated['is_featured'] ?? $product->is_featured;
@@ -361,5 +409,36 @@ class ProductController extends Controller
 
         return redirect()->route('cms.product.index')
             ->with('success', 'Posisi produk berhasil diperbarui');
+    }
+
+    /**
+     * Insert new tags into the tags table
+     *
+     * @param array $tags
+     * @param string $type
+     * @return void
+     */
+    private function insertNewTags(array $tags, string $type)
+    {
+        foreach ($tags as $tagName) {
+            $tagName = trim($tagName);
+            if (!empty($tagName)) {
+                $slug = Str::slug($tagName);
+                
+                // Check if tag already exists
+                $existingTag = Tag::where('slug', $slug)
+                    ->orWhere('name', $tagName)
+                    ->first();
+                
+                // Insert only if tag doesn't exist
+                if (!$existingTag) {
+                    Tag::create([
+                        'name' => $tagName,
+                        'slug' => $slug,
+                        'type' => $type,
+                    ]);
+                }
+            }
+        }
     }
 }

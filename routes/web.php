@@ -34,6 +34,8 @@ Route::get('/', [HomepageController::class, 'index'])->name('homepage');
 
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
 
+Route::post('/catalog/order', [CatalogController::class, 'order'])->name('catalog.order');
+
 Route::get('/catalog/{id}', [CatalogController::class, 'show'])
     ->name('catalog.show');
     
@@ -280,6 +282,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('shipping', [ConfigurationController::class, 'create', 'shipping'])->name('shipping.create');
                 Route::delete('shipping/{id}', [ConfigurationController::class, 'destroy', 'shipping'])->name('shipping.destroy');
                 
+                Route::get('view_homepage', [ConfigurationController::class, 'viewHomepage'])->name('view_homepage');
+                Route::put('view_homepage', [ConfigurationController::class, 'update', 'view_homepage'])->name('view_homepage.update');
+                Route::post('view_homepage', [ConfigurationController::class, 'create', 'view_homepage'])->name('view_homepage.create');
+                Route::delete('view_homepage/{id}', [ConfigurationController::class, 'destroy', 'view_homepage'])->name('view_homepage.destroy');
+                
                 Route::get('other', [ConfigurationController::class, 'other'])->name('other');
                 Route::put('other', [ConfigurationController::class, 'update', 'other'])->name('other.update');
                 Route::post('other', [ConfigurationController::class, 'create', 'other'])->name('other.create');
@@ -288,8 +295,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });    
     });
 });
-
-
-
-
-

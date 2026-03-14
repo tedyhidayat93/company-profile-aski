@@ -453,7 +453,7 @@ export default function OrderEdit({ order }: Props) {
                       <SelectValue placeholder="Pilih status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending">Menunggu Konfirmasi</SelectItem>
+                      <SelectItem value="pending">Pesanan Baru</SelectItem>
                       <SelectItem value="confirmed">Dikonfirmasi</SelectItem>
                       <SelectItem value="processing">Diproses</SelectItem>
                       <SelectItem value="shipped">Dikirim</SelectItem>

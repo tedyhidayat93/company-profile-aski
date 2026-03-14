@@ -5,6 +5,7 @@ namespace App\Http\Controllers\BackPanel\CMS;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\User;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -31,11 +32,28 @@ class ArticleController extends Controller
             ->when($request->author, function ($query, $author) {
                 return $query->where('author_id', $author);
             })
-            ->when($request->tag, function ($query, $tag) {
-                return $query->withTag($tag);
+            ->when($request->headline, function ($query, $headline) {
+                if ($headline === 'true') {
+                    return $query->where('is_headline', true);
+                } elseif ($headline === 'false') {
+                    return $query->where('is_headline', false);
+                }
+            })
+            ->when($request->sort, function ($query, $sort) {
+                if ($sort === 'newest') {
+                    return $query->orderBy('created_at', 'desc');
+                } elseif ($sort === 'oldest') {
+                    return $query->orderBy('created_at', 'asc');
+                } elseif ($sort === 'most_read') {
+                    return $query->orderBy('views_count', 'desc');
+                } elseif ($sort === 'least_read') {
+                    return $query->orderBy('views_count', 'asc');
+                }
+            }, function ($query) {
+                // Default sorting if no sort is specified
+                return $query->orderBy('published_at', 'desc');
             })
             ->with(['author'])
-            ->orderBy('published_at', 'desc')
             ->paginate(15);
 
         $authors = User::orderBy('name')->get();
@@ -43,7 +61,7 @@ class ArticleController extends Controller
         return Inertia::render('backpanel/article/index', [
             'articles' => $articles,
             'authors' => $authors,
-            'filters' => $request->only(['search', 'status', 'author', 'tag'])
+            'filters' => $request->only(['search', 'status', 'author', 'headline', 'sort'])
         ]);
     }
 
@@ -58,7 +76,21 @@ class ArticleController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        // Handle tags and is_headline before validation
+        $requestData = $request->all();
+        
+        // Convert tags to array if it's a string
+        if (isset($requestData['tags']) && is_string($requestData['tags'])) {
+            $decodedTags = json_decode($requestData['tags'], true);
+            $requestData['tags'] = is_array($decodedTags) ? array_filter($decodedTags) : [];
+        }
+        
+        // Convert is_headline to boolean
+        if (isset($requestData['is_headline'])) {
+            $requestData['is_headline'] = filter_var($requestData['is_headline'], FILTER_VALIDATE_BOOLEAN);
+        }
+
+        $validated = validator()->make($requestData, [
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:articles,slug',
             'content' => 'required|string',
@@ -74,7 +106,10 @@ class ArticleController extends Controller
             'tags.*' => 'nullable|string|max:50',
             'position' => 'nullable|integer|min:0',
             'is_headline' => 'nullable|boolean',
-        ]);
+        ], [
+            'tags.array' => 'The tags field must be an array.',
+            'is_headline.boolean' => 'The is headline field must be true or false.',
+        ])->validate();
 
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['title']);
@@ -89,6 +124,7 @@ class ArticleController extends Controller
                 // If tags come as array, filter empty values
                 $validated['tags'] = array_filter($validated['tags']);
             }
+            $this->insertNewTags($validated['tags'], 'article');
         }
 
         // Set default values
@@ -137,7 +173,21 @@ class ArticleController extends Controller
     {
         $article = Article::findOrFail($id);
 
-        $validated = $request->validate([
+        // Handle tags and is_headline before validation
+        $requestData = $request->all();
+        
+        // Convert tags to array if it's a string
+        if (isset($requestData['tags']) && is_string($requestData['tags'])) {
+            $decodedTags = json_decode($requestData['tags'], true);
+            $requestData['tags'] = is_array($decodedTags) ? array_filter($decodedTags) : [];
+        }
+        
+        // Convert is_headline to boolean
+        if (isset($requestData['is_headline'])) {
+            $requestData['is_headline'] = filter_var($requestData['is_headline'], FILTER_VALIDATE_BOOLEAN);
+        }
+
+        $validated = validator()->make($requestData, [
             'title' => 'required|string|max:255',
             'slug' => [
                 'nullable',
@@ -158,7 +208,10 @@ class ArticleController extends Controller
             'tags.*' => 'nullable|string|max:50',
             'position' => 'nullable|integer|min:0',
             'is_headline' => 'nullable|boolean',
-        ]);
+        ], [
+            'tags.array' => 'The tags field must be an array.',
+            'is_headline.boolean' => 'The is headline field must be true or false.',
+        ])->validate();
 
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['title']);
@@ -173,6 +226,7 @@ class ArticleController extends Controller
                 // If tags come as array, filter empty values
                 $validated['tags'] = array_filter($validated['tags']);
             }
+            $this->insertNewTags($validated['tags'], 'article');
         }
 
         // Set default values
@@ -253,5 +307,36 @@ class ArticleController extends Controller
 
         return redirect()->route('cms.article.index')
             ->with('success', 'Posisi artikel berhasil diperbarui');
+    }
+
+    /**
+     * Insert new tags into the tags table
+     *
+     * @param array $tags
+     * @param string $type
+     * @return void
+     */
+    private function insertNewTags(array $tags, string $type)
+    {
+        foreach ($tags as $tagName) {
+            $tagName = trim($tagName);
+            if (!empty($tagName)) {
+                $slug = Str::slug($tagName);
+                
+                // Check if tag already exists
+                $existingTag = Tag::where('slug', $slug)
+                    ->orWhere('name', $tagName)
+                    ->first();
+                
+                // Insert only if tag doesn't exist
+                if (!$existingTag) {
+                    Tag::create([
+                        'name' => $tagName,
+                        'slug' => $slug,
+                        'type' => $type,
+                    ]);
+                }
+            }
+        }
     }
 }

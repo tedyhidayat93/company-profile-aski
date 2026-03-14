@@ -43,7 +43,7 @@ export default function Header() {
   const NAV_LINKS2 = [
     { name: 'Beranda', id: 'home', href: isHomepage ? '#' : '/' },
     { name: 'Layanan', id: 'services', href: isHomepage ? '#' : '/#services' },
-    { name: 'Katalog', id: 'products', href: isCatalog ? '#' : '/catalog' },
+    { name: 'Katalog Produk', id: 'products', href: isCatalog ? '#' : '/catalog' },
     { name: 'Artikel', id: 'article', href: isHomepage ? '#' : '/#article' },
     { name: 'Kontak', id: 'contact', href: isHomepage ? '#' : '/#contact' }
   ];

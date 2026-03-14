@@ -51,6 +51,8 @@ interface Product {
   is_featured: boolean;
   is_bestseller: boolean;
   is_new: boolean;
+  is_for_sell: boolean;
+  is_rent: boolean;
   show_price: boolean;
   published_at?: string;
   position?: number;
@@ -106,6 +108,12 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     return coverImage ? activeImages.indexOf(coverImage) : 0;
   };
 
+  // Get the actual cover image ID for form submission
+  const getInitialCoverImageId = () => {
+    const coverImage = product.images.find(img => img.is_cover);
+    return coverImage ? coverImage.id : null;
+  };
+
   const [coverImageIndex, setCoverImageIndex] = useState<number>(getInitialCoverIndex());
 
   const { data, setData, post, processing, errors, reset } = useForm<{
@@ -125,6 +133,8 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     is_featured: boolean;
     is_bestseller: boolean;
     is_new: boolean;
+    is_for_sell: boolean;
+    is_rent: boolean;
     show_price: boolean;
     position: number;
     brand_id: string | null;
@@ -133,7 +143,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     meta_description: string;
     tags: string[];
     images: File[];
-    cover_image: number;
+    cover_image: number | null;
     remove_images: number[];
   }>({
     name: product.name,
@@ -152,6 +162,8 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     is_featured: product.is_featured,
     is_bestseller: product.is_bestseller,
     is_new: product.is_new,
+    is_for_sell: product.is_for_sell,
+    is_rent: product.is_rent,
     show_price: product.show_price,
     position: product.position || 0,
     brand_id: product.brand_id?.toString() || null,
@@ -160,7 +172,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     meta_description: product.meta_description || '',
     tags: product.tags,
     images: [] as File[],
-    cover_image: coverImageIndex,
+    cover_image: getInitialCoverImageId(),
     remove_images: [] as number[],
   });
 
@@ -239,14 +251,20 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     setRemoveImages(newRemoveImages);
     setData('remove_images', newRemoveImages);
     
-    // Adjust cover image index if needed
-    const imageIndex = product.images.findIndex(img => img.id === imageId);
-    if (imageIndex !== -1 && coverImageIndex === imageIndex) {
-      const newCoverIndex = product.images.findIndex((img, idx) => 
-        idx !== imageIndex && !newRemoveImages.includes(img.id)
+    // Adjust cover image if the removed image was the cover
+    const removedImage = product.images.find(img => img.id === imageId);
+    if (removedImage && removedImage.is_cover) {
+      // Find a new cover image from remaining active images
+      const newCoverImage = product.images.find((img) => 
+        img.id !== imageId && !newRemoveImages.includes(img.id)
       );
-      setCoverImageIndex(newCoverIndex >= 0 ? newCoverIndex : 0);
-      setData('cover_image', newCoverIndex >= 0 ? newCoverIndex : 0);
+      const newCoverImageId = newCoverImage ? newCoverImage.id : null;
+      
+      // Update UI index
+      const newCoverIndex = newCoverImage ? 
+        product.images.filter(img => !newRemoveImages.includes(img.id)).indexOf(newCoverImage) : 0;
+      setCoverImageIndex(newCoverIndex);
+      setData('cover_image', newCoverImageId);
     }
   };
 
@@ -262,8 +280,8 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     
     if (actualIndex !== -1) {
       setCoverImageIndex(actualIndex);
-      setData('cover_image', actualIndex);
-      console.log('Cover image set to index:', actualIndex);
+      setData('cover_image', imageId); // Send image ID, not index
+      console.log('Cover image set to image ID:', imageId);
     } else {
       console.log('Image not found in active images:', imageId);
     }
@@ -299,14 +317,17 @@ export default function ProductEdit({ product, brands, categories }: Props) {
           formData.append(`tags[${index}]`, tag);
         });
       } else if (key === 'price' || key === 'compare_at_price' || key === 'cost_per_item') {
-        const rawValue = parseCurrencyInput(value as string);
-        formData.append(key, rawValue.toString());
-      } else if (key === 'track_quantity' || key === 'is_featured' || key === 'is_bestseller' || key === 'is_new' || key === 'show_price') {
+        formData.append(key, value?.toString() || '');
+      } else if (key === 'track_quantity' || key === 'is_featured' || key === 'is_bestseller' || key === 'is_new' || key === 'is_for_sell' || key === 'is_rent' || key === 'show_price') {
         formData.append(key, value ? '1' : '0');
       } else if (key === 'remove_images') {
         (value as number[]).forEach((id, index) => {
           formData.append(`remove_images[${index}]`, id.toString());
         });
+      } else if (key === 'cover_image') {
+        if (value !== null && value !== '') {
+          formData.append(key, value.toString());
+        }
       } else if (key !== 'images' && key !== 'tags') {
         formData.append(key, value?.toString() || '');
       }
@@ -754,6 +775,24 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                     onCheckedChange={(checked) => setData('is_new', Boolean(checked))}
                   />
                   <Label htmlFor="is_new">Baru</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="is_for_sell"
+                    checked={data.is_for_sell}
+                    onCheckedChange={(checked) => setData('is_for_sell', Boolean(checked))}
+                  />
+                  <Label htmlFor="is_for_sell">Dijual</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="is_rent"
+                    checked={data.is_rent}
+                    onCheckedChange={(checked) => setData('is_rent', Boolean(checked))}
+                  />
+                  <Label htmlFor="is_rent">Disewakan</Label>
                 </div>
 
                 <div className="flex items-center space-x-2">

@@ -5,7 +5,10 @@ import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useWishlist } from '@/hooks/useWishlist';
 import FrontendLayout from '@/layouts/frontend-layout';
 import ProductCard from '@/components/ProductCard';
+import axios from 'axios';
 import { Button } from '@/components/ui/button';
+import { handleImageError } from '@/utils/image';
+import { formatPrice } from '@/utils/currency';
 
 type OrderFormData = {
   companyName: string;
@@ -22,34 +25,66 @@ interface Specification {
 interface Product {
     id: number;
     name: string;
+    slug: string;
     type: string;
     category: string;
+    brand?: string;
     price: number;
-    stock: number;
+    show_price: boolean;
+    compare_at_price?: number;
+    stock: number | null;
     image: string;
     description: string;
-    specifications: Specification;
-    features: string[];
+    short_description?: string;
+    sku?: string;
+    barcode?: string;
+    is_bestseller?: boolean;
+    is_new?: boolean;
+    is_featured?: boolean;
+    is_for_sell?: boolean;
+    is_rent?: boolean;
+    images: ProductImage[];
+    tags: string[];
+}
+
+interface ProductImage {
+    id: number;
+    path: string;
+    is_cover: boolean;
+    position: number;
 }
 
 interface RelatedProduct {
     id: number;
     name: string;
+    slug: string;
     type: string;
     price: number;
+    show_price: boolean;
     stock: number | null;
     image: string;
     description: string;
+    is_bestseller?: boolean;
+    is_new?: boolean;
+    is_for_sell?: boolean;
+    is_rent?: boolean;
 }
 
 interface DetailProps {
     product: Product;
     relatedProducts: RelatedProduct[];
+    siteconfig: any;
 }
 
-export default function Detail({ product, relatedProducts }: DetailProps) {
+export default function Detail({ product, relatedProducts, siteconfig }: DetailProps) {
     const [quantity, setQuantity] = useState(1);
-    const [selectedImage, setSelectedImage] = useState(product.image);
+    const [selectedImage, setSelectedImage] = useState(
+        product.images.find(img => img.is_cover)?.path || product.images[0]?.path || product.image
+    );
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
+    const [imageSrc, setImageSrc] = useState(
+        product.images.find(img => img.is_cover)?.path || product.images[0]?.path || product.image
+    );
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     
@@ -71,42 +106,107 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
 
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Here you would typically send the order to your backend
-        console.log('Order submitted:', {
-            ...formData,
-            productId: product.id,
-            productName: product.name,
-            quantity,
-            totalPrice: product.price * quantity
-        });
         
-        // Show success modal
-        setIsOrderModalOpen(false);
-        setIsSuccessModalOpen(true);
-        // Reset form
-        setFormData({
-            companyName: '',
-            picName: '',
-            phone: '',
-            email: '',
-            notes: ''
-        });
+        // Frontend validation
+        if (!formData.companyName.trim()) {
+            alert('Nama Perusahaan/Instansi/Pribadi wajib diisi');
+            return;
+        }
+        if (!formData.picName.trim()) {
+            alert('Nama PIC wajib diisi');
+            return;
+        }
+        if (!formData.phone.trim()) {
+            alert('Nomor Telepon/WhatsApp wajib diisi');
+            return;
+        }
+        if (!formData.email.trim()) {
+            alert('Email wajib diisi');
+            return;
+        }
+        if (quantity < 1) {
+            alert('Jumlah pesanan minimal 1');
+            return;
+        }
+        
+        try {
+            const response = await axios.post('/catalog/order', {
+                company_name: formData.companyName || '',
+                pic_name: formData.picName || '',
+                phone: formData.phone || '',
+                email: formData.email || '',
+                notes: formData.notes || '',
+                product_id: product.id,
+                quantity: quantity,
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (window as any).csrfToken || '',
+                },
+            });
+
+            if (response.data.success) {
+                // Show success modal
+                setIsOrderModalOpen(false);
+                setIsSuccessModalOpen(true);
+                // Reset form
+                setFormData({
+                    companyName: '',
+                    picName: '',
+                    phone: '',
+                    email: '',
+                    notes: ''
+                });
+                setQuantity(1);
+            } else {
+                throw new Error(response.data.message || 'Failed to submit order');
+            }
+        } catch (error) {
+            console.error('Order submission error:', error);
+            if (axios.isAxiosError(error)) {
+                if (error.response?.status === 422 && error.response?.data?.errors) {
+                    // Handle validation errors
+                    const errors = error.response.data.errors;
+                    let errorMessage = 'Validasi gagal:\n';
+                    Object.entries(errors).forEach(([field, messages]) => {
+                        errorMessage += `- ${Array.isArray(messages) ? messages.join(', ') : messages}\n`;
+                    });
+                    alert(errorMessage);
+                } else {
+                    alert(error.response?.data?.message || error.message || 'Terjadi kesalahan saat mengirim pesanan. Silakan coba lagi.');
+                }
+            } else {
+                alert(error instanceof Error ? error.message : 'Terjadi kesalahan saat mengirim pesanan. Silakan coba lagi.');
+            }
+        }
     };
     
     // Get wishlist state and actions
-    const { isInWishlist, toggleWishlistItem } = useWishlist();
+    const { isInWishlist, toggleWishlistItem, wishlist } = useWishlist();
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            maximumFractionDigits: 0,
-        }).format(price);
-    };
+    useEffect(() => {
+        setImageSrc(selectedImage);
+        setIsImageLoaded(false);
+        
+        const img = new Image();
+        img.src = selectedImage;
+        
+        const onLoad = () => setIsImageLoaded(true);
+        const onError = () => handleImageError({ target: img } as any, '/images/placeholder-product.svg', product.name);
+        
+        img.addEventListener('load', onLoad);
+        img.addEventListener('error', onError);
+        
+        return () => {
+            img.removeEventListener('load', onLoad);
+            img.removeEventListener('error', onError);
+        };
+    }, [selectedImage, product.name]);
 
     const handleQuantityChange = (value: number) => {
         const newQuantity = quantity + value;
-        if (newQuantity > 0 && newQuantity <= product.stock) {
+        // Only check stock limit if track_quantity is enabled (stock is not null)
+        if (newQuantity > 0 && (product.stock === null || newQuantity <= product.stock)) {
             setQuantity(newQuantity);
         }
     };
@@ -146,24 +246,34 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                     <div className="lg:flex lg:space-x-8">
                         {/* Product Images */}
                         <div className="lg:w-1/2">
-                            <div className="mb-4 h-96 overflow-hidden rounded-lg bg-gray-100">
+                            <div className="mb-4 h-96 relative overflow-hidden rounded-lg bg-gray-100">
+                                {!isImageLoaded && (
+                                    <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+                                )}
                                 <img
-                                    src={selectedImage}
+                                    src={imageSrc}
                                     alt={product.name}
-                                    className="h-full w-full object-cover object-center"
+                                    className={`h-full w-full object-cover object-center transition-opacity duration-300 ${
+                                        isImageLoaded ? 'opacity-100' : 'opacity-0'
+                                    }`}
+                                    onLoad={() => setIsImageLoaded(true)}
+                                    onError={(e) => handleImageError(e, '/images/placeholder-product.svg', product.name)}
                                 />
                             </div>
                             <div className="grid grid-cols-4 gap-2">
-                                {[product.image, product.image, product.image, product.image].map((img, index) => (
+                                {product.images.map((img, index) => (
                                     <button
-                                        key={index}
-                                        onClick={() => setSelectedImage(img)}
-                                        className={`h-20 overflow-hidden rounded-md border-2 ${selectedImage === img ? 'border-primary' : 'border-transparent'}`}
+                                        key={img.id}
+                                        onClick={() => setSelectedImage(img.path)}
+                                        className={`h-20 overflow-hidden rounded-md border-2 ${
+                                            selectedImage === img.path ? 'border-primary' : 'border-transparent'
+                                        }`}
                                     >
                                         <img
-                                            src={img}
+                                            src={img.path}
                                             alt={`${product.name} ${index + 1}`}
                                             className="h-full w-full object-cover"
+                                            onError={(e) => handleImageError(e, '/images/placeholder-product.svg', product.name)}
                                         />
                                     </button>
                                 ))}
@@ -175,33 +285,81 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                             <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
                             
                             <div className="mt-2 flex items-center">
-                                <span className="rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                                    {product.type === 'sewa' ? 'Sewa' : 'Beli'}
+                                {product.is_bestseller && (
+                                    <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800 mr-2">
+                                        Bestseller
+                                    </span>
+                                )}
+                                {product.is_new && (
+                                    <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800 mr-2">
+                                        Baru
+                                    </span>
+                                )}
+                                {product.is_for_sell && product.is_rent ? (
+                                    <span className="rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-800 mr-2">
+                                        Dijual & Disewakan
+                                    </span>
+                                ) : (
+                                    <>
+                                        {product.is_for_sell && (
+                                            <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 mr-2">
+                                                Dijual
+                                            </span>
+                                        )}
+                                        {product.is_rent && (
+                                            <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800 mr-2">
+                                                Disewakan
+                                            </span>
+                                        )}
+                                    </>
+                                )}
+                                <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                                    {product.type === 'sewa' ? 'Sewa' : product.type === 'jual' ? 'Beli' : 'Sewa & Jual'}
                                 </span>
-                                <span className="ml-2 text-sm text-gray-500">Stok: {product.stock} unit</span>
+                                <span className="ml-2 text-sm text-gray-500">
+                                    Stok: {product.stock !== null ? `${product.stock} unit` : 'Tidak terbatas'}
+                                </span>
                             </div>
 
                             <div className="mt-4">
-                                <span className="text-2xl font-bold text-gray-900">{formatPrice(product.price)}</span>
-                                {product.type === 'sewa' && <span className="text-sm text-gray-500">/bulan</span>}
+                                {product.show_price ? (
+                                    product.compare_at_price && Number(product.compare_at_price) > Number(product.price) ? (
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-2xl font-bold text-red-600">{formatPrice(product.price)}</span>
+                                            <span className="text-sm text-gray-500 line-through">
+                                                {formatPrice(product.compare_at_price)}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-2xl font-bold text-gray-900">{formatPrice(product.price)}</span>
+                                    )
+                                ) : (
+                                    <span className="text-2xl font-bold text-gray-900">Hubungi kami untuk harga</span>
+                                )}
                             </div>
 
                             <div className="mt-6">
-                                <p className="text-gray-700">{product.description}</p>
+                                <p className="text-gray-700">
+                                    {product.short_description || product.description}
+                                </p>
                             </div>
 
-                            {/* Features */}
-                            <div className="mt-6">
-                                <h3 className="text-lg font-medium text-gray-900">Deskripsi</h3>
-                                <ul className="mt-2 space-y-2">
-                                    {product.features.map((feature, index) => (
-                                        <li key={index} className="flex items-center">
-                                            <Check className="h-5 w-5 text-green-500" />
-                                            <span className="ml-2 text-gray-700">{feature}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                            {/* Tags */}
+                            {product.tags && product.tags.length > 0 && (
+                                <div className="mt-6">
+                                    <h3 className="text-sm font-medium text-gray-500">Keyword</h3>
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {product.tags.map((tag, index) => (
+                                            <span
+                                                key={index}
+                                                className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Quantity Selector */}
                             <div className="mt-6">
@@ -219,6 +377,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     <input
                                         type="text"
                                         value={quantity}
+                                        readOnly
                                         className="h-10 w-16 rounded-none! border-t border-b border-gray-300 text-center text-gray-900"
                                     />
                                     <button
@@ -247,7 +406,8 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                         id: product.id,
                                         name: product.name,
                                         price: product.price,
-                                        image: product.image
+                                        image: product.images.find(img => img.is_cover)?.path || product.images[0]?.path || product.image || '/images/placeholder-product.svg',
+                                        slug: product.slug
                                     })}
                                     className="inline-flex cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white p-3 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                                 >
@@ -288,17 +448,29 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
 
                     {/* Product Details */}
                     <div className="mt-16">
-                        <h2 className="text-xl font-bold text-gray-900">Spesifikasi Produk</h2>
+                        <h2 className="text-xl font-bold text-gray-900">Detail Produk</h2>
                         <div className="mt-6 overflow-hidden border-t border-gray-200">
                             <dl className="divide-y divide-gray-200">
-                                {Object.entries(product.specifications).map(([key, value]) => (
-                                    <div key={key} className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                                        <dt className="text-sm font-medium text-gray-500">{key}</dt>
+                                {product.brand && (
+                                    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                                        <dt className="text-sm font-medium text-gray-500">Merek</dt>
                                         <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                                            {value}
+                                            {product.brand}
                                         </dd>
                                     </div>
-                                ))}
+                                )}
+                                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                                    <dt className="text-sm font-medium text-gray-500">Status</dt>
+                                    <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                        {product.is_for_sell && product.is_rent ? 'Dijual & Disewakan' : product.is_for_sell ? 'Dijual' : product.is_rent ? 'Disewakan' : '-'}
+                                    </dd>
+                                </div>
+                                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+                                    <dt className="text-sm font-medium text-gray-500">Kategori</dt>
+                                    <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                        {product.category}
+                                    </dd>
+                                </div>
                             </dl>
                         </div>
                     </div>
@@ -342,54 +514,70 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     <h3 className="text-lg font-medium text-gray-900 mb-4">Detail Produk</h3>
                                     <div className="flex flex-col items-start space-x-4 gap-3 p-4 border rounded-lg">
                                         <img 
-                                            src={product.image} 
+                                            src={imageSrc} 
                                             alt={product.name} 
                                             className="h-auto w-full shrink-0 rounded-md object-cover"
+                                            onError={(e) => handleImageError(e, '/images/placeholder-product.svg', product.name)}
                                         />
                                         <div className="flex-1 w-full">
                                             <h4 className="font-medium text-gray-900">{product.name}</h4>
                                             <p className="text-sm text-gray-500">{product.category}</p>
-                                            <div className="mt-2 flex items-center justify-between">
-                                                <div className="flex items-center space-x-2">
-                                                    <button 
-                                                        type="button"
-                                                        onClick={() => handleQuantityChange(-1)}
-                                                        className="h-8 w-8 cursor-pointer flex items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50"
-                                                    >
-                                                        -
-                                                    </button>
-                                                    <span className="w-10 font-bold text-black text-center">{quantity}</span>
-                                                    <button 
-                                                        type="button"
-                                                        onClick={() => handleQuantityChange(1)}
-                                                        className="h-8 w-8 cursor-pointer flex items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50"
-                                                    >
-                                                        +
-                                                    </button>
+
+                                            {product.show_price ? (
+                                                <div className="mt-2 p-3 font-bold rounded-lg bg-green-200 text-black w-full">
+                                                    Total: &nbsp;
+                                                    <span>{formatPrice(product.price * quantity)}</span>
                                                 </div>
-                                            </div>
-
-                                            <div className="mt-2 p-3 font-bold rounded-lg bg-slate-50 w-full">
-                                                Total: &nbsp;
-                                                <span>{formatPrice(product.price * quantity)}</span>
-                                            </div>
-
+                                            ) : (
+                                                <div className="mt-2 p-3 font-bold rounded-lg bg-gray-100 text-xs text-gray-700 w-full">
+                                                    <span>Hubungi Kami di {siteconfig.contact_whatsapp} untuk mendapatkan detail harga.</span>
+                                                </div>
+                                            )}
+        
                                             <div className="mt-2 p-3 rounded-lg bg-slate-50 w-full">
                                                 <span className="font-medium text-xs text-black">Note</span>
-                                                <p className="mt-2 text-xs">
-                                                    <ol className="list-decimal px-3">
-                                                        <li>Total harga hanya mejadi patokan estimasi saja, biaya dapat berubah sesuai dengan ketersediaan stok.</li>                        
-                                                        <li>Kami akan menghubungi anda untuk konfirmasi pemesanan.</li>
-                                                    </ol>
-                                                </p>
+                                                <ol className="mt-2 list-decimal px-3 text-xs text-foreground">
+                                                    <li>Total harga hanya mejadi patokan estimasi saja, biaya dapat berubah sesuai dengan ketersediaan stok.</li>                        
+                                                    <li>Kami akan menghubungi melalui email atau nomor telepon/whatsapp anda untuk konfirmasi pemesanan.</li>
+                                                </ol>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div>
-                                    <h3 className="text-lg font-medium text-gray-900 mb-4 ">Data Pemesan</h3>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-4 ">Data Pesanan</h3>
                                     <div className="space-y-4">
+                                        <div>
+                                            <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
+                                                Jumlah Pesanan <span className="text-red-500">*</span>
+                                            </label>
+                                            <div className="mt-2 flex items-center space-x-2">
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => handleQuantityChange(-1)}
+                                                    className="h-8 w-8 cursor-pointer flex items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50"
+                                                >
+                                                    -
+                                                </button>
+                                                <input
+                                                    type="number"
+                                                    id="quantity"
+                                                    name="quantity"
+                                                    value={quantity}
+                                                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                                                    min="1"
+                                                    className="w-16 text-center border border-gray-300 rounded-md"
+                                                />
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => handleQuantityChange(1)}
+                                                    className="h-8 w-8 cursor-pointer flex items-center justify-center rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        </div>
                                         <div>
                                             <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
                                                 Nama Perusahaan/Instansi/Pribadi <span className="text-red-500">*</span>
@@ -509,7 +697,10 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                         <div className="mt-5">
                             <button
                                 type="button"
-                                onClick={() => setIsSuccessModalOpen(false)}
+                                onClick={() => {
+                                    setIsSuccessModalOpen(false);
+                                    window.location.href = '/catalog';
+                                }}
                                 className="rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                             >
                                 Tutup

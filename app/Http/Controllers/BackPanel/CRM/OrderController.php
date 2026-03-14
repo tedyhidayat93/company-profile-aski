@@ -12,12 +12,16 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $orders = Order::when($request->search, function ($query, $search) {
+        $orders = Order::with('customer')
+            ->when($request->search, function ($query, $search) {
                 return $query->where('order_number', 'like', "%{$search}%")
                     ->orWhere('company_name', 'like', "%{$search}%")
                     ->orWhere('pic_name', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($query) use ($search) {
+                        $query->where('name', 'like', "%{$search}%");
+                    });
             })
             ->when($request->status, function ($query, $status) {
                 return $query->where('status', $status);

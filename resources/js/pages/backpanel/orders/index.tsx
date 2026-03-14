@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination } from '@/components/ui/pagination-custom';
+import OrderStatusInfoModal from '@/components/order-status-info-modal';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
@@ -58,6 +59,13 @@ interface Order {
   updated_at: string;
   status_label: string;
   status_color: string;
+  customer?: {
+    id: number;
+    name: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+  };
 }
 
 interface PaginatedOrders {
@@ -101,7 +109,7 @@ export default function OrderIndex({ orders, filters }: Props) {
       color: 'bg-blue-100 text-blue-800' 
     },
     { 
-      name: 'Menunggu Konfirmasi', 
+      name: 'Pesanan Baru', 
       value: orders.data.filter(order => order.status === 'pending').length.toString(), 
       icon: Clock, 
       color: 'bg-yellow-100 text-yellow-800' 
@@ -130,6 +138,12 @@ export default function OrderIndex({ orders, filters }: Props) {
       icon: CheckCircle, 
       color: 'bg-green-100 text-green-800' 
     },
+    { 
+      name: 'Dibatalkan', 
+      value: orders.data.filter(order => order.status === 'cancelled').length.toString(), 
+      icon: XCircle, 
+      color: 'bg-red-100 text-red-800' 
+    },
   ];
 
   const handleSearch = (e: React.FormEvent) => {
@@ -145,7 +159,18 @@ export default function OrderIndex({ orders, filters }: Props) {
     get('/cpanel/crm/orders', { preserveState: true });
   };
 
-  const getStatusBadge = (status: string, color: string) => {
+  const getStatusBadge = (status: string) => {
+    // Status color mapping that matches orderStats colors
+    const statusColors = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      confirmed: 'bg-purple-100 text-purple-800',
+      processing: 'bg-blue-100 text-blue-800',
+      shipped: 'bg-orange-100 text-orange-800',
+      completed: 'bg-green-100 text-green-800',
+      cancelled: 'bg-red-100 text-red-800',
+    };
+
+    // Fallback color mapping for backward compatibility
     const colorClasses = {
       warning: 'bg-yellow-100 text-yellow-800',
       info: 'bg-blue-100 text-blue-800',
@@ -155,12 +180,17 @@ export default function OrderIndex({ orders, filters }: Props) {
       danger: 'bg-red-100 text-red-800',
     };
 
+    // Try to use status-based color first, then fallback to color parameter
+    const badgeColor = statusColors[status as keyof typeof statusColors] || 
+                      colorClasses.secondary;
+
     return (
-      <Badge className={colorClasses[color as keyof typeof colorClasses] || colorClasses.secondary}>
+      <Badge className={badgeColor}>
         {status}
       </Badge>
     );
   };
+
 
   const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -182,12 +212,15 @@ export default function OrderIndex({ orders, filters }: Props) {
           title="Daftar Pesanan" 
           description="Kelola semua pesanan produk dari pelanggan"
         >
-          <Link href="/cpanel/crm/orders/create">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Tambah Pesanan
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <OrderStatusInfoModal />
+            <Link href="/cpanel/crm/orders/create">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Tambah Pesanan
+              </Button>
+            </Link>
+          </div>
         </HeaderTitle>
 
         {/* Filters */}
@@ -215,7 +248,7 @@ export default function OrderIndex({ orders, filters }: Props) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Status</SelectItem>
-                      <SelectItem value="pending">Menunggu Konfirmasi</SelectItem>
+                      <SelectItem value="pending">Pesanan Baru</SelectItem>
                       <SelectItem value="confirmed">Dikonfirmasi</SelectItem>
                       <SelectItem value="processing">Diproses</SelectItem>
                       <SelectItem value="shipped">Dikirim</SelectItem>
@@ -258,7 +291,7 @@ export default function OrderIndex({ orders, filters }: Props) {
         <Card className="shadow-card">
           <CardContent className="space-y-4">
              {/* Order Stats Overview */}
-              <div className="grid gap-2 grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-2 grid-cols-2 lg:grid-cols-4">
                 {orderStats.map((stat) => (
                   <Card className="rounded-sm py-3 px-0 shadow-none" key={stat.name}>
                     <CardContent>
@@ -283,7 +316,6 @@ export default function OrderIndex({ orders, filters }: Props) {
                   <TableHead>Produk</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Tanggal</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
@@ -315,8 +347,8 @@ export default function OrderIndex({ orders, filters }: Props) {
                     <TableCell>
                       <div className="space-y-1">
                         <div className="font-medium">{order.product_name}</div>
-                        <div className="text-sm text-gray-500">{order.product_category}</div>
-                        <div className="text-xs text-gray-500">{order.quantity} x {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.product_price)}</div>
+                        {/* <div className="text-sm text-gray-500">{order.product_category}</div> */}
+                        <div className="text-xs text-gray-500">Qty: {order.quantity} x {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.product_price)}</div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -324,13 +356,8 @@ export default function OrderIndex({ orders, filters }: Props) {
                         {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.total_price)}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {getStatusBadge(order.status_label, order.status_color)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {new Date(order.created_at).toLocaleDateString('id-ID')}
-                      </div>
+                    <TableCell className='capitalize'>
+                      {getStatusBadge(order.status)}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -371,33 +398,28 @@ export default function OrderIndex({ orders, filters }: Props) {
               </TableBody>
             </Table>
 
-            {/* Pagination */}
-            {orders.last_page > 1 && (
-              <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-gray-500">
-                  Menampilkan {orders.data.length} dari {orders.total} pesanan
-                </div>
-                <div className="flex gap-2">
-                  {orders.links.prev && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => orders.links.prev && router.get(orders.links.prev)}
-                    >
-                      Sebelumnya
-                    </Button>
-                  )}
-                  {orders.links.next && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => orders.links.next && router.get(orders.links.next)}
-                    >
-                      Selanjutnya
-                    </Button>
-                  )}
-                </div>
+            {orders.data.length === 0 && (
+              <div className="text-center py-8">
+                <ShoppingCart className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-semibold text-gray-900">Tidak ada pesanan</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Belum ada pesanan masuk.
+                </p>
               </div>
+            )}
+
+            {orders.last_page > 1 && (
+              <Pagination
+                currentPage={orders.current_page}
+                totalPages={orders.last_page}
+                total={orders.total}
+                perPage={orders.per_page}
+                onPageChange={(page) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('page', page.toString());
+                  router.get(url.toString());
+                }}
+              />
             )}
           </CardContent>
         </Card>

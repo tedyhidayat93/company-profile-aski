@@ -150,10 +150,9 @@ export default function TagIndex({ tags, filters }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Tipe</SelectItem>
+                  <SelectItem value="article">Artikel</SelectItem>
                   <SelectItem value="product">Produk</SelectItem>
-                  <SelectItem value="service">Layanan</SelectItem>
-                  <SelectItem value="blog">Blog</SelectItem>
-                  <SelectItem value="category">Kategori</SelectItem>
+                  <SelectItem value="common">Lainnya</SelectItem>
                 </SelectContent>
               </Select>
             </div>

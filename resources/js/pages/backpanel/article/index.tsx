@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
+import FlashMessage from '@/components/flash-message';
 import { type BreadcrumbItem } from '@/types';
+import { Label } from '@/components/ui/label';
 import { 
   Plus, 
   Edit, 
@@ -22,7 +24,8 @@ import {
   User,
   Calendar,
   Eye,
-  GripVertical
+  GripVertical,
+  RefreshCw
 } from 'lucide-react';
 
 interface Article {
@@ -67,15 +70,16 @@ interface PaginatedArticles {
 interface Props {
   articles: PaginatedArticles;
   authors: Array<{ id: number; name: string }>;
-  filters: {
+  filters?: {
     search?: string;
     status?: string;
     author?: string;
-    tag?: string;
+    headline?: string;
+    sort?: string;
   };
 }
 
-export default function ArticleIndex({ articles, authors, filters }: Props) {
+export default function ArticleIndex({ articles, authors, filters = {} }: Props) {
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'CMS',
@@ -87,37 +91,66 @@ export default function ArticleIndex({ articles, authors, filters }: Props) {
     },
   ];
 
-  const [search, setSearch] = React.useState(filters.search || '');
-  const [statusFilter, setStatusFilter] = React.useState(filters.status || '');
-  const [authorFilter, setAuthorFilter] = React.useState(filters.author || '');
-  const [tagFilter, setTagFilter] = React.useState(filters.tag || '');
+  const [search, setSearch] = useState(filters?.search ?? '');
+  const [statusFilter, setStatusFilter] = useState(filters?.status ?? 'all');
+  const [authorFilter, setAuthorFilter] = useState(filters?.author ?? 'all');
+  const [headlineFilter, setHeadlineFilter] = useState(filters?.headline ?? 'all');
+  const [sortFilter, setSortFilter] = useState('all');
 
   const handleSearch = (value: string) => {
     setSearch(value);
+    const params: Record<string, any> = {
+      search: value, 
+      status: statusFilter,
+      author: authorFilter,
+      headline: headlineFilter,
+      sort: sortFilter
+    };
+    
+    // Remove undefined, null, empty string, and 'all' values
+    Object.keys(params).forEach(key => {
+      if (params[key] === undefined || params[key] === null || params[key] === '' || params[key] === 'all') {
+        delete params[key];
+      }
+    });
+    
     router.get(
       '/cpanel/cms/article',
-      { 
-        search: value, 
-        status: statusFilter,
-        author: authorFilter,
-        tag: tagFilter
-      },
+      params,
       { preserveState: true, preserveScroll: true }
     );
   };
 
   const handleFilterChange = (filterType: string, value: string) => {
-    const newFilters = {
+    // Update the specific filter state
+    switch (filterType) {
+      case 'status':
+        setStatusFilter(value);
+        break;
+      case 'author':
+        setAuthorFilter(value);
+        break;
+      case 'headline':
+        setHeadlineFilter(value);
+        break;
+      case 'sort':
+        setSortFilter(value);
+        break;
+    }
+
+    // Build params with current state values
+    const newFilters: Record<string, any> = {
       search, 
       status: filterType === 'status' ? value : statusFilter,
       author: filterType === 'author' ? value : authorFilter,
-      tag: filterType === 'tag' ? value : tagFilter
+      headline: filterType === 'headline' ? value : headlineFilter,
+      sort: filterType === 'sort' ? value : sortFilter
     };
 
-    // Remove empty filters
+    // Remove undefined, null, empty string, and 'all' values
     Object.keys(newFilters).forEach(key => {
-      if (newFilters[key as keyof typeof newFilters] === '' || newFilters[key as keyof typeof newFilters] === 'all') {
-        delete newFilters[key as keyof typeof newFilters];
+      if (newFilters[key] === undefined || newFilters[key] === null || newFilters[key] === '' || newFilters[key] === 'all') {
+        delete newFilters[key];
       }
     });
 
@@ -127,6 +160,23 @@ export default function ArticleIndex({ articles, authors, filters }: Props) {
       { preserveState: true, preserveScroll: true }
     );
   };
+
+  const handleResetFilters = () => {
+    setSearch('');
+    setStatusFilter('all');
+    setAuthorFilter('all');
+    setHeadlineFilter('all');
+    setSortFilter('all');
+    
+    router.get('/cpanel/cms/article', {}, { preserveState: true });
+  };
+
+  // Check if any filter is active
+  const hasActiveFilters = search || 
+    statusFilter !== 'all' || 
+    authorFilter !== 'all' || 
+    headlineFilter !== 'all' || 
+    sortFilter !== 'all';
 
   const handleDelete = (id: number) => {
     if (confirm('Apakah Anda yakin ingin menghapus artikel ini?')) {
@@ -154,6 +204,7 @@ export default function ArticleIndex({ articles, authors, filters }: Props) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Artikel" />
+      <FlashMessage />
       
       <div className="space-y-6 p-6">
         <HeaderTitle
@@ -170,55 +221,96 @@ export default function ArticleIndex({ articles, authors, filters }: Props) {
 
         <Card>
           <CardContent className='space-y-3'>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Cari artikel..."
-                value={search}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex items-center gap-2 mb-4">
-              <Select value={statusFilter} onValueChange={(value) => handleFilterChange('status', value)}>
-                <SelectTrigger className="w-[140px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="published">Diterbitkan</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="archived">Diarsipkan</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={authorFilter} onValueChange={(value) => handleFilterChange('author', value)}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Penulis" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Penulis</SelectItem>
-                  {authors.map((author) => (
-                    <SelectItem key={author.id} value={author.id.toString()}>
-                      {author.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={tagFilter} onValueChange={(value) => handleFilterChange('tag', value)}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Tag" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Tag</SelectItem>
-                  <SelectItem value="berita">Berita</SelectItem>
-                  <SelectItem value="tutorial">Tutorial</SelectItem>
-                  <SelectItem value="tips">Tips</SelectItem>
-                  <SelectItem value="announcement">Pengumuman</SelectItem>
-                  <SelectItem value="teknologi">Teknologi</SelectItem>
-                  <SelectItem value="bisnis">Bisnis</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col gap-2 mb-3">
+              <div className="flex gap-2">
+                <div className="flex flex-1 flex-col space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">Cari Artikel</Label>
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Cari artikel..."
+                      value={search}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                {hasActiveFilters && (
+                    <div className="flex flex-col space-y-1">
+                      <Label className="text-xs font-medium text-gray-600">&nbsp;</Label>
+                      <Button 
+                        type="button" 
+                        size="sm"
+                        variant="destructive" 
+                        onClick={handleResetFilters}
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Reset
+                      </Button>
+                    </div>
+                )}
+              </div>
+              
+              <div className="flex flex-wrap gap-2 items-center">
+                <div className="flex flex-col space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">Status</Label>
+                  <Select value={statusFilter} onValueChange={(value) => handleFilterChange('status', value)}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua</SelectItem>
+                      <SelectItem value="published">Diterbitkan</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="archived">Diarsipkan</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">Penulis</Label>
+                  <Select value={authorFilter} onValueChange={(value) => handleFilterChange('author', value)}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Penulis" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Penulis</SelectItem>
+                      {authors.map((author) => (
+                        <SelectItem key={author.id} value={author.id.toString()}>
+                          {author.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">Headline</Label>
+                  <Select value={headlineFilter} onValueChange={(value) => handleFilterChange('headline', value)}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Headline" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua</SelectItem>
+                      <SelectItem value="true">Headline</SelectItem>
+                      <SelectItem value="false">Tidak</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">Urutkan</Label>
+                  <Select value={sortFilter} onValueChange={(value) => handleFilterChange('sort', value)}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Urutkan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua</SelectItem>
+                      <SelectItem value="newest">Terbaru</SelectItem>
+                      <SelectItem value="oldest">Terlama</SelectItem>
+                      <SelectItem value="most_read">Terbanyak Dibaca</SelectItem>
+                      <SelectItem value="least_read">Tersedikit Dibaca</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
             <Table>
@@ -244,18 +336,17 @@ export default function ArticleIndex({ articles, authors, filters }: Props) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="max-w-md">
-                        <div className="font-medium">{article.title}</div>
-                        {article.excerpt && (
-                          <div className="text-sm text-gray-400 mt-1 line-clamp-1">
-                            {article.excerpt}
-                          </div>
-                        )}
+                      <div className="max-w-52 truncate">
+                        <div className="font-medium text-sm">{article.title}</div>
+
+                        <a href={'https://alumodasinergi.com/'+article.slug} className="text-xs truncate max-w-10 text-blue-600 mt-1">
+                          https://alumodasinergi.com/{article.slug}
+                        </a>
                         {article.tags && article.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2">
                             {article.tags.slice(0, 3).map((tag, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
-                                {tag}
+                                #{tag}
                               </Badge>
                             ))}
                             {article.tags.length > 3 && (

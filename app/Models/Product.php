@@ -29,6 +29,8 @@ class Product extends Model
         'is_featured',
         'is_bestseller',
         'is_new',
+        'is_for_sell',
+        'is_rent',
         'show_price',
         'published_at',
         'position',
@@ -47,6 +49,8 @@ class Product extends Model
         'is_featured' => 'boolean',
         'is_bestseller' => 'boolean',
         'is_new' => 'boolean',
+        'is_for_sell' => 'boolean',
+        'is_rent' => 'boolean',
         'show_price' => 'boolean',
         'published_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -87,6 +91,33 @@ class Product extends Model
     public function getTagsAttribute($value)
     {
         return json_decode($value, true) ?? [];
+    }
+
+    /**
+     * Get the processed image path for the cover image.
+     *
+     * @return string
+     */
+    public function getImagePathAttribute()
+    {
+        if (!isset($this->attributes['image_path'])) {
+            $coverImagePath = $this->coverImage?->image_path;
+            if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
+                $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
+            } elseif (!$coverImagePath) {
+                $coverImagePath = '/images/placeholder-product.svg';
+            }
+            
+            // Check if the image file actually exists
+            $fullPath = public_path($coverImagePath);
+            if (!file_exists($fullPath)) {
+                $coverImagePath = '/images/placeholder-product.svg';
+            }
+            
+            $this->attributes['image_path'] = $coverImagePath;
+        }
+        
+        return $this->attributes['image_path'];
     }
 
     /**
@@ -145,8 +176,7 @@ class Product extends Model
     // Scopes
     public function scopePublished($query)
     {
-        return $query->where('status', 'published')
-            ->where('published_at', '<=', now());
+        return $query->where('status', 'published');
     }
 
     public function scopeFeatured($query)
@@ -162,6 +192,16 @@ class Product extends Model
     public function scopeNew($query)
     {
         return $query->where('is_new', true);
+    }
+
+    public function scopeForSell($query)
+    {
+        return $query->where('is_for_sell', true);
+    }
+
+    public function scopeForRent($query)
+    {
+        return $query->where('is_rent', true);
     }
 
     public function scopeOfType($query, $type)

@@ -10,39 +10,56 @@ type BlogPost = {
     excerpt: string;
     content: string;
     featured_image: string;
-    category: {
-        name: string;
-        slug: string;
-    };
     author: {
+        id: number;
         name: string;
     };
+    tags: string[];
     published_at: string;
-    reading_time: number;
+    reading_time?: number;
+    views_count: number;
 };
 
 type BlogIndexProps = {
-    posts: BlogPost[];
-    categories: Array<{
-        id: number;
-        name: string;
-        slug: string;
-        posts_count: number;
-    }>;
+    posts: {
+        data: BlogPost[];
+        links: any;
+        meta: any;
+    };
+    tag?: string;
 };
 
-export default function BlogIndex({ posts, categories }: BlogIndexProps) {
+export default function BlogIndex({ posts, tag }: BlogIndexProps) {
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+    };
+
+    const calculateReadingTime = (content: string) => {
+        const wordsPerMinute = 200;
+        const words = content.trim().split(/\s+/).length;
+        return Math.ceil(words / wordsPerMinute);
+    };
+
     return (
         <FrontendLayout>
-            <Head title="Blog" />
+            <Head title={tag ? `Tag: ${tag}` : "Blog"} />
             
             {/* Hero Section */}
             <div className="bg-gray-50 py-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
-                        <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl">Blog & Artikel</h1>
+                        <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl">
+                            {tag ? `Tag: ${tag}` : "Blog & Artikel"}
+                        </h1>
                         <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
-                            Temukan artikel terbaru seputar industri, tips, dan informasi terbaru dari kami.
+                            {tag 
+                                ? `Temukan artikel dengan tag "${tag}"`
+                                : "Temukan artikel terbaru seputar industri, tips, dan informasi terbaru dari kami."
+                            }
                         </p>
                     </div>
                 </div>
@@ -52,9 +69,9 @@ export default function BlogIndex({ posts, categories }: BlogIndexProps) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Blog Posts */}
-                    <div className="lg:w-2/3">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {posts.map((post) => (
+                    <div className="lg:w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {posts.data.map((post) => (
                                 <article key={post.id} className="flex flex-col overflow-hidden rounded-lg shadow-lg">
                                     <div className="flex-shrink-0">
                                         <img 
@@ -65,13 +82,8 @@ export default function BlogIndex({ posts, categories }: BlogIndexProps) {
                                     </div>
                                     <div className="flex-1 bg-white p-6 flex flex-col justify-between">
                                         <div className="flex-1">
-                                            <p className="text-sm font-medium text-primary">
-                                                <Link href={`/blog/category/${post.category.slug}`} className="hover:underline">
-                                                    {post.category.name}
-                                                </Link>
-                                            </p>
-                                            <Link href={`/blog/${post.slug}`} className="block mt-2">
-                                                <h3 className="text-xl font-semibold text-gray-900 hover:text-primary transition-colors">
+                                            <Link href={`/blog/${post.slug}`} className="block">
+                                                <h3 className="text-xl font-semibold text-gray-900 hover:text-primary transition-colors line-clamp-2">
                                                     {post.title}
                                                 </h3>
                                                 <p className="mt-3 text-base text-gray-500 line-clamp-3">
@@ -79,120 +91,60 @@ export default function BlogIndex({ posts, categories }: BlogIndexProps) {
                                                 </p>
                                             </Link>
                                         </div>
-                                        <div className="mt-6 flex items-center">
-                                            <div className="flex space-x-1 text-sm text-gray-500">
+                                        <div className="mt-6 flex items-center justify-between">
+                                            <div className="flex items-center text-sm text-gray-500">
+                                                <User className="h-4 w-4 mr-2" />
+                                                <span>{post.author.name}</span>
+                                            </div>
+                                            <div className="flex items-center text-sm text-gray-500">
+                                                <Calendar className="h-4 w-4 mr-2" />
                                                 <time dateTime={post.published_at}>
-                                                    {new Date(post.published_at).toLocaleDateString('id-ID', {
-                                                        year: 'numeric',
-                                                        month: 'long',
-                                                        day: 'numeric'
-                                                    })}
+                                                    {formatDate(post.published_at)}
                                                 </time>
-                                                <span aria-hidden="true">
-                                                    &middot;
-                                                </span>
-                                                <span>{post.reading_time} min read</span>
                                             </div>
                                         </div>
+                                        <div className="mt-2 flex items-center justify-between">
+                                            <div className="flex items-center text-sm text-gray-500">
+                                                <Clock className="h-4 w-4 mr-2" />
+                                                <span>{post.reading_time || calculateReadingTime(post.content)} menit baca</span>
+                                            </div>
+                                            <div className="flex items-center text-sm text-gray-500">
+                                                <span>{post.views_count} dilihat</span>
+                                            </div>
+                                        </div>
+                                        {post.tags && post.tags.length > 0 && (
+                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                {post.tags.slice(0, 3).map((tag, index) => (
+                                                    <span 
+                                                        key={index}
+                                                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                                                    >
+                                                        #{tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </article>
                             ))}
                         </div>
 
                         {/* Pagination */}
-                        <nav className="mt-12 flex items-center justify-between px-4 sm:px-0">
-                            <div className="-mt-px flex w-0 flex-1">
-                                <Button variant="ghost" className="inline-flex items-center border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-                                    <ArrowLeft className="mr-3 h-5 w-5 text-gray-400" aria-hidden="true" />
-                                    Previous
-                                </Button>
-                            </div>
-                            <div className="hidden md:-mt-px md:flex">
-                                {[1, 2, 3, 4, 5].map((page) => (
-                                    <Button
-                                        key={page}
-                                        variant={page === 1 ? 'default' : 'ghost'}
-                                        className="inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium"
-                                    >
-                                        {page}
-                                    </Button>
-                                ))}
-                            </div>
-                            <div className="-mt-px flex w-0 flex-1 justify-end">
-                                <Button variant="ghost" className="inline-flex items-center border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-                                    Next
-                                    <ArrowLeft className="ml-3 h-5 w-5 -rotate-180 text-gray-400" aria-hidden="true" />
-                                </Button>
-                            </div>
-                        </nav>
-                    </div>
-
-                    {/* Sidebar */}
-                    <div className="lg:w-1/3 space-y-8">
-                        {/* Categories */}
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Kategori</h3>
-                            <div className="space-y-2">
-                                {categories.map((category) => (
+                        <div className="mt-12 flex justify-center">
+                            <nav className="flex items-center space-x-2">
+                                {posts.links?.map((link: any, index: number) => (
                                     <Link
-                                        key={category.id}
-                                        href={`/blog/category/${category.slug}`}
-                                        className="flex items-center justify-between px-3 py-2 text-sm rounded-md hover:bg-gray-50 group"
-                                    >
-                                        <span className="text-gray-600 group-hover:text-primary">{category.name}</span>
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                            {category.posts_count}
-                                        </span>
-                                    </Link>
+                                        key={index}
+                                        href={link.url || '#'}
+                                        className={`px-3 py-2 text-sm font-medium rounded-md ${
+                                            link.active
+                                                ? 'bg-primary text-white'
+                                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                                        } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                    />
                                 ))}
-                            </div>
-                        </div>
-
-                        {/* Popular Posts */}
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Artikel Populer</h3>
-                            <div className="space-y-4">
-                                {posts.slice(0, 3).map((post) => (
-                                    <Link key={post.id} href={`/blog/${post.slug}`} className="group flex items-start space-x-3">
-                                        <div className="flex-shrink-0">
-                                            <img 
-                                                className="h-16 w-16 rounded object-cover" 
-                                                src={post.featured_image || '/images/placeholder-blog.jpg'} 
-                                                alt={post.title} 
-                                            />
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-medium text-gray-900 group-hover:text-primary line-clamp-2">
-                                                {post.title}
-                                            </h4>
-                                            <div className="mt-1 flex items-center text-xs text-gray-500">
-                                                <Calendar className="h-3.5 w-3.5 mr-1" />
-                                                {new Date(post.published_at).toLocaleDateString('id-ID', {
-                                                    day: 'numeric',
-                                                    month: 'short',
-                                                    year: 'numeric'
-                                                })}
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Tags */}
-                        <div className="bg-white rounded-lg shadow p-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Tag Populer</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {['teknologi', 'bisnis', 'pemasaran', 'desain', 'pengembangan', 'tips'].map((tag) => (
-                                    <Link
-                                        key={tag}
-                                        href={`/blog/tag/${tag}`}
-                                        className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200"
-                                    >
-                                        {tag}
-                                    </Link>
-                                ))}
-                            </div>
+                            </nav>
                         </div>
                     </div>
                 </div>

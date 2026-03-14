@@ -26,13 +26,13 @@ const sidebarNavItems: NavItem[] = [
   //   href: show(),
   //   icon: null,
   // },
+  // {
+  //   title: 'Tampilan',
+  //   href: editAppearance(),
+  //   icon: null,
+  // },
   {
-    title: 'Tampilan',
-    href: editAppearance(),
-    icon: null,
-  },
-  {
-    title: 'Konfigurasi',
+    title: 'Konfigurasi Situs',
     href: '/cpanel/settings/configuration/site',
     icon: null,
   },
@@ -50,34 +50,28 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     <div className="px-4 py-6">
       <Heading title="Pengaturan" description="Kelola profil dan pengaturan akun Anda" />
 
-      <div className="flex flex-col lg:flex-row lg:space-x-12">
-        <aside className="w-full max-w-xl lg:w-48">
-          <nav className="flex flex-col space-y-1 space-x-0">
-            {sidebarNavItems.map((item, index) => (
-              <Button
-                key={`${resolveUrl(item.href)}-${index}`}
-                size="sm"
-                variant="ghost"
-                asChild
-                className={cn('w-full justify-start', {
-                  'bg-muted': isSameUrl(currentPath, item.href),
-                })}
-              >
-                <Link href={item.href}>
-                  {item.icon && <item.icon className="h-4 w-4" />}
-                  {item.title}
-                </Link>
-              </Button>
-            ))}
-          </nav>
-        </aside>
-
-        <Separator className="my-6 lg:hidden" />
-
-        <div className="flex-1 md:max-w-2xl">
-          <section className="max-w-xl space-y-12">{children}</section>
-        </div>
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="flex space-x-8">
+          {sidebarNavItems.map((item, index) => (
+            <Link
+              key={`${resolveUrl(item.href)}-${index}`}
+              href={item.href}
+              className={cn(
+                'py-2 px-1 border-b-2 font-medium text-sm transition-colors',
+                isSameUrl(currentPath, item.href)
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              )}
+            >
+              {item.title}
+            </Link>
+          ))}
+        </nav>
       </div>
+
+      {/* Content Section */}
+      <section className="space-y-12 px-4">{children}</section>
     </div>
   );
 }

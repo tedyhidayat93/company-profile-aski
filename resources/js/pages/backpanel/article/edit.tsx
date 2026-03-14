@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
+import FlashMessage from '@/components/flash-message';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Save, FileText, Upload, Tag as TagIcon, Calendar } from 'lucide-react';
 import TinyMCEEditor from '@/components/TinyMCEEditor';
@@ -156,6 +157,7 @@ export default function ArticleEdit({ article, authors }: Props) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Edit Artikel" />
+      <FlashMessage />
       
       <div className="space-y-6 p-6">
         <div className="flex items-center space-x-4">
