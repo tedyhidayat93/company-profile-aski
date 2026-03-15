@@ -1,63 +1,34 @@
-import logoImage from '@/assets/images/logo-main.png';
-import { Button } from '@/components/ui/button';
-import { dashboard, login } from '@/routes';
-import { type SharedData } from '@/types';
+
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { AlignEndVerticalIcon, ArrowRightIcon, Facebook, Instagram, Linkedin, Mail, Megaphone, Phone, PhoneCall, RefreshCcwDot, Video, X } from 'lucide-react';
+import { ArrowRightIcon, Loader, PhoneCall, RefreshCcwDot } from 'lucide-react';
 import { useState } from 'react';
 import BgHero from '@/assets/images/bg-hero.png';
-import catalog, { index } from '@/routes/catalog';
+import catalog from '@/routes/catalog';
 import FrontendLayout from '@/layouts/frontend-layout';
 import ProductCard from '@/components/ProductCard';
-import { ApiResponse, Product } from './catalog';
 import blog from '@/routes/blog';
 import { handleImageError } from '@/utils/image';
-
-const testimonials = [
-  {
-    id: 1,
-    name: 'Budi Santoso',
-    role: 'Pemilik UMKM',
-    content:
-      'Pelayanan yang sangat memuaskan! Kontainer yang saya sewa dalam kondisi sangat baik dan harga bersaing.',
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-  },
-  {
-    id: 2,
-    name: 'Siti Rahayu',
-    role: 'Manajer Logistik',
-    content:
-      'Tim yang profesional dan responsif. Pengiriman tepat waktu dan kontainer dalam kondisi prima.',
-    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-  },
-];
+import { useConfig } from '@/utils/config';
 
 export default function Homepage({ 
   products = [], 
   services = [], 
   clients = [], 
   faqs = [], 
-  articles = [],
-  homepageConfigs = []
+  articles = []
 }: { 
   products?: any[];
   services?: any[];
   clients?: any[];
   faqs?: any[];
   articles?: any[];
-  homepageConfigs?: any[];
 }) {
+  const { getConfig } = useConfig();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
-
-  // Helper function to get configuration value
-  const getConfig = (key: string, defaultValue: string = '') => {
-    const config = homepageConfigs.find((c: any) => c.key === key);
-    return config ? config.value : defaultValue;
-  };
 
 
   const handleSearch = (e: React.FormEvent) => {
@@ -89,14 +60,10 @@ export default function Homepage({
 
   return (
     <FrontendLayout title="Beranda">
-      <Head title="PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer">
-        <link rel="preconnect" href="https://fonts.bunny.net" />
-        <link
-          href="https://fonts.bunny.net/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
+      <Head title={`${getConfig('site_name', 'Your site name')} - ${getConfig('site_tagline', 'Your site tagline')}`}>
+        <meta name="description" content={getConfig('meta_description', 'PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer dengan kualitas terbaik dan harga kompetitif')} />
+        <meta name="keywords" content={getConfig('meta_keywords', 'jual kontainer, sewa kontainer, kontainer bekas, kontainer modifikasi, PT. Alumoda Sinergi Kontainer Indonesia')} />
         <style
-          // @ts-ignore - styled-jsx types are handled by the babel plugin
           jsx
           global
         >{`
@@ -118,7 +85,7 @@ export default function Homepage({
 
           
           <img 
-            src={BgHero} 
+            src={getConfig('hero_image', BgHero)} 
             alt="Alumoda Sinergi Kontainer Indonesia - Solusi Terpercaya untuk Kontainer Anda" 
             className="absolute inset-0 z-10 object-cover w-full h-full"
             loading="eager"
@@ -156,7 +123,7 @@ export default function Homepage({
                       >
                           {isSearching ? (
                               <div className="flex items-center">
-                                  <RefreshCcwDot className="mr-2 h-5 w-5 animate-spin" />
+                                  <Loader className="mr-2 h-5 w-5 animate-spin" />
                                   Mencari...
                               </div>
                           ) : 'Cari Sekarang'}
@@ -307,39 +274,6 @@ export default function Homepage({
           </div>
         </section>
 
-        {/* Testimoni Section */}
-        <section className="bg-white py-20 dark:bg-gray-900 hidden">
-          <div className="container mx-auto px-4">
-            <div className="mb-12 text-center">
-              <h2 className="mb-4">{getConfig('testimonials_title', 'Apa Kata Mereka')}</h2>
-              <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
-                {getConfig('testimonials_description', 'Testimoni dari klien yang telah menggunakan layanan kami')}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              {testimonials.map((testimonial) => (
-                <div key={testimonial.id} className="rounded-xl bg-gray-50 p-8 dark:bg-gray-800">
-                  <div className="mb-4 flex items-center">
-                    <img
-                      src={testimonial.avatar}
-                      alt={testimonial.name}
-                      className="mr-4 h-12 w-12 rounded-full object-cover"
-                    />
-                    <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white">
-                        {testimonial.name}
-                      </h4>
-                      <p className="text-sm text-gray-500">{testimonial.role}</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 italic dark:text-gray-300">"{testimonial.content}"</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* FAQ Section */}
         <section className="bg-gray-50 py-20 dark:bg-gray-800">
           <div className="container mx-auto px-4">
@@ -384,83 +318,86 @@ export default function Homepage({
         </section>
 
         {/* Article section */}
-        <section id="article" className="py-20 bg-white dark:bg-gray-900">
-          <div className="container mx-auto px-4">
-            <div className="mb-12 text-center">
-              <h2 className="mb-4">{getConfig('articles_title', 'Artikel Terbaru')}</h2>
-              <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
-                {getConfig('articles_description', 'Temukan informasi terbaru seputar kontainer dan solusi logistik')}
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {articles.map((article) => (
-                <div 
-                  key={article.id} 
-                  className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800"
-                >
-                  <div className="relative h-52 overflow-hidden bg-gray-100 dark:bg-gray-700">
-                      <div className="absolute inset-0 bg-linear-to-r from-amber-100 to-amber-200 dark:from-gray-700 dark:to-gray-600 transition-transform duration-500 group-hover:scale-110" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <img 
-                          src={article.image} 
-                          alt={article.title} 
-                          className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${
-                            loadedImages[article.id] ? 'opacity-100' : 'opacity-0'
-                          }`}
-                          loading="lazy"
-                          onLoad={() => handleImageLoad(article.id)}
-                          onError={(e) => handleImageError(e, undefined, article.title)}
-                        />
-                        {!loadedImages[article.id] && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="animate-pulse flex space-x-4 w-full h-full">
-                              <div className="flex-1 space-y-4 py-1">
-                                <div className="h-full w-full bg-gray-300 dark:bg-gray-600 rounded"></div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="absolute top-4 left-4">
-                        <span className="rounded-full bg-amber-600 px-3 py-1 text-xs font-medium text-white">
-                          {article.category}
-                        </span>
-                      </div>
-                    </div>
-                  <div className="p-6">
-                    <div className="mb-3 text-sm text-gray-500 dark:text-gray-400">
-                      {article.date}
-                    </div>
-                    <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-white group-hover:text-amber-600 transition-colors">
-                      {article.title}
-                    </h3>
-                    <p className="mb-4 text-gray-600 dark:text-gray-300 line-clamp-3">
-                      {article.excerpt}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <Link 
-                        href={`/blog/${article.slug}`} 
-                        className="flex items-center text-sm font-medium text-amber-600 transition-colors hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
-                      >
-                        Baca Selengkapnya
-                        <ArrowRightIcon className="ml-1 h-4 w-4" />
-                      </Link>
-                    </div>
-                  </div>
+        <section id="article" className="bg-white dark:bg-gray-900">
+            {articles.length > 0 && (
+              <div className="container mx-auto px-4 py-20">
+                <div className="mb-12 text-center">
+                  <h2 className="mb-4">{getConfig('articles_title', 'Artikel Terbaru')}</h2>
+                  <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
+                    {getConfig('articles_description', 'Temukan informasi terbaru seputar kontainer dan solusi logistik')}
+                  </p>
                 </div>
-              ))}
-            </div>
-            
-            <div className="mt-12 text-center">
-              <Link 
-                href={blog.index()}
-                className="btn btn-outline"
-              >
-                Tampilkan Lebih Banyak
-              </Link>
-            </div>
-          </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {articles.map((article) => (
+                    <div 
+                      key={article.id} 
+                      className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800"
+                    >
+                      <div className="relative h-52 overflow-hidden bg-gray-100 dark:bg-gray-700">
+                          <div className="absolute inset-0 bg-linear-to-r from-amber-100 to-amber-200 dark:from-gray-700 dark:to-gray-600 transition-transform duration-500 group-hover:scale-110" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <img 
+                              src={article.image} 
+                              alt={article.title} 
+                              className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${
+                                loadedImages[article.id] ? 'opacity-100' : 'opacity-0'
+                              }`}
+                              loading="lazy"
+                              onLoad={() => handleImageLoad(article.id)}
+                              onError={(e) => handleImageError(e, undefined, article.title)}
+                            />
+                            {!loadedImages[article.id] && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="animate-pulse flex space-x-4 w-full h-full">
+                                  <div className="flex-1 space-y-4 py-1">
+                                    <div className="h-full w-full bg-gray-300 dark:bg-gray-600 rounded"></div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div className="absolute top-4 left-4">
+                            <span className="rounded-full bg-amber-600 px-3 py-1 text-xs font-medium text-white">
+                              {article.category}
+                            </span>
+                          </div>
+                        </div>
+                      <div className="p-6">
+                        <div className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+                          {article.date}
+                        </div>
+                        <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-white group-hover:text-amber-600 transition-colors">
+                          {article.title}
+                        </h3>
+                        <p className="mb-4 text-gray-600 dark:text-gray-300 line-clamp-3">
+                          {article.excerpt}
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <Link 
+                            href={`/blog/${article.slug}`} 
+                            className="flex items-center text-sm font-medium text-amber-600 transition-colors hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                          >
+                            Baca Selengkapnya
+                            <ArrowRightIcon className="ml-1 h-4 w-4" />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                  <div className="mt-12 text-center">
+                    <Link 
+                      href={blog.index()}
+                      className="btn btn-outline"
+                    >
+                      Tampilkan Lebih Banyak
+                    </Link>
+                  </div>
+              </div>
+            )}
         </section>
 
         {/* CTA Section */}
@@ -470,7 +407,7 @@ export default function Homepage({
             <p className="mx-auto mb-8 text-slate-800 max-w-2xl">
               {getConfig('cta_description', 'Dapatkan penawaran terbaik untuk sewa atau beli kontainer berkualitas. Cocok untuk berbagai kebutuhan usaha mulai dari gudang, kantor, hingga ruang komersial.')}
             </p>
-            <a href="tel:+628123456789" className="btn flex! w-max items-center gap-2 text-white bg-green-600 cursor-pointer animate-bounce! hover:bg-green-500 shadow-lg p-4! px-7! rounded-full! text-base"> 
+            <a target='_blank' href={`https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=Halo%20Alumoda%2C%20saya%20ingin%20bertanya`}  className="btn flex! w-max items-center gap-2 text-white bg-green-600 cursor-pointer animate-bounce! hover:bg-green-500 shadow-lg p-4! px-7! rounded-full! text-base"> 
               <PhoneCall className="h-5 w-5" /> {getConfig('cta_button_text', 'Hubungi Kami via WhatsApp')}</a>
           </div>
         </section>

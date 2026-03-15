@@ -80,22 +80,25 @@ class OrderController extends Controller
             ->with('success', 'Pesanan berhasil dibuat.');
     }
 
-    public function show(Order $order)
+    public function show($id)
     {
+        $order = Order::with(['product.coverImage'])->find($id);
         return Inertia::render('backpanel/orders/show', [
             'order' => $order
         ]);
     }
 
-    public function edit(Order $order)
+    public function edit($id)
     {
+        $order = Order::find($id);
         return Inertia::render('backpanel/orders/edit', [
             'order' => $order
         ]);
     }
 
-    public function update(Request $request, Order $order)
+    public function update(Request $request, $id)
     {
+        $order = Order::find($id);
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
             'pic_name' => 'required|string|max:255',
@@ -125,16 +128,18 @@ class OrderController extends Controller
             ->with('success', 'Pesanan berhasil diperbarui.');
     }
 
-    public function destroy(Order $order)
+    public function destroy($id)
     {
+        $order = Order::find($id);
         $order->delete();
 
         return redirect()->route('orders.index')
             ->with('success', 'Pesanan berhasil dihapus.');
     }
 
-    public function updateStatus(Request $request, Order $order)
+    public function updateStatus(Request $request, $id)
     {
+        $order = Order::find($id);
         $validated = $request->validate([
             'status' => 'required|in:pending,confirmed,processing,shipped,completed,cancelled',
             'admin_notes' => 'nullable|string',

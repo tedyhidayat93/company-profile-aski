@@ -127,9 +127,12 @@ class CatalogController extends Controller
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'LIKE', '%' . $search . '%')
-                      ->orWhere('description', 'LIKE', '%' . $search . '%')
-                      ->orWhere('short_description', 'LIKE', '%' . $search . '%')
-                      ->orWhere('sku', 'LIKE', '%' . $search . '%');
+                        ->orWhere('description', 'LIKE', '%' . $search . '%')
+                        ->orWhere('meta_title', 'LIKE', '%' . $search . '%')
+                        ->orWhere('meta_description', 'LIKE', '%' . $search . '%')
+                        ->orWhere('tags', 'LIKE', '%' . $search . '%')
+                        ->orWhere('short_description', 'LIKE', '%' . $search . '%')
+                        ->orWhere('sku', 'LIKE', '%' . $search . '%');
                 });
             })
             ->when($request->type, function ($query, $type) {
@@ -173,6 +176,54 @@ class CatalogController extends Controller
         // Pagination
         $perPage = (int) $request->input('perPage', 12);
         $products = $query->paginate($perPage, ['*'], 'page', $request->input('page', 1));
+
+        // If search returns no results, show latest products
+        if ($request->search && $products->isEmpty()) {
+            $query = Product::published()
+                ->with(['category', 'brand', 'coverImage'])
+                ->orderBy('created_at', 'desc');
+            
+            // Apply other filters (except search) to latest products
+            $query->when($request->type, function ($query, $type) {
+                if($type === 'sell') {
+                    return $query->where('is_for_sell', true);
+                } elseif($type === 'rent') {
+                    return $query->where('is_rent', true);
+                } elseif($type === 'rent-and-sell') {
+                    return $query->where('is_for_sell', true)->where('is_rent', true);
+                }
+            })
+            ->when($request->category, function ($query, $category) {
+                $query->whereHas('category', function ($q) use ($category) {
+                    $q->where('name', $category);
+                });
+            })
+            ->when($request->minPrice, function ($query, $minPrice) {
+                $query->where('price', '>=', $minPrice);
+            })
+            ->when($request->maxPrice, function ($query, $maxPrice) {
+                $query->where('price', '<=', $maxPrice);
+            });
+
+            // Apply sorting to latest products
+            switch ($request->sort) {
+                case 'price-desc':
+                    $query->orderBy('price', 'desc');
+                    break;
+                case 'name-asc':
+                    $query->orderBy('name', 'asc');
+                    break;
+                case 'name-desc':
+                    $query->orderBy('name', 'desc');
+                    break;
+                case 'price-asc':
+                default:
+                    $query->orderBy('price', 'asc');
+                    break;
+            }
+
+            $products = $query->paginate($perPage, ['*'], 'page', $request->input('page', 1));
+        }
 
         // Transform products for frontend
         $transformedProducts = $products->getCollection()->map(function ($product) {

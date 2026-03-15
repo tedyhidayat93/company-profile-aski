@@ -1,14 +1,13 @@
 // resources/js/layouts/frontend/header.tsx
-import { Link } from '@inertiajs/react';
-import { Phone, Mail, Megaphone, X, AlignEndVerticalIcon, Heart, ShoppingCart } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { Phone, Mail, Megaphone, X, AlignEndVerticalIcon, Heart, ShoppingCart, PhoneCall } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useWishlist } from '@/hooks/useWishlist';
-import logoImage from '@/assets/images/logo-main.png';
-import { NAV_LINKS, SOCIAL_LINKS, CONTACT_INFO } from '@/constants/navigation';
+import { CONTACT_INFO } from '@/constants/navigation';
 import { Button } from '@/components/ui/button';
 import { dashboard, login } from '@/routes';
-import { usePage } from '@inertiajs/react';
 import Wishlist from '@/components/wishlist';
+import { useConfig } from '@/utils/config';
 
 import type { WishlistItem } from '@/hooks/useWishlist';
 
@@ -18,6 +17,9 @@ export default function Header() {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   
   const { auth } = usePage().props as any;
+  const { getConfig } = useConfig();
+  const siteLogo = getConfig('site_logo', '/assets/images/logo-main.png');
+  const logoImage = siteLogo.startsWith('configurations/') ? `/storage/${siteLogo}` : siteLogo;
   const { url } = usePage();
   const isHomepage = url === '/';
   const isCatalog = url === '/catalog';
@@ -74,21 +76,21 @@ export default function Header() {
         <div className="bg-primary text-white">
           <div className="container mx-auto px-4 py-2 flex justify-between items-center text-sm">
             <div className="flex flex-nowrap min-w-full items-center space-x-4">
-              <a href={`tel:${CONTACT_INFO.phone.replace(/\D/g, '')}`} className="flex items-center hover:text-yellow-300 transition-colors">
+              <a href={`tel:${getConfig('contact_phone', CONTACT_INFO.phone).replace(/\D/g, '')}`} className="flex items-center hover:text-yellow-300 transition-colors">
                 <Phone className="h-4 w-4 mr-1" />
-                {CONTACT_INFO.phone}
+                {getConfig('contact_phone', CONTACT_INFO.phone)}
               </a>
-              <a href={`mailto:${CONTACT_INFO.email}"`} className="flex items-center hover:text-yellow-300 transition-colors">
+              <a href={`mailto:${getConfig('contact_email', CONTACT_INFO.email)}`} className="flex items-center hover:text-yellow-300 transition-colors">
                 <Mail className="h-4 w-4 mr-1" />
-                {CONTACT_INFO.email}
+                {getConfig('contact_email', CONTACT_INFO.email)}
               </a>
             </div>
             <div className="relative w-full overflow-hidden">
               <div className="animate-marquee whitespace-nowrap">
-                <span className="mx-4">Layanan perbaikan kontainer tersedia 24/7</span>
-                <span className="mx-4">Menyediakan layanan purna jual yang profesional dan terpercaya</span>
-                <span className="mx-4">Kualitas terjamin, harga kompetitif di pasar</span>
-                <span className="mx-4">Pengiriman cepat ke seluruh Indonesia</span>
+                <span className="mx-4">{getConfig('topbar_message1', 'Layanan perbaikan kontainer tersedia 24/7')}</span>
+                <span className="mx-4">{getConfig('topbar_message2', 'Menyediakan layanan purna jual yang profesional dan terpercaya')}</span>
+                <span className="mx-4">{getConfig('topbar_message3', 'Kualitas terjamin, harga kompetitif di pasar')}</span>
+                <span className="mx-4">{getConfig('topbar_message4', 'Pengiriman cepat ke seluruh Indonesia')}</span>
               </div>
             </div>
           </div>
@@ -104,7 +106,7 @@ export default function Header() {
                 <Link href="/">
                   <img
                     src={logoImage}
-                    alt="PT. Alumoda Sinergi Kontainer Indonesia"
+                    alt={getConfig('site_name', '-')}
                     className="h-12 w-auto"
                   />
                 </Link>
@@ -159,12 +161,12 @@ export default function Header() {
                 )}
                 
                 <a 
-                  href={`tel:${CONTACT_INFO.phone.replace(/\D/g, '')}`} 
+                  href={`https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=Halo%20Alumoda%2C%20saya%20ingin%20bertanya`} 
                   className="ml-2 cursor-pointer"
                 >
                   <Button className="ml-2 cursor-pointer">
                     <Phone className="mr-1 h-4 w-4" />
-                    Konsultasi Gratis
+                    Hubungi Kami
                   </Button>
                 </a>
               </div>
@@ -235,10 +237,10 @@ export default function Header() {
                 </Link>
               )}
               
-              <button className="w-full mt-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-                <Megaphone className="mr-2 inline h-4 w-4" />
-                Konsultasi Gratis
-              </button>
+              <a href="/#contact" className="w-full mt-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
+                <PhoneCall className="mr-2 inline h-4 w-4" />
+                Hubungi Kami
+              </a>
             </div>
           </div>
         </nav>

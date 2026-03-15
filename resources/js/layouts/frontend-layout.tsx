@@ -12,25 +12,14 @@ interface FrontendLayoutProps {
 }
 
 export default function FrontendLayout({ children, title }: FrontendLayoutProps) {
-  const page = usePage();
-  const siteconfig = (page.props as any).siteconfig || {};
-
-  // Clone children dan tambahkan siteConfig sebagai props
-  const childrenWithProps = React.Children.map(children, child => {
-    if (React.isValidElement(child)) {
-      return React.cloneElement(child as React.ReactElement<any>, { siteconfig });
-    }
-    return child;
-  });
-
   return (
     <div className="min-h-screen flex flex-col">
       <Head title={title} />
       <Header />
       <main className="grow bg-slate-50">
-        {childrenWithProps}
+        {children}
       </main>
-      <Footer siteConfig={siteconfig} />
+      <Footer />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { handleImageError } from '@/utils/image';
 import { formatPrice } from '@/utils/currency';
+import { useConfig } from '@/utils/config';
 
 type OrderFormData = {
   companyName: string;
@@ -77,6 +78,7 @@ interface DetailProps {
 }
 
 export default function Detail({ product, relatedProducts, siteconfig }: DetailProps) {
+    const { getConfig } = useConfig();
     const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(
         product.images.find(img => img.is_cover)?.path || product.images[0]?.path || product.image
@@ -87,6 +89,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
     );
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     
     const [formData, setFormData] = useState<OrderFormData>({
         companyName: '',
@@ -129,6 +132,8 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
             return;
         }
         
+        setIsSubmitting(true);
+        
         try {
             const response = await axios.post('/catalog/order', {
                 company_name: formData.companyName || '',
@@ -147,9 +152,11 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
 
             if (response.data.success) {
                 // Show success modal
+                // Reset form
+                setQuantity(1);
                 setIsOrderModalOpen(false);
                 setIsSuccessModalOpen(true);
-                // Reset form
+                
                 setFormData({
                     companyName: '',
                     picName: '',
@@ -157,7 +164,6 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                     email: '',
                     notes: ''
                 });
-                setQuantity(1);
             } else {
                 throw new Error(response.data.message || 'Failed to submit order');
             }
@@ -178,6 +184,10 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
             } else {
                 alert(error instanceof Error ? error.message : 'Terjadi kesalahan saat mengirim pesanan. Silakan coba lagi.');
             }
+        } finally {
+            setTimeout(() => {
+                setIsSubmitting(false);
+            }, 2000);
         }
     };
     
@@ -192,7 +202,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
         img.src = selectedImage;
         
         const onLoad = () => setIsImageLoaded(true);
-        const onError = () => handleImageError({ target: img } as any, '/images/placeholder-product.svg', product.name);
+        const onError = () => handleImageError({ target: img } as any, '/images/placeholder.png', product.name);
         
         img.addEventListener('load', onLoad);
         img.addEventListener('error', onError);
@@ -213,7 +223,31 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
 
     return (
         <FrontendLayout title={product.name}>
-            <Head title={product.name} />
+
+            <Head title={`${product.name} - ${getConfig('site_name', 'Alumoda Sinergi Kontainer')}`}>
+                {/* 1. Meta Tag Dasar */}
+                <meta name="description" content={product.description || getConfig('meta_description', 'Jual & Sewa Kontainer kualitas terbaik di PT. Alumoda Sinergi Kontainer Indonesia.')} />
+                <meta name="keywords" content={`${product.name}, jual kontainer, sewa kontainer, ${getConfig('meta_keywords')}`} />
+                <meta name="author" content={getConfig('site_name', 'Alumoda Sinergi Kontainer')} />
+                
+                {/* 2. Canonical (Sangat Penting agar tidak dianggap konten duplikat) */}
+                <link rel="canonical" href={`https://alumodasinergi.com/catalog/${product.slug}`} />
+
+                {/* 3. Open Graph / Facebook (Agar tampil bagus saat di-share di WA/FB) */}
+                <meta property="og:type" content="product" />
+                <meta property="og:title" content={`${product.name} - Alumoda Sinergi Kontainer`} />
+                <meta property="og:description" content={product.short_description || "Dapatkan penawaran harga terbaik untuk unit kontainer ini."} />
+                <meta property="og:image" content={imageSrc || '/default-share-image.jpg'} />
+                <meta property="og:url" content={`https://alumodasinergi.com/catalog/${product.slug}`} />
+
+                {/* 4. Twitter Card */}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={product.name} />
+                <meta name="twitter:image" content={imageSrc} />
+
+                {/* 5. Robots Tag */}
+                <meta name="robots" content="index, follow" />
+            </Head>
             
             <div className="bg-white">
                 <div className="container mx-auto px-4 py-8">
@@ -669,8 +703,16 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                 <Button
                                     type="submit"
                                     className="cursor-pointer"
+                                    disabled={isSubmitting}
                                 >
-                                    Buat Pesanan
+                                    {isSubmitting ? (
+                                        <div className="flex items-center space-x-2">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            <span>Memproses...</span>
+                                        </div>
+                                    ) : (
+                                        'Buat Pesanan'
+                                    )}
                                 </Button>
                             </div>
                         </form>

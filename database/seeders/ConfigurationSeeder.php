@@ -50,7 +50,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Upload logo utama website',
                 'group' => 'site',
                 'key' => 'site_logo',
-                'value' => '/assets/images/logo.png',
+                'value' => '/assets/images/logo-main.png',
                 'type' => 'image',
             ],
             [
@@ -58,7 +58,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Upload favicon website',
                 'group' => 'site',
                 'key' => 'site_favicon',
-                'value' => '/assets/images/favicon.ico',
+                'value' => '/assets/images/logo-main-square.png',
                 'type' => 'image',
             ],
             
@@ -264,6 +264,14 @@ class ConfigurationSeeder extends Seeder
     {
         $homepageConfigs = [
             // Hero Section
+            [
+                'label' => 'Hero Image',
+                'description' => 'Upload gambar hero section',
+                'group' => 'view_homepage',
+                'key' => 'hero_image',
+                'value' => '/assets/images/bg-hero.png',
+                'type' => 'image',
+            ],
             [
                 'label' => 'Hero Title',
                 'description' => 'Judul utama halaman depan',

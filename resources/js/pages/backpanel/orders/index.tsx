@@ -31,6 +31,8 @@ import {
   XCircle,
   ShoppingCart
 } from 'lucide-react';
+import { orderStatusColors, orderStatusLabels, getOrderStatusBadgeProps, OrderStatusBadge } from '@/utils/order-status';
+import { formatCurrencyDisplay } from '@/utils/currency';
 
 interface Order {
   id: number;
@@ -109,40 +111,40 @@ export default function OrderIndex({ orders, filters }: Props) {
       color: 'bg-blue-100 text-blue-800' 
     },
     { 
-      name: 'Pesanan Baru', 
+      name: orderStatusLabels.pending, 
       value: orders.data.filter(order => order.status === 'pending').length.toString(), 
       icon: Clock, 
-      color: 'bg-yellow-100 text-yellow-800' 
+      color: orderStatusColors.pending
     },
     { 
-      name: 'Dikonfirmasi', 
+      name: orderStatusLabels.confirmed, 
       value: orders.data.filter(order => order.status === 'confirmed').length.toString(), 
       icon: CheckCircle, 
-      color: 'bg-purple-100 text-purple-800' 
+      color: orderStatusColors.confirmed
     },
     { 
-      name: 'Diproses', 
+      name: orderStatusLabels.processing, 
       value: orders.data.filter(order => order.status === 'processing').length.toString(), 
       icon: Clock, 
-      color: 'bg-blue-100 text-blue-800' 
+      color: orderStatusColors.processing
     },
     { 
-      name: 'Dikirim', 
+      name: orderStatusLabels.shipped, 
       value: orders.data.filter(order => order.status === 'shipped').length.toString(), 
       icon: Package, 
-      color: 'bg-orange-100 text-orange-800' 
+      color: orderStatusColors.shipped
     },
     { 
-      name: 'Selesai', 
+      name: orderStatusLabels.completed, 
       value: orders.data.filter(order => order.status === 'completed').length.toString(), 
       icon: CheckCircle, 
-      color: 'bg-green-100 text-green-800' 
+      color: orderStatusColors.completed
     },
     { 
-      name: 'Dibatalkan', 
+      name: orderStatusLabels.cancelled, 
       value: orders.data.filter(order => order.status === 'cancelled').length.toString(), 
       icon: XCircle, 
-      color: 'bg-red-100 text-red-800' 
+      color: orderStatusColors.cancelled
     },
   ];
 
@@ -158,39 +160,6 @@ export default function OrderIndex({ orders, filters }: Props) {
     setData('date_to', '');
     get('/cpanel/crm/orders', { preserveState: true });
   };
-
-  const getStatusBadge = (status: string) => {
-    // Status color mapping that matches orderStats colors
-    const statusColors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-purple-100 text-purple-800',
-      processing: 'bg-blue-100 text-blue-800',
-      shipped: 'bg-orange-100 text-orange-800',
-      completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
-    };
-
-    // Fallback color mapping for backward compatibility
-    const colorClasses = {
-      warning: 'bg-yellow-100 text-yellow-800',
-      info: 'bg-blue-100 text-blue-800',
-      primary: 'bg-purple-100 text-purple-800',
-      secondary: 'bg-gray-100 text-gray-800',
-      success: 'bg-green-100 text-green-800',
-      danger: 'bg-red-100 text-red-800',
-    };
-
-    // Try to use status-based color first, then fallback to color parameter
-    const badgeColor = statusColors[status as keyof typeof statusColors] || 
-                      colorClasses.secondary;
-
-    return (
-      <Badge className={badgeColor}>
-        {status}
-      </Badge>
-    );
-  };
-
 
   const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -260,7 +229,7 @@ export default function OrderIndex({ orders, filters }: Props) {
                 <div>
                   <Input
                     type="date"
-                    placeholder="Dari tanggal"
+                    placeholder="Dari tanggal (DD/MM/YYYY)"
                     value={data.date_from}
                     onChange={(e) => setData('date_from', e.target.value)}
                   />
@@ -268,7 +237,7 @@ export default function OrderIndex({ orders, filters }: Props) {
                 <div>
                   <Input
                     type="date"
-                    placeholder="Sampai tanggal"
+                    placeholder="Sampai tanggal (DD/MM/YYYY)"
                     value={data.date_to}
                     onChange={(e) => setData('date_to', e.target.value)}
                   />
@@ -348,16 +317,16 @@ export default function OrderIndex({ orders, filters }: Props) {
                       <div className="space-y-1">
                         <div className="font-medium">{order.product_name}</div>
                         {/* <div className="text-sm text-gray-500">{order.product_category}</div> */}
-                        <div className="text-xs text-gray-500">Qty: {order.quantity} x {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.product_price)}</div>
+                        <div className="text-xs text-gray-500">Qty: {order.quantity} x {formatCurrencyDisplay(order.product_price)}</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
-                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(order.total_price)}
+                        {formatCurrencyDisplay(order.total_price)}
                       </div>
                     </TableCell>
                     <TableCell className='capitalize'>
-                      {getStatusBadge(order.status)}
+                      <OrderStatusBadge status={order.status} />
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -374,7 +343,7 @@ export default function OrderIndex({ orders, filters }: Props) {
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/cpanel/crm/orders/${order.id}/edit`}>
+                            <Link href={`/cpanel/crm/orders/edit/${order.id}`}>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </Link>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,9 @@ import {
   DollarSign,
   FileText
 } from 'lucide-react';
+import OrderStatusInfoModal from '@/components/order-status-info-modal';
+import { getOrderStatusBadgeProps, OrderStatusBadge } from '@/utils/order-status';
+import { formatCurrencyDisplay } from '@/utils/currency';
 
 interface Order {
   id: number;
@@ -49,6 +52,13 @@ interface Order {
   updated_at: string;
   status_label: string;
   status_color: string;
+  product?: {
+    id: number;
+    name: string;
+    coverImage?: {
+      image_path: string;
+    };
+  };
 }
 
 interface Props {
@@ -83,23 +93,6 @@ export default function OrderShow({ order }: Props) {
     });
   };
 
-  const getStatusBadge = (status: string, color: string) => {
-    const colorClasses = {
-      warning: 'bg-yellow-100 text-yellow-800',
-      info: 'bg-blue-100 text-blue-800',
-      primary: 'bg-purple-100 text-purple-800',
-      secondary: 'bg-gray-100 text-gray-800',
-      success: 'bg-green-100 text-green-800',
-      danger: 'bg-red-100 text-red-800',
-    };
-
-    return (
-      <Badge className={colorClasses[color as keyof typeof colorClasses] || colorClasses.secondary}>
-        {status}
-      </Badge>
-    );
-  };
-
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Detail Pesanan ${order.order_number}`} />
@@ -119,7 +112,8 @@ export default function OrderShow({ order }: Props) {
             />
           </div>
           <div className="flex gap-2">
-            <Link href={`/cpanel/crm/orders/${order.id}/edit`}>
+            <OrderStatusInfoModal />
+            <Link href={`/cpanel/crm/orders/edit/${order.id}`}>
               <Button variant="outline">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
@@ -210,14 +204,14 @@ export default function OrderShow({ order }: Props) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5" />
-                  Informasi Produk
+                  Informasi Pesanan
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
                     <img 
-                      src={order.product_image} 
+                      src={order.product?.coverImage?.image_path || '/images/placeholder.png'} 
                       alt={order.product_name}
                       className="h-24 w-24 object-cover rounded-md border"
                     />
@@ -227,11 +221,11 @@ export default function OrderShow({ order }: Props) {
                       <div className="font-medium text-lg">{order.product_name}</div>
                       <div className="text-sm text-gray-500">{order.product_category}</div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="grid grid-cols-3 gap-2 text-sm">
                       <div>
                         <div className="text-gray-500">Harga Satuan</div>
                         <div className="font-medium">
-                          {/* Rp {order.product_price.toLocaleString('id-ID')} */}
+                          {formatCurrencyDisplay(order.product_price)}
                         </div>
                       </div>
                       <div>
@@ -240,8 +234,8 @@ export default function OrderShow({ order }: Props) {
                       </div>
                       <div>
                         <div className="text-gray-500">Total Harga</div>
-                        <div className="font-bold text-lg">
-                          {/* Rp {order.total_price.toLocaleString('id-ID')} */}
+                        <div className="font-bold">
+                          {formatCurrencyDisplay(order.total_price)}
                         </div>
                       </div>
                     </div>
@@ -263,7 +257,7 @@ export default function OrderShow({ order }: Props) {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleStatusUpdate} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Status Pesanan
@@ -321,7 +315,7 @@ export default function OrderShow({ order }: Props) {
                 <div>
                   <div className="text-sm font-medium text-gray-500">Status</div>
                   <div className="mt-1">
-                    {getStatusBadge(order.status_label, order.status_color)}
+                    <OrderStatusBadge status={order.status} />
                   </div>
                 </div>
 
@@ -331,13 +325,13 @@ export default function OrderShow({ order }: Props) {
                   <div className="text-sm font-medium text-gray-500">Tanggal Pesanan</div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    {/* {new Date(order.created_at).toLocaleDateString('id-ID', {
+                    {new Date(order.created_at).toLocaleDateString('id-ID', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
                       hour: '2-digit',
                       minute: '2-digit'
-                    })} */}
+                    })}
                   </div>
                 </div>
 
@@ -345,13 +339,13 @@ export default function OrderShow({ order }: Props) {
                   <div className="text-sm font-medium text-gray-500">Terakhir Diupdate</div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    {/* {new Date(order.updated_at).toLocaleDateString('id-ID', {
+                    {new Date(order.updated_at).toLocaleDateString('id-ID', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
                       hour: '2-digit',
                       minute: '2-digit'
-                    })} */}
+                    })}
                   </div>
                 </div>
 
@@ -360,8 +354,7 @@ export default function OrderShow({ order }: Props) {
                 <div>
                   <div className="text-sm font-medium text-gray-500">Total Harga</div>
                   <div className="flex items-center gap-2 text-lg font-bold text-green-600">
-                    <DollarSign className="h-5 w-5" />
-                    {/* Rp {order.total_price.toLocaleString('id-ID')} */}
+                    {formatCurrencyDisplay(order.total_price)}
                   </div>
                 </div>
               </CardContent>

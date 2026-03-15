@@ -30,11 +30,31 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia>
+        @if(isset($siteconfig))
+            @php
+                $siteName = collect($siteconfig)->where('key', 'site_name')->first()['value'] ?? config('app.name', 'Laravel');
+            @endphp
+            {{ $siteName }}
+        @else
+            {{ config('app.name', 'Laravel') }}
+        @endif
+    </title>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        {{-- Favicon from configuration --}}
+        @if(isset($siteconfig))
+            @php
+                $siteFavicon = collect($siteconfig)->where('key', 'site_favicon')->first()['value'] ?? '/favicon.ico';
+                $faviconPath = str_starts_with($siteFavicon, 'configurations/') ? '/storage/' . $siteFavicon : $siteFavicon;
+            @endphp
+            <link rel="icon" href="{{ asset($faviconPath) }}" sizes="any">
+            <link rel="icon" href="{{ asset($faviconPath) }}" type="image/svg+xml">
+            <link rel="apple-touch-icon" href="{{ asset($faviconPath) }}">
+        @else
+            <link rel="icon" href="/favicon.ico" sizes="any">
+            <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+            <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        @endif
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />

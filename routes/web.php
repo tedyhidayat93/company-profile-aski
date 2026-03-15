@@ -4,6 +4,7 @@ use App\Http\Controllers\Frontend\HomepageController;
 use App\Http\Controllers\Frontend\CatalogController;
 use App\Http\Controllers\BackPanel\DashboardController;
 use App\Http\Controllers\Frontend\BlogController;
+use App\Http\Controllers\Frontend\SitemapController;
 use App\Http\Controllers\BackPanel\CMS\CategoryController;
 use App\Http\Controllers\BackPanel\CMS\ServiceController;
 use App\Http\Controllers\BackPanel\CMS\BrandController;
@@ -32,6 +33,9 @@ use Illuminate\Support\Facades\Route;
 // Frontend (Public)
 Route::get('/', [HomepageController::class, 'index'])->name('homepage');
 
+// API Configuration for Frontend
+Route::get('/api/configurations/{group?}', [App\Http\Controllers\Frontend\ConfigurationController::class, 'index'])->name('api.configurations');
+
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
 
 Route::post('/catalog/order', [CatalogController::class, 'order'])->name('catalog.order');
@@ -49,6 +53,10 @@ Route::prefix('blog')->name('blog.')->group(function () {
     Route::get('/category/{slug}', [BlogController::class, 'category'])->name('category');
     Route::get('/tag/{slug}', [BlogController::class, 'tag'])->name('tag');
 });
+
+// Sitemap
+Route::get('/sitemap', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap.xml', [SitemapController::class, 'xml'])->name('sitemap.xml');
 
 
 // Control Panel (Admin)
@@ -257,40 +265,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // Configuration
             Route::prefix('configuration')->name('configuration.')->group(function () {
                 Route::get('/', [ConfigurationController::class, 'index'])->name('index');
-                Route::get('site', [ConfigurationController::class, 'site'])->name('site');
-                Route::put('site', [ConfigurationController::class, 'update', 'site'])->name('site.update');
-                Route::post('site', [ConfigurationController::class, 'create', 'site'])->name('site.create');
-                Route::delete('site/{id}', [ConfigurationController::class, 'destroy', 'site'])->name('site.destroy');
-                
-                Route::get('email', [ConfigurationController::class, 'email'])->name('email');
-                Route::put('email', [ConfigurationController::class, 'update', 'email'])->name('email.update');
-                Route::post('email', [ConfigurationController::class, 'create', 'email'])->name('email.create');
-                Route::delete('email/{id}', [ConfigurationController::class, 'destroy', 'email'])->name('email.destroy');
-                
-                Route::get('system', [ConfigurationController::class, 'system'])->name('system');
-                Route::put('system', [ConfigurationController::class, 'update', 'system'])->name('system.update');
-                Route::post('system', [ConfigurationController::class, 'create', 'system'])->name('system.create');
-                Route::delete('system/{id}', [ConfigurationController::class, 'destroy', 'system'])->name('system.destroy');
-                
-                Route::get('payment', [ConfigurationController::class, 'payment'])->name('payment');
-                Route::put('payment', [ConfigurationController::class, 'update', 'payment'])->name('payment.update');
-                Route::post('payment', [ConfigurationController::class, 'create', 'payment'])->name('payment.create');
-                Route::delete('payment/{id}', [ConfigurationController::class, 'destroy', 'payment'])->name('payment.destroy');
-                
-                Route::get('shipping', [ConfigurationController::class, 'shipping'])->name('shipping');
-                Route::put('shipping', [ConfigurationController::class, 'update', 'shipping'])->name('shipping.update');
-                Route::post('shipping', [ConfigurationController::class, 'create', 'shipping'])->name('shipping.create');
-                Route::delete('shipping/{id}', [ConfigurationController::class, 'destroy', 'shipping'])->name('shipping.destroy');
-                
-                Route::get('view_homepage', [ConfigurationController::class, 'viewHomepage'])->name('view_homepage');
-                Route::put('view_homepage', [ConfigurationController::class, 'update', 'view_homepage'])->name('view_homepage.update');
-                Route::post('view_homepage', [ConfigurationController::class, 'create', 'view_homepage'])->name('view_homepage.create');
-                Route::delete('view_homepage/{id}', [ConfigurationController::class, 'destroy', 'view_homepage'])->name('view_homepage.destroy');
-                
-                Route::get('other', [ConfigurationController::class, 'other'])->name('other');
-                Route::put('other', [ConfigurationController::class, 'update', 'other'])->name('other.update');
-                Route::post('other', [ConfigurationController::class, 'create', 'other'])->name('other.create');
-                Route::delete('other/{id}', [ConfigurationController::class, 'destroy', 'other'])->name('other.destroy');
+                Route::get('{group}', [ConfigurationController::class, 'show'])->name('show');
+                Route::post('{group}', [ConfigurationController::class, 'store'])->name('store');
+                Route::put('{group}', [ConfigurationController::class, 'update'])->name('update');
+                Route::delete('{group}/{id}', [ConfigurationController::class, 'destroy'])->name('destroy');
             });
         });    
     });

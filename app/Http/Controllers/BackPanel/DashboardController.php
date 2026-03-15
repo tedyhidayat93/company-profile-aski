@@ -114,13 +114,13 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($order) {
                 return [
-                    'id' => $order->order_number,
+                    'id' => $order->id,
+                    'order_number' => $order->order_number,
                     'customer' => $order->company_name ?: $order->customer?->name ?: 'N/A',
                     'product' => $order->product_name,
                     'date' => $order->created_at->format('d M Y'),
                     'status' => $order->status,
                     'amount' => 'Rp ' . number_format($order->total_price, 0, ',', '.'),
-                    'view_url' => ''
                 ];
             });
 

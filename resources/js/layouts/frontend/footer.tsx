@@ -1,10 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { Facebook, Instagram, Linkedin, Twitter, Youtube, Music, SquarePlay } from 'lucide-react';
 import { NAV_LINKS, SOCIAL_LINKS, CONTACT_INFO, NavLink, SocialLink } from '@/constants/navigation';
-
-interface FooterProps {
-  siteConfig?: Record<string, any>;
-}
+import { useConfig } from '@/utils/config';
 
 const socialIcons = {
   Facebook: Facebook,
@@ -15,22 +12,24 @@ const socialIcons = {
   Tiktok: SquarePlay
 };
 
-export default function Footer({ siteConfig = {} }: FooterProps) {
+export default function Footer() {
+  const { getConfig } = useConfig();
+  
   return (
     <footer className="bg-gray-900 py-12 text-white">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
             <h3 className="mb-4 text-2xl font-bold text-primary">
-              {siteConfig.site_name || 'PT. Alumoda Sinergi Kontainer Indonesia'}
+              {getConfig('site_name', 'PT. Alumoda Sinergi Kontainer Indonesia')}
             </h3>
             <p className="text-gray-400 text-sm">
-              {siteConfig.site_tagline || 'Solusi terpercaya untuk kebutuhan kontainer Anda dengan layanan profesional dan berkualitas.'}
+              {getConfig('site_tagline', 'Solusi terpercaya untuk kebutuhan kontainer Anda dengan layanan profesional dan berkualitas.')}
             </p>
           </div>
 
           <div>
-            <h4 className="mb-4 font-semibold text-white">Tautan Cepat</h4>
+            <h4 className="mb-4 font-semibold text-white">Navigasi</h4>
             <ul className="space-y-2">
               {NAV_LINKS.map((link: NavLink) => (
                 <li key={link.name} className='text-sm'>
@@ -48,10 +47,10 @@ export default function Footer({ siteConfig = {} }: FooterProps) {
           <div>
             <h4 className="mb-4 font-semibold text-white">Kontak</h4>
             <ul className="space-y-2 text-gray-400 text-sm">
-              <li>Email: {siteConfig.contact_email || CONTACT_INFO.email}</li>
-              {/* <li>WhatsApp: {siteConfig.contact_whatsapp || CONTACT_INFO.phone}</li> */}
-              <li>Telepon: {siteConfig.contact_phone || CONTACT_INFO.phone}</li>
-              <li>Alamat: {siteConfig.address || CONTACT_INFO.address}</li>
+              <li>Email: {getConfig('contact_email', CONTACT_INFO.email)}</li>
+              {/* <li>WhatsApp: {getConfig('contact_whatsapp', CONTACT_INFO.phone)}</li> */}
+              <li>Telepon: {getConfig('contact_phone', CONTACT_INFO.phone)}</li>
+              <li>Alamat: {getConfig('address', CONTACT_INFO.address)}</li>
             </ul>
           </div>
 
@@ -59,11 +58,11 @@ export default function Footer({ siteConfig = {} }: FooterProps) {
             <h4 className="mb-4 font-semibold text-white">Ikuti Kami</h4>
             <div className="flex space-x-4">
               {[
-                { name: 'Facebook', icon: 'Facebook', href: siteConfig.social_facebook },
-                { name: 'Twitter', icon: 'X', href: siteConfig.social_twitter },
-                { name: 'Instagram', icon: 'Instagram', href: siteConfig.social_instagram },
-                { name: 'YouTube', icon: 'Youtube', href: siteConfig.social_youtube },
-                { name: 'TikTok', icon: 'Tiktok', href: siteConfig.social_tiktok }
+                { name: 'Facebook', icon: 'Facebook', href: getConfig('social_facebook', '') },
+                { name: 'Twitter', icon: 'X', href: getConfig('social_twitter', '') },
+                { name: 'Instagram', icon: 'Instagram', href: getConfig('social_instagram', '') },
+                { name: 'YouTube', icon: 'Youtube', href: getConfig('social_youtube', '') },
+                { name: 'TikTok', icon: 'Tiktok', href: getConfig('social_tiktok', '') }
               ]
                 .filter(social => social.href)
                 .map((social) => {
@@ -86,9 +85,9 @@ export default function Footer({ siteConfig = {} }: FooterProps) {
             {/* Google Maps Section */}
             <div className="mt-6">
               <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden">
-                {siteConfig.google_maps_embed ? (
+                {getConfig('google_maps_embed', '') ? (
                   <div 
-                    dangerouslySetInnerHTML={{ __html: siteConfig.google_maps_embed }}
+                    dangerouslySetInnerHTML={{ __html: getConfig('google_maps_embed', '') }}
                     className="w-full h-48 rounded-lg overflow-hidden"
                   />
                 ): (
@@ -110,7 +109,7 @@ export default function Footer({ siteConfig = {} }: FooterProps) {
 
         <div className="mt-12 border-t border-gray-800 pt-8 text-center text-gray-400">
           <p>
-            &copy; {new Date().getFullYear()} {siteConfig.site_name || 'PT. Alumoda Sinergi Kontainer Indonesia'}.
+            &copy; {new Date().getFullYear()} {getConfig('site_name', 'PT. Alumoda Sinergi Kontainer Indonesia')}.
           </p>
         </div>
       </div>

@@ -11,6 +11,7 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Save, Package, User, Phone, Mail, MapPin } from 'lucide-react';
+import { OrderStatusBadge } from '@/utils/order-status';
 
 interface Order {
   id: number;
@@ -143,7 +144,7 @@ export default function OrderEdit({ order }: Props) {
               description="Perbarui informasi pesanan pelanggan"
             />
             <div className="mt-2">
-              {getStatusBadge(order.status_label, order.status_color)}
+              <OrderStatusBadge status={order.status}/>
             </div>
           </div>
         </div>
@@ -316,7 +317,7 @@ export default function OrderEdit({ order }: Props) {
                 </div>
 
                 <div>
-                  <Label htmlFor="notes">Catatan</Label>
+                  <Label htmlFor="notes">Pesan Dari Pelanggan</Label>
                   <Textarea
                     id="notes"
                     name="notes"
@@ -368,21 +369,6 @@ export default function OrderEdit({ order }: Props) {
                   />
                   {errors.product_category && (
                     <p className="text-sm text-red-500 mt-1">{errors.product_category}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="product_image">URL Gambar Produk *</Label>
-                  <Input
-                    id="product_image"
-                    name="product_image"
-                    value={data.product_image}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Masukkan URL gambar produk"
-                  />
-                  {errors.product_image && (
-                    <p className="text-sm text-red-500 mt-1">{errors.product_image}</p>
                   )}
                 </div>
 

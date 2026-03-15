@@ -12,97 +12,22 @@ class ConfigurationController extends Controller
 {
     public function index()
     {
-        return redirect()->route('settings.configuration.site');
+        return redirect()->route('settings.configuration.show', 'site');
     }
 
-    public function site()
+    public function show($group)
     {
-        $configurations = Configuration::site()->orderBy('label')->get();
+        $configurations = Configuration::where('group', $group)
+            ->orderBy('id')
+            ->get();
         
         return Inertia::render('backpanel/settings/configuration/site', [
             'configurations' => $configurations,
-            'currentGroup' => 'site'
+            'currentGroup' => $group
         ]);
     }
 
-    public function email()
-    {
-        $configurations = Configuration::email()->orderBy('label')->get();
-        
-        return Inertia::render('backpanel/settings/configuration/site', [
-            'configurations' => $configurations,
-            'currentGroup' => 'email'
-        ]);
-    }
-
-    public function system()
-    {
-        $configurations = Configuration::system()->orderBy('label')->get();
-        
-        return Inertia::render('backpanel/settings/configuration/site', [
-            'configurations' => $configurations,
-            'currentGroup' => 'system'
-        ]);
-    }
-
-    public function payment()
-    {
-        $configurations = Configuration::payment()->orderBy('label')->get();
-        
-        return Inertia::render('backpanel/settings/configuration/site', [
-            'configurations' => $configurations,
-            'currentGroup' => 'payment'
-        ]);
-    }
-
-    public function shipping()
-    {
-        $configurations = Configuration::shipping()->orderBy('label')->get();
-        
-        return Inertia::render('backpanel/settings/configuration/site', [
-            'configurations' => $configurations,
-            'currentGroup' => 'shipping'
-        ]);
-    }
-
-    public function other()
-    {
-        $configurations = Configuration::other()->orderBy('label')->get();
-        
-        return Inertia::render('backpanel/settings/configuration/site', [
-            'configurations' => $configurations,
-            'currentGroup' => 'other'
-        ]);
-    }
-
-    public function viewHomepage()
-    {
-        $configurations = Configuration::homepage()->orderBy('label')->get();
-        
-        return Inertia::render('backpanel/settings/configuration/site', [
-            'configurations' => $configurations,
-            'currentGroup' => 'view_homepage'
-        ]);
-    }
-
-    public function update(Request $request, $group)
-    {
-        $validated = $request->validate([
-            'configurations' => 'required|array',
-            'configurations.*.id' => 'required|integer|exists:configurations,id',
-            'configurations.*.value' => 'required|string',
-        ]);
-
-        foreach ($validated['configurations'] as $configData) {
-            Configuration::where('id', $configData['id'])
-                ->update(['value' => $configData['value']]);
-        }
-
-        return redirect()->back()
-            ->with('success', 'Pengaturan berhasil diperbarui');
-    }
-
-    public function create(Request $request, $group)
+    public function store(Request $request, $group)
     {
         $validated = $request->validate([
             'label' => 'required|string|max:255',
@@ -118,6 +43,30 @@ class ConfigurationController extends Controller
 
         return redirect()->back()
             ->with('success', 'Konfigurasi berhasil ditambahkan');
+    }
+
+    public function update(Request $request, $group)
+    {
+        $request->validate([
+            'id' => 'required|exists:configurations,id',
+            'value' => 'nullable|string',
+            'file' => 'nullable|file|image|max:5120'
+        ]);
+
+        $config = Configuration::findOrFail($request->id);
+
+        $value = $request->value;
+
+        if ($request->hasFile('file') && $config->type === 'image') {
+            $path = $request->file('file')->store('configurations', 'public');
+            $value = $path;
+        }
+
+        $config->update([
+            'value' => $value
+        ]);
+
+        return back()->with('success', 'Value berhasil diperbarui');
     }
 
     public function destroy(Request $request, $group, $id)

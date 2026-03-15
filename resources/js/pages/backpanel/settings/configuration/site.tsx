@@ -120,22 +120,14 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
   });
 
   const editForm = useForm({
+    id: '',
     value: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    router.post(`/cpanel/settings/configuration/${currentGroup}`, data, {
-      onSuccess: () => {
-        // Success handled by flash messages
-      },
-    });
-  };
-
+ 
   const handleAddConfig = (e: React.FormEvent) => {
     e.preventDefault();
-    addForm.post(`/cpanel/settings/configuration/${currentGroup}/create`, {
+    addForm.post(`/cpanel/settings/configuration/${currentGroup}`, {
       onSuccess: () => {
         setIsAddModalOpen(false);
         addForm.reset();
@@ -146,18 +138,37 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
   const handleEditConfig = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingConfig) {
-      router.put(`/cpanel/settings/configuration/${currentGroup}/${editingConfig.id}`, editForm.data, {
+      const formData = new FormData();
+      formData.append('_method', 'PUT')
+      formData.append('id', String(editForm.data.id));
+      formData.append('value', String(editForm.data.value));
+      
+      // If it's an image type, append file if exists
+      const fileInput = document.querySelector('input[name="file"]') as HTMLInputElement;
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        formData.append('file', fileInput.files[0]);
+      }
+
+      console.log(editForm.data.id)
+      
+      router.post(`/cpanel/settings/configuration/${currentGroup}`, formData, {
         onSuccess: () => {
           setIsEditModalOpen(false);
           setEditingConfig(null);
           editForm.reset();
         },
+        onError: (errors) => {
+          console.log(formData)
+          alert(JSON.stringify(errors))
+          console.error('Error updating configuration:', errors);
+        }
       });
     }
   };
 
   const openEditModal = (config: Configuration) => {
     setEditingConfig(config);
+    editForm.setData('id', config.id.toString());
     editForm.setData('value', config.value);
     setIsEditModalOpen(true);
   };
@@ -220,6 +231,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
         return (
           <div className="space-y-2">
             <Input
+              name="file"
               type="file"
               accept={editingConfig.type === 'image' ? 'image/*' : '*'}
               onChange={(e) => {
@@ -242,23 +254,6 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
             placeholder={editingConfig.description || `Masukkan ${editingConfig.label.toLowerCase()}`}
           />
         );
-    }
-  };
-
-  const getGroupIcon = (group: string) => {
-    switch (group) {
-      case 'site':
-        return <Globe className="h-5 w-5" />;
-      case 'email':
-        return <Mail className="h-5 w-5" />;
-      case 'system':
-        return <Settings className="h-5 w-5" />;
-      case 'payment':
-        return <Settings className="h-5 w-5" />;
-      case 'shipping':
-        return <MapPin className="h-5 w-5" />;
-      default:
-        return <Settings className="h-5 w-5" />;
     }
   };
 
@@ -309,7 +304,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
                   <nav className="flex space-x-8">
                     {[
                       { key: 'site', label: 'Umum', href: '/cpanel/settings/configuration/site' },
-                      { key: 'email', label: 'Email', href: '/cpanel/settings/configuration/email' },
+                      { key: 'email', label: 'SMTP', href: '/cpanel/settings/configuration/email' },
                       // { key: 'system', label: 'Sistem', href: '/cpanel/settings/configuration/system' },
                       // { key: 'payment', label: 'Pembayaran', href: '/cpanel/settings/configuration/payment' },
                       // { key: 'shipping', label: 'Pengiriman', href: '/cpanel/settings/configuration/shipping' },
@@ -507,7 +502,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
 
         {/* Edit Configuration Modal */}
         <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[525px]">
             <DialogHeader>
               <DialogTitle>Edit Konfigurasi</DialogTitle>
               <DialogDescription>
@@ -515,7 +510,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleEditConfig}>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-4 py-4 text-wrap max-w-full">
                 <div className="space-y-2">
                   <Label>Label</Label>
                   <Input value={editingConfig?.label || ''} disabled />
@@ -531,7 +526,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
                   {renderEditInput()}
                 </div>
                 {editingConfig?.description && (
-                  <p className="text-sm text-gray-500">{editingConfig.description}</p>
+                  <p className="text-sm text-gray-500 w-96 text-wrap">{editingConfig.description}</p>
                 )}
                 <div>
                   <Badge variant="outline">{editingConfig?.type}</Badge>

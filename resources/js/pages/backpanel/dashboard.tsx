@@ -45,6 +45,7 @@ import {
 } from 'recharts';
 import { useState } from 'react';
 import OrderStatusInfoModal from '@/components/order-status-info-modal';
+import { OrderStatusBadge } from '@/utils/order-status';
 
 // Type definitions
 interface TrafficData {
@@ -94,6 +95,7 @@ interface Props {
   }>;
   recentOrders: Array<{
     id: string;
+    order_number: string;
     customer: string;
     product: string;
     date: string;
@@ -236,7 +238,143 @@ export default function Dashboard({
           })}
         </div>
 
-        {/* Website Traffic Chart */}
+        <div className="grid gap-6 xl:grid-cols-2">
+          {/* Top Searched Products */}
+          <Card className="shadow-card">
+            <CardHeader className="flex flex-row items-center justify-between border-b">
+              <CardTitle>Produk Paling Banyak Dicari</CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 py-0">
+              {topSearchedProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="hover:bg-muted/50 flex items-center justify-between rounded p-3"
+                >
+                  <div>
+                    <p className="font-medium">{product.name}</p>
+                    <p className="text-muted-foreground text-xs">{product.searches} pencarian</p>
+                  </div>
+                  <span
+                    className={`text-sm font-medium ${product.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}
+                  >
+                    {product.change}
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Latest Products */}
+          <Card className="shadow-card">
+            <CardHeader className="flex flex-row items-center justify-between border-b">
+              <CardTitle>Produk Terbaru</CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 py-0">
+              {latestProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="hover:bg-muted/50 flex items-center justify-between rounded p-3"
+                >
+                  <div>
+                    <p className="font-medium">{product.name}</p>
+                    <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                      <span>{product.sku}</span>
+                      <span>•</span>
+                      <span>{product.added}</span>
+                    </div>
+                  </div>
+                  <Badge
+                    variant={product.status === 'active' ? 'default' : 'outline'}
+                    className="shrink-0"
+                  >
+                    {product.status === 'active' ? 'Aktif' : 'Draft'}
+                  </Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Order Status Overview */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <div className="flex gap-2 flex-wrap items-center justify-between">
+              <CardTitle>Informasi Pemesanan</CardTitle>  
+              <OrderStatusInfoModal />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {orderStats.map((stat) => {
+                const Icon = iconMap[stat.icon] || Clock;
+                return (
+                  <Card key={stat.name} className='p-3 px-0'>
+                    <CardContent>
+                      <div className="flex items-center gap-4">
+                        <div className={`rounded-full p-3 ${stat.color}`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-sm">{stat.name}</p>
+                          <p className="text-xl font-semibold">{stat.value}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+            {/* Recent Orders */}
+            <Card className="shadow-card">
+              <CardHeader className="mb-0! flex flex-row items-center justify-between border-b">
+                <CardTitle>5 Pesanan Terbaru</CardTitle>
+                <Link href="/cpanel/crm/orders" className="text-primary text-sm hover:underline">
+                  Lihat Semua Pesanan
+                </Link>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pl-6!">ID Pesanan</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Produk</TableHead>
+                      <TableHead>Tanggal</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead className="pr-6! text-center">Aksi</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentOrders.map((order) => (
+                      <TableRow key={order.id} className="hover:bg-muted/50">
+                        <TableCell className="pl-6 font-medium">{order.order_number}</TableCell>
+                        <TableCell>{order.customer}</TableCell>
+                        <TableCell>{order.product}</TableCell>
+                        <TableCell>{order.date}</TableCell>
+                        <TableCell>
+                          <OrderStatusBadge status={order.status} />
+                        </TableCell>
+                        <TableCell className="pr-6! font-medium">{order.amount}</TableCell>
+                        <TableCell className="pr-6!">
+                          <Link
+                            href={'/cpanel/crm/orders/' + order.id}
+                            className="text-primary flex items-center gap-1 text-sm font-medium hover:underline"
+                          >
+                            <Eye className="h-4 w-4" />
+                            Detail
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </CardContent>
+        </Card>
+
+                {/* Website Traffic Chart */}
         <Card className="shadow-card">
           <CardHeader>
             <div className="flex flex-row items-center justify-between">
@@ -358,141 +496,6 @@ export default function Dashboard({
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 xl:grid-cols-2">
-          {/* Top Searched Products */}
-          <Card className="shadow-card">
-            <CardHeader className="flex flex-row items-center justify-between border-b">
-              <CardTitle>Produk Paling Banyak Dicari</CardTitle>
-            </CardHeader>
-            <CardContent className="px-3 py-0">
-              {topSearchedProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="hover:bg-muted/50 flex items-center justify-between rounded p-3"
-                >
-                  <div>
-                    <p className="font-medium">{product.name}</p>
-                    <p className="text-muted-foreground text-xs">{product.searches} pencarian</p>
-                  </div>
-                  <span
-                    className={`text-sm font-medium ${product.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}
-                  >
-                    {product.change}
-                  </span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Latest Products */}
-          <Card className="shadow-card">
-            <CardHeader className="flex flex-row items-center justify-between border-b">
-              <CardTitle>Produk Terbaru</CardTitle>
-            </CardHeader>
-            <CardContent className="px-3 py-0">
-              {latestProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="hover:bg-muted/50 flex items-center justify-between rounded p-3"
-                >
-                  <div>
-                    <p className="font-medium">{product.name}</p>
-                    <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                      <span>{product.sku}</span>
-                      <span>•</span>
-                      <span>{product.added}</span>
-                    </div>
-                  </div>
-                  <Badge
-                    variant={product.status === 'active' ? 'default' : 'outline'}
-                    className="shrink-0"
-                  >
-                    {product.status === 'active' ? 'Aktif' : 'Draft'}
-                  </Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Order Status Overview */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <div className="flex gap-2 flex-wrap items-center justify-between">
-              <CardTitle>Informasi Pemesanan</CardTitle>  
-              <OrderStatusInfoModal />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {orderStats.map((stat) => {
-                const Icon = iconMap[stat.icon] || Clock;
-                return (
-                  <Card key={stat.name} className='p-3 px-0'>
-                    <CardContent>
-                      <div className="flex items-center gap-4">
-                        <div className={`rounded-full p-3 ${stat.color}`}>
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-sm">{stat.name}</p>
-                          <p className="text-xl font-semibold">{stat.value}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-            {/* Recent Orders */}
-            <Card className="shadow-card">
-              <CardHeader className="mb-0! flex flex-row items-center justify-between border-b">
-                <CardTitle>5 Pesanan Terbaru</CardTitle>
-                <Link href="/cpanel/crm/orders" className="text-primary text-sm hover:underline">
-                  Lihat Semua Pesanan
-                </Link>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="pl-6!">ID Pesanan</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Produk</TableHead>
-                      <TableHead>Tanggal</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead className="pr-6! text-center">Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentOrders.map((order) => (
-                      <TableRow key={order.id} className="hover:bg-muted/50">
-                        <TableCell className="pl-6 font-medium">{order.id}</TableCell>
-                        <TableCell>{order.customer}</TableCell>
-                        <TableCell>{order.product}</TableCell>
-                        <TableCell>{order.date}</TableCell>
-                        <TableCell>
-                          {getStatusBadge(order.status)}
-                        </TableCell>
-                        <TableCell className="pr-6! font-medium">{order.amount}</TableCell>
-                        <TableCell className="pr-6!">
-                          <Link
-                            href={order.view_url}
-                            className="text-primary flex items-center gap-1 text-sm font-medium hover:underline"
-                          >
-                            <Eye className="h-4 w-4" />
-                            Detail
-                          </Link>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </CardContent>
-        </Card>
       </div>
     </AppLayout>
   );

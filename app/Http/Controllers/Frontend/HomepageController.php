@@ -102,22 +102,6 @@ class HomepageController extends Controller
                 ];
             });
 
-        // Get homepage configurations
-        $homepageConfigs = Configuration::homepage()
-            ->orderBy('label')
-            ->get()
-            ->map(function ($config) {
-                return [
-                    'id' => $config->id,
-                    'key' => $config->key,
-                    'value' => $config->value,
-                    'type' => $config->type,
-                    'label' => $config->label,
-                    'description' => $config->description,
-                ];
-            });
-
-            // $siteConfig = Configuration::site()->pluck('value', 'key');
         return Inertia::render('frontend/homepage', [
             'canRegister' => false,
             'canForgotPassword' => false,
@@ -126,8 +110,6 @@ class HomepageController extends Controller
             'clients' => $clients,
             'faqs' => $faqs,
             'articles' => $articles,
-            'homepageConfigs' => $homepageConfigs,
-            // 'siteConfig' => $siteConfig
         ]);
     }
 }

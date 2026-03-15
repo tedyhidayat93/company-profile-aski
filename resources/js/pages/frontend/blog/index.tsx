@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Clock, Tag, User } from 'lucide-react';
+import { getConfig } from '@/hooks/use-configuration';
 
 type BlogPost = {
     id: number;
@@ -46,7 +47,11 @@ export default function BlogIndex({ posts, tag }: BlogIndexProps) {
 
     return (
         <FrontendLayout>
-            <Head title={tag ? `Tag: ${tag}` : "Blog"} />
+            <Head title={`Artikel - ${getConfig('site_name', 'Your site name')}`}>
+                <meta name="description" content={getConfig('meta_description', '-')} />
+                <meta name="keywords" content={getConfig('meta_keywords', '-')} />
+            </Head>
+
             
             {/* Hero Section */}
             <div className="bg-gray-50 py-12">
@@ -76,8 +81,11 @@ export default function BlogIndex({ posts, tag }: BlogIndexProps) {
                                     <div className="flex-shrink-0">
                                         <img 
                                             className="h-48 w-full object-cover" 
-                                            src={post.featured_image || '/images/placeholder-blog.jpg'} 
-                                            alt={post.title} 
+                                            src={post.featured_image || '/assets/images/placeholder.png'} 
+                                            alt={post.title}
+                                            onError={(e) => {
+                                                e.currentTarget.src = '/assets/images/placeholder.png';
+                                            }}
                                         />
                                     </div>
                                     <div className="flex-1 bg-white p-6 flex flex-col justify-between">

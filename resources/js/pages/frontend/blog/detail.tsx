@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { Button } from '@/components/ui/button';
+import { getConfig } from '@/hooks/use-configuration';
 import { ArrowLeft, Calendar, Clock, Tag, User, Share2, MessageSquare, Facebook, Twitter, Linkedin } from 'lucide-react';
 
 type Author = {
@@ -22,24 +23,21 @@ type BlogPost = {
     published_at: string;
     reading_time?: number;
     views_count: number;
+    meta_title?: string;
+    meta_description?: string;
+    meta_keywords?: string;
     related_posts?: Array<{
         id: number;
         title: string;
         slug: string;
         featured_image: string;
-        published_at: string;
+        excerpt: string;
     }>;
 };
 
 type BlogDetailProps = {
     post: BlogPost;
-    related_posts?: Array<{
-        id: number;
-        title: string;
-        slug: string;
-        featured_image: string;
-        published_at: string;
-    }>;
+    related_posts?: BlogPost[];
 };
 
 export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps) {
@@ -62,7 +60,30 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
 
     return (
         <FrontendLayout>
-            <Head title={post.title} />
+            <Head title={`${post.title} - ${getConfig('site_name', 'Alumoda Sinergi Kontainer')}`}>
+                {/* 1. Meta Tag Dasar */}
+                <meta name="description" content={post.meta_description || post.excerpt || getConfig('meta_description', 'Blog PT. Alumoda Sinergi Kontainer Indonesia - Artikel terbaru tentang jual & sewa kontainer')} />
+                <meta name="keywords" content={post.meta_keywords || (post.tags ? post.tags.map(tag => tag).join(', ') : '') + ', blog, artikel, ' + getConfig('meta_keywords')} />
+                <meta name="author" content={post.author?.name || getConfig('site_name', '-')} />
+                
+                {/* 2. Canonical (Sangat Penting agar tidak dianggap konten duplikat) */}
+                <link rel="canonical" href={`https://alumodasinergi.com/blog/${post.slug}`} />
+
+                {/* 3. Open Graph / Facebook (Agar tampil bagus saat di-share di WA/FB) */}
+                <meta property="og:type" content="article" />
+                <meta property="og:title" content={post.meta_title || post.title} />
+                <meta property="og:description" content={post.meta_description || post.excerpt || `Baca artikel terbaru dari ${getConfig('site_name', '-')}`} />
+                <meta property="og:image" content={post.featured_image || '/default-blog-image.jpg'} />
+                <meta property="og:url" content={`https://alumodasinergi.com/blog/${post.slug}`} />
+
+                {/* 4. Twitter Card */}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={post.meta_title || post.title} />
+                <meta name="twitter:image" content={post.featured_image || '/default-blog-image.jpg'} />
+
+                {/* 5. Robots Tag */}
+                <meta name="robots" content="index, follow" />
+            </Head>
             
             {/* Hero Section */}
             <div className="bg-gray-50 py-12">
@@ -107,15 +128,16 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                     {/* Article Content */}
                     <div className="lg:col-span-3">
                         {/* Featured Image */}
-                        {post.featured_image && (
-                            <div className="mb-8">
-                                <img 
-                                    src={post.featured_image} 
-                                    alt={post.title}
-                                    className="w-full h-96 object-cover rounded-lg"
-                                />
-                            </div>
-                        )}
+                        <div className="mb-8">
+                            <img 
+                                src={post.featured_image || '/assets/images/placeholder.png'} 
+                                alt={post.title}
+                                className="w-full h-96 object-cover rounded-lg"
+                                onError={(e) => {
+                                    e.currentTarget.src = '/assets/images/placeholder.png';
+                                }}
+                            />
+                        </div>
 
                         {/* Article Content */}
                         <div className="prose prose-lg max-w-none">

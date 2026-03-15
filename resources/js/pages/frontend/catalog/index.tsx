@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import ProductCard from '@/components/ProductCard';
 import CategoryFilter from '@/components/CategoryFilter';
+import { useConfig } from '@/utils/config';
 
 interface CategoryOption {
     label: string;
@@ -386,8 +387,14 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
 }
 
 export default function CatalogPage({ products, categories, types, filters }: CatalogProps) {
+    const { getConfig } = useConfig();
     return (
         <FrontendLayout title="Katalog Produk">
+            <Head title={`Katalog Kami - ${getConfig('site_name', 'Your site name')}`}>
+                <meta name="description" content={getConfig('meta_description', '-')} />
+                <meta name="keywords" content={getConfig('meta_keywords', '-')} />
+            </Head>
+
             <Catalog products={products} categories={categories} types={types} filters={filters} />
         </FrontendLayout>
     );
