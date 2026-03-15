@@ -82,15 +82,15 @@ class CategorySeeder extends Seeder
                 ]
             ],
             [
-                'name' => 'Buy & Sell',
-                'slug' => 'buy-sell',
+                'name' => 'Property',
+                'slug' => 'property',
                 'type' => 'product',
                 'description' => 'Buy and sell various properties and items',
                 'parent_id' => null,
                 'children' => [
                     [
-                        'name' => 'House',
-                        'slug' => 'house',
+                        'name' => 'Residential Property',
+                        'slug' => 'residential-property',
                         'type' => 'product',
                         'description' => 'Residential properties for sale',
                         'children' => [
@@ -102,8 +102,8 @@ class CategorySeeder extends Seeder
                         ]
                     ],
                     [
-                        'name' => 'Property',
-                        'slug' => 'property',
+                        'name' => 'Commercial Property',
+                        'slug' => 'commercial-property',
                         'type' => 'product',
                         'description' => 'Various properties for sale',
                         'children' => [
