@@ -1,4 +1,3 @@
-// resources/js/layouts/frontend/header.tsx
 import { Link, usePage } from '@inertiajs/react';
 import { Phone, Mail, Megaphone, X, AlignEndVerticalIcon, Heart, ShoppingCart, PhoneCall } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -8,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { dashboard, login } from '@/routes';
 import Wishlist from '@/components/wishlist';
 import { useConfig } from '@/utils/config';
+import { handleImageError } from '@/utils/image';
 
 import type { WishlistItem } from '@/hooks/useWishlist';
 
@@ -18,7 +18,7 @@ export default function Header() {
   
   const { auth } = usePage().props as any;
   const { getConfig } = useConfig();
-  const siteLogo = getConfig('site_logo', '/assets/images/logo-main.png');
+  const siteLogo = getConfig('site_logo', '/images/logo-main.png');
   const logoImage = siteLogo.startsWith('configurations/') ? `/storage/${siteLogo}` : siteLogo;
   const { url } = usePage();
   const isHomepage = url === '/';
@@ -76,11 +76,11 @@ export default function Header() {
         <div className="bg-primary text-white">
           <div className="container mx-auto px-4 py-2 flex justify-between items-center text-sm">
             <div className="flex flex-nowrap min-w-full items-center space-x-4">
-              <a href={`tel:${getConfig('contact_phone', CONTACT_INFO.phone).replace(/\D/g, '')}`} className="flex items-center hover:text-yellow-300 transition-colors">
+              <a href={`tel:${getConfig('contact_phone', CONTACT_INFO.phone).replace(/\D/g, '')}`} className="flex truncate items-center hover:text-yellow-300 transition-colors">
                 <Phone className="h-4 w-4 mr-1" />
                 {getConfig('contact_phone', CONTACT_INFO.phone)}
               </a>
-              <a href={`mailto:${getConfig('contact_email', CONTACT_INFO.email)}`} className="flex items-center hover:text-yellow-300 transition-colors">
+              <a href={`mailto:${getConfig('contact_email', CONTACT_INFO.email)}`} className="flex truncate items-center hover:text-yellow-300 transition-colors">
                 <Mail className="h-4 w-4 mr-1" />
                 {getConfig('contact_email', CONTACT_INFO.email)}
               </a>
@@ -108,6 +108,7 @@ export default function Header() {
                     src={logoImage}
                     alt={getConfig('site_name', '-')}
                     className="h-12 w-auto"
+                    onError={(e) => handleImageError(e, '/images/logo-main.png', 'Site logo header')}
                   />
                 </Link>
               </div>
@@ -178,7 +179,7 @@ export default function Header() {
                   className="p-2 text-gray-700 hover:text-primary"
                   onClick={() => setIsWishlistOpen(true)}
                 >
-                  <Heart className="h-5 w-5" />
+                  <Heart className="h-5 w-5 dark:text-white" />
                   {wishlist.length > 0 && (
                     <span className="absolute top-3 right-12 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                       {wishlist.length}
@@ -188,7 +189,7 @@ export default function Header() {
                 
                 <button
                   type="button"
-                  className="p-2 text-gray-700 hover:text-primary focus:outline-none"
+                  className="p-2 text-gray-700 hover:text-primary focus:outline-none dark:text-white"
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                 >
                   <span className="sr-only">Open main menu</span>
@@ -213,7 +214,7 @@ export default function Header() {
                     scrollToSection(e, link.id);
                     setIsMenuOpen(false);
                   }}
-                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 text-xs md:text-sm "
                 >
                   {link.name}
                 </a>
@@ -222,7 +223,7 @@ export default function Header() {
               {auth?.user ? (
                 <Link
                   href={dashboard()}
-                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 text-xs md:text-sm "
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Dashboard
@@ -230,7 +231,7 @@ export default function Header() {
               ) : (
                 <Link
                   href={login()}
-                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 text-xs md:text-sm "
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Masuk / Daftar

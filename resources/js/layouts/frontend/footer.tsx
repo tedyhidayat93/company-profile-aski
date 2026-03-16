@@ -109,7 +109,7 @@ export default function Footer() {
 
         <div className="mt-12 border-t border-gray-800 pt-8 text-center text-gray-400">
           <p>
-            &copy; {new Date().getFullYear()} {getConfig('site_name', 'PT. Alumoda Sinergi Kontainer Indonesia')}.
+            &copy; {new Date().getFullYear()} {getConfig('site_name', 'Your Name')}.
           </p>
         </div>
       </div>

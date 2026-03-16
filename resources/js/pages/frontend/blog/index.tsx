@@ -54,13 +54,13 @@ export default function BlogIndex({ posts, tag }: BlogIndexProps) {
 
             
             {/* Hero Section */}
-            <div className="bg-gray-50 py-12">
+            <div className="py-12 bg-white dark:bg-gray-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
-                        <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl">
+                        <h1 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">
                             {tag ? `Tag: ${tag}` : "Blog & Artikel"}
                         </h1>
-                        <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
+                        <p className="mt-3 max-w-2xl mx-auto text-sm md:text-xl text-gray-500 dark:text-gray-300 sm:mt-4">
                             {tag 
                                 ? `Temukan artikel dengan tag "${tag}"`
                                 : "Temukan artikel terbaru seputar industri, tips, dan informasi terbaru dari kami."
@@ -71,40 +71,40 @@ export default function BlogIndex({ posts, tag }: BlogIndexProps) {
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-white dark:bg-gray-900">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Blog Posts */}
                     <div className="lg:w-full">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {posts.data.map((post) => (
-                                <article key={post.id} className="flex flex-col overflow-hidden rounded-lg shadow-lg">
+                                <article key={post.id} className="flex flex-col overflow-hidden rounded-lg shadow-lg bg-white dark:bg-gray-800">
                                     <div className="flex-shrink-0">
                                         <img 
                                             className="h-48 w-full object-cover" 
-                                            src={post.featured_image || '/assets/images/placeholder.png'} 
+                                            src={post.featured_image || '/images/placeholder.png'} 
                                             alt={post.title}
                                             onError={(e) => {
-                                                e.currentTarget.src = '/assets/images/placeholder.png';
+                                                e.currentTarget.src = '/images/placeholder.png';
                                             }}
                                         />
                                     </div>
-                                    <div className="flex-1 bg-white p-6 flex flex-col justify-between">
+                                    <div className="flex-1 p-6 flex flex-col justify-between bg-white dark:bg-gray-800">
                                         <div className="flex-1">
                                             <Link href={`/blog/${post.slug}`} className="block">
-                                                <h3 className="text-xl font-semibold text-gray-900 hover:text-primary transition-colors line-clamp-2">
+                                                <h3 className="text-xl font-semibold text-gray-900 dark:text-orange-400 hover:text-primary transition-colors line-clamp-2">
                                                     {post.title}
                                                 </h3>
-                                                <p className="mt-3 text-base text-gray-500 line-clamp-3">
+                                                <p className="mt-3 text-base text-gray-500 dark:text-gray-300 line-clamp-3">
                                                     {post.excerpt}
                                                 </p>
                                             </Link>
                                         </div>
                                         <div className="mt-6 flex items-center justify-between">
-                                            <div className="flex items-center text-sm text-gray-500">
+                                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                                                 <User className="h-4 w-4 mr-2" />
                                                 <span>{post.author.name}</span>
                                             </div>
-                                            <div className="flex items-center text-sm text-gray-500">
+                                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                                                 <Calendar className="h-4 w-4 mr-2" />
                                                 <time dateTime={post.published_at}>
                                                     {formatDate(post.published_at)}
@@ -112,11 +112,11 @@ export default function BlogIndex({ posts, tag }: BlogIndexProps) {
                                             </div>
                                         </div>
                                         <div className="mt-2 flex items-center justify-between">
-                                            <div className="flex items-center text-sm text-gray-500">
+                                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                                                 <Clock className="h-4 w-4 mr-2" />
                                                 <span>{post.reading_time || calculateReadingTime(post.content)} menit baca</span>
                                             </div>
-                                            <div className="flex items-center text-sm text-gray-500">
+                                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                                                 <span>{post.views_count} dilihat</span>
                                             </div>
                                         </div>
@@ -125,7 +125,7 @@ export default function BlogIndex({ posts, tag }: BlogIndexProps) {
                                                 {post.tags.slice(0, 3).map((tag, index) => (
                                                     <span 
                                                         key={index}
-                                                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                                                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                                                     >
                                                         #{tag}
                                                     </span>
@@ -147,7 +147,7 @@ export default function BlogIndex({ posts, tag }: BlogIndexProps) {
                                         className={`px-3 py-2 text-sm font-medium rounded-md ${
                                             link.active
                                                 ? 'bg-primary text-white'
-                                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                                         } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         dangerouslySetInnerHTML={{ __html: link.label }}
                                     />

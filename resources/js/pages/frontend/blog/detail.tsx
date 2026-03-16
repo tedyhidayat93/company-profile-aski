@@ -2,7 +2,8 @@ import { Head, Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { Button } from '@/components/ui/button';
 import { getConfig } from '@/hooks/use-configuration';
-import { ArrowLeft, Calendar, Clock, Tag, User, Share2, MessageSquare, Facebook, Twitter, Linkedin } from 'lucide-react';
+import { handleImageError } from '@/utils/image';
+import { ArrowLeft, Calendar, Clock, Tag, User, Share2, MessageSquare, Facebook, Twitter, Linkedin, Eye } from 'lucide-react';
 
 type Author = {
     id: number;
@@ -86,21 +87,21 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
             </Head>
             
             {/* Hero Section */}
-            <div className="bg-gray-50 py-12">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-gray dark:bg-gray-900 py-12">
+                <div className="max-w-5xl mx-auto px-4 ">
                     <Link 
                         href="/blog" 
-                        className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8"
+                        className="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-8"
                     >
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Kembali ke Blog
                     </Link>
                     
-                    <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl">
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">
                         {post.title}
                     </h1>
                     
-                    <div className="mt-6 flex items-center space-x-6 text-sm text-gray-500">
+                    <div className="mt-6 flex gap-3 flex-wrap items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center">
                             <User className="h-4 w-4 mr-2" />
                             <span>{post.author.name}</span>
@@ -116,6 +117,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                             <span>{post.reading_time || calculateReadingTime(post.content)} menit baca</span>
                         </div>
                         <div className="flex items-center">
+                            <Eye className="h-4 w-4 mr-2" />
                             <span>{post.views_count} dilihat</span>
                         </div>
                     </div>
@@ -123,21 +125,23 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
             </div>
 
             {/* Main Content */}
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+            <div className="w-full px-4 sm:px-6 lg:px-8 py-12 bg-white dark:bg-gray-900">
+                <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-12">
                     {/* Article Content */}
                     <div className="lg:col-span-3">
+
                         {/* Featured Image */}
-                        <div className="mb-8">
-                            <img 
-                                src={post.featured_image || '/assets/images/placeholder.png'} 
-                                alt={post.title}
-                                className="w-full h-96 object-cover rounded-lg"
-                                onError={(e) => {
-                                    e.currentTarget.src = '/assets/images/placeholder.png';
-                                }}
-                            />
-                        </div>
+                        {post.featured_image && (
+                            <div className="mb-8">
+                                <img 
+                                    src={`/storage/${post.featured_image}`}
+                                    alt={post.title}
+                                    className="w-full h-96 object-cover rounded-lg"
+                                    loading="eager"
+                                    onError={(e) => handleImageError(e, '/assets/images/placeholder.png', post.title)}
+                                />
+                            </div>
+                        )}
 
                         {/* Article Content */}
                         <div className="prose prose-lg max-w-none">
@@ -147,12 +151,12 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                         {/* Tags */}
                         {post.tags && post.tags.length > 0 && (
                             <div className="mt-8 pt-8 border-t">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Tag</h3>
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Tag</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {post.tags.map((tag, index) => (
                                         <span 
                                             key={index}
-                                            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"
+                                            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                                         >
                                             #{tag}
                                         </span>
@@ -163,8 +167,8 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
 
                         {/* Share Buttons */}
                         <div className="mt-8 pt-8 border-t">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Bagikan Artikel</h3>
-                            <div className="flex space-x-4">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Bagikan Artikel</h3>
+                            <div className="flex flex-wrap gap-3">
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -196,16 +200,16 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                     {/* Sidebar */}
                     <div className="lg:col-span-1">
                         {/* Author Info */}
-                        <div className="bg-white rounded-lg shadow p-6 mb-8">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4">Tentang Penulis</h3>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Tentang Penulis</h3>
                             <div className="flex items-center mb-4">
-                                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                                    <User className="h-6 w-6 text-gray-600" />
+                                <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                                    <User className="h-6 w-6 text-gray-600 dark:text-gray-300" />
                                 </div>
                                 <div className="ml-4">
-                                    <h4 className="text-sm font-medium text-gray-900">{post.author.name}</h4>
+                                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">{post.author.name}</h4>
                                     {post.author.bio && (
-                                        <p className="text-sm text-gray-500">{post.author.bio}</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">{post.author.bio}</p>
                                     )}
                                 </div>
                             </div>
@@ -213,8 +217,8 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
 
                         {/* Related Posts */}
                         {related_posts && related_posts.length > 0 && (
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4">Artikel Terkait</h3>
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Artikel Terkait</h3>
                                 <div className="space-y-4">
                                     {related_posts.map((relatedPost) => (
                                         <Link
@@ -229,10 +233,10 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                                                     className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
                                                 />
                                                 <div className="flex-1">
-                                                    <h4 className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors line-clamp-2">
+                                                    <h4 className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2">
                                                         {relatedPost.title}
                                                     </h4>
-                                                    <p className="text-xs text-gray-500 mt-1">
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                                         {formatDate(relatedPost.published_at)}
                                                     </p>
                                                 </div>

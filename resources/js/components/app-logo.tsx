@@ -1,8 +1,9 @@
 import { useConfig } from '@/utils/config';
+import { handleImageError } from '@/utils/image';
 
 export default function AppLogo() {
   const { getConfig } = useConfig();
-  const siteLogo = getConfig('site_logo', '/assets/images/logo-main-square.png');
+  const siteLogo = getConfig('site_favicon', '/images/logo-main-square.png');
   const siteName = getConfig('site_name', 'Alumoda Sinergi Kontainer Indonesia');
 
   // Add storage prefix if it's a stored file
@@ -11,7 +12,11 @@ export default function AppLogo() {
   return (
     <>
       <div className="text-sidebar-primary-foreground flex aspect-square size-9 items-center justify-center rounded-md bg-white">
-        <img src={logoSrc} className="size-9 fill-current text-white dark:text-black" />
+        <img 
+          src={logoSrc} 
+          className="size-9 fill-current text-white dark:text-black" 
+          onError={(e) => handleImageError(e, '/images/logo-main-square.png', 'Site logo')}
+        />
       </div>
       <div className="ml-1 grid flex-1 text-left text-sm">
         <span className="mb-0.5 truncate leading-tight font-semibold">Admin Panel</span>

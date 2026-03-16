@@ -97,12 +97,12 @@ export default function Wishlist({ isOpen, onClose, items, onRemove }: WishlistP
                                     transition: 'transform 0.3s ease-in-out, opacity 0.3s ease-in-out'
                                 }}
                             >
-                                <div className="flex h-full flex-col bg-white shadow-xl">
+                                <div className="flex h-full flex-col bg-white dark:bg-gray-800 shadow-xl">
                                     <div className="flex items-center justify-between border-b border-gray-200 px-4 py-6 sm:px-6">
-                                        <h2 className="text-lg font-medium text-gray-900">Daftar Favorit</h2>
+                                        <h2 className="text-lg font-medium text-gray-900 dark:text-orange-500">Daftar Favorit</h2>
                                         <button
                                             type="button"
-                                            className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                                            className="rounded-md bg-white dark:bg-slate-800 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
                                             onClick={onClose}
                                         >
                                             <span className="sr-only">Tutup</span>
@@ -114,8 +114,8 @@ export default function Wishlist({ isOpen, onClose, items, onRemove }: WishlistP
                                         {localItems.length === 0 ? (
                                             <div className="flex h-full flex-col items-center justify-center py-12 text-center">
                                                 <Heart className="mx-auto h-12 w-12 text-gray-400" />
-                                                <h3 className="mt-2 text-sm font-medium text-gray-900">Daftar favorit kosong</h3>
-                                                <p className="mt-1 text-sm text-gray-500">Mulai dengan menambahkan beberapa produk favorit Anda.</p>
+                                                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-orange-400">Daftar favorit kosong</h3>
+                                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-300">Mulai dengan menambahkan beberapa produk favorit Anda.</p>
                                             </div>
                                         ) : (
                                             <ul className="divide-y divide-gray-200">
@@ -131,7 +131,7 @@ export default function Wishlist({ isOpen, onClose, items, onRemove }: WishlistP
 
                                                         <div className="ml-4 flex flex-1 justify-between">
                                                             <div className="flex justify-center flex-col items-start">
-                                                                <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
+                                                                <h3 className="text-sm md:text-base font-semibold text-gray-900 dark:text-white line-clamp-2">
                                                                     <Link 
                                                                         href={`/catalog/${item.slug}`}
                                                                         className="hover:text-primary"
@@ -140,7 +140,7 @@ export default function Wishlist({ isOpen, onClose, items, onRemove }: WishlistP
                                                                         {item.name}
                                                                     </Link>
                                                                 </h3>
-                                                                <p className="text-sm font-medium text-gray-900">
+                                                                <p className="text-xs md:text-sm font-medium text-gray-900 dark:text-red-500">
                                                                     {new Intl.NumberFormat('id-ID', {
                                                                         style: 'currency',
                                                                         currency: 'IDR',

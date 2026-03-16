@@ -66,6 +66,7 @@ export default function ArticleEdit({ article, authors }: Props) {
 
   const [tags, setTags] = useState<string[]>(Array.isArray(article.tags) ? article.tags : []);
   const [tagInput, setTagInput] = useState('');
+  const [removeFeaturedImage, setRemoveFeaturedImage] = useState(false);
   const [featuredImagePreview, setFeaturedImagePreview] = useState<string | null>(
     article.featured_image ? `/storage/${article.featured_image}` : null
   );
@@ -76,7 +77,7 @@ export default function ArticleEdit({ article, authors }: Props) {
     slug: article.slug,
     content: article.content,
     excerpt: article.excerpt || '',
-    featured_image: null,
+    featured_image: null as File | null,
     status: article.status,
     published_at: article.published_at ? new Date(article.published_at).toISOString().slice(0, 16) : '',
     author_id: article.author_id.toString(),
@@ -90,8 +91,12 @@ export default function ArticleEdit({ article, authors }: Props) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
+    
     if (type === 'number') {
       setData(name as keyof typeof data, parseInt(value) || 0);
+    } else if (type === 'checkbox') {
+      const checkbox = e.target as HTMLInputElement;
+      setData(name as keyof typeof data, checkbox.checked);
     } else {
       setData(name as keyof typeof data, value);
     }
@@ -117,7 +122,7 @@ export default function ArticleEdit({ article, authors }: Props) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setData('featured_image' as any, file);
+      setData('featured_image', file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFeaturedImagePreview(reader.result as string);
@@ -128,24 +133,93 @@ export default function ArticleEdit({ article, authors }: Props) {
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
+      const newTags = [...tags, tagInput.trim()];
+      setTags(newTags);
+      setData('tags', newTags);
       setTagInput('');
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    const newTags = tags.filter(tag => tag !== tagToRemove);
+    setTags(newTags);
+    setData('tags', newTags);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Sync tags with form data before submission
+    setData('tags', tags);
+    
+    // Get original article data for comparison
+    const originalData = {
+      title: article.title,
+      slug: article.slug,
+      content: article.content,
+      excerpt: article.excerpt || '',
+      status: article.status,
+      published_at: article.published_at ? new Date(article.published_at).toISOString().slice(0, 16) : '',
+      author_id: article.author_id.toString(),
+      meta_title: article.meta_title || '',
+      meta_description: article.meta_description || '',
+      meta_keywords: article.meta_keywords || '',
+      tags: Array.isArray(article.tags) ? article.tags : [],
+      position: article.position || 0,
+      is_headline: article.is_headline || false,
+    };
+    
+    // Only send changed fields
+    const changedData: any = {};
+    Object.keys(data).forEach(key => {
+      const currentValue = data[key as keyof typeof data];
+      const originalValue = originalData[key as keyof typeof originalData];
+      
+      // Special handling for tags comparison
+      if (key === 'tags') {
+        const currentTagsSorted = [...tags].sort();
+        const originalTagsSorted = [...(originalValue as string[])].sort();
+        if (JSON.stringify(currentTagsSorted) !== JSON.stringify(originalTagsSorted)) {
+          changedData[key] = tags;
+        }
+      } else if (currentValue !== originalValue) {
+        changedData[key] = currentValue;
+      }
+    });
+    
+    // Check if featured image file is selected
+    if (data.featured_image && data.featured_image instanceof File) {
+      changedData.featured_image = data.featured_image;
+    }
+    
+    // Add image removal flag if checked
+    if (removeFeaturedImage) {
+      changedData.remove_featured_image = true;
+    }
+    
+    // If nothing changed, still submit to show success message
+    if (Object.keys(changedData).length === 0) {
+      // Just redirect back with success message
+      router.visit('/cpanel/cms/article', {
+        method: 'get',
+        preserveState: false,
+        onSuccess: () => {
+          // Show success message via flash session or similar
+        }
+      });
+      return;
+    }
+    
     const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
+    Object.entries(changedData).forEach(([key, value]) => {
       if (key === 'featured_image' && value instanceof File) {
         formData.append('featured_image', value);
       } else if (key === 'tags') {
-        formData.append(key, JSON.stringify(tags));
+        formData.append(key, JSON.stringify(value));
+      } else if (key === 'is_headline') {
+        formData.append(key, value ? '1' : '0');
+      } else if (key === 'position') {
+        formData.append(key, value?.toString() || '0');
       } else if (key !== 'featured_image') {
         formData.append(key, value?.toString() || '');
       }
@@ -252,6 +326,19 @@ export default function ArticleEdit({ article, authors }: Props) {
                         alt="Preview"
                         className="h-32 w-auto rounded-lg object-cover"
                       />
+                      {article.featured_image && (
+                        <div className="mt-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={removeFeaturedImage}
+                              onChange={(e) => setRemoveFeaturedImage(e.target.checked)}
+                              className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                            />
+                            <span className="text-sm text-gray-700">Hapus gambar ini</span>
+                          </label>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -272,7 +359,9 @@ export default function ArticleEdit({ article, authors }: Props) {
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status *</Label>
-                  <Select value={data.status} onValueChange={(value) => setData('status', value)}>
+                  <Select value={data.status} onValueChange={(value) => {
+                    setData('status', value);
+                  }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih status" />
                     </SelectTrigger>
@@ -287,7 +376,9 @@ export default function ArticleEdit({ article, authors }: Props) {
                 
                 <div className="space-y-2">
                   <Label htmlFor="author_id">Penulis *</Label>
-                  <Select value={data.author_id} onValueChange={(value) => setData('author_id', value)}>
+                  <Select value={data.author_id} onValueChange={(value) => {
+                    setData('author_id', value);
+                  }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih penulis" />
                     </SelectTrigger>
@@ -324,7 +415,9 @@ export default function ArticleEdit({ article, authors }: Props) {
                     id="is_headline"
                     name="is_headline"
                     checked={data.is_headline}
-                    onChange={(e) => setData('is_headline', e.target.checked)}
+                    onChange={(e) => {
+                      setData('is_headline', e.target.checked);
+                    }}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <Label htmlFor="is_headline" className="text-sm font-medium">

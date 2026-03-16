@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { Filter, Search, ArrowUpDown, ChevronDown, X } from 'lucide-react';
+import { Filter, Search, ArrowUpDown, ChevronDown, X, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import ProductCard from '@/components/ProductCard';
@@ -157,13 +157,13 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
     };
 
     return (
-        <div className="container mx-auto px-4 flex flex-col lg:flex-row gap-7 py-7">
+        <div className="container bg-white dark:bg-gray-800 mx-auto px-4 flex flex-col lg:flex-row gap-7 py-7">
             {/* Sidebar Filters */}
             <div className="w-full lg:w-1/4">
-                <div className={`rounded-lg bg-white p-6 shadow-md sticky top-32`}>
+                <div className={`rounded-lg bg-white dark:bg-gray-900 p-6 shadow-md sticky top-32`}>
                     <div className="flex items-center justify-between cursor-pointer"
                     onClick={() => setIsFiltersOpen(!isFiltersOpen)}>
-                        <h2 className="text-lg font-semibold">Filter</h2>
+                        <h2 className="text-lg font-semibold dark:text-orange-400">Filter</h2>
                         <div className="flex items-center space-x-4">
                             <ChevronDown className={`w-5 h-5 transform transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
                         </div>
@@ -171,14 +171,14 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
     
                     {/* Search */}
                     <div className="relative mt-3">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-black" />
                         <input
                             type="text"
                             name="search"
                             placeholder="Cari produk..."
                             value={filters.search}
                             onChange={handleFilterChange}
-                            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                            className="w-full rounded-lg border dark:text-black border-gray-300 py-2 pl-10 pr-4 focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                         />
                     </div>
 
@@ -191,7 +191,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                                 name="type"
                                 value={filters.type || ''}
                                 onChange={handleFilterChange}
-                                className="w-full rounded-lg border border-gray-300 p-2 focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                                className="w-full rounded-lg border dark:text-black border-gray-300 p-2 focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                             >
                                 <option value="">Semua</option>
                                 {types.map((type) => (
@@ -229,7 +229,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                                 min={0}
                                 value={filters.minPrice}
                                 onChange={handleFilterChange}
-                                className="w-full rounded-lg border border-gray-300 p-2"
+                                className="w-full rounded-lg border dark:text-black border-gray-300 p-2"
                                 />
                             </div>
                             <div>
@@ -241,7 +241,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                                 min={0}
                                 value={filters.maxPrice}
                                 onChange={handleFilterChange}
-                                className="w-full rounded-lg border border-gray-300 p-2"
+                                className="w-full rounded-lg border dark:text-black border-gray-300 p-2"
                                 />
                             </div>
                             </div>
@@ -255,14 +255,14 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                                 name="sort"
                                 value={filters.sort || 'price-asc'}
                                 onChange={handleFilterChange}
-                                className="w-full rounded-lg border border-gray-300 p-2 focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+                                className="w-full rounded-lg border dark:text-black border-gray-300 p-2 focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                             >
                                 <option value="price-asc">Harga Terendah</option>
                                 <option value="price-desc">Harga Tertinggi</option>
                                 <option value="name-asc">Nama A-Z</option>
                                 <option value="name-desc">Nama Z-A</option>
                             </select>
-                            <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                            <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-black" />
                             </div>
                         </div>
                         {/* Apply/Reset Buttons */}
@@ -292,7 +292,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
             {/* Product Grid */}
             <div className="flex-1">
                 <div className="mb-6 flex items-center justify-between">
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-200 text-xs md:text-sm">
                         Menampilkan {products.length} dari {pagination.total} produk
                     </p>
                     <div className="flex items-center space-x-2">
@@ -325,7 +325,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                     </div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-2 gap-3 md:gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+                        <div className="grid md:grid-cols-2 gap-3 md:gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                             {products.map((product) => (
                                 <ProductCard key={product.id} product={product} />
                             ))}
@@ -348,11 +348,11 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                                         disabled={pagination.current_page === 1}
                                         className={`flex h-10 w-10 items-center justify-center rounded-md border ${
                                             pagination.current_page === 1
-                                                ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
+                                                ? 'border-gray-200 bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                                                : 'border-gray-300 bg-white dark:bg-gray-900 text-gray-500 hover:bg-gray-50'
                                         }`}
                                     >
-                                        &larr;
+                                        <ArrowLeft />
                                     </button>
                                     
                                     <span className="px-4 text-sm text-gray-500">
@@ -370,11 +370,11 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                                         disabled={products.length < pagination.per_page}
                                         className={`flex h-10 w-10 items-center justify-center rounded-md border ${
                                             products.length < pagination.per_page
-                                                ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
+                                                ? 'border-gray-200 bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                                                : 'border-gray-300 bg-white dark:bg-gray-900 text-gray-500 hover:bg-gray-50'
                                         }`}
                                     >
-                                        &rarr;
+                                        <ArrowRight />
                                     </button>
                                 </nav>
                             </div>

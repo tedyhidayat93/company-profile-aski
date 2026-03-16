@@ -249,11 +249,11 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                 <meta name="robots" content="index, follow" />
             </Head>
             
-            <div className="bg-white">
+            <div className='dark:bg-gray-800'>
                 <div className="container mx-auto px-4 py-8">
                     {/* Breadcrumb */}
-                    <nav className="mb-6 flex" aria-label="Breadcrumb">
-                        <ol className="inline-flex items-center space-x-1 md:space-x-2">
+                    <nav className="mb-6 flex max-w-xl md:max-w-full overflow-auto" aria-label="Breadcrumb">
+                        <ol className="inline-flex flex-nowrap text-nowrap items-center space-x-1 md:space-x-2">
                             <li className="inline-flex items-center">
                                 <Link href="/" className="text-gray-700 hover:text-primary">
                                     Beranda
@@ -316,7 +316,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
 
                         {/* Product Info */}
                         <div className="mt-6 lg:mt-0 lg:w-1/2">
-                            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
+                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-orange-400">{product.name}</h1>
                             
                             <div className="mt-2 flex items-center">
                                 {product.is_bestseller && (
@@ -359,21 +359,21 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                 {product.show_price ? (
                                     product.compare_at_price && Number(product.compare_at_price) > Number(product.price) ? (
                                         <div className="flex items-center space-x-2">
-                                            <span className="text-2xl font-bold text-red-600">{formatPrice(product.price)}</span>
+                                            <span className="text-xl md:text-2xl font-bold text-red-600">{formatPrice(product.price)}</span>
                                             <span className="text-sm text-gray-500 line-through">
                                                 {formatPrice(product.compare_at_price)}
                                             </span>
                                         </div>
                                     ) : (
-                                        <span className="text-2xl font-bold text-gray-900">{formatPrice(product.price)}</span>
+                                        <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatPrice(product.price)}</span>
                                     )
                                 ) : (
-                                    <span className="text-2xl font-bold text-gray-900">Hubungi kami untuk harga</span>
+                                    <span className="text-2xl font-bold text-gray-900 dark:text-white">Hubungi kami untuk harga</span>
                                 )}
                             </div>
 
                             <div className="mt-6">
-                                <p className="text-gray-700">
+                                <p className="text-gray-700 text-sm md:text-base dark:text-slate-100 line-clamp-3">
                                     {product.short_description || product.description}
                                 </p>
                             </div>
@@ -451,68 +451,47 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                     />
                                 </button>
                             </div>
-
-                            {/* Product Meta */}
-                            {/* <div className="mt-6 border-t border-gray-200 pt-6">
-                                <div className="space-y-4">
-                                    <div className="flex items-center">
-                                        <Truck className="h-5 w-5 text-gray-400" />
-                                        <span className="ml-2 text-sm text-gray-500">
-                                            Gratis pengiriman untuk seluruh Indonesia
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center">
-                                        <Shield className="h-5 w-5 text-gray-400" />
-                                        <span className="ml-2 text-sm text-gray-500">
-                                            Garansi kualitas terbaik
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center">
-                                        <RefreshCw className="h-5 w-5 text-gray-400" />
-                                        <span className="ml-2 text-sm text-gray-500">
-                                            {product.type === 'sewa' 
-                                                ? 'Fleksibel, bisa perpanjangan sewaktu-waktu' 
-                                                : 'Garansi 1 tahun untuk pembelian'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div> */}
                         </div>
                     </div>
 
                     {/* Product Details */}
                     <div className="mt-16">
-                        <h2 className="text-xl font-bold text-gray-900">Detail Produk</h2>
-                        <div className="mt-6 overflow-hidden border-t border-gray-200">
-                            <dl className="divide-y divide-gray-200">
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Detail Produk</h2>
+                        <div className="mt-6 overflow-hidden border-t border-gray-200 dark:border-gray-600">
+                            <dl className="divide-y divide-gray-200 dark:divide-gray-600">
                                 {product.brand && (
                                     <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt className="text-sm font-medium text-gray-500">Merek</dt>
-                                        <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                        <dd className="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
                                             {product.brand}
                                         </dd>
                                     </div>
                                 )}
                                 <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                                     <dt className="text-sm font-medium text-gray-500">Status</dt>
-                                    <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                    <dd className="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
                                         {product.is_for_sell && product.is_rent ? 'Dijual & Disewakan' : product.is_for_sell ? 'Dijual' : product.is_rent ? 'Disewakan' : '-'}
                                     </dd>
                                 </div>
                                 <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                                     <dt className="text-sm font-medium text-gray-500">Kategori</dt>
-                                    <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                                    <dd className="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
                                         {product.category}
                                     </dd>
                                 </div>
                             </dl>
+
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mt-6">Deskripsi Produk</h2>
+                            <p className="mt-2 text-gray-600 dark:text-gray-300">
+                                {product.description}
+                            </p>
                         </div>
                     </div>
 
                     {/* Related Products */}
                     {relatedProducts.length > 0 && (
                         <div className="mt-16">
-                            <h2 className="text-xl font-bold text-gray-900">Produk Terkait</h2>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Produk Terkait</h2>
                             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                                 {relatedProducts.map((relatedProduct) => (
                                     <ProductCard key={relatedProduct.id} product={relatedProduct} />
@@ -570,7 +549,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
         
                                             <div className="mt-2 p-3 rounded-lg bg-slate-50 w-full">
                                                 <span className="font-medium text-xs text-black">Note</span>
-                                                <ol className="mt-2 list-decimal px-3 text-xs text-foreground">
+                                                <ol className="mt-2 list-decimal px-3 text-xs text-foreground dark:text-black">
                                                     <li>Total harga hanya mejadi patokan estimasi saja, biaya dapat berubah sesuai dengan ketersediaan stok.</li>                        
                                                     <li>Kami akan menghubungi melalui email atau nomor telepon/whatsapp anda untuk konfirmasi pemesanan.</li>
                                                 </ol>
@@ -601,7 +580,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                                     value={quantity}
                                                     onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
                                                     min="1"
-                                                    className="w-16 text-center border border-gray-300 rounded-md"
+                                                    className="w-16 text-center dark:text-black border border-gray-300 rounded-md"
                                                 />
                                                 <button 
                                                     type="button"
@@ -623,7 +602,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                                 value={formData.companyName}
                                                 onChange={handleInputChange}
                                                 required
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm dark:text-black"
                                             />
                                         </div>
                                         
@@ -638,7 +617,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                                 value={formData.picName}
                                                 onChange={handleInputChange}
                                                 required
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm dark:text-black"
                                             />
                                         </div>
                                         
@@ -654,7 +633,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                                 onChange={handleInputChange}
                                                 required
                                                 pattern="[0-9+\-\s()]*"
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm dark:text-black"
                                             />
                                         </div>
                                         
@@ -669,7 +648,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                                 value={formData.email}
                                                 onChange={handleInputChange}
                                                 required
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm dark:text-black"
                                             />
                                         </div>
                                         
@@ -683,7 +662,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                                 rows={7}
                                                 value={formData.notes || ''}
                                                 onChange={handleInputChange}
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm dark:text-black"
                                                 placeholder="Catatan tambahan (opsional)"
                                             ></textarea>
                                         </div>
@@ -729,7 +708,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                             <Check className="h-6 w-6 text-green-600" aria-hidden="true" />
                         </div>
                         <div className="mt-3">
-                            <DialogTitle className="text-lg font-medium text-gray-900">Pesanan Berhasil Dikirim!</DialogTitle>
+                            <DialogTitle className="text-lg font-medium text-gray-900 dark:text-white">Pesanan Berhasil Dikirim!</DialogTitle>
                             <div className="mt-2">
                                 <p className="text-sm text-gray-500">
                                     Terima kasih atas pemesanan Anda. Kami akan segera menghubungi Anda melalui WhatsApp, telepon, atau email untuk informasi lebih lanjut.

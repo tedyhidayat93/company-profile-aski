@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -138,9 +139,8 @@ class ArticleController extends Controller
         // Handle featured image upload
         if ($request->hasFile('featured_image')) {
             $image = $request->file('featured_image');
-            $imageName = time() . '_' . $image->getClientOriginalName();
-            $image->move(public_path('uploads/articles'), $imageName);
-            $validated['featured_image'] = 'uploads/articles/' . $imageName;
+            $path = $image->store('articles', 'public');
+            $validated['featured_image'] = $path;
         }
 
         $article = Article::create($validated);
@@ -187,17 +187,12 @@ class ArticleController extends Controller
             $requestData['is_headline'] = filter_var($requestData['is_headline'], FILTER_VALIDATE_BOOLEAN);
         }
 
-        $validated = validator()->make($requestData, [
+        // Build validation rules only for fields that are present in the request
+        $fieldRules = [
             'title' => 'required|string|max:255',
-            'slug' => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('articles')->ignore($article->id),
-            ],
+            'slug' => ['nullable', 'string', 'max:255', Rule::unique('articles')->ignore($article->id)],
             'content' => 'required|string',
             'excerpt' => 'nullable|string|max:500',
-            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'status' => 'required|string|in:draft,published,archived',
             'published_at' => 'nullable|date',
             'author_id' => 'required|integer|exists:users,id',
@@ -208,10 +203,30 @@ class ArticleController extends Controller
             'tags.*' => 'nullable|string|max:50',
             'position' => 'nullable|integer|min:0',
             'is_headline' => 'nullable|boolean',
-        ], [
+        ];
+
+        $validationRules = array_intersect_key($fieldRules, $requestData);
+
+        // Add file validation separately
+        if ($request->hasFile('featured_image')) {
+            $validationRules['featured_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:15048';
+        }
+
+        // If no validation rules and no file upload, return early
+        if (empty($validationRules) && !$request->hasFile('featured_image')) {
+            return redirect()->route('cms.article.index')
+                ->with('success', 'Tidak ada perubahan pada artikel');
+        }
+
+        $validated = validator()->make($requestData, $validationRules, [
             'tags.array' => 'The tags field must be an array.',
             'is_headline.boolean' => 'The is headline field must be true or false.',
         ])->validate();
+
+        // Add file data to validated data if present
+        if ($request->hasFile('featured_image')) {
+            $validated['featured_image'] = $request->file('featured_image');
+        }
 
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['title']);
@@ -240,14 +255,18 @@ class ArticleController extends Controller
         // Handle featured image upload
         if ($request->hasFile('featured_image')) {
             // Delete old image if exists
-            if ($article->featured_image && file_exists(public_path($article->featured_image))) {
-                unlink(public_path($article->featured_image));
+            if ($article->featured_image) {
+                Storage::disk('public')->delete($article->featured_image);
             }
-
             $image = $request->file('featured_image');
-            $imageName = time() . '_' . $image->getClientOriginalName();
-            $image->move(public_path('uploads/articles'), $imageName);
-            $validated['featured_image'] = 'uploads/articles/' . $imageName;
+            $path = $image->store('articles', 'public');
+            $validated['featured_image'] = $path;
+        }
+
+        // Handle image removal
+        if ($request->input('remove_featured_image') && $article->featured_image) {
+            Storage::disk('public')->delete($article->featured_image);
+            $validated['featured_image'] = null;
         }
 
         $article->update($validated);

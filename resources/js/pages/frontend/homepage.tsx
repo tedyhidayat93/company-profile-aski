@@ -56,6 +56,7 @@ export default function Homepage({
   const handleImageLoad = (id: number) => {
     setLoadedImages(prev => ({ ...prev, [id]: true }));
   };
+
  
 
   return (
@@ -78,27 +79,27 @@ export default function Homepage({
         {/* Hero Section */}
         <section 
           id="home"
-          className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-linear-to-br from-orange-500 via-amber-400 to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+          className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-500 via-amber-400 to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
         >
           
-          <div className="absolute inset-0 bg-linear-to-br from-orange-500/80 via-amber-400/80 backdrop-blur to-orange-100/80 dark:from-gray-900/80 dark:via-gray-800/80 dark:to-gray-900/80 z-20 " />
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/80 via-amber-400/80 to-orange-100/80 dark:from-gray-900/80 dark:via-gray-800/80 dark:to-gray-900/80 z-20 " />
 
           
           <img 
-            src={getConfig('hero_image', BgHero)} 
+            src={getConfig('hero_image', '/images/bg-hero.png')} 
             alt="Alumoda Sinergi Kontainer Indonesia - Solusi Terpercaya untuk Kontainer Anda" 
             className="absolute inset-0 z-10 object-cover w-full h-full"
             loading="eager"
+            onError={(e) => handleImageError(e, '/images/bg-hero.png', "Hero background image")}
           />
           
           <div className="container drop-shadow-md relative z-40 mx-auto px-4 py-20 text-center text-white">
             <div className="animate-fade-in-up">
-              
-              <h1 className="mb-6 text-4xl font-extrabold sm:text-5xl md:text-6xl lg:text-7xl">
+              <h1 className="mb-6 text-3xl dark:text-orange-400 font-extrabold sm:text-5xl md:text-6xl lg:text-7xl">
                 <span dangerouslySetInnerHTML={{ __html: getConfig('hero_title', 'Solusi Terpercaya <br /> Untuk <span className="text-amber-100 drop-shadow-md">Kontainer</span> Anda') }} />
               </h1>
               
-              <p className="mx-auto mb-10 max-w-2xl font-medium text-lg text-white/90 md:text-xl">
+              <p className="mx-auto mb-10 max-w-2xl font-medium text-sm md:text-lg text-white/90 lg:text-xl">
                 {getConfig('hero_description', 'Kami menyediakan berbagai pilihan kontainer untuk disewa atau dibeli. Mulai dari Kontainer standar hingga Kontainer Custom sesuai kebutuhan Anda.')}
               </p>
 
@@ -108,17 +109,17 @@ export default function Homepage({
                       <input
                           type="text"
                           placeholder={getConfig('search_placeholder', 'Cari kontainer yang kamu butuhkan...')}
-                          className="w-full rounded-full border-2 border-white/20 bg-white/10 px-6 py-4 pr-36 text-white placeholder-white/70 backdrop-blur-sm focus:border-white/40 focus:bg-white focus:text-black font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-transparent peer"
+                          className="w-full rounded-full border-2 border-white/20 bg-white/80 px-6 py-4 pr-14 md:pr-36 text-white placeholder-gray-400/70 backdrop-blur-lg focus:border-white/40 focus:bg-white focus:text-black font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-transparent peer text-xs md:text-base"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                       />
                       <button 
                           type="submit"
                           disabled={isSearching || !searchQuery.trim()}
-                          className={`absolute right-1.5 cursor-pointer top-1/2 -translate-y-1/2 transform rounded-full px-8 py-3 font-semibold transition-all ${
+                          className={`absolute right-1.5 cursor-pointer top-1/2 -translate-y-1/2 transform rounded-full px-3 py-2 md:px-8 md:py-3 font-semibold transition-all ${
                               isSearching 
                                   ? 'bg-amber-400 text-white cursor-wait' 
-                                  : 'bg-white text-amber-600 hover:bg-amber-500 hover:shadow-lg hover:shadow-amber-500/30 peer-focus:bg-primary peer-focus:text-white'
+                                  : 'bg-white text-amber-600 hover:bg-amber-500 hover:shadow-lg hover:text-white hover:shadow-amber-500/30 peer-focus:bg-primary peer-focus:text-white'
                           }`}
                       >
                           {isSearching ? (
@@ -126,25 +127,27 @@ export default function Homepage({
                                   <Loader className="mr-2 h-5 w-5 animate-spin" />
                                   Mencari...
                               </div>
-                          ) : 'Cari Sekarang'}
+                          ) : (
+                            <span className="text-xs md:text-base">Cari</span>
+                          )}
                       </button>
                   </div>
                 </form>
                 
                 <div className="mt-6 flex flex-wrap justify-center gap-4">
-                  <span className="flex items-center text-sm font-medium text-white/90">
+                  <span className="flex items-center text-xs md:text-sm font-medium text-white/90">
                     <span className="mr-2 flex h-2 w-2 rounded-full bg-green-400"></span>
                     {getConfig('feature_stock_available', 'Stok Tersedia')}
                   </span>
-                  <span className="flex items-center text-sm font-medium text-white/90">
+                  <span className="flex items-center text-xs md:text-sm font-medium text-white/90">
                     <span className="mr-2 flex h-2 w-2 rounded-full bg-blue-400"></span>
                     {getConfig('feature_quality_guarantee', 'Garansi Kualitas')}
                   </span>
-                  <span className="flex items-center text-sm font-medium text-white/90">
+                  <span className="flex items-center text-xs md:text-sm font-medium text-white/90">
                     <span className="mr-2 flex h-2 w-2 rounded-full bg-purple-400"></span>
                     {getConfig('feature_competitive_price', 'Harga Kompetitif')}
                   </span>
-                  <span className="flex items-center text-sm font-medium text-white/90">
+                  <span className="flex items-center text-xs md:text-sm font-medium text-white/90">
                     <span className="mr-2 flex h-2 w-2 rounded-full bg-black"></span>
                     {getConfig('feature_support_247', 'Support 24/7')}
                   </span>
@@ -165,7 +168,7 @@ export default function Homepage({
         <section id="services" className="bg-white py-20 dark:bg-gray-900">
           <div className="container mx-auto px-4">
             <div className="mb-16 text-center">
-              <h2 className="mb-4">{getConfig('services_title', 'Layanan Kami')}</h2>
+              <h2 className="mb-4 dark:text-orange-400">{getConfig('services_title', 'Layanan Kami')}</h2>
               <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
                 {getConfig('services_description', 'Berbagai layanan profesional yang kami tawarkan untuk memenuhi kebutuhan kontainer Anda')}
               </p>
@@ -180,22 +183,22 @@ export default function Homepage({
                   <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-amber-200 opacity-20 transition-all group-hover:scale-110 group-hover:opacity-30 dark:bg-amber-900/20"></div>
                   <div className="relative z-10">
                     <div className="mb-6 h-2 w-12 rounded-full bg-amber-300"></div>
-                    <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-white">
+                    <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-orange-400">
                       {service.title}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">{service.description}</p>
                   </div>
                 </div>
               ))}
               {/* CTA Card */}
-              <div className="group relative overflow-hidden rounded-xl bg-linear-to-br from-amber-500 to-amber-600 p-8 shadow-lg transition-all hover:shadow-xl hover:-translate-y-1">
+              <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 p-8 shadow-lg transition-all hover:shadow-xl hover:-translate-y-1">
                 <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10 transition-all group-hover:scale-110"></div>
                 <div className="relative z-10 text-white">
                   <div className="mb-6 h-2 w-12 rounded-full bg-white/50"></div>
                   <h3 className="mb-4 text-2xl font-bold">
                     Butuh Solusi Khusus?
                   </h3>
-                  <p className="mb-6 text-amber-100">
+                  <p className="mb-6 text-amber-100 text-sm md:text-base">
                     Tim ahli kami siap membantu memberikan solusi terbaik untuk kebutuhan kontainer Anda.
                   </p>
                   <a 
@@ -278,7 +281,7 @@ export default function Homepage({
         <section className="bg-gray-50 py-20 dark:bg-gray-800">
           <div className="container mx-auto px-4">
             <div className="mb-12 text-center">
-              <h2 className="mb-4">{getConfig('faq_title', 'Pertanyaan yang Sering Diajukan')}</h2>
+              <h2 className="mb-4 dark:text-orange-400">{getConfig('faq_title', 'Pertanyaan yang Sering Diajukan')}</h2>
               <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
                 {getConfig('faq_description', 'Temukan jawaban atas pertanyaan umum seputar layanan kami')}
               </p>
@@ -319,85 +322,83 @@ export default function Homepage({
 
         {/* Article section */}
         <section id="article" className="bg-white dark:bg-gray-900">
-            {articles.length > 0 && (
-              <div className="container mx-auto px-4 py-20">
-                <div className="mb-12 text-center">
-                  <h2 className="mb-4">{getConfig('articles_title', 'Artikel Terbaru')}</h2>
-                  <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
-                    {getConfig('articles_description', 'Temukan informasi terbaru seputar kontainer dan solusi logistik')}
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {articles.map((article) => (
-                    <div 
-                      key={article.id} 
-                      className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800"
-                    >
-                      <div className="relative h-52 overflow-hidden bg-gray-100 dark:bg-gray-700">
-                          <div className="absolute inset-0 bg-linear-to-r from-amber-100 to-amber-200 dark:from-gray-700 dark:to-gray-600 transition-transform duration-500 group-hover:scale-110" />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <img 
-                              src={article.image} 
-                              alt={article.title} 
-                              className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${
-                                loadedImages[article.id] ? 'opacity-100' : 'opacity-0'
-                              }`}
-                              loading="lazy"
-                              onLoad={() => handleImageLoad(article.id)}
-                              onError={(e) => handleImageError(e, undefined, article.title)}
-                            />
-                            {!loadedImages[article.id] && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="animate-pulse flex space-x-4 w-full h-full">
-                                  <div className="flex-1 space-y-4 py-1">
-                                    <div className="h-full w-full bg-gray-300 dark:bg-gray-600 rounded"></div>
-                                  </div>
+            <div className="container mx-auto px-4 py-20">
+              <div className="mb-12 text-center">
+                <h2 className="mb-4 dark:text-orange-400">{getConfig('articles_title', 'Artikel Terbaru')}</h2>
+                <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
+                  {getConfig('articles_description', 'Temukan informasi terbaru seputar kontainer dan solusi logistik')}
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {articles.map((article) => (
+                  <div 
+                    key={article.id} 
+                    className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800"
+                  >
+                    <div className="relative h-52 overflow-hidden bg-gray-100 dark:bg-gray-700">
+                        <div className="absolute inset-0 bg-gradient-to-r from-amber-100 to-amber-200 dark:from-gray-700 dark:to-gray-600 transition-transform duration-500 group-hover:scale-110" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <img 
+                            src={article.image} 
+                            alt={article.title} 
+                            className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${
+                              loadedImages[article.id] ? 'opacity-100' : 'opacity-0'
+                            }`}
+                            loading="lazy"
+                            onLoad={() => handleImageLoad(article.id)}
+                            onError={(e) => handleImageError(e, undefined, article.title)}
+                          />
+                          {!loadedImages[article.id] && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="animate-pulse flex space-x-4 w-full h-full">
+                                <div className="flex-1 space-y-4 py-1">
+                                  <div className="h-full w-full bg-gray-300 dark:bg-gray-600 rounded"></div>
                                 </div>
                               </div>
-                            )}
-                          </div>
-                          <div className="absolute top-4 left-4">
-                            <span className="rounded-full bg-amber-600 px-3 py-1 text-xs font-medium text-white">
-                              {article.category}
-                            </span>
-                          </div>
+                            </div>
+                          )}
                         </div>
-                      <div className="p-6">
-                        <div className="mb-3 text-sm text-gray-500 dark:text-gray-400">
-                          {article.date}
-                        </div>
-                        <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-white group-hover:text-amber-600 transition-colors">
-                          {article.title}
-                        </h3>
-                        <p className="mb-4 text-gray-600 dark:text-gray-300 line-clamp-3">
-                          {article.excerpt}
-                        </p>
-
-                        <div className="flex items-center justify-between">
-                          <Link 
-                            href={`/blog/${article.slug}`} 
-                            className="flex items-center text-sm font-medium text-amber-600 transition-colors hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
-                          >
-                            Baca Selengkapnya
-                            <ArrowRightIcon className="ml-1 h-4 w-4" />
-                          </Link>
+                        <div className="absolute top-4 left-4">
+                          <span className="rounded-full bg-amber-600 px-3 py-1 text-xs font-medium text-white">
+                            {article.category}
+                          </span>
                         </div>
                       </div>
+                    <div className="p-6">
+                      <div className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+                        {article.date}
+                      </div>
+                      <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-white group-hover:text-amber-600 transition-colors">
+                        {article.title}
+                      </h3>
+                      <p className="mb-4 text-gray-600 dark:text-gray-300 line-clamp-3">
+                        {article.excerpt}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <Link 
+                          href={`/blog/${article.slug}`} 
+                          className="flex items-center text-sm font-medium text-amber-600 transition-colors hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                        >
+                          Baca Selengkapnya
+                          <ArrowRightIcon className="ml-1 h-4 w-4" />
+                        </Link>
+                      </div>
                     </div>
-                  ))}
-                </div>
-                
-                  <div className="mt-12 text-center">
-                    <Link 
-                      href={blog.index()}
-                      className="btn btn-outline"
-                    >
-                      Tampilkan Lebih Banyak
-                    </Link>
                   </div>
+                ))}
               </div>
-            )}
+              
+                <div className="mt-12 text-center">
+                  <Link 
+                    href={blog.index()}
+                    className="btn btn-outline"
+                  >
+                    Tampilkan Lebih Banyak
+                  </Link>
+                </div>
+            </div>
         </section>
 
         {/* CTA Section */}

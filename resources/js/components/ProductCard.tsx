@@ -54,7 +54,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     }, [product.image]);
 
     return (
-        <div className="overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg">
+        <div onClick={() => window.location.href = `/catalog/${product.slug}`} className="overflow-hidden hover:cursor-pointer rounded-xl bg-white dark:bg-gray-900 shadow-md transition-all hover:shadow-lg">
             <div className="h-52 relative overflow-hidden">
                 {!isImageLoaded && (
                     <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
@@ -106,8 +106,8 @@ export default function ProductCard({ product }: ProductCardProps) {
                         Stok: {product.stock !== null && product.stock !== undefined ? product.stock : 'Tidak terbatas'}
                     </span>
                 </div>
-                <h3 className="mb-2 text-lg font-semibold">{product.name}</h3>
-                <p className="mb-4 text-sm text-gray-600 line-clamp-2">
+                <h3 className="mb-2 text-lg font-semibold dark:text-orange-400">{product.name}</h3>
+                <p className="mb-4 text-sm text-gray-600 dark:text-slate-100 line-clamp-2">
                     {product.description}
                 </p>
                 <div className="flex flex-col gap-2">
