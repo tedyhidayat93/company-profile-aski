@@ -32,12 +32,14 @@ class Product extends Model
         'is_for_sell',
         'is_rent',
         'show_price',
+        'show_stock',
         'published_at',
         'position',
         'brand_id',
         'category_id',
         'meta_title',
         'meta_description',
+        'views',
         'tags',
     ];
 
@@ -52,14 +54,17 @@ class Product extends Model
         'is_for_sell' => 'boolean',
         'is_rent' => 'boolean',
         'show_price' => 'boolean',
+        'show_stock' => 'boolean',
         'published_at' => 'datetime',
         'deleted_at' => 'datetime',
         'tags' => 'array',
         'position' => 'integer',
+        'views' => 'integer',
     ];
 
     protected $attributes = [
         'tags' => '[]',
+        'views' => 0,
     ];
 
     // Relationships

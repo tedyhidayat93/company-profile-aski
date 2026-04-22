@@ -169,7 +169,7 @@ export default function Homepage({
           <div className="container mx-auto px-4">
             <div className="mb-16 text-center">
               <h2 className="mb-4 dark:text-orange-400">{getConfig('services_title', 'Layanan Kami')}</h2>
-              <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
+              <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-xl">
                 {getConfig('services_description', 'Berbagai layanan profesional yang kami tawarkan untuk memenuhi kebutuhan kontainer Anda')}
               </p>
             </div>
@@ -246,7 +246,7 @@ export default function Homepage({
               <h2 className="mb-4">
                 {getConfig('clients_title', 'Klien Kami')}
               </h2>
-              <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
+              <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-xl">
                 {getConfig('clients_description', 'Kami telah melayani berbagai perusahaan dan organisasi di berbagai sektor')}
               </p>
             </div>
@@ -282,7 +282,7 @@ export default function Homepage({
           <div className="container mx-auto px-4">
             <div className="mb-12 text-center">
               <h2 className="mb-4 dark:text-orange-400">{getConfig('faq_title', 'Pertanyaan yang Sering Diajukan')}</h2>
-              <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
+              <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-xl">
                 {getConfig('faq_description', 'Temukan jawaban atas pertanyaan umum seputar layanan kami')}
               </p>
             </div>
@@ -325,7 +325,7 @@ export default function Homepage({
             <div className="container mx-auto px-4 py-20">
               <div className="mb-12 text-center">
                 <h2 className="mb-4 dark:text-orange-400">{getConfig('articles_title', 'Artikel Terbaru')}</h2>
-                <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
+                <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-xl">
                   {getConfig('articles_description', 'Temukan informasi terbaru seputar kontainer dan solusi logistik')}
                 </p>
               </div>

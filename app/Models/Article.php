@@ -27,6 +27,7 @@ class Article extends Model
         'tags',
         'position',
         'is_headline',
+        'views',
     ];
 
     protected $casts = [
@@ -35,10 +36,12 @@ class Article extends Model
         'tags' => 'array',
         'position' => 'integer',
         'is_headline' => 'boolean',
+        'views' => 'integer',
     ];
 
     protected $attributes = [
         'tags' => '[]',
+        'views' => 0,
     ];
 
     // Relationships

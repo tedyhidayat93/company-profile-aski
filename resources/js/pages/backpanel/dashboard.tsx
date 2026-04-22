@@ -46,6 +46,9 @@ import {
 import { useState } from 'react';
 import OrderStatusInfoModal from '@/components/order-status-info-modal';
 import { OrderStatusBadge } from '@/utils/order-status';
+import { Button } from '@/components/ui/button';
+import TrafficDashboard from '@/components/traffic-dashboard';
+import TrafficPerCountryRegion, { CountryData, RegionData } from '@/components/traffic-per-country-region';
 
 // Type definitions
 interface TrafficData {
@@ -71,6 +74,7 @@ interface Props {
     value: number;
     icon: string;
     change: string;
+    color: string;
     changeType: 'increase' | 'decrease';
   }>;
   orderStats: Array<{
@@ -83,6 +87,7 @@ interface Props {
     id: number;
     name: string;
     searches: number;
+    image_path: string | null;
     change: string;
   }>;
   latestProducts: Array<{
@@ -104,6 +109,8 @@ interface Props {
     view_url: string;
   }>;
   websiteTrafficData: WebsiteTrafficData;
+  countryStats: CountryData[];
+  regionStats: RegionData[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -128,33 +135,6 @@ const iconMap: Record<string, any> = {
   TrendingDown,
 };
 
-// Status badge function
-const getStatusBadge = (status: string) => {
-  const statusColors = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    confirmed: 'bg-purple-100 text-purple-800',
-    processing: 'bg-blue-100 text-blue-800',
-    shipped: 'bg-orange-100 text-orange-800',
-    completed: 'bg-green-100 text-green-800',
-    cancelled: 'bg-red-100 text-red-800',
-  };
-
-  const statusLabels = {
-    pending: 'Pesanan Baru',
-    confirmed: 'Dikonfirmasi',
-    processing: 'Diproses',
-    shipped: 'Dikirim',
-    completed: 'Selesai',
-    cancelled: 'Dibatalkan',
-  };
-
-  return (
-    <Badge className={statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
-      {statusLabels[status as keyof typeof statusLabels] || status}
-    </Badge>
-  );
-};
-
 export default function Dashboard({
   stats,
   orderStats,
@@ -162,6 +142,8 @@ export default function Dashboard({
   latestProducts,
   recentOrders,
   websiteTrafficData,
+  countryStats,
+  regionStats,
 }: Props) {
   const [dateFilter, setDateFilter] = useState<DateFilter>('thisMonth');
 
@@ -206,30 +188,66 @@ export default function Dashboard({
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Dashboard" />
 
-      <div className="space-y-6 p-6">
-        <HeaderTitle
-          title="Dashboard"
-          description='Realtime monitoring activity'
-        />
-        {/* Stats Overview */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="space-y-8 p-6 bg-slate-50/50 min-h-screen">
+        {/* Header Section dengan Aksi Cepat */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <HeaderTitle
+            title="Dashboard"
+            description="Pantau performa aktivitas bisnis Anda hari ini."
+          />
+          <div className="flex items-center gap-2">
+            {/* Tambahkan button aksi global jika perlu, misal: Export Report */}
+          </div>
+        </div>
+
+        {/* Top Stats Overview - Lebih Bersih */}
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 xxl:grid-cols-5">
           {stats.map((stat) => {
             const Icon = iconMap[stat.icon] || Package;
+            const colorClass = stat.color.replace('bg-', ''); // mengambil nama warna (misal: 'blue-500')
+
             return (
-              <Card className="shadow-card" key={stat.name}>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-xs font-medium">{stat.name}</p>
-                      <p className="text-2xl font-bold">{stat.value.toLocaleString()}</p>
-                      {/* <p
-                        className={`text-sm ${stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}`}
-                      >
-                        {stat.change} dari bulan lalu
-                      </p> */}
+              <Card 
+                key={stat.name} 
+                className={`border-t-4 border-b-0 border-l-0 border-r-0 border-${colorClass} group relative overflow-hidden bg-white/50 backdrop-blur-sm transition-all duration-500 hover:bg-white shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)] hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/60`}
+              >
+                {/* Glow Effect Background - Sangat Halus */}
+                <div className={`absolute -right-4 -top-4 h-24 w-24 rounded-full bg-${colorClass} opacity-[0.03] transition-opacity duration-500 group-hover:opacity-[0.08] blur-2xl`} />
+                
+                <CardContent className="">
+                  <div className="flex flex-col gap-4">
+                    {/* Header: Icon & Label */}
+                    <div className="flex items-center justify-between">
+                      <div className={`p-2.5 rounded-lg bg-${colorClass}/10 transition-colors duration-300 group-hover:bg-${colorClass} group-hover:text-white`}>
+                        <Icon className={`h-5 w-5 text-${colorClass} transition-colors duration-300 group-hover:text-white`} />
+                      </div>
+                      {/* Dot Indicator */}
+                      <div className={`h-1.5 w-1.5 rounded-full bg-${colorClass} animate-pulse`} />
                     </div>
-                    <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
-                      <Icon className="h-6 w-6" />
+
+                    {/* Content: Value & Name */}
+                    <div className="space-y-0.5">
+                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">
+                        {stat.name}
+                      </p>
+                      <div className="flex items-baseline gap-1">
+                        <h3 className="text-4xl font-bold tracking-tight text-slate-800 transition-all duration-300 group-hover:scale-[1.02] origin-left">
+                          {stat.value.toLocaleString()}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Footer: Simple Progress Bar atau Tren Kecil */}
+                    <div className="pt-2">
+                      <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full bg-${colorClass} opacity-60 transition-all duration-1000 group-hover:opacity-100`} 
+                          style={{ width: '65%' }} // Ini bisa dinamis berdasarkan target
+                        />
+                      </div>
+                      <p className="text-[10px] mt-1.5 text-slate-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        Data diperbarui berkala
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -238,263 +256,131 @@ export default function Dashboard({
           })}
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-2">
-          {/* Top Searched Products */}
-          <Card className="shadow-card">
-            <CardHeader className="flex flex-row items-center justify-between border-b">
-              <CardTitle>Produk Paling Banyak Dicari</CardTitle>
-            </CardHeader>
-            <CardContent className="px-3 py-0">
-              {topSearchedProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="hover:bg-muted/50 flex items-center justify-between rounded p-3"
-                >
-                  <div>
-                    <p className="font-medium">{product.name}</p>
-                    <p className="text-muted-foreground text-xs">{product.searches} pencarian</p>
-                  </div>
-                  <span
-                    className={`text-sm font-medium ${product.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}
-                  >
-                    {product.change}
-                  </span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
 
-          {/* Latest Products */}
-          <Card className="shadow-card">
-            <CardHeader className="flex flex-row items-center justify-between border-b">
-              <CardTitle>Produk Terbaru</CardTitle>
-            </CardHeader>
-            <CardContent className="px-3 py-0">
-              {latestProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="hover:bg-muted/50 flex items-center justify-between rounded p-3"
-                >
-                  <div>
-                    <p className="font-medium">{product.name}</p>
-                    <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                      <span>{product.sku}</span>
-                      <span>•</span>
-                      <span>{product.added}</span>
-                    </div>
-                  </div>
-                  <Badge
-                    variant={product.status === 'active' ? 'default' : 'outline'}
-                    className="shrink-0"
-                  >
-                    {product.status === 'active' ? 'Aktif' : 'Draft'}
-                  </Badge>
+        {/* Main Content Grid */}
+        <div className="grid gap-8 lg:grid-cols-3">
+          
+          {/* Table Section (Lebih Lebar) */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="border-none shadow-sm ring-1 ring-slate-200 min-h-[370px]">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle className="text-lg font-bold">Pesanan Terbaru</CardTitle>
+                  <p className="text-sm text-muted-foreground">5 transaksi terakhir bulan ini</p>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Order Status Overview */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <div className="flex gap-2 flex-wrap items-center justify-between">
-              <CardTitle>Informasi Pemesanan</CardTitle>  
-              <OrderStatusInfoModal />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {orderStats.map((stat) => {
-                const Icon = iconMap[stat.icon] || Clock;
-                return (
-                  <Card key={stat.name} className='p-3 px-0'>
-                    <CardContent>
-                      <div className="flex items-center gap-4">
-                        <div className={`rounded-full p-3 ${stat.color}`}>
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground text-sm">{stat.name}</p>
-                          <p className="text-xl font-semibold">{stat.value}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-            {/* Recent Orders */}
-            <Card className="shadow-card">
-              <CardHeader className="mb-0! flex flex-row items-center justify-between border-b">
-                <CardTitle>5 Pesanan Terbaru</CardTitle>
-                <Link href="/cpanel/crm/orders" className="text-primary text-sm hover:underline">
-                  Lihat Semua Pesanan
-                </Link>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/cpanel/crm/orders">Lihat Semua</Link>
+                </Button>
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-slate-50/50">
                     <TableRow>
-                      <TableHead className="pl-6!">ID Pesanan</TableHead>
+                      <TableHead className="py-3 pl-6">ID Pesanan</TableHead>
                       <TableHead>Customer</TableHead>
-                      <TableHead>Produk</TableHead>
-                      <TableHead>Tanggal</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead className="pr-6! text-center">Aksi</TableHead>
+                      <TableHead className="text-right pr-6">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentOrders.map((order) => (
-                      <TableRow key={order.id} className="hover:bg-muted/50">
-                        <TableCell className="pl-6 font-medium">{order.order_number}</TableCell>
-                        <TableCell>{order.customer}</TableCell>
-                        <TableCell>{order.product}</TableCell>
-                        <TableCell>{order.date}</TableCell>
-                        <TableCell>
-                          <OrderStatusBadge status={order.status} />
-                        </TableCell>
-                        <TableCell className="pr-6! font-medium">{order.amount}</TableCell>
-                        <TableCell className="pr-6!">
-                          <Link
-                            href={'/cpanel/crm/orders/' + order.id}
-                            className="text-primary flex items-center gap-1 text-sm font-medium hover:underline"
-                          >
-                            <Eye className="h-4 w-4" />
-                            Detail
-                          </Link>
+                    {recentOrders.length > 0 ? (
+                      recentOrders.map((order) => (
+                        <TableRow key={order.id} className="group transition-colors">
+                          <TableCell className="pl-6 font-medium text-blue-600">#{order.order_number}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-slate-900">{order.customer}</span>
+                              <span className="text-xs text-muted-foreground">{order.product}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <OrderStatusBadge status={order.status} />
+                          </TableCell>
+                          <TableCell className="text-right pr-6 font-bold">
+                            {order.amount}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="h-52 text-center">
+                          <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                              <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Belum ada pesanan</p>
+                              <p className="text-xs">Pesanan akan muncul di sini</p>
+                            </div>
+                          </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
-          </CardContent>
-        </Card>
+          </div>
 
-                {/* Website Traffic Chart */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <div className="flex flex-row items-center justify-between">
-              <CardTitle>Trafik Kunjungan Website</CardTitle>
-              <Select value={dateFilter} onValueChange={handleDateFilterChange}>
-                <SelectTrigger className="w-[180px]">
-                  <Calendar className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Pilih periode" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="today">Hari Ini</SelectItem>
-                  <SelectItem value="thisMonth">Bulan Ini</SelectItem>
-                  <SelectItem value="last3Months">3 Bulan Terakhir</SelectItem>
-                  <SelectItem value="thisYear">Tahun Ini</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="flex items-center space-x-2">
-                <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                <span className="text-sm">Pengunjung</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                <span className="text-sm">Halaman Dilihat</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="h-3 w-3 rounded-full bg-orange-500"></div>
-                <span className="text-sm">Bounce Rate (%)</span>
-              </div>
-            </div>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={currentData}>
-                  <defs>
-                    <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorPageViews" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorBounceRate" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                  <XAxis 
-                    dataKey={dataKey} 
-                    tick={{ fontSize: 12 }}
-                    tickLine={{ stroke: '#e5e7eb' }}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }}
-                    tickLine={{ stroke: '#e5e7eb' }}
-                  />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="visitors"
-                    stroke="#3b82f6"
-                    fillOpacity={1}
-                    fill="url(#colorVisitors)"
-                    strokeWidth={2}
-                    name="Pengunjung"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="pageViews"
-                    stroke="#10b981"
-                    fillOpacity={1}
-                    fill="url(#colorPageViews)"
-                    strokeWidth={2}
-                    name="Halaman Dilihat"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="bounceRate"
-                    stroke="#f97316"
-                    fillOpacity={1}
-                    fill="url(#colorBounceRate)"
-                    strokeWidth={2}
-                    name="Bounce Rate (%)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3 text-sm">
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                <span className="text-blue-700">Total Pengunjung</span>
-                <span className="font-semibold text-blue-900">
-                  {totalVisitors.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                <span className="text-green-700">Total Halaman</span>
-                <span className="font-semibold text-green-900">
-                  {totalPages.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                <span className="text-orange-700">Avg Bounce Rate</span>
-                <span className="font-semibold text-orange-900">
-                  {avgBounceRate}%
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Sidebar Content: Top Searched & Latest */}
+          <div className="space-y-6">
+            <Card className="border-none shadow-sm ring-1 ring-slate-200">
+              <CardHeader>
+                <CardTitle className="text-base font-bold">Produk Paling Banyak Dicari</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 min-h-67">
+                {topSearchedProducts.length > 0 ? (
+                  topSearchedProducts.map((product) => (
+                    <div onClick={() => window.location.href = `/cpanel/cms/product/${product.id}`} key={product.id} className="flex items-center justify-between group pb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded bg-slate-100 flex items-center justify-center overflow-hidden">
+                          {product.image_path ? (
+                            <img 
+                              src={product.image_path} 
+                              alt={product.name}
+                              className="h-12 w-12 rounded object-cover"
+                            />
+                          ) : (
+                            <span className="font-bold text-slate-400 text-xs">IMG</span>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold group-hover:text-primary transition-colors cursor-pointer">{product.name}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase">{product.searches} Dilihat</p>
+                        </div>
+                      </div>
+                      {/* <div className={`text-xs font-bold ${product.change.startsWith('+') ? 'text-green-600' : 'text-red-500'}`}>
+                        {product.change}
+                      </div> */}
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col min-h-52 items-center justify-center py-8 text-center">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                      <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-slate-500 font-medium">Belum ada data pencarian</p>
+                    <p className="text-xs text-slate-400 mt-1">Produk yang dicari akan muncul di sini</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+        </div>
+
+        {/* traffic Dashboard */}
+        <TrafficDashboard websiteTrafficData={websiteTrafficData} />
+
+        {/* Traffic per country & region */}
+        <TrafficPerCountryRegion 
+          countryStats={countryStats}
+          regionStats={regionStats}
+        />
 
       </div>
     </AppLayout>
