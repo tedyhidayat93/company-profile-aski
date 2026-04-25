@@ -345,6 +345,9 @@ export default function Homepage({
                           src={testimonial.avatar}
                           alt={testimonial.name}
                           className="mr-4 h-12 w-12 rounded-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = '/images/placeholder.png';
+                          }}
                         />
                         <div>
                           <h4 className="font-semibold text-gray-900 dark:text-white">
