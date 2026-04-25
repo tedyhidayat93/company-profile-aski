@@ -313,7 +313,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
         });
       } else if (key === 'tags') {
         // Send tags as array elements instead of JSON string
-        tags.forEach((tag, index) => {
+        (value as string[]).forEach((tag, index) => {
           formData.append(`tags[${index}]`, tag);
         });
       } else if (key === 'price' || key === 'compare_at_price' || key === 'cost_per_item') {

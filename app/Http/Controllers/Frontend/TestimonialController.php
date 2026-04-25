@@ -7,11 +7,16 @@ use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Traits\TracksVisitors;
 
 class TestimonialController extends Controller
 {
+    use TracksVisitors;
     public function index(Request $request): Response
     {
+        // Track visitor
+        $this->trackPageVisit($request, 'Testimonials');
+        
         // Get all testimonials for listing page
         $testimonials = Testimonial::public()
             ->ordered()
@@ -62,6 +67,9 @@ class TestimonialController extends Controller
 
     public function show(Request $request, $id): Response
     {
+        // Track visitor
+        $this->trackPageVisit($request, 'Testimonial Detail - ' . $id);
+        
         $testimonial = Testimonial::public()
             ->findOrFail($id);
 

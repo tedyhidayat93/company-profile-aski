@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { orderStatusColors, orderStatusLabels, getOrderStatusBadgeProps, OrderStatusBadge } from '@/utils/order-status';
 import { formatCurrencyDisplay } from '@/utils/currency';
+import { formatDate } from '@/lib/utils';
 
 interface Order {
   id: number;
@@ -283,8 +284,8 @@ export default function OrderIndex({ orders, filters }: Props) {
                   <TableHead>Nomor Pesanan</TableHead>
                   <TableHead>Pelanggan</TableHead>
                   <TableHead>Produk</TableHead>
-                  <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Timestamp</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
@@ -292,22 +293,22 @@ export default function OrderIndex({ orders, filters }: Props) {
                 {orders.data.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell className="font-medium">
-                      <div>
-                        <div className="font-mono text-sm">{order.order_number}</div>
-                        <div className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString('id-ID')}</div>
-                      </div>
+                      <div>#{order.order_number}</div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="font-medium">{order.company_name}</div>
-                        <div className="text-sm text-gray-500">{order.pic_name}</div>
                         <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <Phone className="h-3 w-3" />
+                          <User className="h-3 w-3 inline" />
+                          {order.pic_name}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Phone className="h-3 w-3 inline" />
                           {order.phone}
                         </div>
                         {order.email && (
                           <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Mail className="h-3 w-3" />
+                            <Mail className="h-3 w-3 inline" />
                             {order.email}
                           </div>
                         )}
@@ -315,18 +316,24 @@ export default function OrderIndex({ orders, filters }: Props) {
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="font-medium">{order.product_name}</div>
-                        {/* <div className="text-sm text-gray-500">{order.product_category}</div> */}
+                        <div className="text-base font-medium">{order.product_name}</div>
                         <div className="text-xs text-gray-500">Qty: {order.quantity} x {formatCurrencyDisplay(order.product_price)}</div>
+                        <div className="font-medium text-xs">
+                          Total: {formatCurrencyDisplay(order.total_price)}
+                        </div>
                       </div>
+                    </TableCell>
+                    <TableCell className='capitalize flex flex-col gap-1 justify-center items-center'>
+                      <OrderStatusBadge status={order.status} />
+                      <span className="text-xs text-gray-500">Catatan Admin: <br /> {order.admin_notes}</span>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">
-                        {formatCurrencyDisplay(order.total_price)}
+                      <div className="text-xs text-gray-500 mb-2">
+                        Tanggal Pemesanan: <br /> <span className="text-black">{formatDate(order.created_at)}</span>
                       </div>
-                    </TableCell>
-                    <TableCell className='capitalize'>
-                      <OrderStatusBadge status={order.status} />
+                      <div className="text-xs text-gray-500">
+                        Terakhir Diperbarui: <br /> <span className="text-black">{formatDate(order.updated_at)}</span>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

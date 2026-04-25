@@ -47,7 +47,7 @@ class DashboardController extends Controller
                 'color' => 'bg-purple-500 text-white'
             ],
             [
-                'name' => 'Total Pesanan',
+                'name' => 'Total Seluruh Pesanan',
                 'value' => Order::count(),
                 'icon' => 'ShoppingCart',
                 'change' => '-2.1%',
@@ -82,23 +82,14 @@ class DashboardController extends Controller
 
         // Get recent orders
         $recentOrders = Order::with('customer')
+            // ->where('status', 'pending')
             ->orderBy('created_at', 'desc')
             ->take(5)
-            ->get()
-            ->map(function ($order) {
-                return [
-                    'id' => $order->id,
-                    'order_number' => $order->order_number,
-                    'customer' => $order->company_name ?: $order->customer?->name ?: 'N/A',
-                    'product' => $order->product_name,
-                    'date' => $order->created_at->format('d M Y'),
-                    'status' => $order->status,
-                    'amount' => 'Rp ' . number_format($order->total_price, 0, ',', '.'),
-                ];
-            });
+            ->get();
 
         // Get top searched products (based on most views)
         $products = Product::with(['category', 'coverImage'])
+            ->where('views', '>', 0)
             ->orderBy('views', 'desc')
             ->take(5)
             ->get();
@@ -112,16 +103,11 @@ class DashboardController extends Controller
         
         // Only process and return products if not all views are 0
         if (!$allViewsZero) {
-            $topSearchedProducts = $products->map(function ($product, $index) {
-                // Calculate percentage change compared to previous period (simplified calculation)
-                $previousViews = $product->views * 0.85; // Assume 15% growth for demo
-                $change = $previousViews > 0 ? round((($product->views - $previousViews) / $previousViews) * 100, 1) : 0;
-                
+            $topSearchedProducts = $products->map(function ($product, $index) { 
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'searches' => $product->views,
-                    'change' => ($change >= 0 ? '+' : '') . $change . '%',
                     'image_path' => function () use ($product) {
                         // Get cover image with proper path validation
                         $coverImagePath = $product->coverImage?->image_path;
@@ -152,9 +138,7 @@ class DashboardController extends Controller
             ->map(function ($item) {
                 return [
                     'time' => sprintf('%02d:00', $item->hour),
-                    'visitors' => $item->visitors,
-                    'pageViews' => $item->visitors * rand(2, 4), // Estimate page views
-                    'bounceRate' => rand(25, 55) // Mock bounce rate for now
+                    'visitors' => $item->visitors
                 ];
             });
 
@@ -164,9 +148,7 @@ class DashboardController extends Controller
             $hourData = $todayVisitors->firstWhere('time', sprintf('%02d:00', $hour));
             $todayData[] = $hourData ?: [
                 'time' => sprintf('%02d:00', $hour),
-                'visitors' => 0,
-                'pageViews' => 0,
-                'bounceRate' => 0
+                'visitors' => 0
             ];
         }
 
@@ -178,10 +160,8 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($item) {
                 return [
-                    'date' => now()->format('d M'),
-                    'visitors' => $item->visitors,
-                    'pageViews' => $item->visitors * rand(2, 4),
-                    'bounceRate' => rand(25, 55)
+                    'date' => now()->setDay($item->day)->format('d M'),
+                    'visitors' => $item->visitors
                 ];
             });
 

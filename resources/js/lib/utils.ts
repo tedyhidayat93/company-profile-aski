@@ -16,3 +16,17 @@ export function isSameUrl(
 export function resolveUrl(url: NonNullable<InertiaLinkProps['href']>): string {
   return typeof url === 'string' ? url : url.url;
 }
+
+export function formatDate(date: string): string {
+  const d = new Date(date);
+
+  // Menggunakan Intl.DateTimeFormat untuk kontrol format yang presisi dan bersih
+  return new Intl.DateTimeFormat('id-ID', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false, // Menggunakan format 24 jam
+  }).format(d).replace(',', ''); // Menghapus koma bawaan toLocale standar
+}

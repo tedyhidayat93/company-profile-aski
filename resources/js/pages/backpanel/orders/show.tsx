@@ -19,7 +19,8 @@ import {
   Calendar,
   Hash,
   DollarSign,
-  FileText
+  FileText,
+  Clock
 } from 'lucide-react';
 import OrderStatusInfoModal from '@/components/order-status-info-modal';
 import { getOrderStatusBadgeProps, OrderStatusBadge } from '@/utils/order-status';
@@ -48,6 +49,14 @@ interface Order {
   total_price: number;
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'completed' | 'cancelled';
   admin_notes?: string;
+  status_history?: Array<{
+    created_by: number | null;
+    username: string;
+    note: string;
+    status: string;
+    created_at: string;
+    formatted_date?: string;
+  }>;
   created_at: string;
   updated_at: string;
   status_label: string;
@@ -81,14 +90,14 @@ export default function OrderShow({ order }: Props) {
     },
   ];
 
-  const { data, setData, put, processing } = useForm({
+  const { data, setData, patch, processing } = useForm({
     status: order.status as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'completed' | 'cancelled',
     admin_notes: order.admin_notes || '',
   });
 
   const handleStatusUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    put(`/cpanel/crm/orders/${order.id}/status`, {
+    patch(`/cpanel/crm/orders/${order.id}/status`, {
       preserveScroll: true,
     });
   };
@@ -175,7 +184,7 @@ export default function OrderShow({ order }: Props) {
                   )}
                 </div>
 
-                <div>
+                {/* <div>
                   <div className="text-sm font-medium text-gray-500 mb-2">Alamat Lengkap</div>
                   <div className="flex items-start gap-2">
                     <MapPin className="h-4 w-4 mt-0.5" />
@@ -186,13 +195,22 @@ export default function OrderShow({ order }: Props) {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {order.notes && (
                   <div>
                     <div className="text-sm font-medium text-gray-500 mb-2">Catatan Pelanggan</div>
                     <div className="bg-gray-50 p-3 rounded-md text-sm">
                       {order.notes}
+                    </div>
+                  </div>
+                )}
+
+                {order.admin_notes && (
+                  <div>
+                    <div className="text-sm font-medium text-gray-500 mb-2">Catatan Terakhir Admin</div>
+                    <div className="bg-gray-50 p-3 rounded-md text-sm">
+                      {order.admin_notes}
                     </div>
                   </div>
                 )}
@@ -204,7 +222,7 @@ export default function OrderShow({ order }: Props) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5" />
-                  Informasi Pesanan
+                  Informasi produk yang dipesanan
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -288,6 +306,7 @@ export default function OrderShow({ order }: Props) {
                       />
                     </div>
                   </div>
+                  
                   <Button type="submit" disabled={processing}>
                     {processing ? 'Menyimpan...' : 'Update Status'}
                   </Button>
@@ -360,22 +379,54 @@ export default function OrderShow({ order }: Props) {
               </CardContent>
             </Card>
 
-            {/* Admin Notes */}
-            {order.admin_notes && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Catatan Admin
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-blue-50 p-3 rounded-md text-sm">
-                    {order.admin_notes}
+          
+            {/* Status History - Timeline Style */}
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      Riwayat Aktivitas Pesanan
+                    </h4>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className='min-h-32 max-h-96 overflow-y-auto'>
+                {order.status_history && order.status_history.length > 0 && (
+                  <div className="relative pl-5.5 border-l-2 border-gray-200 dark:border-gray-700 ml-3">
+                    {order.status_history.map((history, index) => (
+                      <div key={index} className="relative px-3 rounded py-2 hover:bg-slate-300/50 duration-150">
+                        {/* Dot Indicator */}
+                        <div className={`absolute -left-[31px] mt-1.5 h-4 w-4 rounded-full border-4 border-slate-50 dark:border-slate-900 shadow-sm ${
+                          index === 0 ? 'bg-primary animate-pulse' : 'bg-gray-300 dark:bg-gray-600'
+                        }`} />
+                        
+                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <OrderStatusBadge status={history.status as any} />
+                            <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                              {history.username}
+                            </span>
+                          </div>
+                          
+                          <time className="text-[11px] font-medium text-gray-400 uppercase tracking-tighter">
+                            {history.formatted_date || new Date(history.created_at).toLocaleString('id-ID')}
+                          </time>
+                        </div>
+
+                        {history.note && (
+                          <div className="mt-2 relative">
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gray-100 dark:bg-gray-800 rounded-full" />
+                            <p className="pl-4 text-sm text-gray-500 dark:text-gray-400 italic leading-relaxed">
+                              "{history.note}"
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

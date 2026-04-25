@@ -19,8 +19,6 @@ interface TrafficData {
   time?: string;
   date?: string;
   visitors: number;
-  pageViews: number;
-  bounceRate: number;
 }
 
 interface WebsiteTrafficData {
@@ -109,10 +107,6 @@ export default function TrafficDashboard({ websiteTrafficData }: Props) {
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                   </linearGradient>
-                  <linearGradient id="colorOrange" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
-                  </linearGradient>
                 </defs>
                 
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -142,17 +136,6 @@ export default function TrafficDashboard({ websiteTrafficData }: Props) {
                   fillOpacity={1}
                   fill="url(#colorBlue)"
                   activeDot={{ r: 6, strokeWidth: 0, fill: '#3b82f6' }}
-                />
-                
-                <Area
-                  type="monotone"
-                  dataKey="pageViews"
-                  name="Halaman Dilihat"
-                  stroke="#f97316"
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill="url(#colorOrange)"
-                  activeDot={{ r: 6, strokeWidth: 0, fill: '#f97316' }}
                 />
               </AreaChart>
             </ResponsiveContainer>

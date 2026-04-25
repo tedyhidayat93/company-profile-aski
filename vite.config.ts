@@ -27,6 +27,10 @@ export default defineConfig(({ mode }) => {
         esbuild: {
             jsx: 'automatic',
         },
+        optimizeDeps: {
+            exclude: ['react-image-gallery'],
+            include: ['react', 'react-dom'],
+        },
         // define: {
         //     'import.meta.env.VITE_JWT_TINYMCE': JSON.stringify(env.JWT_TINYMCE),
         // },

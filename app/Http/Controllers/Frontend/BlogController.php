@@ -6,11 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Traits\TracksVisitors;
 
 class BlogController extends Controller
 {
+    use TracksVisitors;
     public function index(Request $request)
     {
+        // Track visitor
+        $this->trackPageVisit($request, 'Blog Index');
+        
         $posts = Article::published()
             ->with(['author'])
             ->orderBy('published_at', 'desc')
@@ -21,8 +26,11 @@ class BlogController extends Controller
         ]);
     }
 
-    public function show($slug)
+    public function show(Request $request, $slug)
     {
+        // Track visitor
+        $this->trackPageVisit($request, 'Blog Article - ' . $slug);
+        
         $post = Article::where('slug', $slug)
             ->with(['author'])
             ->firstOrFail();

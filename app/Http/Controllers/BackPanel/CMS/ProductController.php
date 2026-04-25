@@ -261,6 +261,7 @@ class ProductController extends Controller
             'is_new' => 'boolean',
             'is_for_sell' => 'boolean',
             'is_rent' => 'boolean',
+            'show_price' => 'boolean',
             'position' => 'nullable|integer|min:0',
             'brand_id' => 'nullable|integer|exists:brands,id',
             'category_id' => 'nullable|integer|exists:categories,id',

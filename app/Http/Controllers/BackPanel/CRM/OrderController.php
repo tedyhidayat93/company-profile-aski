@@ -83,6 +83,11 @@ class OrderController extends Controller
     public function show($id)
     {
         $order = Order::with(['product.coverImage'])->find($id);
+        
+        if ($order) {
+            $order->status_history = $order->getFormattedStatusHistory();
+        }
+        
         return Inertia::render('backpanel/orders/show', [
             'order' => $order
         ]);
@@ -140,12 +145,34 @@ class OrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $order = Order::find($id);
+        
+        if (!$order) {
+            return redirect()->back()
+                ->with('error', 'Pesanan tidak ditemukan.');
+        }
+        
         $validated = $request->validate([
             'status' => 'required|in:pending,confirmed,processing,shipped,completed,cancelled',
             'admin_notes' => 'nullable|string',
         ]);
 
+        $oldStatus = $order->status;
+        $newStatus = $validated['status'];
+        $adminNotes = $validated['admin_notes'] ?? '';
+
+        // Update the order
         $order->update($validated);
+
+        // Log status change if status actually changed
+        if ($oldStatus !== $newStatus) {
+            $user = auth()->user();
+            $order->logStatusChange(
+                $newStatus,
+                $adminNotes,
+                $user?->id,
+                $user?->name
+            );
+        }
 
         return redirect()->back()
             ->with('success', 'Status pesanan berhasil diperbarui.');

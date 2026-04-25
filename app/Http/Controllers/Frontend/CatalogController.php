@@ -8,17 +8,27 @@ use App\Models\Category;
 use App\Models\Brand;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
+use Illuminate\Support\Facades\Cache;
+use App\Traits\TracksVisitors;
 
 class CatalogController extends Controller
 {
-    public function show($slug)
+    use TracksVisitors;
+    public function show(Request $request, $slug)
     {
+        // Track visitor
+        $this->trackPageVisit($request, 'Product Detail - ' . $slug);
+        
         $product = Product::published()
             ->with(['category', 'brand', 'images' => function ($query) {
                 $query->orderBy('position', 'asc');
             }])
             ->where('slug', $slug)
             ->firstOrFail();
+
+        // Increment product view count with rate limiting (per IP per hour)
+        $this->incrementProductView($product, $request->ip());
 
         // Get related products
         $relatedProducts = Product::published()
@@ -114,8 +124,57 @@ class CatalogController extends Controller
         ]);
     }
 
+    /**
+     * Increment product view count with rate limiting
+     * Prevents duplicate counts from same IP within 1 hour
+     *
+     * @param Product $product
+     * @param string $ipAddress
+     * @return void
+     */
+    private function incrementProductView(Product $product, string $ipAddress): void
+    {
+        try {
+            // Create cache key for rate limiting (IP + Product ID)
+            $cacheKey = 'product_view_' . $product->id . '_' . md5($ipAddress);
+            
+            // Check if this IP has viewed this product recently (within 1 hour)
+            if (!Cache::has($cacheKey)) {
+                // Increment the view count
+                $product->increment('views');
+                
+                // Set cache to prevent duplicate counting for 1 hour
+                Cache::put($cacheKey, true, 3600);
+                
+                // Log the view increment for debugging
+                \Log::info('Product view incremented', [
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'ip_address' => $ipAddress,
+                    'total_views' => $product->fresh()->views,
+                ]);
+            } else {
+                \Log::info('Product view skipped (rate limited)', [
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'ip_address' => $ipAddress,
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Log error but don't break the user experience
+            \Log::error('Failed to increment product view', [
+                'product_id' => $product->id,
+                'ip_address' => $ipAddress,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     public function index(Request $request)
     {
+        // Track visitor
+        $this->trackPageVisit($request, 'Product Catalog');
+        
         // Get categories and types from database with hierarchical structure
         $categories = $this->getHierarchicalCategories();
         

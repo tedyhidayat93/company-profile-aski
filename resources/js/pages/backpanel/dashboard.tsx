@@ -30,6 +30,11 @@ import {
   Calendar,
   Plus,
   Edit,
+  User,
+  Phone,
+  Mail,
+  ShoppingBag,
+  Calendar1,
 } from 'lucide-react';
 import {
   LineChart,
@@ -49,6 +54,8 @@ import { OrderStatusBadge } from '@/utils/order-status';
 import { Button } from '@/components/ui/button';
 import TrafficDashboard from '@/components/traffic-dashboard';
 import TrafficPerCountryRegion, { CountryData, RegionData } from '@/components/traffic-per-country-region';
+import { formatCurrencyDisplay } from '@/utils/currency';
+import { formatDate } from '@/lib/utils';
 
 // Type definitions
 interface TrafficData {
@@ -98,16 +105,7 @@ interface Props {
     status: string;
     edit_url: string;
   }>;
-  recentOrders: Array<{
-    id: string;
-    order_number: string;
-    customer: string;
-    product: string;
-    date: string;
-    status: string;
-    amount: string;
-    view_url: string;
-  }>;
+  recentOrders: any[];
   websiteTrafficData: WebsiteTrafficData;
   countryStats: CountryData[];
   regionStats: RegionData[];
@@ -145,44 +143,9 @@ export default function Dashboard({
   countryStats,
   regionStats,
 }: Props) {
-  const [dateFilter, setDateFilter] = useState<DateFilter>('thisMonth');
 
-  const handleDateFilterChange = (value: string) => {
-    // Type guard to ensure value is a valid DateFilter
-    if (value === 'today' || value === 'thisMonth' || value === 'last3Months' || value === 'thisYear') {
-      setDateFilter(value);
-    }
-  };
-
-  const getCurrentData = (): TrafficData[] => {
-    return websiteTrafficData[dateFilter] || websiteTrafficData.thisMonth;
-  };
-
-  const getDataKey = (): string => {
-    switch (dateFilter) {
-      case 'today':
-        return 'time';
-      case 'thisMonth':
-      case 'last3Months':
-      case 'thisYear':
-        return 'date';
-      default:
-        return 'date';
-    }
-  };
-
-  const currentData = getCurrentData();
-  const dataKey = getDataKey();
-
-  const calculateStats = () => {
-    const totalVisitors = currentData.reduce((sum: number, item: TrafficData) => sum + item.visitors, 0);
-    const totalPages = currentData.reduce((sum: number, item: TrafficData) => sum + item.pageViews, 0);
-    const avgBounceRate = (currentData.reduce((sum: number, item: TrafficData) => sum + item.bounceRate, 0) / currentData.length).toFixed(1);
-    
-    return { totalVisitors, totalPages, avgBounceRate };
-  };
-
-  const { totalVisitors, totalPages, avgBounceRate } = calculateStats();
+  // Count new orders (pending status)
+  const newOrdersCount = recentOrders.filter(order => order.status === 'pending').length;
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -265,54 +228,107 @@ export default function Dashboard({
             <Card className="border-none shadow-sm ring-1 ring-slate-200 min-h-[370px]">
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <div>
-                  <CardTitle className="text-lg font-bold">Pesanan Terbaru</CardTitle>
-                  <p className="text-sm text-muted-foreground">5 transaksi terakhir bulan ini</p>
+                  <CardTitle className="text-lg font-bold">Daftar Pesanan</CardTitle>
+                  <p className="text-sm text-muted-foreground">Pesanan terbaru yang menunggu diproses</p>
                 </div>
+                <div className="relative">
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/cpanel/crm/orders">Lihat Semua</Link>
                 </Button>
+                {newOrdersCount > 0 && (
+                  <Badge className="absolute animate-pulse -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-600">
+                    {newOrdersCount}
+                  </Badge>
+                )}
+              </div>
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader className="bg-slate-50/50">
                     <TableRow>
-                      <TableHead className="py-3 pl-6">ID Pesanan</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right pr-6">Total</TableHead>
+                      <TableHead className="py-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider font-semibold">Pelanggan</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider font-semibold">Detail Produk</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider font-semibold">Status</TableHead>
+                      <TableHead className="text-right pr-6 text-xs uppercase tracking-wider font-semibold">Total Nilai</TableHead>
                     </TableRow>
                   </TableHeader>
+                  
                   <TableBody>
                     {recentOrders.length > 0 ? (
                       recentOrders.map((order) => (
-                        <TableRow key={order.id} className="group transition-colors">
-                          <TableCell className="pl-6 font-medium text-blue-600">#{order.order_number}</TableCell>
+                        <TableRow 
+                          key={order.id} 
+                          onClick={() => window.location.href = `/cpanel/crm/orders/${order.id}`} 
+                          className="group hover:bg-slate-50/80 transition-all cursor-pointer border-b"
+                        >
+                          {/* ID Pesanan */}
+                          <TableCell className="pl-6 space-y-2">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700">
+                              #{order.order_number}
+                            </span>
+                            <span className="text-xs pl-1 text-slate-400 flex items-center gap-1">
+                              <Calendar1 className="h-3 w-3 ml-1" /> {formatDate(order.created_at)}
+                            </span>
+                          </TableCell>
+
+                          {/* Pelanggan */}
                           <TableCell>
-                            <div className="flex flex-col">
-                              <span className="font-medium text-slate-900">{order.customer}</span>
-                              <span className="text-xs text-muted-foreground">{order.product}</span>
+                            <div className="flex items-start gap-3">
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-slate-900 leading-none mb-1">{order.company_name}</span>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                                    <User className="h-3 w-3" /> {order.pic_name}
+                                  </span>
+                                  <span className="text-[11px] text-slate-400 italic font-light">{order.phone}</span>
+                                </div>
+                              </div>
                             </div>
                           </TableCell>
+
+                          {/* Produk & Catatan */}
+                          <TableCell className="max-w-[250px]">
+                            <div className="flex flex-col">
+                              <span className="font-medium text-slate-800">{order.product_name}</span>
+                              <span className="text-xs text-slate-500">
+                                {order.quantity} Unit &times; {formatCurrencyDisplay(order.product_price)}
+                              </span>
+                              
+                              {order.notes && (
+                                <div className="mt-2 p-1 bg-amber-50/50 border-l-2 border-amber-200 rounded text-[11px] text-amber-800 leading-relaxed italic">
+                                  &ldquo;{order.notes}&rdquo;
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          {/* Status */}
                           <TableCell>
                             <OrderStatusBadge status={order.status} />
                           </TableCell>
-                          <TableCell className="text-right pr-6 font-bold">
-                            {order.amount}
+
+                          {/* Total Harga */}
+                          <TableCell className="text-right pr-6">
+                            <div className="flex flex-col items-end">
+                              <span className="font-bold text-slate-900 text-base">
+                                {formatCurrencyDisplay(order.total_price)}
+                              </span>
+                              {/* <span className="text-[10px] text-slate-400 uppercase font-medium">Pembayaran Selesai</span> */}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="h-52 text-center">
-                          <div className="flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-                            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                              <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                              </svg>
+                        <TableCell colSpan={5} className="h-64 text-center">
+                          <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
+                            <div className="p-4 rounded-full bg-slate-50">
+                              <ShoppingBag className="h-8 w-8 text-slate-300" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium">Belum ada pesanan</p>
-                              <p className="text-xs">Pesanan akan muncul di sini</p>
+                              <p className="text-base font-semibold text-slate-900">Belum Ada Pesanan</p>
+                              <p className="text-sm text-slate-500">Daftar transaksi pelanggan akan tampil di sini.</p>
                             </div>
                           </div>
                         </TableCell>

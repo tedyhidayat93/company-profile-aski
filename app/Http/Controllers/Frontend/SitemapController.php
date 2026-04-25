@@ -7,14 +7,19 @@ use App\Models\Article;
 use App\Models\Product;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use App\Traits\TracksVisitors;
 
 class SitemapController extends Controller
 {
+    use TracksVisitors;
     /**
      * Display the sitemap page
      */
-    public function index()
+    public function index(Request $request)
     {
+        // Track visitor
+        $this->trackPageVisit($request, 'Sitemap');
+        
         // Get all published articles
         $articles = Article::where('status', 'published')
             ->orderBy('published_at', 'desc')

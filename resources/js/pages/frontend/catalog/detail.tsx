@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, ShoppingCart, Heart, Share2, Check, Truck, Shield, RefreshCw, X, Phone, AlertCircle, Info, Building2, User, Mail } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Heart, Share2, Check, Truck, Shield, RefreshCw, X, Phone, AlertCircle, Info, Building2, User, Mail, Clock, InfoIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -12,6 +12,7 @@ import { formatPrice } from '@/utils/currency';
 import { useConfig } from '@/utils/config';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import SingleGalleryPreview from '@/components/single-gallery-preview';
 
 type OrderFormData = {
   companyName: string;
@@ -79,16 +80,42 @@ interface DetailProps {
     siteconfig: any;
 }
 
+interface ImagesGalleryPreview {
+    original: string;
+    thumbnail: string;
+}
+
 export default function Detail({ product, relatedProducts, siteconfig }: DetailProps) {
     const { getConfig } = useConfig();
     const [quantity, setQuantity] = useState(1);
+    const [productImages, setProductImages] = useState<ImagesGalleryPreview[]>([]);
     const [selectedImage, setSelectedImage] = useState(
         product.images.find(img => img.is_cover)?.path || product.images[0]?.path || product.image
     );
     const [isImageLoaded, setIsImageLoaded] = useState(false);
+    
     const [imageSrc, setImageSrc] = useState(
         product.images.find(img => img.is_cover)?.path || product.images[0]?.path || product.image
     );
+
+    // Effect untuk mengolah product images dari database
+    useEffect(() => {
+        if (product.images && product.images.length > 0) {
+            const formattedImages = product.images.map(img => ({
+                original: img.path,
+                thumbnail: img.path
+            }));
+            setProductImages(formattedImages);
+        } else if (product.image) {
+            // Fallback jika tidak ada images array tapi ada single image
+            setProductImages([{
+                original: product.image,
+                thumbnail: product.image
+            }]);
+        }
+    }, [product.images, product.image]);
+
+
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -279,180 +306,139 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                     </nav>
 
                     {/* Product Section */}
-                    <div className="lg:flex lg:space-x-8">
-                        {/* Product Images */}
-                        <div className="lg:w-1/2">
-                            <div className="mb-4 h-96 relative overflow-hidden rounded-lg bg-gray-100">
-                                {!isImageLoaded && (
-                                    <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
-                                )}
-                                <img
-                                    src={imageSrc}
-                                    alt={product.name}
-                                    className={`h-full w-full object-cover object-center transition-opacity duration-300 ${
-                                        isImageLoaded ? 'opacity-100' : 'opacity-0'
-                                    }`}
-                                    onLoad={() => setIsImageLoaded(true)}
-                                    onError={(e) => handleImageError(e, '/images/placeholder-product.svg', product.name)}
-                                />
-                            </div>
-                            <div className="grid grid-cols-4 gap-2">
-                                {product.images.map((img, index) => (
-                                    <button
-                                        key={img.id}
-                                        onClick={() => setSelectedImage(img.path)}
-                                        className={`h-20 overflow-hidden rounded-md border-2 ${
-                                            selectedImage === img.path ? 'border-primary' : 'border-transparent'
-                                        }`}
-                                    >
-                                        <img
-                                            src={img.path}
-                                            alt={`${product.name} ${index + 1}`}
-                                            className="h-full w-full object-cover"
-                                            onError={(e) => handleImageError(e, '/images/placeholder-product.svg', product.name)}
-                                        />
-                                    </button>
-                                ))}
-                            </div>
+                    <div className="lg:flex lg:gap-12">
+                        {/* Product Images - Sticky on scroll for better UX */}
+                        <div className="lg:w-1/2 lg:sticky lg:top-8 h-fit">
+                            <SingleGalleryPreview images={productImages} />
                         </div>
 
                         {/* Product Info */}
-                        <div className="mt-6 lg:mt-0 lg:w-1/2">
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-orange-400">{product.name}</h1>
-                            
-                            <div className="mt-2 flex items-center">
-                                {product.is_bestseller && (
-                                    <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800 mr-2">
-                                        Bestseller
+                        <div className="mt-8 lg:mt-0 lg:w-1/2 flex flex-col">
+                            {/* Header: Badge & Title */}
+                            <div className="space-y-3">
+                                <div className="flex flex-wrap gap-2">
+                                    {product.is_new && (
+                                        <span className="bg-green-100 text-green-700 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded">Baru</span>
+                                    )}
+                                    {product.is_bestseller && (
+                                        <span className="bg-orange-100 text-orange-700 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded">Terlaris</span>
+                                    )}
+                                </div>
+                                
+                                <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
+                                    {product.name}
+                                </h1>
+                                
+                                <div className="flex items-center gap-3">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                        {product.is_for_sell && product.is_rent ? 'Jual & Sewa' : product.is_rent ? 'Hanya Sewa' : 'Dijual'}
                                     </span>
-                                )}
-                                {product.is_new && (
-                                    <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800 mr-2">
-                                        Baru
+                                    <div className="h-4 w-px bg-gray-300"></div>
+                                    <span className={`text-sm ${product.stock && product.stock > 0 ? 'text-gray-500' : 'text-red-500 font-medium'}`}>
+                                        {product.stock !== null ? `Tersedia ${product.stock} unit` : 'Stok Tersedia'}
                                     </span>
-                                )}
-                                {product.is_for_sell && product.is_rent ? (
-                                    <span className="rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-800 mr-2">
-                                        Dijual & Disewakan
-                                    </span>
-                                ) : (
-                                    <>
-                                        {product.is_for_sell && (
-                                            <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 mr-2">
-                                                Dijual
-                                            </span>
-                                        )}
-                                        {product.is_rent && (
-                                            <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800 mr-2">
-                                                Disewakan
-                                            </span>
-                                        )}
-                                    </>
-                                )}
-                                <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                                    {product.type === 'sewa' ? 'Sewa' : product.type === 'jual' ? 'Beli' : 'Sewa & Jual'}
-                                </span>
-                                <span className="ml-2 text-sm text-gray-500">
-                                    Stok: {product.stock !== null ? `${product.stock} unit` : 'Tidak terbatas'}
-                                </span>
+                                </div>
                             </div>
 
-                            <div className="mt-4">
+                            {/* Pricing Card */}
+                            <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
                                 {product.show_price ? (
-                                    product.compare_at_price && Number(product.compare_at_price) > Number(product.price) ? (
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-xl md:text-2xl font-bold text-red-600">{formatPrice(product.price)}</span>
-                                            <span className="text-sm text-gray-500 line-through">
-                                                {formatPrice(product.compare_at_price)}
+                                    <div className="flex flex-col">
+                                        <span className="text-sm text-gray-900 mb-1">Harga Terbaik</span>
+                                        <div className="flex items-baseline gap-3">
+                                            <span className="text-3xl font-black text-primary dark:text-orange-400">
+                                                {formatPrice(product.price)}
                                             </span>
+                                            {product.compare_at_price && Number(product.compare_at_price) > Number(product.price) && (
+                                                <span className="text-lg text-gray-400 line-through decoration-red-400">
+                                                    {formatPrice(product.compare_at_price)}
+                                                </span>
+                                            )}
                                         </div>
-                                    ) : (
-                                        <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatPrice(product.price)}</span>
-                                    )
+                                        <div className="mt-4 flex items-start gap-2 text-gray-500 dark:text-gray-400">
+                                            <InfoIcon className="h-4 w-4 mt-0.5 shrink-0" />
+                                            <p className="text-xs leading-normal">
+                                                Harga tidak mengikat. Dapatkan estimasi biaya resmi dan jadwal ketersediaan dengan mengeklik <span className="text-primary font-semibold italic">"Pesan Sekarang"</span>.
+                                            </p>
+                                        </div>
+                                    </div>
                                 ) : (
-                                    <span className="text-2xl font-bold text-gray-900 dark:text-white">Hubungi kami untuk harga</span>
+                                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                                        <Phone className="h-5 w-5" />
+                                        <span className="text-lg font-bold">Hubungi kami untuk penawaran</span>
+                                    </div>
                                 )}
                             </div>
 
+                            {/* Short Description */}
                             <div className="mt-6">
-                                <p className="text-gray-700 text-sm md:text-base dark:text-slate-100 line-clamp-3">
+                                <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide">Deskripsi Singkat</h3>
+                                <p className="mt-2 text-gray-600 dark:text-gray-300 leading-relaxed">
                                     {product.short_description || product.description}
                                 </p>
                             </div>
 
-                            {/* Tags */}
-                            {product.tags && product.tags.length > 0 && (
-                                <div className="mt-6">
-                                    <h3 className="text-sm font-medium text-gray-500">Keyword</h3>
-                                    <div className="mt-2 flex flex-wrap gap-2">
-                                        {product.tags.map((tag, index) => (
-                                            <span
-                                                key={index}
-                                                className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
+                            {/* Selection & Actions */}
+                            <div className="mt-8 border-t border-gray-100 pt-6">
+                                <div className="flex flex-col sm:flex-row sm:items-end gap-6">
+                                    {/* Quantity */}
+                                    <div className="w-32">
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Jumlah</label>
+                                        <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary/20">
+                                            <button 
+                                                onClick={() => handleQuantityChange(-1)}
+                                                className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 transition-colors"
+                                            >-</button>
+                                            <input 
+                                                type="text" 
+                                                value={quantity} 
+                                                readOnly 
+                                                className="w-12 h-10 border-x border-gray-300 text-center font-bold text-gray-900 bg-white"
+                                            />
+                                            <button 
+                                                onClick={() => handleQuantityChange(1)}
+                                                className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 transition-colors"
+                                            >+</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Primary Buttons */}
+                                    <div className="flex-1 flex gap-3">
+                                        <button
+                                            onClick={() => setIsOrderModalOpen(true)}
+                                            className="flex-1 h-12 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                                        >
+                                            <ShoppingCart className="h-5 w-5" />
+                                            Pesan Sekarang
+                                        </button>
+                                        <button
+                                            onClick={() => toggleWishlistItem({ 
+                                            id: product.id, 
+                                            name: product.name, 
+                                            price: product.price, 
+                                            image: imageSrc, 
+                                            slug: product.slug 
+                                        })}
+                                            className="h-12 w-12 flex items-center justify-center rounded-lg border-2 border-gray-100 hover:bg-red-50 hover:border-red-100 transition-all group"
+                                        >
+                                            <Heart
+                                                className={`h-6 w-6 transition-colors ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400 group-hover:text-red-400'}`}
+                                            />
+                                        </button>
                                     </div>
                                 </div>
-                            )}
+                            </div>
 
-                            {/* Quantity Selector */}
-                            <div className="mt-6">
-                                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-                                    Jumlah
-                                </label>
-                                <div className="mt-1 flex items-center">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleQuantityChange(-1)}
-                                        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-l-md border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100"
-                                    >
-                                        -
-                                    </button>
-                                    <input
-                                        type="text"
-                                        value={quantity}
-                                        readOnly
-                                        className="h-10 w-16 rounded-none! border-t border-b border-gray-300 text-center text-gray-900"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => handleQuantityChange(1)}
-                                        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-r-md border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100"
-                                    >
-                                        +
-                                    </button>
+                            {/* Tags/Keywords */}
+                            {product.tags && product.tags.length > 0 && (
+                                <div className="mt-8 flex flex-wrap gap-2">
+                                    {product.tags.map((tag, index) => (
+                                        <span key={index} className="text-[11px] font-medium px-2.5 py-1 bg-gray-100 text-gray-500 rounded-md hover:bg-gray-200 cursor-default transition-colors">
+                                            #{tag}
+                                        </span>
+                                    ))}
                                 </div>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="mt-6 flex space-x-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsOrderModalOpen(true)}
-                                    className="flex-1 cursor-pointer font-bold rounded-md bg-primary px-6 py-3 text-sm text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                                >
-                                    <ShoppingCart className="mr-2 inline h-5 w-5" />
-                                    Buat Pesanan
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => toggleWishlistItem({
-                                        id: product.id,
-                                        name: product.name,
-                                        price: product.price,
-                                        image: product.images.find(img => img.is_cover)?.path || product.images[0]?.path || product.image || '/images/placeholder-product.svg',
-                                        slug: product.slug
-                                    })}
-                                    className="inline-flex cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white p-3 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                                >
-                                    <Heart
-                                        className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
-                                        aria-hidden="true"
-                                    />
-                                </button>
-                            </div>
+                            )}
                         </div>
                     </div>
 

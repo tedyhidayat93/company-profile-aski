@@ -32,11 +32,13 @@ class Order extends Model
         'total_price',
         'status',
         'admin_notes',
+        'status_history',
     ];
 
     protected $casts = [
         'product_price' => 'decimal:2',
         'total_price' => 'decimal:2',
+        'status_history' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -67,6 +69,44 @@ class Order extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Log status change with user information
+     */
+    public function logStatusChange(string $status, string $note = null, $userId = null, $username = null): void
+    {
+        $history = $this->status_history ?? [];
+        
+        $history[] = [
+            'created_by' => $userId ?? auth()->id(),
+            'username' => $username ?? (auth()->user()->name ?? 'System'),
+            'note' => $note,
+            'status' => $status,
+            'created_at' => now()->toISOString(),
+        ];
+
+        $this->status_history = $history;
+        $this->save();
+    }
+
+    /**
+     * Get formatted status history
+     */
+    public function getFormattedStatusHistory(): array
+    {
+        $history = $this->status_history ?? [];
+        
+        return array_map(function ($item) {
+            return [
+                'created_by' => $item['created_by'] ?? null,
+                'username' => $item['username'] ?? 'Unknown',
+                'note' => $item['note'] ?? '',
+                'status' => $item['status'] ?? '',
+                'created_at' => $item['created_at'] ?? '',
+                'formatted_date' => isset($item['created_at']) ? \Carbon\Carbon::parse($item['created_at'])->format('d M Y H:i') : '',
+            ];
+        }, $history);
     }
 
     public function getStatusLabelAttribute(): string

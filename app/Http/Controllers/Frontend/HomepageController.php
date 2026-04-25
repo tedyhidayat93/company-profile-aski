@@ -13,11 +13,16 @@ use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Traits\TracksVisitors;
 
 class HomepageController extends Controller
 {
+    use TracksVisitors;
     public function index(Request $request): Response
     {
+        // Track visitor
+        $this->trackPageVisit($request, 'Homepage');
+        
         // Get featured products for homepage
         $products = Product::where('status', 'published')
             ->where('is_featured', true)
