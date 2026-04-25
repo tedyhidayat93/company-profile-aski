@@ -9,18 +9,21 @@ import blog from '@/routes/blog';
 import { handleImageError } from '@/utils/image';
 import { useConfig } from '@/utils/config';
 
+
 export default function Homepage({ 
   products = [], 
   services = [], 
   clients = [], 
   faqs = [], 
-  articles = []
+  articles = [],
+  testimonials = []
 }: { 
   products?: any[];
   services?: any[];
   clients?: any[];
   faqs?: any[];
   articles?: any[];
+  testimonials?: any[];
 }) {
   const { getConfig } = useConfig();
   const [searchQuery, setSearchQuery] = useState('');
@@ -132,7 +135,7 @@ export default function Homepage({
           
           <div className="container drop-shadow-md relative z-40 mx-auto px-4 py-20 text-center text-white">
             <div className="animate-fade-in-up">
-              <h1 className="mb-6 font-black leading-[0.95] tracking-tighter text-3xl sm:text-5xl md:text-7xl lg:text-8xl text-slate-900">
+              <h1 className="mb-6 font-black leading-[0.95] tracking-tighter text-3xl sm:text-5xl md:text-7xl lg:text-8xl text-slate-900 dark:text-orange-400">
                 <span dangerouslySetInnerHTML={{ 
                   __html: getConfig('hero_title', 
                   'Solusi Terpercaya <br /> Untuk ' + 
@@ -143,7 +146,7 @@ export default function Homepage({
                 }} />
               </h1>
               
-              <p className="mx-auto mb-10 max-w-2xl font-medium text-sm md:text-lg text-white/90 lg:text-xl">
+              <p className="mx-auto mb-10 max-w-2xl font-medium text-sm md:text-xl dark:text-orange-200 text-slate-900 leading-7 lg:text-xl">
                 {getConfig('hero_description', 'Kami menyediakan berbagai pilihan kontainer untuk disewa atau dibeli. Mulai dari Kontainer standar hingga Kontainer Custom sesuai kebutuhan Anda.')}
               </p>
 
@@ -179,19 +182,19 @@ export default function Homepage({
                 </form>
                 
                 <div className="mt-6 flex flex-wrap justify-center gap-4">
-                  <span className="flex items-center text-xs md:text-sm font-medium text-white/90">
+                  <span className="flex items-center text-sm font-bold text-white/90">
                     <span className="mr-2 flex h-2 w-2 rounded-full bg-green-400"></span>
                     {getConfig('feature_stock_available', 'Stok Tersedia')}
                   </span>
-                  <span className="flex items-center text-xs md:text-sm font-medium text-white/90">
+                  <span className="flex items-center text-sm font-bold text-white/90">
                     <span className="mr-2 flex h-2 w-2 rounded-full bg-blue-400"></span>
                     {getConfig('feature_quality_guarantee', 'Garansi Kualitas')}
                   </span>
-                  <span className="flex items-center text-xs md:text-sm font-medium text-white/90">
+                  <span className="flex items-center text-sm font-bold text-white/90">
                     <span className="mr-2 flex h-2 w-2 rounded-full bg-purple-400"></span>
                     {getConfig('feature_competitive_price', 'Harga Kompetitif')}
                   </span>
-                  <span className="flex items-center text-xs md:text-sm font-medium text-white/90">
+                  <span className="flex items-center text-sm font-bold text-white/90">
                     <span className="mr-2 flex h-2 w-2 rounded-full bg-black"></span>
                     {getConfig('feature_support_247', 'Support 24/7')}
                   </span>
@@ -208,7 +211,7 @@ export default function Homepage({
           </div>
         </section>
 
-        {/* Layanan Section */}
+        {/* services Section */}
         <section id="services" className="bg-white py-20 dark:bg-gray-900">
           <div className="container mx-auto px-4">
             <div className="mb-16 text-center">
@@ -260,7 +263,7 @@ export default function Homepage({
           </div>
         </section>
 
-        {/* Produk Section */}
+        {/* products Section */}
         <section id="products" className="bg-gray-50 py-20 dark:bg-gray-800">
           <div className="container mx-auto px-4">
             <div className="mb-12 flex flex-col items-center md:justify-between md:flex-row">
@@ -270,7 +273,7 @@ export default function Homepage({
                   {getConfig('products_description', 'Temukan produk-produk kontainer untuk kebutuhanmu')}
                 </p>
               </div>
-              <Link href={catalog.index()} className="btn btn-outline flex items-center">
+              <Link href={catalog.index()} className="btn btn-ghost flex items-center">
                 Tampilkan Lebih Banyak <ArrowRight className="ml-1 h-4 w-4" /> 
               </Link>
             </div>
@@ -319,6 +322,67 @@ export default function Homepage({
             
             </div>
           </div>
+        </section>
+
+        {/* Testimoni Section */}
+        <section className="bg-white dark:bg-gray-900">
+          {
+            testimonials.length > 0 && (
+            <div className="container py-20  mx-auto px-4">
+              <div className="mb-12 text-center">
+                <h2 className="mb-4">Apa Kata Mereka</h2>
+                <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
+                  Testimoni dari klien yang telah menggunakan layanan kami
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                {testimonials.map((testimonial) => (
+                  <div key={testimonial.id} className="rounded-xl bg-gray-50 p-8 dark:bg-gray-800">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div className="flex items-center">
+                        <img
+                          src={testimonial.avatar}
+                          alt={testimonial.name}
+                          className="mr-4 h-12 w-12 rounded-full object-cover"
+                        />
+                        <div>
+                          <h4 className="font-semibold text-gray-900 dark:text-white">
+                            {testimonial.name}
+                          </h4>
+                          <p className="text-sm text-gray-500">{testimonial.role}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Bagian Bintang */}
+                      <div className="flex text-yellow-400">
+                        {[...Array(5)].map((_, i) => (
+                          <svg
+                            key={i}
+                            className={`h-5 w-5 ${i < testimonial.rating ? 'fill-current' : 'fill-gray-300'}`}
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-gray-600 italic dark:text-gray-300">"{testimonial.content}"</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-12 text-center flex items-center justify-center">
+                  <Link 
+                    href="/testimonial"
+                    className="btn btn-ghost flex items-center"
+                  >
+                    Tampilkan Lebih Banyak <ArrowRight className="ml-1 h-4 w-4" />  
+                  </Link>
+                </div>
+            </div>
+            )
+          }
         </section>
 
         {/* FAQ Section */}
@@ -440,21 +504,21 @@ export default function Homepage({
                   ))}
                 </div>
                 
-                  <div className="mt-12 text-center">
-                    <Link 
-                      href={blog.index()}
-                      className="btn btn-outline flex items-center"
-                    >
-                      Tampilkan Lebih Banyak <ArrowRight className="ml-1 h-4 w-4" />  
-                    </Link>
-                  </div>
+                <div className="mt-12 text-center flex items-center justify-center">
+                  <Link 
+                    href={blog.index()}
+                    className="btn btn-ghost flex items-center"
+                  >
+                    Tampilkan Lebih Banyak <ArrowRight className="ml-1 h-4 w-4" />  
+                  </Link>
+                </div>
               </div>
             )
           }
         </section>
 
         {/* CTA Section */}
-        <section id="contact" className="bg-orange-200 py-20 text-white">
+        <section id="contact" className="bg-orange-200 dark:bg-orange-300 py-20 text-white">
           <div className="container mx-auto px-4 text-center flex flex-col justify-center items-center">
             <h2 className="mb-6 text-5xl font-[800]! text-black">{getConfig('cta_title', 'Butuh Kontainer untuk Bisnis Anda?')}</h2>
             <p className="mx-auto mb-8 text-slate-800 max-w-2xl">

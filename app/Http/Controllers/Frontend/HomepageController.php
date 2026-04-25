@@ -9,6 +9,7 @@ use App\Models\Configuration;
 use App\Models\Client;
 use App\Models\Faq;
 use App\Models\Article;
+use App\Models\Testimonial;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -102,6 +103,23 @@ class HomepageController extends Controller
                 ];
             });
 
+        // Get testimonials for homepage (limit to 4 for display)
+        $testimonials = Testimonial::public()
+            ->ordered()
+            ->take(4)
+            ->get()
+            ->map(function ($testimonial) {
+                return [
+                    'id' => $testimonial->id,
+                    'name' => $testimonial->nama,
+                    'role' => $testimonial->keterangan,
+                    'company' => $testimonial->perusahaan,
+                    'content' => $testimonial->testimoni,
+                    'avatar' => $testimonial->foto_avatar ?? '/images/avatar-placeholder.png',
+                    'rating' => $testimonial->rate_star
+                ];
+            });
+
         return Inertia::render('frontend/homepage', [
             'canRegister' => false,
             'canForgotPassword' => false,
@@ -110,6 +128,7 @@ class HomepageController extends Controller
             'clients' => $clients,
             'faqs' => $faqs,
             'articles' => $articles,
+            'testimonials' => $testimonials,
         ]);
     }
 }

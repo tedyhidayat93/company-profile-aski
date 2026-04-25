@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Frontend\HomepageController;
 use App\Http\Controllers\Frontend\CatalogController;
+use App\Http\Controllers\Frontend\TestimonialController as TestimonialFrontendController;
 use App\Http\Controllers\BackPanel\DashboardController;
 use App\Http\Controllers\Frontend\BlogController;
 use App\Http\Controllers\Frontend\SitemapController;
@@ -21,7 +22,7 @@ use App\Http\Controllers\BackPanel\Settings\{
     PasswordController,
     TwoFactorAuthenticationController,
     SettingsController,
-    ConfigurationController
+    ConfigurationController 
 };
 use App\Http\Controllers\BackPanel\Authorization\{
     RoleController,
@@ -30,11 +31,13 @@ use App\Http\Controllers\BackPanel\Authorization\{
 };
 use Illuminate\Support\Facades\Route;
 
+// API Configuration for Frontend
+Route::get('/api/configurations/{group?}', [App\Http\Controllers\Frontend\ConfigurationController::class, 'index'])->name('api.configurations');
+
 // Frontend (Public)
 Route::get('/', [HomepageController::class, 'index'])->name('homepage');
 
-// API Configuration for Frontend
-Route::get('/api/configurations/{group?}', [App\Http\Controllers\Frontend\ConfigurationController::class, 'index'])->name('api.configurations');
+Route::get('/testimonial', [TestimonialFrontendController::class, 'index'])->name('testimonial.index');
 
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
 

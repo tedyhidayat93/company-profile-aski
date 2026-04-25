@@ -16,7 +16,7 @@ export default function FrontendLayout({ children, title }: FrontendLayoutProps)
     <div className="min-h-screen flex flex-col">
       <Head title={title} />
       <Header />
-      <main className="grow bg-slate-50">
+      <main className="grow bg-white dark:bg-gray-800">
         {children}
       </main>
       <Footer />

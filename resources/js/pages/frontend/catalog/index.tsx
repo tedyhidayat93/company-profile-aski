@@ -325,7 +325,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                     </div>
                 ) : (
                     <>
-                        <div className="grid md:grid-cols-2 gap-3 md:gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+                        <div className="grid md:grid-cols-2 gap-3 md:gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3">
                             {products.map((product) => (
                                 <ProductCard key={product.id} product={product} />
                             ))}

@@ -31,15 +31,10 @@ class SitemapController extends Controller
             ['name' => 'Layanan', 'href' => '/#services'],
             ['name' => 'Katalog Produk', 'href' => '/catalog'],
             ['name' => 'Artikel', 'href' => '/blog'],
+            ['name' => 'Testimoni', 'href' => '/testimonial'],
             ['name' => 'Kontak', 'href' => '/#contact'],
             ['name' => 'Site Map', 'href' => '/sitemap'],
         ];
-
-        // dd( [
-        //     'articles' => $articles ?? [],
-        //     'products' => $products ?? [],
-        //     'navigation' => $navigation ?? [],
-        // ])
 
         return Inertia::render('frontend/sitemap', [
             'articles' => $articles ?? [],
@@ -115,6 +110,15 @@ class SitemapController extends Controller
                     <priority>0.8</priority>
                 </url>';
         }
+        
+        // Add testimonials
+        $sitemap .= '
+            <url>
+                <loc>' . $baseUrl . '/testimonial</loc>
+                <lastmod>' . now()->toAtomString() . '</lastmod>
+                <changefreq>monthly</changefreq>
+                <priority>0.7</priority>
+            </url>';
         
         $sitemap .= '</urlset>';
         

@@ -31,15 +31,15 @@
         </style>
 
         <title inertia>
-        @if(isset($siteconfig))
-            @php
-                $siteName = collect($siteconfig)->where('key', 'site_name')->first()['value'] ?? config('app.name', 'Laravel');
-            @endphp
-            {{ $siteName }}
-        @else
-            {{ config('app.name', 'Laravel') }}
-        @endif
-    </title>
+            @if(isset($siteconfig))
+                @php
+                    $siteName = collect($siteconfig)->where('key', 'site_name')->first()['value'] ?? config('app.name', 'Laravel');
+                @endphp
+                {{ $siteName }}
+            @else
+                {{ config('app.name', 'Laravel') }}
+            @endif
+        </title>
 
         {{-- Favicon from configuration --}}
         @if(isset($siteconfig))
