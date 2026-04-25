@@ -77,6 +77,29 @@ export default function TrafficDashboard({ websiteTrafficData }: Props) {
   const currentData = websiteTrafficData[dateFilter];
   const dataKey = dateFilter === 'today' ? 'time' : 'date';
 
+  // Check if there's any data to display
+  const hasData = currentData && currentData.length > 0 && currentData.some(item => item.visitors > 0);
+
+  // Empty State Component
+  const EmptyState = () => (
+    <div className="flex flex-col items-center justify-center w-full text-center">
+      <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+        <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-slate-700 mb-2">Belum Ada Data Trafik</h3>
+      <p className="text-sm text-slate-500 max-w-md">
+        Data kunjungan pengunjung untuk periode ini belum tersedia. 
+        Kunjungan akan muncul di sini setelah pengunjung mulai mengakses website Anda.
+      </p>
+      <div className="mt-4 flex items-center gap-2 text-xs text-slate-400">
+        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+        <span>Menunggu data kunjungan...</span>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-sm ring-1 ring-slate-200 bg-white/50 backdrop-blur-sm overflow-hidden">
@@ -99,46 +122,50 @@ export default function TrafficDashboard({ websiteTrafficData }: Props) {
         </CardHeader>
         
         <CardContent className="pt-6">
-          <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={currentData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorBlue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                
-                <XAxis 
-                  dataKey={dataKey} 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
-                  dy={10}
-                />
-                
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
-                />
-                
-                <Tooltip content={<CustomTooltip />} />
-                
-                <Area
-                  type="monotone"
-                  dataKey="visitors"
-                  name="Pengunjung"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill="url(#colorBlue)"
-                  activeDot={{ r: 6, strokeWidth: 0, fill: '#3b82f6' }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="min-h-[300px] w-full">
+            {hasData ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={currentData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorBlue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  
+                  <XAxis 
+                    dataKey={dataKey} 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#94a3b8', fontSize: 12 }}
+                    dy={10}
+                  />
+                  
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#94a3b8', fontSize: 12 }}
+                  />
+                  
+                  <Tooltip content={<CustomTooltip />} />
+                  
+                  <Area
+                    type="monotone"
+                    dataKey="visitors"
+                    name="Pengunjung"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorBlue)"
+                    activeDot={{ r: 6, strokeWidth: 0, fill: '#3b82f6' }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState />
+            )}
           </div>
         </CardContent>
       </Card>
