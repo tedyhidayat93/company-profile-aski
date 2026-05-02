@@ -34,8 +34,10 @@ class ServiceController extends Controller
             ->orderBy('name')
             ->paginate(10);
 
-        $categories = Category::where('type', 'service')
-            ->where('is_active', true)
+        $categories = Category::with('children')
+            ->root()
+            ->active()
+            ->ofType('service')
             ->orderBy('name')
             ->get();
 
@@ -48,8 +50,10 @@ class ServiceController extends Controller
 
     public function create()
     {
-        $categories = Category::where('type', 'service')
-            ->where('is_active', true)
+        $categories = Category::with('children')
+            ->root()
+            ->active()
+            ->ofType('service')
             ->orderBy('name')
             ->get();
 
@@ -113,8 +117,10 @@ class ServiceController extends Controller
     {
         $service = Service::with('category')->findOrFail($id);
         
-        $categories = Category::where('type', 'service')
-            ->where('is_active', true)
+        $categories = Category::with('children')
+            ->root()
+            ->active()
+            ->ofType('service')
             ->orderBy('name')
             ->get();
 

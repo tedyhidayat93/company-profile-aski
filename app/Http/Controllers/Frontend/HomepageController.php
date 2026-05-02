@@ -42,10 +42,11 @@ class HomepageController extends Controller
                     'price' => $product->price,
                     'compare_at_price' => $product->compare_at_price,
                     'stock' => $product->quantity ?? 0,
-                    'image' => $product->coverImage?->image_path ?? '/images/placeholder.png',
+                    'image' => $product->coverImage?->image_path ? '/storage/' . $product->coverImage->image_path : '/images/placeholder.png',
                     'description' => $product->short_description ?? $product->description ?? '',
                     'is_bestseller' => $product->is_bestseller ?? false,
                     'show_price' => $product->show_price,
+                    'show_stock' => $product->show_stock,
                     'is_new' => $product->is_new ?? false,
                     'is_for_sell' => $product->is_for_sell ?? false,
                     'is_rent' => $product->is_rent ?? false

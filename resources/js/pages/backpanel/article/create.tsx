@@ -12,6 +12,8 @@ import FlashMessage from '@/components/flash-message';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Save, FileText, Upload, Tag as TagIcon, Calendar } from 'lucide-react';
 import TinyMCEEditor from '@/components/TinyMCEEditor';
+import TreeSelect from '@/components/tree-select';
+import { flattenCategories } from '@/lib/utils';
 
 interface Author {
   id: number;
@@ -57,7 +59,6 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
     meta_description: '',
     meta_keywords: '',
     tags: [],
-    position: 0,
     is_headline: false,
     category_id: blogCategories.length > 0 ? blogCategories[0].id.toString() : '',
   });
@@ -247,7 +248,7 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status *</Label>
                   <Select value={data.status} onValueChange={(value) => setData('status', value)}>
@@ -281,33 +282,12 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="position">Posisi</Label>
-                  <Input
-                    id="position"
-                    name="position"
-                    type="number"
-                    value={data.position}
-                    onChange={handleInputChange}
-                    placeholder="0"
-                    min="0"
-                  />
-                  {errors.position && <p className="text-sm text-red-600">{errors.position}</p>}
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="category_id">Kategori *</Label>
-                  <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {blogCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <TreeSelect
+                    data={blogCategories}
+                    value={data.category_id}
+                    onChange={(val) => setData('category_id', val ?? '')}
+                  />
                   {errors.category_id && <p className="text-sm text-red-600">{errors.category_id}</p>}
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, ShoppingCart, Heart, Share2, Check, Truck, Shield, RefreshCw, X, Phone, AlertCircle, Info, Building2, User, Mail, Clock, InfoIcon } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Heart, Share2, Check, Truck, Shield, RefreshCw, X, Phone, AlertCircle, Info, Building2, User, Mail, Clock, InfoIcon, Star } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -9,7 +9,9 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { handleImageError } from '@/utils/image';
 import { formatPrice } from '@/utils/currency';
+import { getProductTypeText } from '@/utils/product';
 import { useConfig } from '@/utils/config';
+import { generateCatalogUrl } from '@/utils/app';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import SingleGalleryPreview from '@/components/single-gallery-preview';
@@ -48,6 +50,7 @@ interface Product {
     is_for_sell?: boolean;
     is_rent?: boolean;
     images: ProductImage[];
+    show_stock: boolean;
     tags: string[];
 }
 
@@ -290,14 +293,14 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                 <meta name="author" content={getConfig('site_name', 'Alumoda Sinergi Kontainer')} />
                 
                 {/* 2. Canonical (Sangat Penting agar tidak dianggap konten duplikat) */}
-                <link rel="canonical" href={`https://alumodasinergi.com/catalog/${product.slug}`} />
+                <link rel="canonical" href={generateCatalogUrl(product.slug)} />
 
                 {/* 3. Open Graph / Facebook (Agar tampil bagus saat di-share di WA/FB) */}
                 <meta property="og:type" content="product" />
                 <meta property="og:title" content={`${product.name} - Alumoda Sinergi Kontainer`} />
                 <meta property="og:description" content={product.short_description || "Dapatkan penawaran harga terbaik untuk unit kontainer ini."} />
                 <meta property="og:image" content={imageSrc || '/default-share-image.jpg'} />
-                <meta property="og:url" content={`https://alumodasinergi.com/catalog/${product.slug}`} />
+                <meta property="og:url" content={generateCatalogUrl(product.slug)} />
 
                 {/* 4. Twitter Card */}
                 <meta name="twitter:card" content="summary_large_image" />
@@ -351,7 +354,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                         <span className="bg-green-100 text-green-700 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded">Baru</span>
                                     )}
                                     {product.is_bestseller && (
-                                        <span className="bg-orange-100 text-orange-700 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded">Terlaris</span>
+                                        <span className="bg-orange-100 text-orange-700 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded flex items-center gap-1"><Star className='w-2 h-2' /> Terlaris</span>
                                     )}
                                 </div>
                                 
@@ -359,14 +362,20 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                     {product.name}
                                 </h1>
                                 
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 divide-x">
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                        {product.is_for_sell && product.is_rent ? 'Jual & Sewa' : product.is_rent ? 'Hanya Sewa' : 'Dijual'}
-                                    </span>
-                                    <div className="h-4 w-px bg-gray-300"></div>
-                                    <span className={`text-sm ${product.stock && product.stock > 0 ? 'text-gray-500' : 'text-red-500 font-medium'}`}>
-                                        {product.stock !== null ? `Tersedia ${product.stock} unit` : 'Stok Tersedia'}
-                                    </span>
+                                        {getProductTypeText({
+                                            is_for_sell: product.is_for_sell || false,
+                                            is_rent: product.is_rent || false
+                                        })}
+                                    </span> 
+                                    {
+                                        product.show_stock && (
+                                            <span className={`text-sm ${product.stock && product.stock > 0 ? 'text-gray-500' : 'text-red-500 font-medium'}`}>
+                                                {product.stock !== null ? `Tersedia ${product.stock} unit` : 'Stok Tersedia'}
+                                            </span>
+                                        )
+                                    }
                                 </div>
                             </div>
 
@@ -486,12 +495,6 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                     </div>
                                 )}
                                 <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                                    <dt className="text-sm font-medium text-gray-500">Status</dt>
-                                    <dd className="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
-                                        {product.is_for_sell && product.is_rent ? 'Dijual & Disewakan' : product.is_for_sell ? 'Dijual' : product.is_rent ? 'Disewakan' : '-'}
-                                    </dd>
-                                </div>
-                                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                                     <dt className="text-sm font-medium text-gray-500">Kategori</dt>
                                     <dd className="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
                                         {product.category}
@@ -511,9 +514,16 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                         <div className="mt-16">
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white">Produk Terkait</h2>
                             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                                {relatedProducts.map((relatedProduct) => (
-                                    <ProductCard key={relatedProduct.id} product={relatedProduct} />
-                                ))}
+                                {relatedProducts.map((relatedProduct) => {
+                                    // Map RelatedProduct to Product interface
+                                    const mappedProduct = {
+                                        ...relatedProduct,
+                                        stock: relatedProduct.quantity,
+                                        image: relatedProduct.image_path || '',
+                                        category: relatedProduct.category?.name || '',
+                                    };
+                                    return <ProductCard key={relatedProduct.id} product={mappedProduct} />;
+                                })}
                             </div>
                         </div>
                     )}
@@ -551,10 +561,14 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
 
                                 {/* Pricing Display */}
                                 <div className="space-y-3">
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-gray-500">Harga Satuan</span>
-                                        <span className="font-medium dark:text-gray-300">{product.show_price ? formatPrice(product.price) : 'N/A'}</span>
-                                    </div>
+                                    {
+                                        product.show_price && (
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-gray-500">Harga Satuan</span>
+                                                <span className="font-medium dark:text-gray-300">{product.show_price ? formatPrice(product.price) : 'N/A'}</span>
+                                            </div>
+                                        )
+                                    }
                                     <div className="flex justify-between items-center text-sm">
                                         <span className="text-gray-500">Jumlah</span>
                                         <span className="font-medium dark:text-gray-300">x {quantity}</span>
@@ -570,7 +584,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                         ) : (
                                             <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs leading-relaxed flex gap-2">
                                                 <Info className="h-4 w-4 shrink-0" />
-                                                <span>Harga final akan dikonfirmasi via WhatsApp oleh tim kami.</span>
+                                                <span>Harga final akan dikonfirmasi via WhatsApp/Email oleh tim kami.</span>
                                             </div>
                                         )}
                                     </div>
@@ -625,7 +639,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                         {/* Nama Instansi */}
                                         <div className="space-y-2">
                                             <Label htmlFor="companyName" className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                                Nama Instansi / Pribadi *
+                                                Nama Instansi / Pribadi <span className="text-red-500">*</span>
                                             </Label>
                                             <div className="relative">
                                                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -645,7 +659,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                             {/* Nama PIC */}
                                             <div className="space-y-2">
                                                 <Label htmlFor="picName" className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                                    Nama PIC *
+                                                    Nama PIC <span className="text-red-500">*</span>
                                                 </Label>
                                                 <div className="relative">
                                                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -664,7 +678,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                             {/* WhatsApp / HP */}
                                             <div className="space-y-2">
                                                 <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                                    WhatsApp / HP *
+                                                    WhatsApp / HP <span className="text-red-500">*</span>
                                                 </Label>
                                                 <div className="relative">
                                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -685,7 +699,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                         {/* Alamat Email */}
                                         <div className="space-y-2">
                                             <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                                Alamat Email *
+                                                Alamat Email <span className="text-red-500">*</span>
                                             </Label>
                                             <div className="relative">
                                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -714,7 +728,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                             value={formData.notes || ''}
                                             onChange={handleInputChange}
                                             className="w-full rounded-xl border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:ring-primary focus:border-primary text-sm transition-all shadow-sm"
-                                            placeholder="Spesifikasi khusus, instruksi pengiriman, dll."
+                                            placeholder="Informasikan kebutuhanmu seperti spesifikasi khusus, instruksi pengiriman, dll."
                                         />
                                     </div>
                                 </div>

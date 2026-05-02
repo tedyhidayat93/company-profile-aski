@@ -57,16 +57,19 @@ class CatalogController extends Controller
                     'name' => $product->name,
                     'slug' => $product->slug,
                     'type' => $product->type,
-                    'show_price' => $product->show_price,
+                    'quantity' => $product->quantity,
+                    'category' => $product->category?->name ?? 'Uncategorized',
                     'price' => $product->price,
                     'compare_at_price' => $product->compare_at_price,
-                    'stock' => $product->track_quantity ? $product->quantity : null,
-                    'image' => $coverImagePath,
-                    'description' => $product->short_description ?? $product->description,
-                    'is_bestseller' => $product->is_bestseller,
-                    'is_new' => $product->is_new,
-                    'is_for_sell' => $product->is_for_sell,
-                    'is_rent' => $product->is_rent,
+                    'stock' => $product->quantity ?? 0,
+                    'image' => $product->coverImage?->image_path ? '/storage/' . $product->coverImage->image_path : '/images/placeholder.png',
+                    'description' => $product->short_description ?? $product->description ?? '',
+                    'is_bestseller' => $product->is_bestseller ?? false,
+                    'show_price' => $product->show_price,
+                    'show_stock' => $product->show_stock,
+                    'is_new' => $product->is_new ?? false,
+                    'is_for_sell' => $product->is_for_sell ?? false,
+                    'is_rent' => $product->is_rent ?? false
                 ];
             });
 
@@ -89,6 +92,7 @@ class CatalogController extends Controller
             'is_featured' => $product->is_featured,
             'is_for_sell' => $product->is_for_sell,
             'show_price' => $product->show_price,
+            'show_stock' => $product->show_stock,
             'is_rent' => $product->is_rent,
             'images' => $product->images->isNotEmpty() ? $product->images->map(function ($image) {
                 // Use the same path as backpanel - just prepend /storage/ if not already present
@@ -316,10 +320,11 @@ class CatalogController extends Controller
                     'price' => $product->price,
                     'compare_at_price' => $product->compare_at_price,
                     'stock' => $product->quantity ?? 0,
-                    'image' => $product->coverImage?->image_path ?? '/images/placeholder.png',
+                    'image' => $product->coverImage?->image_path ? '/storage/' . $product->coverImage->image_path : '/images/placeholder.png',
                     'description' => $product->short_description ?? $product->description ?? '',
                     'is_bestseller' => $product->is_bestseller ?? false,
                     'show_price' => $product->show_price,
+                    'show_stock' => $product->show_stock,
                     'is_new' => $product->is_new ?? false,
                     'is_for_sell' => $product->is_for_sell ?? false,
                     'is_rent' => $product->is_rent ?? false

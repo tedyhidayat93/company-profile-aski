@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { generateBlogUrl } from '@/utils/app';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -350,7 +351,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">Pos</TableHead>
+                  <TableHead className="w-[80px]">Thumbnail</TableHead>
                   <TableHead>Judul</TableHead>
                   <TableHead>Penulis</TableHead>
                   <TableHead>Kategori</TableHead>
@@ -365,19 +366,31 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                 {articles.data.map((article) => (
                   <TableRow key={article.id}>
                     <TableCell>
-                      <div className="flex items-center space-x-1">
-                        <GripVertical className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm font-medium">{article.position || article.id}</span>
+                      <div className="flex items-center">
+                        {article.featured_image ? (
+                          <img 
+                            src={`/storage/${article.featured_image}`}
+                            alt={article.title}
+                            className="h-14 w-14 object-cover rounded-md"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = '/images/placeholder.png';
+                            }}
+                          />
+                        ) : (
+                          <div className="h-12 w-12 bg-gray-200 rounded-md flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">No Image</span>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="max-w-52 truncate">
-                        <div className="font-medium text-sm">{article.title}</div>
-
-                        <a href={'https://alumodasinergi.com/'+article.slug} className="text-xs truncate max-w-10 text-blue-600 mt-1">
-                          https://alumodasinergi.com/{article.slug}
+                      <div className="max-w-52 text-wrap">
+                        <div className="font-medium text-sm line-clamp-1 truncate">{article.title}</div>
+                        <a target="_blank" href={generateBlogUrl(article.slug)} className="text-xs truncate line-clamp-1 max-w-72 text-blue-600 mt-1">
+                          {generateBlogUrl(article.slug)}
                         </a>
-                        {article.tags && article.tags.length > 0 && (
+                        {/* {article.tags && article.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2">
                             {article.tags.slice(0, 3).map((tag, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
@@ -390,7 +403,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                               </Badge>
                             )}
                           </div>
-                        )}
+                        )} */}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -445,13 +458,6 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleToggleStatus(article.id)}
-                            className="text-blue-600"
-                          >
-                            <FileText className="mr-2 h-4 w-4" />
-                            Toggle Status
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDelete(article.id)}

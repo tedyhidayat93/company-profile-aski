@@ -6,7 +6,6 @@ import catalog from '@/routes/catalog';
 import FrontendLayout from '@/layouts/frontend-layout';
 import ProductCard from '@/components/ProductCard';
 import TestimonialCard from '@/components/TestimonialCard';
-import blog from '@/routes/blog';
 import { handleImageError } from '@/utils/image';
 import { useConfig } from '@/utils/config';
 
@@ -468,6 +467,7 @@ export default function Homepage({
                   {articles.map((article) => (
                     <div 
                       key={article.id} 
+                      onClick={() => window.location.href=`/blog/${article.slug}`}
                       className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800"
                     >
                       <div className="relative h-52 overflow-hidden bg-gray-100 dark:bg-gray-700">
@@ -526,7 +526,7 @@ export default function Homepage({
                 
                 <div className="mt-12 text-center flex items-center justify-center">
                   <Link 
-                    href={blog.index()}
+                    href="/blog"
                     className="btn btn-ghost flex items-center"
                   >
                     Tampilkan Lebih Banyak <ArrowRight className="ml-1 h-4 w-4" />  

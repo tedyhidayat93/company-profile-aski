@@ -12,6 +12,7 @@ import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Save, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { formatCurrencyInput, parseCurrencyInput } from '@/utils/currency';
+import TreeSelect from '@/components/tree-select';
 
 interface Category {
   id: number;
@@ -323,19 +324,11 @@ export default function ServiceEdit({ service, categories }: Props) {
                 
                 <div className="space-y-2">
                   <Label htmlFor="category_id">Kategori</Label>
-                  <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori (opsional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">Tidak Ada</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <TreeSelect
+                    data={categories}
+                    value={data.category_id}
+                    onChange={(val) => setData('category_id', val ?? '')}
+                  />
                   {errors.category_id && <p className="text-sm text-red-600">{errors.category_id}</p>}
                 </div>
               </div>

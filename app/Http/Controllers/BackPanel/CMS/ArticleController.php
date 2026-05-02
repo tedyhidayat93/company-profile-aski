@@ -42,7 +42,7 @@ class ArticleController extends Controller
                 }
             })
             ->when($request->category, function ($query, $category) {
-                return $query->where('category', $category);
+                return $query->where('category_id', $category);
             })
             ->when($request->sort, function ($query, $sort) {
                 if ($sort === 'newest') {
@@ -58,11 +58,16 @@ class ArticleController extends Controller
                 // Default sorting if no sort is specified
                 return $query->orderBy('published_at', 'desc');
             })
-            ->with(['author'])
+            ->with(['author', 'category'])
             ->paginate(15);
 
         $authors = User::orderBy('name')->get();
-        $blogCategories = Category::ofType('blog')->active()->orderBy('name')->get();
+        $blogCategories = Category::with('children')
+            ->root()
+            ->active()
+            ->ofType('blog')
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('backpanel/article/index', [
             'articles' => $articles,
@@ -75,7 +80,12 @@ class ArticleController extends Controller
     public function create()
     {
         $authors = User::orderBy('name')->get();
-        $blogCategories = Category::ofType('blog')->active()->orderBy('name')->get();
+        $blogCategories = Category::with('children')
+            ->root()
+            ->active()
+            ->ofType('blog')
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('backpanel/article/create', [
             'authors' => $authors,
@@ -137,8 +147,9 @@ class ArticleController extends Controller
             $this->insertNewTags($validated['tags'], 'article');
         }
 
-        // Set default values
-        $validated['position'] = $validated['position'] ?? 0;
+        // Auto-generate position based on highest existing position
+        $maxPosition = Article::max('position') ?? 0;
+        $validated['position'] = $maxPosition + 1;
         $validated['is_headline'] = $validated['is_headline'] ?? false;
         // Set default category_id to first blog category if not provided
         if (!isset($validated['category_id']) || empty($validated['category_id'])) {
@@ -176,7 +187,12 @@ class ArticleController extends Controller
     {
         $article = Article::findOrFail($id);
         $authors = User::orderBy('name')->get();
-        $blogCategories = Category::ofType('blog')->active()->orderBy('name')->get();
+        $blogCategories = Category::with('children')
+            ->root()
+            ->active()
+            ->ofType('blog')
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('backpanel/article/edit', [
             'article' => $article,
@@ -262,7 +278,6 @@ class ArticleController extends Controller
         }
 
         // Set default values
-        $validated['position'] = $validated['position'] ?? 0;
         $validated['is_headline'] = $validated['is_headline'] ?? false;
         // Keep existing category_id if not being updated
         if (!isset($validated['category_id']) || empty($validated['category_id'])) {

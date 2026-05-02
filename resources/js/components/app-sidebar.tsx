@@ -86,11 +86,11 @@ const mainNavGroups: NavGroupItem[] = [
           href: '/cpanel/cms/category',
           icon: Folder,
         },
-        {
-          title: 'Tag',
-          href: '/cpanel/cms/tag',
-          icon: BookmarkCheck,
-        },
+        // {
+        //   title: 'Tag',
+        //   href: '/cpanel/cms/tag',
+        //   icon: BookmarkCheck,
+        // },
         {
           title: 'FAQ',
           href: '/cpanel/cms/faq',

@@ -179,9 +179,9 @@ export default function BrandIndex({ brands, filters }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">Pos</TableHead>
+                  {/* <TableHead className="w-[50px]">Pos</TableHead> */}
                   <TableHead>Nama</TableHead>
-                  <TableHead>Website</TableHead>
+                  {/* <TableHead>Website</TableHead> */}
                   <TableHead>Status</TableHead>
                   <TableHead>Dibuat</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
@@ -190,12 +190,12 @@ export default function BrandIndex({ brands, filters }: Props) {
               <TableBody>
                 {brands.data.map((brand) => (
                   <TableRow key={brand.id}>
-                    <TableCell>
+                    {/* <TableCell>
                       <div className="flex items-center space-x-1">
                         <GripVertical className="h-4 w-4 text-gray-400" />
                         <span className="text-sm font-medium">{brand.position}</span>
                       </div>
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         {brand.logo && (
@@ -207,16 +207,16 @@ export default function BrandIndex({ brands, filters }: Props) {
                         )}
                         <div>
                           <div className="font-medium">{brand.name}</div>
-                          <div className="text-sm text-gray-500">{brand.slug}</div>
-                          {brand.description && (
+                          {/* <div className="text-sm text-gray-500">{brand.slug}</div> */}
+                          {/* {brand.description && (
                             <div className="text-sm text-gray-400 mt-1 line-clamp-1">
                               {brand.description}
                             </div>
-                          )}
+                          )} */}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       {brand.website ? (
                         <a 
                           href={brand.website} 
@@ -230,7 +230,7 @@ export default function BrandIndex({ brands, filters }: Props) {
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       {getActiveBadge(brand.is_active)}
                     </TableCell>
