@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             ConfigurationSeeder::class,
             CategorySeeder::class,
+            BlogCategorySeeder::class,
             BrandSeeder::class,
             ProductSeeder::class,
             ServiceSeeder::class,
