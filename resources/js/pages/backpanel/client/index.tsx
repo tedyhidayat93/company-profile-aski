@@ -29,6 +29,7 @@ import {
   Eye
 } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
+import { handleImageError } from '@/utils/image';
 
 interface Client {
   id: number;
@@ -184,6 +185,7 @@ export default function ClientIndex({ clients, filters }: Props) {
                             <img
                                 src={`/storage/clients/${client.image}`}
                                 alt={client.name}
+                                onError={handleImageError}
                                 className="h-12 w-12 object-cover rounded-md"
                             />
                             ) : (

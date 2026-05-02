@@ -197,7 +197,7 @@ export default function FaqIndex({ faqs, filters }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">Pos</TableHead>
+                  {/* <TableHead className="w-[50px]">Pos</TableHead> */}
                   <TableHead>Pertanyaan</TableHead>
                   <TableHead>Kategori</TableHead>
                   <TableHead>Status</TableHead>
@@ -208,12 +208,12 @@ export default function FaqIndex({ faqs, filters }: Props) {
               <TableBody>
                 {faqs.data.map((faq) => (
                   <TableRow key={faq.id}>
-                    <TableCell>
+                    {/* <TableCell>
                       <div className="flex items-center space-x-1">
                         <GripVertical className="h-4 w-4 text-gray-400" />
                         <span className="text-sm font-medium">{faq.position}</span>
                       </div>
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       <div className="max-w-md">
                         <div className="font-medium">{faq.question}</div>
