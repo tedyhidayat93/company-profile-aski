@@ -75,7 +75,7 @@ class CatalogController extends Controller
             'name' => $product->name,
             'slug' => $product->slug,
             'type' => $product->type,
-            'category' => $product->category?->name ?? 'Uncategorized',
+            'category' => $this->getCategoryHierarchy($product->category),
             'brand' => $product->brand?->name,
             'price' => $product->price,
             'compare_at_price' => $product->compare_at_price,
@@ -196,16 +196,19 @@ class CatalogController extends Controller
             })
             ->when($request->type, function ($query, $type) {
                 if($type === 'sell') {
-                    return $query->where('is_for_sell', true);
+                    return $query->where('is_for_sell', true)->where('is_rent', false);
                 } elseif($type === 'rent') {
-                    return $query->where('is_rent', true);
+                    return $query->where('is_rent', true)->where('is_for_sell', false)->orWhere(function($q) {
+                        return $q->where('is_rent', false)->where('is_for_sell', false);
+                    });
                 } elseif($type === 'rent-and-sell') {
                     return $query->where('is_for_sell', true)->where('is_rent', true);
                 }
             })
             ->when($request->category, function ($query, $category) {
-                $query->whereHas('category', function ($q) use ($category) {
-                    $q->where('name', $category);
+                $categoryIds = $this->getCategoryAndDescendants($category);
+                $query->whereHas('category', function ($q) use ($categoryIds) {
+                    $q->whereIn('id', $categoryIds);
                 });
             })
             ->when($request->minPrice, function ($query, $minPrice) {
@@ -254,7 +257,10 @@ class CatalogController extends Controller
             })
             ->when($request->category, function ($query, $category) {
                 $query->whereHas('category', function ($q) use ($category) {
-                    $q->where('name', $category);
+                    $q->where('name', $category)
+                      ->orWhereHas('parent', function ($parentQuery) use ($category) {
+                          $parentQuery->where('name', $category);
+                      });
                 });
             })
             ->when($request->minPrice, function ($query, $minPrice) {
@@ -305,21 +311,18 @@ class CatalogController extends Controller
                     'name' => $product->name,
                     'slug' => $product->slug,
                     'type' => $product->type,
+                    'quantity' => $product->quantity,
                     'category' => $product->category?->name ?? 'Uncategorized',
-                    'brand' => $product->brand?->name,
                     'price' => $product->price,
-                                       'compare_at_price' => $product->compare_at_price,
                     'compare_at_price' => $product->compare_at_price,
-                    'stock' => $product->track_quantity ? $product->quantity : null,
-                    'image' => $coverImagePath,
-                'description' => $product->short_description ?? $product->description,
-                'is_bestseller' => $product->is_bestseller,
-                'is_new' => $product->is_new,
-                'is_featured' => $product->is_featured,
-                'is_for_sell' => $product->is_for_sell,
-                'is_rent' => $product->is_rent,
-                'show_price' => $product->show_price,
-                'sku' => $product->sku,
+                    'stock' => $product->quantity ?? 0,
+                    'image' => $product->coverImage?->image_path ?? '/images/placeholder.png',
+                    'description' => $product->short_description ?? $product->description ?? '',
+                    'is_bestseller' => $product->is_bestseller ?? false,
+                    'show_price' => $product->show_price,
+                    'is_new' => $product->is_new ?? false,
+                    'is_for_sell' => $product->is_for_sell ?? false,
+                    'is_rent' => $product->is_rent ?? false
             ];
         });
 
@@ -517,5 +520,66 @@ class CatalogController extends Controller
         }
 
         return $categories;
+    }
+
+    /**
+     * Get category hierarchy as string (parent > child > grandchild)
+     */
+    private function getCategoryHierarchy($category)
+    {
+        if (!$category) {
+            return 'Uncategorized';
+        }
+
+        $hierarchy = [];
+        $current = $category;
+
+        // Build hierarchy from top to bottom
+        $ancestors = [];
+        while ($current) {
+            array_unshift($ancestors, $current->name);
+            $current = $current->parent;
+        }
+
+        return implode(' > ', $ancestors);
+    }
+
+    /**
+     * Get category ID and all its descendant IDs
+     */
+    private function getCategoryAndDescendants($categorySlug)
+    {
+        // Find the category by slug
+        $category = Category::where('slug', $categorySlug)->first();
+        
+        if (!$category) {
+            return [];
+        }
+
+        // Get all descendant categories recursively
+        $descendantIds = $this->getDescendantIds($category->id);
+        
+        // Include the category itself
+        return array_merge([$category->id], $descendantIds);
+    }
+
+    /**
+     * Recursively get all descendant category IDs
+     */
+    private function getDescendantIds($parentId)
+    {
+        $ids = [];
+        
+        // Get direct children
+        $children = Category::where('parent_id', $parentId)->get();
+        
+        foreach ($children as $child) {
+            $ids[] = $child->id;
+            
+            // Get grandchildren recursively
+            $ids = array_merge($ids, $this->getDescendantIds($child->id));
+        }
+        
+        return $ids;
     }
 }

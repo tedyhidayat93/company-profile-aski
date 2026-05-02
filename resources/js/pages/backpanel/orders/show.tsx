@@ -425,6 +425,13 @@ export default function OrderShow({ order }: Props) {
                     ))}
                   </div>
                 )}
+
+                {order.status_history && order.status_history.length === 0 && (
+                  <div className="text-center py-8">
+                    <Clock className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">Belum ada riwayat aktivitas</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

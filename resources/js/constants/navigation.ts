@@ -17,6 +17,7 @@ export const SOCIAL_LINKS = [
 
 export const CONTACT_INFO = {
   phone: '+62 123 4567 890',
+  whatsapp: '6281282336464',
   email: 'info@company.com',
   address: 'Jl. Contoh No. 123, Jakarta Selatan, DKI Jakarta 12345'
 };

@@ -37,6 +37,7 @@ class HomepageController extends Controller
                     'name' => $product->name,
                     'slug' => $product->slug,
                     'type' => $product->type,
+                    'quantity' => $product->quantity,
                     'category' => $product->category?->name ?? 'Uncategorized',
                     'price' => $product->price,
                     'compare_at_price' => $product->compare_at_price,
@@ -45,7 +46,9 @@ class HomepageController extends Controller
                     'description' => $product->short_description ?? $product->description ?? '',
                     'is_bestseller' => $product->is_bestseller ?? false,
                     'show_price' => $product->show_price,
-                    'is_new' => $product->is_new ?? false
+                    'is_new' => $product->is_new ?? false,
+                    'is_for_sell' => $product->is_for_sell ?? false,
+                    'is_rent' => $product->is_rent ?? false
                 ];
             });
 

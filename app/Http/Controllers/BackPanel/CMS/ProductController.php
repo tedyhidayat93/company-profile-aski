@@ -25,9 +25,11 @@ class ProductController extends Controller
             })
             ->when($request->type_sell, function ($query, $type) {
                 if($type === 'sell') {
-                    return $query->where('is_for_sell', true);
+                    return $query->where('is_for_sell', true)->where('is_rent', false);
                 } elseif($type === 'rent') {
-                    return $query->where('is_rent', true);
+                    return $query->where('is_rent', true)->where('is_for_sell', false)->orWhere(function($q) {
+                        return $q->where('is_rent', false)->where('is_for_sell', false);
+                    });
                 } elseif($type === 'rent-and-sell') {
                     return $query->where('is_for_sell', true)->where('is_rent', true);
                 }
@@ -97,11 +99,15 @@ class ProductController extends Controller
     public function create()
     {
         $brands = Brand::orderBy('name')->get();
-        $categories = Category::orderBy('name')->get();
+        $parentCategories = Category::with('children')
+            ->root()
+            ->active()
+            ->orderBy('lft')
+            ->get();
 
         return Inertia::render('backpanel/product/create', [
             'brands' => $brands,
-            'categories' => $categories,
+            'categories' => $parentCategories,
         ]);
     }
 
@@ -134,6 +140,7 @@ class ProductController extends Controller
             'is_for_sell' => 'boolean',
             'is_rent' => 'boolean',
             'show_price' => 'boolean',
+            'show_stock' => 'boolean',
             'position' => 'nullable|integer|min:0',
             'brand_id' => 'nullable|integer|exists:brands,id',
             'category_id' => 'nullable|integer|exists:categories,id',
@@ -212,12 +219,18 @@ class ProductController extends Controller
             $query->orderBy('position');
         }])->findOrFail($id);
         $brands = Brand::orderBy('name')->get();
-        $categories = Category::orderBy('name')->get();
+        // $categories = Category::orderBy('name')->get();
+        $parentCategories = Category::with('children')
+            ->root()
+            ->active()
+            ->orderBy('lft')
+            ->get();
+
 
         return Inertia::render('backpanel/product/edit', [
             'product' => $product,
             'brands' => $brands,
-            'categories' => $categories,
+            'categories' => $parentCategories,
         ]);
     }
 
@@ -262,6 +275,7 @@ class ProductController extends Controller
             'is_for_sell' => 'boolean',
             'is_rent' => 'boolean',
             'show_price' => 'boolean',
+            'show_stock' => 'boolean',
             'position' => 'nullable|integer|min:0',
             'brand_id' => 'nullable|integer|exists:brands,id',
             'category_id' => 'nullable|integer|exists:categories,id',
@@ -289,6 +303,7 @@ class ProductController extends Controller
         $validated['is_bestseller'] = $validated['is_bestseller'] ?? $product->is_bestseller;
         $validated['is_new'] = $validated['is_new'] ?? $product->is_new;
         $validated['show_price'] = $validated['show_price'] ?? $product->show_price;
+        $validated['show_stock'] = $validated['show_stock'] ?? $product->show_stock;
         $validated['track_quantity'] = $validated['track_quantity'] ?? $product->track_quantity;
         $validated['position'] = $validated['position'] ?? $product->position;
         

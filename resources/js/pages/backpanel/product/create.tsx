@@ -12,6 +12,8 @@ import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { formatPrice, parseCurrencyInput, formatCurrencyInput } from '@/utils/currency';
 import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon } from 'lucide-react';
+import TreeSelect from '@/components/tree-select';
+import { flattenCategories } from '@/lib/utils';
 
 interface Brand {
   id: number;
@@ -21,6 +23,18 @@ interface Brand {
 interface Category {
   id: number;
   name: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  type: string;
+  parent_id?: number;
+  is_active: boolean;
+  meta_title?: string;
+  meta_description?: string;
+  parent?: Category;
+  children?: Category[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface Props {
@@ -73,6 +87,7 @@ export default function ProductCreate({ brands, categories }: Props) {
     is_for_sell: boolean;
     is_rent: boolean;
     show_price: boolean;
+    show_stock: boolean;
     position: number;
     brand_id: string | null;
     category_id: string | null;
@@ -101,6 +116,7 @@ export default function ProductCreate({ brands, categories }: Props) {
     is_for_sell: true,
     is_rent: true,
     show_price: true,
+    show_stock: true,
     position: 0,
     brand_id: null,
     category_id: null,
@@ -220,7 +236,7 @@ export default function ProductCreate({ brands, categories }: Props) {
         });
       } else if (key === 'price' || key === 'compare_at_price' || key === 'cost_per_item') {
         formData.append(key, value?.toString() || '');
-      } else if (key === 'track_quantity' || key === 'is_featured' || key === 'is_bestseller' || key === 'is_new' || key === 'is_for_sell' || key === 'is_rent' || key === 'show_price') {
+      } else if (key === 'track_quantity' || key === 'is_featured' || key === 'is_bestseller' || key === 'is_new' || key === 'is_for_sell' || key === 'is_rent' || key === 'show_price' || key === 'show_stock') {
         formData.append(key, value ? '1' : '0');
       } else if (key !== 'images' && key !== 'tags') {
         formData.append(key, value?.toString() || '');
@@ -354,19 +370,11 @@ export default function ProductCreate({ brands, categories }: Props) {
 
                 <div className="space-y-2">
                   <Label htmlFor="category_id">Kategori</Label>
-                  <Select value={data.category_id || undefined} onValueChange={(value) => setData('category_id', value || null)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Tidak ada kategori</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <TreeSelect
+                    data={categories}
+                    value={data.category_id}
+                    onChange={(val) => setData('category_id', val)}
+                  />
                   {errors.category_id && <p className="text-sm text-red-600">{errors.category_id}</p>}
                 </div>
               </div>
@@ -660,6 +668,15 @@ export default function ProductCreate({ brands, categories }: Props) {
                     onCheckedChange={(checked) => setData('show_price', Boolean(checked))}
                   />
                   <Label htmlFor="show_price">Tampilkan Harga</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="show_stock"
+                    checked={data.show_stock}
+                    onCheckedChange={(checked) => setData('show_stock', Boolean(checked))}
+                  />
+                  <Label htmlFor="show_stock">Tampilkan Stok</Label>
                 </div>
               </div>
 

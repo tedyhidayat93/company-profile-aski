@@ -2,252 +2,256 @@ import { Head, Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { Button } from '@/components/ui/button';
 import { getConfig } from '@/hooks/use-configuration';
+import { ArrowLeft, Calendar, Clock, User, Eye, Facebook, Twitter, Linkedin, MessageCircle, Instagram, Music, Copy } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
-import { ArrowLeft, Calendar, Clock, Tag, User, Share2, MessageSquare, Facebook, Twitter, Linkedin, Eye } from 'lucide-react';
 
-type Author = {
-    id: number;
-    name: string;
-    avatar?: string;
-    bio?: string;
-};
-
-type BlogPost = {
+interface Article {
     id: number;
     title: string;
     slug: string;
-    excerpt: string;
     content: string;
-    featured_image: string;
-    author: Author;
-    tags: string[];
+    excerpt: string;
+    featured_image?: string;
     published_at: string;
-    reading_time?: number;
+    author: {
+        name: string;
+    };
     views_count: number;
-    meta_title?: string;
-    meta_description?: string;
-    meta_keywords?: string;
-    related_posts?: Array<{
-        id: number;
-        title: string;
-        slug: string;
-        featured_image: string;
-        excerpt: string;
-    }>;
-};
+    reading_time?: number;
+    tags?: string[];
+    is_headline?: boolean;
+}
 
-type BlogDetailProps = {
-    post: BlogPost;
-    related_posts?: BlogPost[];
-};
+interface BlogDetailProps {
+    post: Article;
+    related_posts?: Article[];
+}
 
 export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps) {
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('id-ID', {
+
+    const formatDate = (date: string) =>
+        new Date(date).toLocaleDateString('id-ID', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
         });
-    };
 
-    const calculateReadingTime = (content: string) => {
-        const wordsPerMinute = 200;
-        const words = content.trim().split(/\s+/).length;
-        return Math.ceil(words / wordsPerMinute);
-    };
+    const readingTime = post.reading_time || Math.ceil(post.content.split(' ').length / 200);
 
     const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-    const shareTitle = post.title;
 
     return (
         <FrontendLayout>
-            <Head title={`${post.title} - ${getConfig('site_name', 'Alumoda Sinergi Kontainer')}`}>
-                {/* 1. Meta Tag Dasar */}
-                <meta name="description" content={post.meta_description || post.excerpt || getConfig('meta_description', 'Blog PT. Alumoda Sinergi Kontainer Indonesia - Artikel terbaru tentang jual & sewa kontainer')} />
-                <meta name="keywords" content={post.meta_keywords || (post.tags ? post.tags.map(tag => tag).join(', ') : '') + ', blog, artikel, ' + getConfig('meta_keywords')} />
-                <meta name="author" content={post.author?.name || getConfig('site_name', '-')} />
-                
-                {/* 2. Canonical (Sangat Penting agar tidak dianggap konten duplikat) */}
-                <link rel="canonical" href={`https://alumodasinergi.com/blog/${post.slug}`} />
+            <Head title={`${post.title} - ${getConfig('site_name')}`} />
 
-                {/* 3. Open Graph / Facebook (Agar tampil bagus saat di-share di WA/FB) */}
-                <meta property="og:type" content="article" />
-                <meta property="og:title" content={post.meta_title || post.title} />
-                <meta property="og:description" content={post.meta_description || post.excerpt || `Baca artikel terbaru dari ${getConfig('site_name', '-')}`} />
-                <meta property="og:image" content={post.featured_image || '/default-blog-image.jpg'} />
-                <meta property="og:url" content={`https://alumodasinergi.com/blog/${post.slug}`} />
+            <div className="max-w-4xl mx-auto px-4 py-10">
 
-                {/* 4. Twitter Card */}
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={post.meta_title || post.title} />
-                <meta name="twitter:image" content={post.featured_image || '/default-blog-image.jpg'} />
+                {/* 🔹 BACK */}
+                <Link href="/blog" className="text-sm text-gray-500 flex items-center mb-6">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Kembali ke Berita
+                </Link>
 
-                {/* 5. Robots Tag */}
-                <meta name="robots" content="index, follow" />
-            </Head>
-            
-            {/* Hero Section */}
-            <div className="bg-gray dark:bg-gray-900 py-12">
-                <div className="max-w-5xl mx-auto px-4 ">
-                    <Link 
-                        href="/blog" 
-                        className="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-8"
-                    >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Kembali ke Blog
-                    </Link>
-                    
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">
+                {/* 🔥 HEADER */}
+                <div className="mb-6">
+                    <h1 className="text-3xl md:text-4xl font-bold leading-tight text-gray-900">
                         {post.title}
                     </h1>
-                    
-                    <div className="mt-6 flex gap-3 flex-wrap items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                        <div className="flex items-center">
-                            <User className="h-4 w-4 mr-2" />
-                            <span>{post.author.name}</span>
-                        </div>
-                        <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-2" />
-                            <time dateTime={post.published_at}>
-                                {formatDate(post.published_at)}
-                            </time>
-                        </div>
-                        <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-2" />
-                            <span>{post.reading_time || calculateReadingTime(post.content)} menit baca</span>
-                        </div>
-                        <div className="flex items-center">
-                            <Eye className="h-4 w-4 mr-2" />
-                            <span>{post.views_count} dilihat</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            {/* Main Content */}
-            <div className="w-full px-4 sm:px-6 lg:px-8 py-12 bg-white dark:bg-gray-900">
-                <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-12">
-                    {/* Article Content */}
-                    <div className="lg:col-span-3">
+                    {/* META */}
+                    <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
+                        <span>
+                            Disusun Oleh <strong>{post.author.name}</strong>
+                        </span>
 
-                        {/* Featured Image */}
-                        {post.featured_image && (
-                            <div className="mb-8">
-                                <img 
-                                    src={`/storage/${post.featured_image}`}
-                                    alt={post.title}
-                                    className="w-full h-96 object-cover rounded-lg"
-                                    loading="eager"
-                                    onError={(e) => handleImageError(e, '/assets/images/placeholder.png', post.title)}
-                                />
-                            </div>
-                        )}
+                        <span>•</span>
 
-                        {/* Article Content */}
-                        <div className="prose prose-lg max-w-none">
-                            <div dangerouslySetInnerHTML={{ __html: post.content }} />
-                        </div>
+                        <span className="flex items-center gap-1">
+                            <Calendar size={14} />
+                            {formatDate(post.published_at)}
+                        </span>
 
-                        {/* Tags */}
-                        {post.tags && post.tags.length > 0 && (
-                            <div className="mt-8 pt-8 border-t">
-                                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Tag</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {post.tags.map((tag, index) => (
-                                        <span 
-                                            key={index}
-                                            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-                                        >
-                                            #{tag}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        <span>•</span>
 
-                        {/* Share Buttons */}
-                        <div className="mt-8 pt-8 border-t">
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Bagikan Artikel</h3>
-                            <div className="flex flex-wrap gap-3">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank')}
-                                >
-                                    <Facebook className="h-4 w-4 mr-2" />
-                                    Facebook
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`, '_blank')}
-                                >
-                                    <Twitter className="h-4 w-4 mr-2" />
-                                    Twitter
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank')}
-                                >
-                                    <Linkedin className="h-4 w-4 mr-2" />
-                                    LinkedIn
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
+                        <span className="flex items-center gap-1">
+                            <Clock size={14} />
+                            {readingTime} menit baca
+                        </span>
 
-                    {/* Sidebar */}
-                    <div className="lg:col-span-1">
-                        {/* Author Info */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Tentang Penulis</h3>
-                            <div className="flex items-center mb-4">
-                                <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                                    <User className="h-6 w-6 text-gray-600 dark:text-gray-300" />
-                                </div>
-                                <div className="ml-4">
-                                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">{post.author.name}</h4>
-                                    {post.author.bio && (
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">{post.author.bio}</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                        <span>•</span>
 
-                        {/* Related Posts */}
-                        {related_posts && related_posts.length > 0 && (
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Artikel Terkait</h3>
-                                <div className="space-y-4">
-                                    {related_posts.map((relatedPost) => (
-                                        <Link
-                                            key={relatedPost.id}
-                                            href={`/blog/${relatedPost.slug}`}
-                                            className="block group"
-                                        >
-                                            <div className="flex space-x-3">
-                                                <img 
-                                                    src={relatedPost.featured_image || '/images/placeholder-blog.jpg'} 
-                                                    alt={relatedPost.title}
-                                                    className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
-                                                />
-                                                <div className="flex-1">
-                                                    <h4 className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2">
-                                                        {relatedPost.title}
-                                                    </h4>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                        {formatDate(relatedPost.published_at)}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
+                        <span className="flex items-center gap-1">
+                            <Eye size={14} />
+                            {post.views_count} views
+                        </span>
+
+                        {/* HEADLINE BADGE */}
+                        {post.is_headline && (
+                            <>
+                                <span>•</span>
+                                <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded">
+                                    HEADLINE
+                                </span>
+                            </>
                         )}
                     </div>
                 </div>
+
+                {/* 🔥 FEATURED IMAGE */}
+                {post.featured_image && (
+                    <div className="mb-6">
+                        <img
+                            src={`/storage/${post.featured_image}`}
+                            className="w-full h-full object-cover rounded-lg"
+                            onError={(e) => handleImageError(e, '/images/placeholder.png', post.title)}
+                            alt={post.title}
+                        />
+                    </div>
+                )}
+
+                {/* 🔥 CONTENT */}
+                <div className="prose prose-lg max-w-none leading-relaxed prose-headings:text-black prose-p:text-black text-gray-800 dark:text-gray-100 prose-strong:text-black prose-li:text-black">
+                    <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                </div>
+
+                {/* 🔥 TAGS */}
+                {post.tags && post.tags.length > 0 && (
+                    <div className="mt-10 pt-6 border-t">
+                        <h3 className="font-semibold mb-3 text-lg">Kata Kunci</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {post.tags.map((tag, i) => (
+                                <span
+                                    key={i}
+                                    className="text-xs bg-gray-100 px-2 py-1 rounded"
+                                >
+                                    #{tag}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* 🔥 SHARE */}
+                <div className="mt-10 pt-6 border-t">
+                    <h3 className="font-semibold mb-3 text-lg">Bagikan</h3>
+                    <div className="flex gap-2 flex-wrap">
+                        <Button
+                            size="sm"
+                            className="bg-blue-600 text-white hover:bg-blue-700"
+                            onClick={() =>
+                                window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`)
+                            }
+                        >
+                            <Facebook className="w-4 h-4 mr-2" />
+                            Facebook
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            className="bg-sky-500 text-white hover:bg-sky-600"
+                            onClick={() =>
+                                window.open(`https://twitter.com/intent/tweet?url=${shareUrl}`)
+                            }
+                        >
+                            <Twitter className="w-4 h-4 mr-2" />
+                            Twitter
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            className="bg-blue-700 text-white hover:bg-blue-800"
+                            onClick={() =>
+                                window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`)
+                            }
+                        >
+                            <Linkedin className="w-4 h-4 mr-2" />
+                            LinkedIn
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            className="bg-green-500 text-white hover:bg-green-600"
+                            onClick={() =>
+                                window.open(`https://wa.me/?text=${encodeURIComponent(`Check out this article: ${post.title} - ${shareUrl}`)}`)
+                            }
+                        >
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            WhatsApp
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600"
+                            onClick={() =>
+                                window.open(`https://www.instagram.com/`)
+                            }
+                        >
+                            <Instagram className="w-4 h-4 mr-2" />
+                            Instagram
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            className="bg-black text-white hover:bg-gray-800"
+                            onClick={() =>
+                                window.open(`https://www.tiktok.com/`)
+                            }
+                        >
+                            <Music className="w-4 h-4 mr-2" />
+                            TikTok
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                                navigator.clipboard.writeText(shareUrl);
+                                alert('Link berhasil disalin!');
+                            }}
+                        >
+                            <Copy className="w-4 h-4 mr-2" />
+                            Salin Link
+                        </Button>
+                    </div>
+                </div>
+
+                {/* 🔥 RELATED */}
+                {related_posts.length > 0 && (
+                    <div className="mt-12 pt-8 border-t">
+                        <h3 className="text-xl font-bold mb-6">
+                            Artikel Terkait
+                        </h3>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {related_posts.map((item) => (
+                                <Link
+                                    key={item.id}
+                                    href={`/blog/${item.slug}`}
+                                    className="group"
+                                >
+                                    <div className="flex gap-4">
+                                        <img
+                                            src={`/storage/${item.featured_image}`}
+                                            className="w-28 h-24 object-cover rounded"
+                                            onError={(e) => handleImageError(e, '/images/placeholder.png', item.title)}
+                                            alt={item.title}
+                                        />
+
+                                        <div>
+                                            <h4 className="font-semibold group-hover:text-blue-600 line-clamp-2">
+                                                {item.title}
+                                            </h4>
+                                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                                {item.excerpt}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
             </div>
         </FrontendLayout>
     );

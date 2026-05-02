@@ -16,13 +16,39 @@ class BlogController extends Controller
         // Track visitor
         $this->trackPageVisit($request, 'Blog Index');
         
-        $posts = Article::published()
+        // 1. Headline articles (is_headline = true) - 5 articles
+        $headlinePosts = Article::published()
+            ->headline()
+            ->with(['author'])
+            ->orderBy('published_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        // 2. Most read articles (views_count) - 5 articles
+        $mostReadPosts = Article::published()
+            ->with(['author'])
+            ->orderBy('views_count', 'desc')
+            ->limit(5)
+            ->get();
+
+        // 3. Recently published articles - 5 articles
+        $recentPosts = Article::published()
+            ->with(['author'])
+            ->orderBy('published_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        // 4. All other articles with pagination
+        $allPosts = Article::published()
             ->with(['author'])
             ->orderBy('published_at', 'desc')
             ->paginate(12);
 
         return Inertia::render('frontend/blog/index', [
-            'posts' => $posts,
+            'headline_posts' => $headlinePosts,
+            'most_read_posts' => $mostReadPosts,
+            'recent_posts' => $recentPosts,
+            'all_posts' => $allPosts,
         ]);
     }
 

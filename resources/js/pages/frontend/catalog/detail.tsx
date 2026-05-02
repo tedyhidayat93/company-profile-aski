@@ -63,15 +63,45 @@ interface RelatedProduct {
     name: string;
     slug: string;
     type: string;
-    price: number;
-    show_price: boolean;
-    stock: number | null;
-    image: string;
     description: string;
-    is_bestseller?: boolean;
-    is_new?: boolean;
-    is_for_sell?: boolean;
-    is_rent?: boolean;
+    short_description?: string;
+    sku?: string;
+    price: number;
+    compare_at_price?: number;
+    cost_per_item?: number;
+    track_quantity: boolean;
+    quantity: number;
+    barcode?: string;
+    status: string;
+    is_featured: boolean;
+    is_bestseller: boolean;
+    is_new: boolean;
+    is_for_sell: boolean;
+    is_rent: boolean;
+    show_price: boolean;
+    show_stock: boolean;
+    published_at?: string;
+    position?: number;
+    brand_id?: number;
+    category_id?: number;
+    meta_title?: string;
+    meta_description?: string;
+    views: number;
+    tags: string[];
+    image_path?: string;
+    brand?: {
+        id: number;
+        name: string;
+    };
+    category?: {
+        id: number;
+        name: string;
+    };
+    images?: Array<{
+        id: number;
+        image_path: string;
+        is_cover: boolean;
+    }>;
 }
 
 interface DetailProps {

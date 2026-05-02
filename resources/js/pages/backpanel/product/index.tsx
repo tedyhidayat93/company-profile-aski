@@ -389,8 +389,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="sell">Jual</SelectItem>
-                      <SelectItem value="rent">Sewa</SelectItem>
+                      <SelectItem value="sell">Hanya Jual</SelectItem>
+                      <SelectItem value="rent">Hanya Sewa</SelectItem>
                       <SelectItem value="rent-and-sell">Jual & Sewa</SelectItem>
                     </SelectContent>
                   </Select>

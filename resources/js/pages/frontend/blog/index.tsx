@@ -1,187 +1,230 @@
 import { Head, Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Clock, Tag, User } from 'lucide-react';
-import { getConfig } from '@/hooks/use-configuration';
+import { Calendar, Eye, User } from 'lucide-react';
+import { handleImageError } from '@/utils/image';
 
 type BlogPost = {
     id: number;
     title: string;
     slug: string;
     excerpt: string;
-    content: string;
     featured_image: string;
     author: {
-        id: number;
         name: string;
     };
-    tags: string[];
     published_at: string;
-    reading_time?: number;
     views_count: number;
 };
 
-type BlogIndexProps = {
-    posts: {
+type Props = {
+    headline_posts: BlogPost[];
+    most_read_posts: BlogPost[];
+    recent_posts: BlogPost[];
+    all_posts: {
         data: BlogPost[];
         links: any;
-        meta: any;
     };
-    tag?: string;
 };
 
-export default function BlogIndex({ posts, tag }: BlogIndexProps) {
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('id-ID', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
-    };
+export default function BlogIndex(props: Props) {
+    const {
+        headline_posts,
+        most_read_posts,
+        recent_posts,
+        all_posts,
+    } = props;
 
-    const calculateReadingTime = (content: string) => {
-        const wordsPerMinute = 200;
-        const words = content.trim().split(/\s+/).length;
-        return Math.ceil(words / wordsPerMinute);
-    };
-    
+    const isLoading =
+        !headline_posts ||
+        !most_read_posts ||
+        !recent_posts;
+
+    const formatDate = (date: string) =>
+        new Date(date).toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+
+    // 🔹 Skeleton
+    const SkeletonItem = () => (
+        <div className="flex gap-4 animate-pulse">
+            <div className="w-28 h-20 bg-gray-200 rounded" />
+            <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-3/4" />
+                <div className="h-3 bg-gray-200 rounded w-full" />
+                <div className="h-3 bg-gray-200 rounded w-1/2" />
+            </div>
+        </div>
+    );
+
+    // 🔹 Item list ala kompas
+    const PostItem = ({ post, headline }: { post: BlogPost; headline?: boolean }) => (
+        <div className={`flex ${headline ? 'flex-col' : 'flex-row'} gap-4 py-4`}>
+            
+            <img
+                src={`/storage/${post.featured_image}`}
+                className={headline 
+                    ? "w-full h-40 object-cover rounded-md" 
+                    : "w-32 h-24 object-cover rounded-md"
+                }
+                onError={(e) => handleImageError(e, undefined, post.title)}
+                loading="lazy"
+            />
+
+            <div className="flex-1">
+                <Link href={`/blog/${post.slug}`}>
+                    <h3 className={`font-bold text-gray-900 leading-snug hover:text-orange-600 ${
+                        headline ? 'text-base' : 'text-xl'
+                    }`}>
+                        {post.title}
+                    </h3>
+                </Link>
+
+                {!headline && (
+                    <p className="text-sm text-gray-500 line-clamp-2 mt-1">
+                        {post.excerpt}
+                    </p>
+                )}
+
+                <div className="text-xs text-gray-400 mt-2 flex gap-3">
+                    <span className="flex items-center gap-1">
+                        <User size={12} /> {post.author.name}
+                    </span>
+                    <span className="flex items-center gap-1">
+                        <Calendar size={12} /> {formatDate(post.published_at)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                        <Eye size={12} /> {post.views_count}
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+
+    const Section = ({
+        title,
+        data,
+        grid = false,
+        gridColumns = 1,
+        isHeadline = false,
+    }: {
+        title: string;
+        data: BlogPost[];
+        grid?: boolean;
+        gridColumns?: number;
+        isHeadline?: boolean;
+    }) => (
+        <div className="mb-10">
+            <h2 className="text-lg border-l-4 border-l-orange-400 px-4 font-bold border-b pb-2 mb-4">
+                {title}
+            </h2>
+
+            <div className={grid ? `grid grid-cols-${gridColumns} gap-4` : "space-y-1"}>
+                {isLoading
+                    ? Array.from({ length: 3 }).map((_, i) => (
+                          <SkeletonItem key={i} />
+                      ))
+                    : data.map((post) => (
+                          <PostItem key={post.id} post={post} headline={isHeadline} />
+                      ))}
+            </div>
+        </div>
+    );
+
     return (
         <FrontendLayout>
-            <Head title={`Artikel - ${getConfig('site_name', 'Your site name')}`}>
-                <meta name="description" content={getConfig('meta_description', '-')} />
-                <meta name="keywords" content={getConfig('meta_keywords', '-')} />
-            </Head>
+            <Head title="Berita" />
 
-            <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
-                {/* Header Portal */}
-                <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm">
-                    <div className="max-w-7xl mx-auto px-4 py-8">
-                        <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                            {tag ? <span className="text-primary"># {tag}</span> : "Warta Terbaru"}
-                        </h1>
-                        <p className="mt-2 text-gray-500 dark:text-gray-400">
-                            Menyajikan informasi terpercaya dan mendalam setiap hari.
-                        </p>
+            <div className="max-w-6xl mx-auto px-4 py-8 spac-y-7">
+
+                {/* 🔥 HEADLINE BESAR */}
+                {!isLoading && headline_posts[0] && (
+                    <div className="mb-10">
+                        <Link href={`/blog/${headline_posts[0].slug}`}>
+                            <div className="relative rounded-xl overflow-hidden">
+                                <img
+                                    src={
+                                        `/storage/${headline_posts[0].featured_image}` ||
+                                        '/images/placeholder.png'
+                                    }
+                                    className="w-full h-[420px] object-cover"
+                                />
+
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-6 flex flex-col justify-end">
+                                    <span className="text-xs text-white bg-orange-600 px-2 py-1 w-fit mb-2">
+                                        HEADLINE
+                                    </span>
+
+                                    <h1 className="text-2xl md:text-3xl font-bold text-white">
+                                        {headline_posts[0].title}
+                                    </h1>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
+                )}
+
+                {/* 🔹 Headline lainnya */}
+                <Section
+                    title="Headline Lainnya"
+                    grid={true}
+                    gridColumns={4}
+                    isHeadline={true}
+                    data={headline_posts.slice(1)}
+                />
+
+                {/* 🔹 Most Read */}
+                <Section
+                    title="Terpopuler"
+                    grid={true}
+                    gridColumns={2}
+                    data={most_read_posts}
+                />
+
+                {/* 🔹 Recent */}
+                <Section
+                    title="Terbaru"
+                    grid={true}
+                    gridColumns={2}
+                    data={recent_posts}
+                />
+
+                {/* 🔹 Semua berita */}
+                <div className="mb-10">
+                    <h2 className="text-lg border-l-4 border-l-orange-400 px-4 font-bold border-b pb-2 mb-4">
+                        Berita Lainnya
+                    </h2>
+
+                    <div className="space-y-1">
+                        {isLoading
+                            ? Array.from({ length: 5 }).map((_, i) => (
+                                  <SkeletonItem key={i} />
+                              ))
+                            : all_posts.data.map((post) => (
+                                  <PostItem key={post.id} post={post} />
+                              ))}
                     </div>
                 </div>
 
-                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                        
-                        {/* Main Section (Left/Center) */}
-                        <div className="lg:col-span-8">
-                            {/* Featured Post - Hanya muncul jika tidak sedang filter tag */}
-                            {!tag && posts.data.length > 0 && (
-                                <div className="mb-12 group cursor-pointer">
-                                    <Link href={`/blog/${posts.data[0].slug}`} className="block relative overflow-hidden rounded-2xl shadow-xl">
-                                        <img 
-                                            className="h-[400px] w-full object-cover transition duration-500 group-hover:scale-105" 
-                                            src={posts.data[0].featured_image || '/images/placeholder.png'} 
-                                            alt={posts.data[0].title}
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
-                                            <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full w-fit mb-3 uppercase">
-                                                Headline
-                                            </span>
-                                            <h2 className="text-3xl font-bold text-white mb-2 leading-tight">
-                                                {posts.data[0].title}
-                                            </h2>
-                                            <p className="text-gray-200 line-clamp-2 text-sm md:text-base">
-                                                {posts.data[0].excerpt}
-                                            </p>
-                                        </div>
-                                    </Link>
-                                </div>
-                            )}
+                {/* Pagination */}
+                <div className="mt-8 flex justify-center flex-wrap gap-2">
+                    {all_posts.links.map((link: any, i: number) => (
+                        <Link
+                            key={i}
+                            href={link.url || '#'}
+                            className={`px-3 py-1 text-sm rounded ${
+                                link.active
+                                    ? 'bg-orange-600 text-white'
+                                    : 'bg-gray-200'
+                            }`}
+                            dangerouslySetInnerHTML={{
+                                __html: link.label,
+                            }}
+                        />
+                    ))}
+                </div>
 
-                            {/* Grid Berita (Sisa konten setelah headline atau semua jika tag aktif) */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {posts.data.slice(tag ? 0 : 1).map((post) => (
-                                    <article key={post.id} className="flex flex-col group">
-                                        <div className="relative overflow-hidden rounded-xl mb-4 shadow-md">
-                                            <img 
-                                                className="h-52 w-full object-cover transition duration-500 group-hover:scale-110" 
-                                                src={post.featured_image || '/images/placeholder.png'} 
-                                                alt={post.title}
-                                            />
-                                            <div className="absolute top-3 left-3 flex gap-1">
-                                                {post.tags?.slice(0, 1).map((t, i) => (
-                                                    <span key={i} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-gray-900 dark:text-white shadow-sm">
-                                                        {t}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="flex-1">
-                                            <Link href={`/blog/${post.slug}`} className="block group">
-                                                <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors leading-snug">
-                                                    {post.title}
-                                                </h3>
-                                                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
-                                                    {post.excerpt}
-                                                </p>
-                                            </Link>
-                                            <div className="mt-4 flex items-center gap-4 text-[12px] font-medium text-gray-400 uppercase">
-                                                <span className="flex items-center gap-1">
-                                                    <User size={14} /> {post.author.name}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Calendar size={14} /> {formatDate(post.published_at)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </article>
-                                ))}
-                            </div>
-
-                            {/* Pagination */}
-                            <div className="mt-16 flex justify-center border-t pt-10 dark:border-gray-800">
-                                {/* ... pagination code tetap sama ... */}
-                            </div>
-                        </div>
-
-                        {/* Sidebar (Right) */}
-                        <aside className="lg:col-span-4 space-y-10">
-                            {/* Trending Section */}
-                            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2 dark:text-white text-gray-900 border-l-4 border-primary pl-3">
-                                    Populer Minggu Ini
-                                </h3>
-                                <div className="space-y-6">
-                                    {posts.data.slice(0, 4).map((post, index) => (
-                                        <div key={post.id} className="flex gap-4 group cursor-pointer">
-                                            <span className="text-3xl font-black text-gray-200 dark:text-gray-700 italic">0{index + 1}</span>
-                                            <div>
-                                                <Link href={`/blog/${post.slug}`} className="hover:text-primary transition-colors">
-                                                    <h4 className="font-bold text-sm text-gray-900 dark:text-gray-200 line-clamp-2 leading-tight">
-                                                        {post.title}
-                                                    </h4>
-                                                </Link>
-                                                <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">{post.views_count} Views</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Newsletter/CTA */}
-                            <div className="bg-primary text-white p-8 rounded-2xl shadow-lg">
-                                <h3 className="text-xl font-bold mb-2">Berlangganan Warta</h3>
-                                <p className="text-sm text-white/80 mb-6">Dapatkan kurasi berita terbaik langsung di email Anda setiap pagi.</p>
-                                <input 
-                                    type="email" 
-                                    placeholder="Email Anda..." 
-                                    className="w-full px-4 py-2 rounded-lg bg-white/20 border border-white/30 placeholder:text-white/50 focus:outline-none focus:bg-white focus:text-gray-900 transition-all text-sm"
-                                />
-                                <button className="w-full mt-4 bg-white text-primary font-bold py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                                    Daftar Sekarang
-                                </button>
-                            </div>
-                        </aside>
-
-                    </div>
-                </main>
             </div>
         </FrontendLayout>
     );

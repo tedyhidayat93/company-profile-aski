@@ -17,20 +17,45 @@ export interface Product {
     name: string;
     slug: string;
     type: string;
-    category: string;
-    brand?: string;
+    description: string;
+    short_description?: string;
+    sku?: string;
     price: number;
     compare_at_price?: number;
-    stock: number | null;
-    image: string;
-    description: string;
+    cost_per_item?: number;
+    track_quantity: boolean;
+    quantity: number;
+    barcode?: string;
+    status: string;
+    is_featured: boolean;
+    is_bestseller: boolean;
+    is_new: boolean;
+    is_for_sell: boolean;
+    is_rent: boolean;
     show_price: boolean;
-    is_bestseller?: boolean;
-    is_new?: boolean;
-    is_featured?: boolean;
-    is_for_sell?: boolean;
-    is_rent?: boolean;
-    sku?: string;
+    show_stock: boolean;
+    published_at?: string;
+    position?: number;
+    brand_id?: number;
+    category_id?: number;
+    meta_title?: string;
+    meta_description?: string;
+    views: number;
+    tags: string[];
+    image_path?: string;
+    brand?: {
+        id: number;
+        name: string;
+    };
+    category?: {
+        id: number;
+        name: string;
+    };
+    images?: Array<{
+        id: number;
+        image_path: string;
+        is_cover: boolean;
+    }>;
 }
 
 export interface PaginationInfo {
@@ -217,9 +242,9 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                         </div>
         
                         {/* Price Range */}
-                        <div>
+                        <div className='border-t border-b py-2'>
                             <label className="mb-2 font-medium text-sm text-gray-800 dark:text-white">Rentang Harga</label>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 mt-1 gap-2">
                             <div>
                                 <label className="mb-1 block text-xs text-gray-600">Min</label>
                                 <input

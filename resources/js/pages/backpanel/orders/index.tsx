@@ -29,6 +29,7 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  FileText,
   ShoppingCart
 } from 'lucide-react';
 import { orderStatusColors, orderStatusLabels, getOrderStatusBadgeProps, OrderStatusBadge } from '@/utils/order-status';
@@ -85,8 +86,16 @@ interface PaginatedOrders {
   };
 }
 
+interface OrderStatistic {
+  name: string;
+  value: number;
+  icon: string;
+  color: string;
+}
+
 interface Props {
   orders: PaginatedOrders;
+  orderStatistics: OrderStatistic[];
   filters: {
     search?: string;
     status?: string;
@@ -95,7 +104,7 @@ interface Props {
   };
 }
 
-export default function OrderIndex({ orders, filters }: Props) {
+export default function OrderIndex({ orders, orderStatistics, filters }: Props) {
   const { data, setData, get, processing } = useForm({
     search: filters.search || '',
     status: filters.status || '',
@@ -103,51 +112,25 @@ export default function OrderIndex({ orders, filters }: Props) {
     date_to: filters.date_to || '',
   });
 
-  // Calculate order statistics
-  const orderStats = [
-    { 
-      name: 'Total Semua Pesanan', 
-      value: orders.total.toLocaleString(), 
-      icon: ShoppingCart, 
-      color: 'bg-blue-100 text-blue-800' 
-    },
-    { 
-      name: orderStatusLabels.pending, 
-      value: orders.data.filter(order => order.status === 'pending').length.toString(), 
-      icon: Clock, 
-      color: orderStatusColors.pending
-    },
-    { 
-      name: orderStatusLabels.confirmed, 
-      value: orders.data.filter(order => order.status === 'confirmed').length.toString(), 
-      icon: CheckCircle, 
-      color: orderStatusColors.confirmed
-    },
-    { 
-      name: orderStatusLabels.processing, 
-      value: orders.data.filter(order => order.status === 'processing').length.toString(), 
-      icon: Clock, 
-      color: orderStatusColors.processing
-    },
-    { 
-      name: orderStatusLabels.shipped, 
-      value: orders.data.filter(order => order.status === 'shipped').length.toString(), 
-      icon: Package, 
-      color: orderStatusColors.shipped
-    },
-    { 
-      name: orderStatusLabels.completed, 
-      value: orders.data.filter(order => order.status === 'completed').length.toString(), 
-      icon: CheckCircle, 
-      color: orderStatusColors.completed
-    },
-    { 
-      name: orderStatusLabels.cancelled, 
-      value: orders.data.filter(order => order.status === 'cancelled').length.toString(), 
-      icon: XCircle, 
-      color: orderStatusColors.cancelled
-    },
-  ];
+  // Map backend statistics to frontend format with icon components
+  const orderStats = orderStatistics.map(stat => ({
+    ...stat,
+    value: stat.value.toLocaleString(),
+    icon: getIconComponent(stat.icon)
+  }));
+
+  // Helper function to map icon strings to components
+  function getIconComponent(iconName: string) {
+    const iconMap: Record<string, any> = {
+      'shopping-cart': ShoppingCart,
+      'clock': Clock,
+      'check-circle': CheckCircle,
+      'package': Package,
+      'x-circle': XCircle,
+      'file-text': FileText
+    };
+    return iconMap[iconName] || FileText;
+  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,100 +167,126 @@ export default function OrderIndex({ orders, filters }: Props) {
         >
           <div className="flex items-center gap-2">
             <OrderStatusInfoModal />
-            <Link href="/cpanel/crm/orders/create">
+            {/* <Link href="/cpanel/crm/orders/create">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Tambah Pesanan
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </HeaderTitle>
 
-        {/* Filters */}
-        <Card className='gap-3 py-5 shadow-card'>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filter
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSearch} className="space-y-2">
-                <div>
-                  <Input
-                    placeholder="Cari nomor pesanan, perusahaan, PIC..."
-                    value={data.search}
-                    onChange={(e) => setData('search', e.target.value)}
-                  />
-                </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="col-span-2">
-                  <Select value={data.status} onValueChange={(value) => setData('status', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Status</SelectItem>
-                      <SelectItem value="pending">Pesanan Baru</SelectItem>
-                      <SelectItem value="confirmed">Dikonfirmasi</SelectItem>
-                      <SelectItem value="processing">Diproses</SelectItem>
-                      <SelectItem value="shipped">Dikirim</SelectItem>
-                      <SelectItem value="completed">Selesai</SelectItem>
-                      <SelectItem value="cancelled">Dibatalkan</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Input
-                    type="date"
-                    placeholder="Dari tanggal (DD/MM/YYYY)"
-                    value={data.date_from}
-                    onChange={(e) => setData('date_from', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Input
-                    type="date"
-                    placeholder="Sampai tanggal (DD/MM/YYYY)"
-                    value={data.date_to}
-                    onChange={(e) => setData('date_to', e.target.value)}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={processing}>
-                    <Search className="h-4 w-4 mr-2" />
-                    Cari
-                  </Button>
-                  <Button type="button" variant="outline" onClick={handleReset}>
-                    Reset
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+        {/* Statistic */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {orderStats.map((stat, index) => {
+            const Icon = stat.icon;
+            const isTotal = index === 0;
+
+            return (
+              <Card
+                key={stat.name}
+                className={`shrink-0 relative overflow-hidden transition-all duration-300 border-none shadow-none ring-1 border-0
+                ${
+                  isTotal
+                    ? 'bg-slate-800 text-white ring-slate-800 col-span-2'
+                    : `hover:shadow-md ring-slate-200 bg-opacity-10 ${stat.color.split(' ')[0]}`
+                }`}
+              >
+                <CardContent className="pb-0">
+                  <div className="flex gap-3 items-center">
+                    
+                    {/* Icon */}
+                    <div
+                      className={`flex items-center justify-center rounded-2xl h-10 w-10 shrink-0 
+                      ${stat.color.split(' ')[0]} bg-opacity-10 ${stat.color.split(' ')[1]}`}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+
+                    {/* Text */}
+                    <div className="space-y-0.5">
+                      <p
+                        className={`text-[10px] font-bold uppercase tracking-widest 
+                        ${isTotal ? 'text-slate-400' : 'text-slate-500'}`}
+                      >
+                        {stat.name}
+                      </p>
+                      <h3
+                        className={`font-black tracking-tight 
+                        ${isTotal ? 'text-2xl md:text-3xl text-white' : 'text-xl md:text-2xl text-slate-900'}`}
+                      >
+                        {stat.value}
+                      </h3>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
 
         {/* Orders Table */}
         <Card className="shadow-card">
           <CardContent className="space-y-4">
-             {/* Order Stats Overview */}
-              <div className="grid gap-2 grid-cols-2 lg:grid-cols-4">
-                {orderStats.map((stat) => (
-                  <Card className="rounded-sm py-3 px-0 shadow-none" key={stat.name}>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-muted-foreground text-xs font-medium">{stat.name}</p>
-                          <p className="text-2xl font-bold">{stat.value}</p>
-                        </div>
-                        <div className={`rounded-lg p-2 ${stat.color}`}>
-                          <stat.icon className="h-6 w-6" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+            {/* Filters */}
+            <Card className='gap-3 shadow-none p-0 border-0 border-b pb-3 rounded-none'>
+              <CardContent className='p-0'>
+                <form onSubmit={handleSearch} className="space-y-2">
+                    <div>
+                      <Input
+                        placeholder="Cari nomor pesanan, perusahaan, PIC..."
+                        value={data.search}
+                        onChange={(e) => setData('search', e.target.value)}
+                      />
+                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="col-span-2">
+                      <Select value={data.status} onValueChange={(value) => setData('status', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Semua Status</SelectItem>
+                          <SelectItem value="pending">Pesanan Baru</SelectItem>
+                          <SelectItem value="confirmed">Dikonfirmasi</SelectItem>
+                          <SelectItem value="processing">Diproses</SelectItem>
+                          <SelectItem value="shipped">Dikirim</SelectItem>
+                          <SelectItem value="completed">Selesai</SelectItem>
+                          <SelectItem value="cancelled">Dibatalkan</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Input
+                        type="date"
+                        placeholder="Dari tanggal (DD/MM/YYYY)"
+                        value={data.date_from}
+                        onChange={(e) => setData('date_from', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        type="date"
+                        placeholder="Sampai tanggal (DD/MM/YYYY)"
+                        value={data.date_to}
+                        onChange={(e) => setData('date_to', e.target.value)}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="submit" disabled={processing}>
+                        <Search className="h-4 w-4 mr-2" />
+                        Cari
+                      </Button>
+                      <Button type="button" variant="outline" onClick={handleReset}>
+                        Reset
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+            
             <Table>
               <TableHeader>
                 <TableRow>
@@ -318,14 +327,20 @@ export default function OrderIndex({ orders, filters }: Props) {
                       <div className="space-y-1">
                         <div className="text-base font-medium">{order.product_name}</div>
                         <div className="text-xs text-gray-500">Qty: {order.quantity} x {formatCurrencyDisplay(order.product_price)}</div>
-                        <div className="font-medium text-xs">
+                        <div className="font-medium text-xs text-green-700">
                           Total: {formatCurrencyDisplay(order.total_price)}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className='capitalize flex flex-col gap-1 justify-center items-center'>
+                    <TableCell className='capitalize flex flex-col pt-6'>
                       <OrderStatusBadge status={order.status} />
-                      <span className="text-xs text-gray-500">Catatan Admin: <br /> {order.admin_notes}</span>
+                      {
+                        order.admin_notes && (
+                          <span className="text-xs pl-2 pt-1 text-gray-500">Catatan: <br /> 
+                            {order.admin_notes}
+                          </span>
+                        )
+                      }
                     </TableCell>
                     <TableCell>
                       <div className="text-xs text-gray-500 mb-2">

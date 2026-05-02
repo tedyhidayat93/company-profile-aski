@@ -38,6 +38,7 @@ interface Article {
   status: string;
   published_at?: string;
   author_id: number;
+  category_id?: number;
   meta_title?: string;
   meta_description?: string;
   meta_keywords?: string;
@@ -48,6 +49,13 @@ interface Article {
   author?: {
     id: number;
     name: string;
+  };
+  category?: {
+    id: number;
+    name: string;
+    slug: string;
+    type: string;
+    is_active: boolean;
   };
   created_at: string;
   updated_at: string;
@@ -70,16 +78,18 @@ interface PaginatedArticles {
 interface Props {
   articles: PaginatedArticles;
   authors: Array<{ id: number; name: string }>;
+  blogCategories: Array<{ id: number; name: string; slug: string; type: string; is_active: boolean; }>;
   filters?: {
     search?: string;
     status?: string;
     author?: string;
     headline?: string;
+    category?: string;
     sort?: string;
   };
 }
 
-export default function ArticleIndex({ articles, authors, filters = {} }: Props) {
+export default function ArticleIndex({ articles, authors, blogCategories, filters = {} }: Props) {
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'CMS',
@@ -95,6 +105,7 @@ export default function ArticleIndex({ articles, authors, filters = {} }: Props)
   const [statusFilter, setStatusFilter] = useState(filters?.status ?? 'all');
   const [authorFilter, setAuthorFilter] = useState(filters?.author ?? 'all');
   const [headlineFilter, setHeadlineFilter] = useState(filters?.headline ?? 'all');
+  const [categoryFilter, setCategoryFilter] = useState(filters?.category ?? 'all');
   const [sortFilter, setSortFilter] = useState('all');
 
   const handleSearch = (value: string) => {
@@ -104,6 +115,7 @@ export default function ArticleIndex({ articles, authors, filters = {} }: Props)
       status: statusFilter,
       author: authorFilter,
       headline: headlineFilter,
+      category: categoryFilter,
       sort: sortFilter
     };
     
@@ -136,6 +148,9 @@ export default function ArticleIndex({ articles, authors, filters = {} }: Props)
       case 'sort':
         setSortFilter(value);
         break;
+      case 'category':
+        setCategoryFilter(value);
+        break;
     }
 
     // Build params with current state values
@@ -144,6 +159,7 @@ export default function ArticleIndex({ articles, authors, filters = {} }: Props)
       status: filterType === 'status' ? value : statusFilter,
       author: filterType === 'author' ? value : authorFilter,
       headline: filterType === 'headline' ? value : headlineFilter,
+      category: filterType === 'category' ? value : categoryFilter,
       sort: filterType === 'sort' ? value : sortFilter
     };
 
@@ -166,6 +182,7 @@ export default function ArticleIndex({ articles, authors, filters = {} }: Props)
     setStatusFilter('all');
     setAuthorFilter('all');
     setHeadlineFilter('all');
+    setCategoryFilter('all');
     setSortFilter('all');
     
     router.get('/cpanel/cms/article', {}, { preserveState: true });
@@ -176,6 +193,7 @@ export default function ArticleIndex({ articles, authors, filters = {} }: Props)
     statusFilter !== 'all' || 
     authorFilter !== 'all' || 
     headlineFilter !== 'all' || 
+    categoryFilter !== 'all' ||
     sortFilter !== 'all';
 
   const handleDelete = (id: number) => {
@@ -283,6 +301,22 @@ export default function ArticleIndex({ articles, authors, filters = {} }: Props)
                   </Select>
                 </div>
                 <div className="flex flex-col space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">Kategori</Label>
+                  <Select value={categoryFilter} onValueChange={(value) => handleFilterChange('category', value)}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua</SelectItem>
+                      {blogCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Headline</Label>
                   <Select value={headlineFilter} onValueChange={(value) => handleFilterChange('headline', value)}>
                     <SelectTrigger className="w-[140px]">
@@ -319,6 +353,7 @@ export default function ArticleIndex({ articles, authors, filters = {} }: Props)
                   <TableHead className="w-[50px]">Pos</TableHead>
                   <TableHead>Judul</TableHead>
                   <TableHead>Penulis</TableHead>
+                  <TableHead>Kategori</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-[80px]">Headline</TableHead>
                   <TableHead>Dibaca</TableHead>
@@ -363,6 +398,11 @@ export default function ArticleIndex({ articles, authors, filters = {} }: Props)
                         <User className="h-4 w-4 text-gray-400" />
                         <span className="text-sm">{article.author?.name || '-'}</span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs">
+                        {article.category?.name || '-'}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(article.status)}

@@ -10,23 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Save } from 'lucide-react';
-
-interface Category {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-  image?: string;
-  type: string;
-  parent_id?: number;
-  is_active: boolean;
-  meta_title?: string;
-  meta_description?: string;
-  parent?: Category;
-  children?: Category[];
-  created_at: string;
-  updated_at: string;
-}
+import { Category } from './create';
+import TreeSelect from '@/components/tree-select';
 
 interface Props {
   category: Category;
@@ -51,12 +36,22 @@ export default function CategoryEdit({ category, parentCategories }: Props) {
 
   const [imagePreview, setImagePreview] = useState<string>('');
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, errors, reset } = useForm<{
+    name: string;
+    slug: string;
+    description: string;
+    type: string;
+    parent_id: string | null;
+    is_active: boolean;
+    meta_title: string;
+    meta_description: string;
+    image: File | null;
+  }>({
     name: category.name,
     slug: category.slug,
     description: category.description || '',
     type: category.type,
-    parent_id: category.parent_id?.toString() || '',
+    parent_id: category.parent_id?.toString() || null,
     is_active: category.is_active,
     meta_title: category.meta_title || '',
     meta_description: category.meta_description || '',
@@ -111,6 +106,10 @@ export default function CategoryEdit({ category, parentCategories }: Props) {
       },
     });
   };
+
+  const filteredCategories = parentCategories.filter(
+    (cat) => cat.id !== category.id
+  );
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -187,21 +186,11 @@ export default function CategoryEdit({ category, parentCategories }: Props) {
                 
                 <div className="space-y-2">
                   <Label htmlFor="parent_id">Kategori Induk</Label>
-                  <Select value={data.parent_id} onValueChange={(value) => setData('parent_id', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih induk (opsional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Tidak Ada (Kategori Utama)</SelectItem>
-                      {parentCategories
-                        .filter(cat => cat.id !== category.id)
-                        .map((category) => (
-                          <SelectItem key={category.id} value={category.id.toString()}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  <TreeSelect
+                    data={filteredCategories}
+                    value={data.parent_id}
+                    onChange={(val) => setData('parent_id', val)}
+                  />
                   {errors.parent_id && <p className="text-sm text-red-600">{errors.parent_id}</p>}
                 </div>
               </div>

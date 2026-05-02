@@ -42,7 +42,8 @@ class Category extends Model
 
     public function children()
     {
-        return $this->hasMany(Category::class, 'parent_id')->orderBy('lft');
+        return $this->hasMany(Category::class, 'parent_id')
+            ->with('children'); // 🔥 recursion
     }
 
     public function products()
@@ -53,6 +54,11 @@ class Category extends Model
     public function services()
     {
         return $this->hasMany(Service::class);
+    }
+
+    public function articles()
+    {
+        return $this->hasMany(Article::class);
     }
 
     // Scopes

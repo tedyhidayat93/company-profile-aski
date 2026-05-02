@@ -358,49 +358,98 @@ export default function Homepage({
 
         {/* FAQ Section */}
         <section className="bg-gray-50 py-20 dark:bg-gray-800">
-          {
-            faqs.length > 0 && (
+          {faqs.length > 0 && (
             <div className="container mx-auto px-4">
-              <div className="mb-12 text-center">
-                <h2 className="mb-4 dark:text-orange-400">{getConfig('faq_title', 'Pertanyaan yang Sering Diajukan')}</h2>
-                <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-xl">
+              
+              {/* Header */}
+              <div className="mb-14 text-center">
+                <h2 className="mb-3 text-3xl font-bold tracking-tight dark:text-orange-400">
+                  {getConfig('faq_title', 'Pertanyaan yang Sering Diajukan')}
+                </h2>
+                <p className="mx-auto max-w-3xl text-gray-600 dark:text-gray-300 text-lg">
                   {getConfig('faq_description', 'Temukan jawaban atas pertanyaan umum seputar layanan kami')}
                 </p>
               </div>
 
-              <div className="mx-auto max-w-3xl">
-                {faqs.map((faq, index) => (
-                  <div key={index} className="mb-4 border-b border-gray-200 dark:border-gray-700">
-                    <button
-                      className="hover:text-primary cursor-pointer flex w-full items-center justify-between px-2 py-4 text-left transition-colors"
-                      onClick={() => toggleFaq(index)}
+              {/* FAQ List */}
+              <div className="mx-auto max-w-3xl space-y-4">
+                {faqs.map((faq, index) => {
+                  const isActive = activeFaq === index;
+
+                  return (
+                    <div
+                      key={index}
+                      className={`
+                        group rounded-xl border transition-all duration-300
+                        ${isActive 
+                          ? 'bg-white dark:bg-gray-900 border-primary shadow-lg' 
+                          : 'bg-white/70 dark:bg-gray-900/40 border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-primary/50'
+                        }
+                      `}
                     >
-                      <span className="font-medium text-gray-900 dark:text-white">
-                        {faq.question}
-                      </span>
-                      <svg
-                        className={`h-5 w-5 transform transition-transform ${activeFaq === index ? 'rotate-180' : ''} text-gray-500`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                      
+                      {/* Question */}
+                      <button
+                        onClick={() => toggleFaq(index)}
+                        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
-                    {activeFaq === index && (
-                      <div className="px-2 pb-4 text-gray-600 dark:text-gray-300">{faq.answer}</div>
-                    )}
-                  </div>
-                ))}
+                        <div className="flex items-start gap-3">
+                          
+                          {/* Icon */}
+                          <div className={`
+                            mt-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold
+                            ${isActive 
+                              ? 'bg-primary text-white' 
+                              : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-primary group-hover:text-white'
+                            }
+                          `}>
+                            ?
+                          </div>
+
+                          {/* Text */}
+                          <span className="font-medium text-gray-900 dark:text-white leading-snug">
+                            {faq.question}
+                          </span>
+                        </div>
+
+                        {/* Arrow */}
+                        <svg
+                          className={`h-5 w-5 shrink-0 transform transition-transform duration-300 ${
+                            isActive ? 'rotate-180 text-primary' : 'text-gray-400'
+                          }`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+
+                      {/* Answer */}
+                      <div
+                        className={`
+                          grid transition-all duration-300 ease-in-out
+                          ${isActive ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}
+                        `}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="px-5 pb-5 text-gray-600 dark:text-gray-300 leading-relaxed">
+                            {faq.answer}
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            )
-          }
+          )}
         </section>
 
         {/* Article section */}
@@ -464,7 +513,7 @@ export default function Homepage({
                         <div className="flex items-center justify-between">
                           <Link 
                             href={`/blog/${article.slug}`} 
-                            className="flex items-center text-sm font-medium text-amber-600 transition-colors hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                            className="flex items-center text-sm font-medium text-slate-400 transition-colors hover:text-amber-700 dark:hover:text-amber-300"
                           >
                             Baca Selengkapnya
                             <ArrowRightIcon className="ml-1 h-4 w-4" />

@@ -2,163 +2,212 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, ChevronDown } from 'lucide-react';
 
 interface CategoryOption {
-    label: string;
-    value: string;
-    subcategories?: CategoryOption[];
+  label: string;
+  value: string;
+  subcategories?: CategoryOption[];
 }
 
 interface CategoryFilterProps {
-    categories: CategoryOption[];
-    selectedCategory?: string;
-    onCategoryChange: (value: string) => void;
-    placeholder?: string;
-    className?: string;
+  categories: CategoryOption[];
+  selectedCategory?: string;
+  onCategoryChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
 }
 
 export default function CategoryFilter({
-    categories,
-    selectedCategory = '',
-    onCategoryChange,
-    placeholder = 'Pilih Kategori',
-    className = ''
+  categories,
+  selectedCategory = '',
+  onCategoryChange,
+  placeholder = 'Pilih Kategori',
+  className = ''
 }: CategoryFilterProps) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-                setSearchTerm('');
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
-    // Filter categories based on search term
-    const filterCategories = (categories: CategoryOption[], term: string): CategoryOption[] => {
-        if (!term) return categories;
-        
-        const searchTerm = term.toLowerCase();
-        return categories.filter(category => {
-            const categoryMatches = category.label.toLowerCase().includes(searchTerm);
-            const subcategoryMatches = category.subcategories?.some(sub => 
-                sub.label.toLowerCase().includes(searchTerm)
-            );
-            return categoryMatches || subcategoryMatches;
-        });
-    };
-
-    // Get display text for selected category
-    const getSelectedDisplay = (categories: CategoryOption[], selected: string): string => {
-        if (!selected) return placeholder;
-        
-        for (const category of categories) {
-            if (category.value === selected) {
-                return category.label;
-            }
-            const subcategory = category.subcategories?.find(sub => sub.value === selected);
-            if (subcategory) {
-                return `${category.label} - ${subcategory.label}`;
-            }
-        }
-        return selected;
-    };
-
-    // Handle category selection
-    const handleSelect = (value: string) => {
-        onCategoryChange(value);
+  // 🔒 click outside
+  useEffect(() => {
+    const handler = (event: MouseEvent) => {
+      if (!dropdownRef.current?.contains(event.target as Node)) {
         setIsOpen(false);
         setSearchTerm('');
+      }
     };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
-    // Render category tree
-    const renderCategory = (category: CategoryOption, level: number = 0) => {
-        const paddingLeft = level * 24; // 24px per level
-        
-        return (
-            <div key={category.value} className="border-b border-gray-100 last:border-b-0">
-                <button
-                    type="button"
-                    onClick={() => handleSelect(category.value)}
-                    className={`w-full px-3 py-2 text-left text-sm hover:bg-amber-50 transition-colors ${
-                        level === 0 ? 'font-medium text-gray-900' : 'text-gray-600'
-                    } ${selectedCategory === category.value ? 'bg-amber-50 border-l-2 border-amber-500' : ''}`}
-                    style={{ paddingLeft: `${paddingLeft + 12}px` }}
-                >
-                    {category.label}
-                </button>
-                
-                {category.subcategories?.map(subcategory => 
-                    renderCategory(subcategory, level + 1)
-                )}
+  // 🔽 toggle expand
+  const toggleExpand = (value: string) => {
+    setExpanded(prev => ({
+      ...prev,
+      [value]: !prev[value]
+    }));
+  };
+
+  // 🔍 recursive search filter (FIXED)
+  const filterTree = (items: CategoryOption[]): CategoryOption[] => {
+    if (!searchTerm) return items;
+
+    const term = searchTerm.toLowerCase();
+
+    return items
+      .map(item => {
+        const match = item.label.toLowerCase().includes(term);
+
+        const children = item.subcategories
+          ? filterTree(item.subcategories)
+          : [];
+
+        if (match || children.length > 0) {
+          return {
+            ...item,
+            subcategories: children
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean) as CategoryOption[];
+  };
+
+  // 🔍 find label
+  const findLabel = (items: CategoryOption[]): string | null => {
+    for (const item of items) {
+      if (item.value === selectedCategory) return item.label;
+
+      if (item.subcategories) {
+        const found = findLabel(item.subcategories);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  // 🌲 render tree
+  const renderTree = (items: CategoryOption[], level = 0) => {
+    return items.map(item => {
+      const hasChildren = item.subcategories && item.subcategories.length > 0;
+      const isOpen = expanded[item.value];
+
+      return (
+        <div key={item.value}>
+          <div
+            className="flex items-center gap-2 px-3 py-2 hover:bg-amber-50 text-sm"
+            style={{ paddingLeft: `${level * 16 + 12}px` }}
+          >
+            {/* toggle */}
+            {hasChildren ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleExpand(item.value);
+                }}
+                className="w-4 text-gray-500"
+              >
+                {isOpen ? '▼' : '▶'}
+              </button>
+            ) : (
+              <span className="w-4" />
+            )}
+
+            {/* label */}
+            <div
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onCategoryChange(item.value);
+                setIsOpen(false);
+                setSearchTerm('');
+            }}
+            className={`flex-1 cursor-pointer ${
+                selectedCategory === item.value
+                ? 'font-semibold text-black'
+                : hasChildren
+                ? 'font-semibold text-amber-600'
+                : 'text-gray-800'
+            }`}
+            >
+            {item.label}
             </div>
-        );
-    };
+          </div>
 
-    const filteredCategories = filterCategories(categories, searchTerm);
-
-    return (
-        <div className={`relative ${className}`} ref={dropdownRef}>
-            <div className="relative">
-                <button
-                    type="button"
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="w-full rounded-lg border border-gray-300 p-2 text-left bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-200 flex items-center justify-between"
-                >
-                    <span className="text-sm text-gray-700 truncate">
-                        {getSelectedDisplay(categories, selectedCategory)}
-                    </span>
-                    <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {isOpen && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
-                        {/* Search Input */}
-                        <div className="p-2 border-b border-gray-200">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Cari kategori..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded focus:border-amber-500 focus:ring-1 focus:ring-amber-200"
-                                    autoFocus
-                                />
-                            </div>
-                        </div>
-                        
-                        {/* Category Options */}
-                        <div className="max-h-48 overflow-y-auto">
-                            {/* All Categories Option */}
-                            <button
-                                type="button"
-                                onClick={() => handleSelect('')}
-                                className={`w-full px-3 py-2 text-left text-sm hover:bg-amber-50 border-b border-gray-100 transition-colors ${
-                                    selectedCategory === '' ? 'bg-amber-50 border-l-2 border-amber-500' : ''
-                                }`}
-                            >
-                                <span className="text-gray-700">Semua Kategori</span>
-                            </button>
-                            
-                            {filteredCategories.length > 0 ? (
-                                filteredCategories.map(category => renderCategory(category))
-                            ) : (
-                                <div className="px-3 py-4 text-center text-sm text-gray-500">
-                                    Tidak ada kategori ditemukan
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
+          {/* children */}
+          {hasChildren && isOpen && renderTree(item.subcategories!, level + 1)}
         </div>
-    );
+      );
+    });
+  };
+
+  const filtered = filterTree(categories);
+
+  return (
+    <div ref={dropdownRef} className={`relative ${className}`}>
+      {/* trigger */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        className="w-full rounded-md border px-3 py-2 text-left bg-white flex items-center justify-between text-sm"
+      >
+        <span className="truncate">
+          {findLabel(categories) ?? placeholder}
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 transition-transform ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+        />
+      </button>
+
+      {/* dropdown */}
+      {isOpen && (
+        <div className="absolute z-50 mt-2 w-full bg-white border rounded-md shadow-md">
+          
+          {/* search */}
+          <div className="p-2 border-b">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+              <input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Cari kategori..."
+                className="w-full pl-8 pr-2 py-2 text-sm border rounded"
+              />
+            </div>
+          </div>
+
+          {/* list */}
+          <div className="max-h-60 overflow-auto">
+            <div
+              className={`px-3 py-2 text-sm cursor-pointer hover:bg-amber-50 ${
+                selectedCategory === '' ? 'font-semibold text-amber-600' : ''
+              }`}
+              onClick={() => {
+                onCategoryChange('');
+                setIsOpen(false);
+              }}
+            >
+              Semua Kategori
+            </div>
+
+            {filtered.length > 0 ? (
+              renderTree(filtered)
+            ) : (
+              <div className="p-3 text-sm text-gray-500 text-center">
+                Tidak ditemukan
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

@@ -8,7 +8,7 @@ import PlaceholderImage from '@/assets/images/placeholder.png';
 export const handleImageError = (
   e: React.SyntheticEvent<HTMLImageElement, Event>,
   fallbackImage: string = PlaceholderImage,
-  altText: string = 'Alumoda Sinergi Kontainer Indonesia - Product image'
+  altText: string = 'Alumoda Sinergi Kontainer Indonesia'
 ) => {
   const target = e.target as HTMLImageElement;
   

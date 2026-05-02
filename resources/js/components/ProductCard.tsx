@@ -1,137 +1,159 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { handleImageError } from '@/utils/image';
 import { formatPrice } from '@/utils/currency';
 import PlaceholderImage from '@/assets/images/placeholder.png';
+import { ShoppingBag, Star, ArrowRight } from 'lucide-react';
 
-interface ProductCardProps {
-    product: {
+
+interface Product {
+    id: number;
+    name: string;
+    slug: string;
+    type: string;
+    description: string;
+    short_description?: string;
+    sku?: string;
+    price: number;
+    compare_at_price?: number;
+    cost_per_item?: number;
+    track_quantity: boolean;
+    quantity: number;
+    barcode?: string;
+    status: string;
+    is_featured: boolean;
+    is_bestseller: boolean;
+    is_new: boolean;
+    is_for_sell: boolean;
+    is_rent: boolean;
+    show_price: boolean;
+    show_stock: boolean;
+    published_at?: string;
+    position?: number;
+    brand_id?: number;
+    category_id?: number;
+    meta_title?: string;
+    meta_description?: string;
+    views: number;
+    tags: string[];
+    image_path?: string;
+    brand?: {
         id: number;
         name: string;
-        type: string;
-        price: number;
-        show_price: boolean;
-        compare_at_price?: number;
-        stock: number | null;
-        image: string;
-        description: string;
-        slug: string;
-        is_bestseller?: boolean;
-        is_new?: boolean;
-        is_for_sell?: boolean;
-        is_rent?: boolean;
     };
+    category?: {
+        id: number;
+        name: string;
+    };
+    images?: Array<{
+        id: number;
+        image_path: string;
+        is_cover: boolean;
+    }>;
+}
+
+interface ProductCardProps {
+    product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-    const [imageSrc, setImageSrc] = useState(product.image);
+    const [imageSrc, setImageSrc] = useState(product.image_path || PlaceholderImage);
 
-    useEffect(() => {
-        setImageSrc(product.image);
-        setIsImageLoaded(false);
-        
-        const img = new Image();
-        img.src = product.image;
-        
-        const onLoad = () => {
-            setImageSrc(product.image);
-            setIsImageLoaded(true);
-        };
-        
-        const onError = () => {
+    const handleImageError = () => {
+        if (imageSrc !== PlaceholderImage) {
             setImageSrc(PlaceholderImage);
-            setIsImageLoaded(true);
-        };
-        
-        img.addEventListener('load', onLoad);
-        img.addEventListener('error', onError);
-        
-        return () => {
-            img.removeEventListener('load', onLoad);
-            img.removeEventListener('error', onError);
-        };
-    }, [product.image]);
+        }
+    };
 
     return (
-        <div onClick={() => window.location.href = `/catalog/${product.slug}`} className="overflow-hidden hover:cursor-pointer rounded-xl bg-white dark:bg-gray-900 shadow-md transition-all hover:shadow-lg">
-            <div className="h-52 relative overflow-hidden">
+        <div className="group relative flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            
+            {/* Image Container */}
+            <Link href={`/catalog/${product.slug}`} className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                {/* Badges Overlay - Menggunakan aksen Orange untuk Bestseller */}
+                <div className="absolute left-2 top-2 z-10 flex flex-col gap-1">
+                    {product.is_new && (
+                        <span className="rounded-lg bg-emerald-500 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                            Baru
+                        </span>
+                    )}
+                    {product.is_bestseller && (
+                        <span className="flex items-center gap-1 rounded-lg bg-orange-400 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                            <Star className="h-3 w-3 fill-white" /> Bestseller
+                        </span>
+                    )}
+                </div>
+
                 {!isImageLoaded && (
-                    <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
+                    <div className="absolute inset-0 bg-slate-200 dark:bg-slate-700 animate-pulse" />
                 )}
+
                 <img
                     src={imageSrc}
                     alt={product.name}
-                    className={`h-full w-full object-cover transition-transform duration-300 hover:scale-105 ${
+                    className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-110 ${
                         isImageLoaded ? 'opacity-100' : 'opacity-0'
                     }`}
-                    loading="lazy"
                     onLoad={() => setIsImageLoaded(true)}
-                    onError={(e) => handleImageError(e, '/images/placeholder.png', product.name)}
+                    onError={handleImageError}
+                    loading="lazy"
                 />
-            </div>
-            <div className="p-3">
-                <div className="mb-2 flex items-center justify-between">
-                    <div className="flex gap-1">
-                        {product.is_bestseller && (
-                            <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
-                                Bestseller
-                            </span>
-                        )}
-                        {product.is_new && (
-                            <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                                Baru
-                            </span>
-                        )}
-                        {product.is_for_sell && product.is_rent ? (
-                            <span className="rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-800 mr-2">
-                                Dijual & Disewakan
-                            </span>
-                        ) : (
-                            <>
-                                {product.is_for_sell && (
-                                    <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 mr-2">
-                                        Dijual
-                                    </span>
-                                )}
-                                {product.is_rent && (
-                                    <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800 mr-2">
-                                        Disewakan
-                                    </span>
-                                )}
-                            </>
-                        )}
+                
+                {/* Type Tag - Subtil dengan border orange saat hover */}
+                <div className="absolute top-2 right-2 z-10">
+                    <div className="rounded-md bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm px-2 py-1 text-[10px] font-bold text-slate-700 dark:text-slate-200 border border-transparent group-hover:border-orange-400/50 transition-colors shadow-sm">
+                        {product.is_for_sell && product.is_rent ? 'Jual & Sewa' : product.is_for_sell ? 'Dijual' : 'Disewakan'}
                     </div>
-                    <span className="text-sm text-gray-500">
-                        Stok: {product.stock !== null && product.stock !== undefined ? product.stock : 'Tidak terbatas'}
-                    </span>
                 </div>
-                <h3 className="mb-2 text-lg font-semibold dark:text-orange-400">{product.name}</h3>
-                <p className="mb-4 text-sm text-gray-600 dark:text-slate-100 line-clamp-2">
+            </Link>
+
+            {/* Content Section */}
+            <div className="flex flex-1 flex-col p-4">
+                <Link href={`/catalog/${product.slug}`} className="">
+                    <h3 className="text-lg font-bold leading-snug text-slate-800 dark:text-white line-clamp-1 group-hover:text-orange-500 transition-colors">
+                        {product.name}
+                    </h3>
+                </Link>
+
+                <p className="mb-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400 line-clamp-2">
                     {product.description}
                 </p>
-                <div className="flex flex-col gap-2">
-                    <span className="text-lg font-bold text-amber-600">
-                         {product.show_price ? (
-                            product.compare_at_price && Number(product.compare_at_price) > Number(product.price) ? (
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-base font-bold text-red-600">{formatPrice(product.price)}</span>
-                                    <span className="text-xs text-gray-500 line-through">
-                                        {formatPrice(product.compare_at_price)}
+
+                {/* Price & Action Section */}
+                <div className="mt-auto border-t pt-3 border-slate-50 dark:border-slate-800/50">
+                    <div className="mb-3 flex items-end justify-between">
+                        <div className="flex flex-col">
+                            {product.show_price ? (
+                                <>
+                                    {product.compare_at_price && product.compare_at_price > product.price && (
+                                        <span className="text-[11px] text-rose-400 line-through decoration-rose-400">
+                                            {formatPrice(product.compare_at_price)}
+                                        </span>
+                                    )}
+                                    <span className="text-lg font-black text-slate-900 dark:text-white">
+                                        {formatPrice(product.price)}
                                     </span>
-                                </div>
+                                </>
                             ) : (
-                                <span className="text-sm font-bold text-green-600">{formatPrice(product.price)}</span>
-                            )
-                        ) : (
-                            <span className="text-sm font-bold text-gray-900">Hubungi kami untuk harga</span>
-                        )}
-                    </span>
+                                <span className="text-xs font-bold text-orange-600 italic">Hubungi Kami</span>
+                            )}
+                        </div>
+                        <div className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                            {!product.show_stock && (
+                                <span className={product.quantity > 0 ? 'text-slate-400' : 'text-rose-500'}>
+                                    Stok: {product.quantity}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Tombol Utama bg-orange-400 */}
                     <Link
                         href={`/catalog/${product.slug}`}
-                        className="btn btn-primary w-full px-4 py-2 text-center whitespace-nowrap"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-400 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-orange-500 active:scale-[0.98] shadow-md shadow-orange-200 dark:shadow-none"
                     >
-                        Lihat Detail
+                        <ShoppingBag className="h-4 w-4" />
+                        Detail Produk
                     </Link>
                 </div>
             </div>

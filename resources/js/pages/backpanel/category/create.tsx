@@ -10,8 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Save } from 'lucide-react';
+import { flattenCategories } from '@/lib/utils';
+import TreeSelect from '@/components/tree-select';
 
-interface Category {
+export interface Category {
   id: number;
   name: string;
   slug: string;
@@ -24,6 +26,8 @@ interface Category {
   meta_description?: string;
   parent?: Category;
   children?: Category[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface Props {
@@ -48,17 +52,29 @@ export default function CategoryCreate({ parentCategories }: Props) {
 
   const [imagePreview, setImagePreview] = useState<string>('');
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, errors, reset } = useForm<{
+    name: string;
+    slug: string;
+    description: string;
+    type: string;
+    parent_id: string | null;
+    is_active: boolean;
+    meta_title: string;
+    meta_description: string;
+    image: File | null;
+  }>({
     name: '',
     slug: '',
     description: '',
     type: 'product',
-    parent_id: '',
+    parent_id: null,
     is_active: true,
     meta_title: '',
     meta_description: '',
     image: null as File | null,
   });
+
+  const flatCategories = flattenCategories(parentCategories);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -179,19 +195,11 @@ export default function CategoryCreate({ parentCategories }: Props) {
                 
                 <div className="space-y-2">
                   <Label htmlFor="parent_id">Kategori Induk</Label>
-                  <Select value={data.parent_id} onValueChange={(value) => setData('parent_id', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih induk (opsional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">Tidak Ada (Kategori Utama)</SelectItem>
-                      {parentCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <TreeSelect
+                    data={parentCategories}
+                    value={data.parent_id}
+                    onChange={(val) => setData('parent_id', val)}
+                  />
                   {errors.parent_id && <p className="text-sm text-red-600">{errors.parent_id}</p>}
                 </div>
               </div>

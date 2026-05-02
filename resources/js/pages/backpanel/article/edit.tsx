@@ -35,6 +35,7 @@ interface Article {
   tags?: string[];
   position?: number;
   is_headline?: boolean;
+  category?: string;
   author?: {
     id: number;
     name: string;
@@ -46,9 +47,10 @@ interface Article {
 interface Props {
   article: Article;
   authors: Author[];
+  blogCategories: Array<{ id: number; name: string; slug: string; type: string; is_active: boolean; }>;
 }
 
-export default function ArticleEdit({ article, authors }: Props) {
+export default function ArticleEdit({ article, authors, blogCategories }: Props) {
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'CMS',
@@ -87,6 +89,7 @@ export default function ArticleEdit({ article, authors }: Props) {
     tags: Array.isArray(article.tags) ? article.tags : [],
     position: article.position || 0,
     is_headline: article.is_headline || false,
+    category_id: article.category_id || (blogCategories.length > 0 ? blogCategories[0].id.toString() : ''),
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -356,7 +359,7 @@ export default function ArticleEdit({ article, authors }: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status *</Label>
                   <Select value={data.status} onValueChange={(value) => {
@@ -405,6 +408,25 @@ export default function ArticleEdit({ article, authors }: Props) {
                     min="0"
                   />
                   {errors.position && <p className="text-sm text-red-600">{errors.position}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="category_id">Kategori *</Label>
+                  <Select value={data.category_id} onValueChange={(value) => {
+                    setData('category_id', value);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {blogCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.category_id && <p className="text-sm text-red-600">{errors.category_id}</p>}
                 </div>
               </div>
 

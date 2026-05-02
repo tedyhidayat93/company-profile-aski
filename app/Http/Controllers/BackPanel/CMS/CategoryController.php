@@ -14,59 +14,102 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $viewMode = $request->get('view', 'table');
-        
-        if ($viewMode === 'tree') {
-            // Tree view - no pagination, get all categories with children
-            $categories = Category::with('parent')
-                ->when($request->type && $request->type !== 'all', function ($query, $type) {
-                    return $query->ofType($type);
-                })
-                ->when($request->search, function ($query, $search) {
-                    return $query->where('name', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%");
-                })
-                ->orderBy('lft')
-                ->get();
-                
-            // Transform to match expected structure for tree view
-            $categories = [
-                'data' => $categories,
-                'current_page' => 1,
-                'last_page' => 1,
-                'per_page' => count($categories),
-                'total' => count($categories),
-                'links' => [
-                    'first' => '',
-                    'last' => '',
-                    'prev' => null,
-                    'next' => null,
-                ]
-            ];
-        } else {
-            // Table view - with pagination
-            $categories = Category::with('parent')
-                ->when($request->type && $request->type !== 'all', function ($query, $type) {
-                    return $query->ofType($type);
-                })
-                ->when($request->search, function ($query, $search) {
-                    return $query->where('name', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%");
-                })
-                ->orderBy('lft')
-                ->paginate(10);
+        $query = Category::query()
+            ->with(['parent']);
+
+        // 🔍 FILTER GLOBAL (semua data, bukan cuma root)
+        if ($request->type && $request->type !== 'all') {
+            $query->where('type', $request->type);
         }
 
+        $allCategories = $query->orderBy('name')->get();
+        
+        // 🔍 HANDLE SEARCH (advanced)
+        if ($request->search) {
+            $allCategories = $this->filterWithAncestors($allCategories, $request->search);
+        }
+
+        // 🌲 BUILD TREE MANUAL
+        $tree = $this->buildTree($allCategories);
+
+        return Inertia::render('backpanel/category/index', [
+            'categories' => $tree,
+            'filters' => $request->only(['search', 'type'])
+        ]);
+    }
+
+    private function filterWithAncestors($categories, $search)
+    {
+        $matched = $categories->filter(function ($item) use ($search) {
+            return str_contains(strtolower($item->name), strtolower($search)) ||
+                str_contains(strtolower($item->description ?? ''), strtolower($search));
+        });
+
+        $result = collect();
+
+        foreach ($matched as $item) {
+            $result->push($item);
+
+            // 🔥 ambil semua parent ke atas
+            $parentId = $item->parent_id;
+
+            while ($parentId) {
+                $parent = $categories->firstWhere('id', $parentId);
+                if (!$parent) break;
+
+                $result->push($parent);
+                $parentId = $parent->parent_id;
+            }
+        }
+
+        return $result->unique('id')->values();
+    }
+
+    private function buildTree($categories, $parentId = null)
+    {
+        return $categories
+            ->where('parent_id', $parentId)
+            ->map(function ($category) use ($categories) {
+                $category->children = $this->buildTree($categories, $category->id);
+                return $category;
+            })
+            ->values();
+    }
+
+    public function show($id)
+    {
+        $category = Category::with('parent', 'children')->findOrFail($id);
+
+        return Inertia::render('backpanel/category/show', [
+            'category' => $category
+        ]);
+    }
+
+    public function create()
+    {
         $parentCategories = Category::with('children')
             ->root()
             ->active()
             ->orderBy('lft')
             ->get();
 
-        return Inertia::render('backpanel/category/index', [
-            'categories' => $categories,
-            'parentCategories' => $parentCategories,
-            'filters' => $request->only(['search', 'type', 'view'])
+        return Inertia::render('backpanel/category/create', [
+            'parentCategories' => $parentCategories
+        ]);
+    }
+
+    public function edit($id)
+    {
+        $category = Category::with('parent', 'children')->findOrFail($id);
+        $parentCategories = Category::with('children')
+            ->root()
+            ->active()
+            ->orderBy('lft')
+            ->get();
+
+        return Inertia::render('backpanel/category/edit', [
+            'category' => $category,
+            'parentCategories' => $parentCategories
         ]);
     }
 
@@ -100,15 +143,6 @@ class CategoryController extends Controller
 
         return redirect()->route('cms.category.index')
             ->with('success', 'Kategori berhasil dibuat');
-    }
-
-    public function show($id)
-    {
-        $category = Category::with('parent', 'children')->findOrFail($id);
-
-        return Inertia::render('backpanel/category/show', [
-            'category' => $category
-        ]);
     }
 
     public function update(Request $request, $id)
@@ -175,24 +209,6 @@ class CategoryController extends Controller
             ->with('success', 'Kategori berhasil dihapus');
     }
 
-    public function getTree(Request $request)
-    {
-        $categories = Category::with('children')
-            ->when($request->type && $request->type !== 'all', function ($query, $type) {
-                return $query->ofType($type);
-            })
-            ->root()
-            ->active()
-            ->orderBy('lft')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $categories,
-            'message' => 'Struktur kategori berhasil diambil'
-        ]);
-    }
-
     public function toggleStatus($id)
     {
         $category = Category::findOrFail($id);
@@ -201,33 +217,5 @@ class CategoryController extends Controller
 
         return redirect()->route('cms.category.index')
             ->with('success', 'Status kategori berhasil diperbarui');
-    }
-
-    public function create()
-    {
-        $parentCategories = Category::with('children')
-            ->root()
-            ->active()
-            ->orderBy('lft')
-            ->get();
-
-        return Inertia::render('backpanel/category/create', [
-            'parentCategories' => $parentCategories
-        ]);
-    }
-
-    public function edit($id)
-    {
-        $category = Category::with('parent', 'children')->findOrFail($id);
-        $parentCategories = Category::with('children')
-            ->root()
-            ->active()
-            ->orderBy('lft')
-            ->get();
-
-        return Inertia::render('backpanel/category/edit', [
-            'category' => $category,
-            'parentCategories' => $parentCategories
-        ]);
     }
 }

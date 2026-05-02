@@ -20,10 +20,7 @@ import {
   Filter,
   ToggleLeft,
   ToggleRight,
-  FolderTree,
-  Table as TableIcon,
-  ChevronDown,
-  ChevronRight
+  FolderTree
 } from 'lucide-react';
 
 interface Category {
@@ -58,172 +55,22 @@ interface PaginatedCategories {
 }
 
 interface Props {
-  categories: PaginatedCategories;
-  parentCategories: Category[];
+  categories: Category[];
   filters: {
     search?: string;
     type?: string;
   };
 }
 
-// CategoryTree Component
-interface CategoryTreeProps {
-  categories: Category[];
-  onToggleStatus: (id: number) => void;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
-  level?: number;
-}
-
-const CategoryTree: React.FC<CategoryTreeProps> = ({ 
-  categories, 
-  onToggleStatus, 
-  onEdit, 
-  onDelete, 
-  level = 0 
-}) => {
-  const [collapsedCategories, setCollapsedCategories] = React.useState<Set<number>>(new Set());
-
-  const toggleCollapse = (categoryId: number) => {
-    setCollapsedCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(categoryId)) {
-        newSet.delete(categoryId);
-      } else {
-        newSet.add(categoryId);
-      }
-      return newSet;
-    });
-  };
-
-  const getTotalDescendants = (category: Category): number => {
-    if (!category.children || category.children.length === 0) return 0;
-    
-    let total = category.children.length;
-    category.children.forEach(child => {
-      total += getTotalDescendants(child);
-    });
-    return total;
-  };
-
-  return (
-    <div className="space-y-2">
-      {categories.map((category) => {
-        const isCollapsed = collapsedCategories.has(category.id);
-        const totalDescendants = getTotalDescendants(category);
-        const hasChildren = category.children && category.children.length > 0;
-        
-        return (
-          <div key={category.id} className="border rounded-lg p-4 bg-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3 flex-1">
-                {level > 0 && (
-                  <div className="flex items-center">
-                    {Array.from({ length: level }).map((_, i) => (
-                      <div key={i} className="w-4 h-0.5 bg-gray-300 mr-2" />
-                    ))}
-                  </div>
-                )}
-                {category.image && (
-                  <img 
-                    src={`/storage/${category.image}`} 
-                    alt={category.name}
-                    className="h-8 w-8 rounded object-cover"
-                  />
-                )}
-                <div className="flex-1">
-                  <div className="font-medium">{category.name}</div>
-                  <div className="text-sm text-gray-500">{category.slug}</div>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Badge variant={category.type === 'product' ? 'default' : category.type === 'service' ? 'secondary' : 'outline'}>
-                      {category.type === 'product' ? 'Produk' : category.type === 'service' ? 'Layanan' : 'Blog'}
-                    </Badge>
-                    {hasChildren && (
-                      <span className="text-xs text-gray-500">
-                        {totalDescendants + 1} total ({category.children?.length || 0} langsung)
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                {hasChildren && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleCollapse(category.id)}
-                    className="p-1 mr-2"
-                  >
-                    {isCollapsed ? (
-                      <ChevronRight className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onToggleStatus(category.id)}
-                  className="p-1"
-                >
-                  {category.is_active ? (
-                    <ToggleRight className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <ToggleLeft className="h-5 w-5 text-gray-400" />
-                  )}
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(category.id)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Ubah
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => onDelete(category.id)}
-                      className="text-red-600"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Hapus
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-            
-            {hasChildren && !isCollapsed && category.children && (
-              <div className="mt-4 ml-8">
-                <CategoryTree 
-                  categories={category.children}
-                  onToggleStatus={onToggleStatus}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  level={level + 1}
-                />
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-export default function CategoryIndex({ categories, parentCategories, filters }: Props) {
+export default function CategoryIndex({ categories, filters }: Props) {
   const { props } = usePage();
   const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
-  
+  const [expanded, setExpanded] = React.useState<Record<number, boolean>>({});
+
   // Tampilkan flash messages
   React.useEffect(() => {
     if (flash.success) {
-      // Bisa menggunakan toast, alert, atau notification library
       console.log('Success:', flash.success);
-      // Atau bisa menggunakan alert sederhana:
       alert(flash.success);
     }
     if (flash.error) {
@@ -245,23 +92,12 @@ export default function CategoryIndex({ categories, parentCategories, filters }:
 
   const [search, setSearch] = React.useState(filters.search || '');
   const [typeFilter, setTypeFilter] = React.useState(filters.type || '');
-  const [viewMode, setViewMode] = React.useState<'table' | 'tree'>('table');
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    router.get(
-      '/cpanel/cms/category',
-      { search: value, type: typeFilter, view: viewMode },
-      { preserveState: true, preserveScroll: true }
-    );
-  };
-
-  const handleTypeFilter = (value: string) => {
-    setTypeFilter(value);
-    const params: { search: string; type?: string; view?: string } = { search: search, view: viewMode };
-    if (value && value !== 'all') {
-      params.type = value;
-    }
+    const params: { search?: string; type?: string } = {};
+    if (value) params.search = value;
+    if (typeFilter && typeFilter !== 'all') params.type = typeFilter;
     router.get(
       '/cpanel/cms/category',
       params,
@@ -269,11 +105,11 @@ export default function CategoryIndex({ categories, parentCategories, filters }:
     );
   };
 
-  const handleViewModeChange = (mode: 'table' | 'tree') => {
-    setViewMode(mode);
-    const params: { search?: string; type?: string; view: string } = { view: mode };
+  const handleTypeFilter = (value: string) => {
+    setTypeFilter(value);
+    const params: { search?: string; type?: string } = {};
+    if (value && value !== 'all') params.type = value;
     if (search) params.search = search;
-    if (typeFilter && typeFilter !== 'all') params.type = typeFilter;
     router.get(
       '/cpanel/cms/category',
       params,
@@ -287,43 +123,128 @@ export default function CategoryIndex({ categories, parentCategories, filters }:
     }
   };
 
-  // Filter categories for tree view based on type
-  const getFilteredParentCategories = () => {
-    if (!typeFilter || typeFilter === 'all') {
-      return parentCategories;
-    }
-    
-    const filterCategory = (categories: Category[]): Category[] => {
-      return categories.filter(category => {
-        // Include if category matches type
-        if (category.type === typeFilter) {
-          return true;
-        }
-        // Include if any child matches type
-        if (category.children) {
-          const filteredChildren = filterCategory(category.children);
-          return filteredChildren.length > 0;
-        }
-        return false;
-      }).map(category => {
-        // Recursively filter children
-        if (category.children) {
-          return {
-            ...category,
-            children: filterCategory(category.children)
-          };
-        }
-        return category;
-      });
-    };
-    
-    return filterCategory(parentCategories);
-  };
-
-  const filteredParentCategories = getFilteredParentCategories();
-
   const handleToggleStatus = (id: number) => {
     router.patch(`/cpanel/cms/category/${id}/toggle-status`);
+  };
+
+  const toggleExpand = (id: number) => {
+    setExpanded(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const renderCategory = (category: Category, level = 0) => {
+    const hasChildren = category.children && category.children.length > 0;
+    const isOpen = expanded[category.id];
+
+    return (
+      <React.Fragment key={category.id}>
+        <TableRow className="hover:bg-muted/50">
+          
+          {/* NAME */}
+          <TableCell>
+            <div 
+              className="flex items-center space-x-2"
+              style={{ paddingLeft: `${level * 24}px` }}
+            >
+              
+              {/* 🔽 Toggle button */}
+              {hasChildren ? (
+                <button
+                  onClick={() => toggleExpand(category.id)}
+                  className="w-5 text-gray-400 hover:text-primary transition"
+                >
+                  {isOpen ? '▼' : '▶'}
+                </button>
+              ) : (
+                <span className="w-5" />
+              )}
+
+              {/* Icon garis */}
+              {level > 0 && <span className="text-gray-400 text-xs">└─</span>}
+              
+              {/* Image */}
+              {category.image && (
+                <img 
+                  src={`/storage/${category.image}`} 
+                  className="h-8 w-8 rounded object-cover"
+                />
+              )}
+
+              {/* Text */}
+              <div>
+                <div className="font-medium">{category.name}</div>
+                <div className="text-xs text-gray-500">{category.slug}</div>
+              </div>
+            </div>
+          </TableCell>
+
+          {/* TYPE */}
+          <TableCell>{category.type}</TableCell>
+
+          {/* PARENT */}
+          <TableCell>
+            {category.parent?.name ?? '-'}
+          </TableCell>
+
+          {/* STATUS */}
+          <TableCell>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleToggleStatus(category.id)}
+            >
+              {category.is_active ? (
+                <ToggleRight className="h-5 w-5 text-green-600" />
+              ) : (
+                <ToggleLeft className="h-5 w-5 text-gray-400" />
+              )}
+            </Button>
+          </TableCell>
+
+          {/* DATE */}
+          <TableCell>
+            {new Date(category.created_at).toLocaleDateString()}
+          </TableCell>
+
+          {/* ACTION */}
+          <TableCell className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href={`/cpanel/cms/category/edit/${category.id}`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Ubah
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem 
+                  onClick={() => handleDelete(category.id)}
+                  className="text-red-600"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Hapus
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TableCell>
+        </TableRow>
+
+        {/* 🔥 CHILDREN (collapsible) */}
+        {hasChildren && isOpen &&
+          category.children?.map(child =>
+            renderCategory(child, level + 1)
+          )
+        }
+      </React.Fragment>
+    );
   };
 
   return (
@@ -336,28 +257,12 @@ export default function CategoryIndex({ categories, parentCategories, filters }:
           title="Data Kategori"
           description="Data kategori yang ada di website"
         >
-          <div className="flex items-center space-x-2">
-            <Button
-              variant={viewMode === 'table' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleViewModeChange('table')}
-            >
-              <TableIcon className="h-4 w-4" />
+          <Link href="/cpanel/cms/category/create">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Tambah Kategori
             </Button>
-            <Button
-              variant={viewMode === 'tree' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleViewModeChange('tree')}
-            >
-              <FolderTree className="h-4 w-4" />
-            </Button>
-            <Link href="/cpanel/cms/category/create">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Tambah Kategori
-              </Button>
-            </Link>
-          </div>
+          </Link>
         </HeaderTitle>
 
         <Card>
@@ -386,7 +291,6 @@ export default function CategoryIndex({ categories, parentCategories, filters }:
               </Select>
             </div>
 
-            {viewMode === 'table' ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -399,86 +303,11 @@ export default function CategoryIndex({ categories, parentCategories, filters }:
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {categories.data.map((category) => (
-                  <TableRow key={category.id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        {category.image && (
-                          <img 
-                            src={`/storage/${category.image}`} 
-                            alt={category.name}
-                            className="h-8 w-8 rounded object-cover"
-                          />
-                        )}
-                        <div>
-                          <div className="font-medium">{category.name}</div>
-                          <div className="text-sm text-gray-500">{category.slug}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={category.type === 'product' ? 'default' : category.type === 'service' ? 'secondary' : 'outline'}>
-                        {category.type === 'product' ? 'Produk' : category.type === 'service' ? 'Layanan' : 'Blog'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {category.parent ? category.parent.name : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleStatus(category.id)}
-                        className="p-1"
-                      >
-                        {category.is_active ? (
-                          <ToggleRight className="h-5 w-5 text-green-600" />
-                        ) : (
-                          <ToggleLeft className="h-5 w-5 text-gray-400" />
-                        )}
-                      </Button>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(category.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/cpanel/cms/category/edit/${category.id}`}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Ubah
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDelete(category.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Hapus
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {categories.map(category => renderCategory(category))}
               </TableBody>
             </Table>
-          ) : (
-            <CategoryTree 
-              categories={filteredParentCategories} 
-              onToggleStatus={handleToggleStatus}
-              onEdit={(id) => router.get(`/cpanel/cms/category/edit/${id}`)}
-              onDelete={handleDelete}
-            />
-          )}
 
-            {viewMode === 'table' && categories.data.length === 0 && (
+            {categories.length === 0 && (
               <div className="text-center py-8">
                 <FolderTree className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-sm font-semibold text-gray-900">Tidak ada kategori</h3>
@@ -496,37 +325,6 @@ export default function CategoryIndex({ categories, parentCategories, filters }:
               </div>
             )}
 
-            {viewMode === 'tree' && filteredParentCategories.length === 0 && (
-              <div className="text-center py-8">
-                <FolderTree className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-semibold text-gray-900">Tidak ada kategori</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Mulai dengan membuat kategori baru.
-                </p>
-                <div className="mt-6">
-                  <Link href="/cpanel/cms/category/create">
-                    <Button>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Tambah Kategori
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {viewMode === 'table' && categories.last_page > 1 && (
-              <Pagination
-                currentPage={categories.current_page}
-                totalPages={categories.last_page}
-                total={categories.total}
-                perPage={categories.per_page}
-                onPageChange={(page) => {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('page', page.toString());
-                  router.get(url.toString());
-                }}
-              />
-            )}
           </CardContent>
         </Card>
       </div>

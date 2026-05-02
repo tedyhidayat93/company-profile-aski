@@ -20,9 +20,10 @@ interface Author {
 
 interface Props {
   authors: Author[];
+  blogCategories: Array<{ id: number; name: string; slug: string; type: string; is_active: boolean; }>;
 }
 
-export default function ArticleCreate({ authors }: Props) {
+export default function ArticleCreate({ authors, blogCategories }: Props) {
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'CMS',
@@ -58,6 +59,7 @@ export default function ArticleCreate({ authors }: Props) {
     tags: [],
     position: 0,
     is_headline: false,
+    category_id: blogCategories.length > 0 ? blogCategories[0].id.toString() : '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -245,7 +247,7 @@ export default function ArticleCreate({ authors }: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status *</Label>
                   <Select value={data.status} onValueChange={(value) => setData('status', value)}>
@@ -290,6 +292,23 @@ export default function ArticleCreate({ authors }: Props) {
                     min="0"
                   />
                   {errors.position && <p className="text-sm text-red-600">{errors.position}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="category_id">Kategori *</Label>
+                  <Select value={data.category_id} onValueChange={(value) => setData('category_id', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {blogCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.category_id && <p className="text-sm text-red-600">{errors.category_id}</p>}
                 </div>
               </div>
 

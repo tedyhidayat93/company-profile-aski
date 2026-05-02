@@ -20,6 +20,7 @@ class Article extends Model
         'status',
         'published_at',
         'author_id',
+        'category_id',
         'meta_title',
         'meta_description',
         'meta_keywords',
@@ -37,6 +38,7 @@ class Article extends Model
         'position' => 'integer',
         'is_headline' => 'boolean',
         'views' => 'integer',
+        'category_id' => 'integer',
     ];
 
     protected $attributes = [
@@ -48,6 +50,11 @@ class Article extends Model
     public function author()
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\User;
 use App\Models\Tag;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -40,6 +41,9 @@ class ArticleController extends Controller
                     return $query->where('is_headline', false);
                 }
             })
+            ->when($request->category, function ($query, $category) {
+                return $query->where('category', $category);
+            })
             ->when($request->sort, function ($query, $sort) {
                 if ($sort === 'newest') {
                     return $query->orderBy('created_at', 'desc');
@@ -58,20 +62,24 @@ class ArticleController extends Controller
             ->paginate(15);
 
         $authors = User::orderBy('name')->get();
+        $blogCategories = Category::ofType('blog')->active()->orderBy('name')->get();
 
         return Inertia::render('backpanel/article/index', [
             'articles' => $articles,
             'authors' => $authors,
-            'filters' => $request->only(['search', 'status', 'author', 'headline', 'sort'])
+            'blogCategories' => $blogCategories,
+            'filters' => $request->only(['search', 'status', 'author', 'headline', 'category', 'sort'])
         ]);
     }
 
     public function create()
     {
         $authors = User::orderBy('name')->get();
+        $blogCategories = Category::ofType('blog')->active()->orderBy('name')->get();
 
         return Inertia::render('backpanel/article/create', [
             'authors' => $authors,
+            'blogCategories' => $blogCategories,
         ]);
     }
 
@@ -107,6 +115,7 @@ class ArticleController extends Controller
             'tags.*' => 'nullable|string|max:50',
             'position' => 'nullable|integer|min:0',
             'is_headline' => 'nullable|boolean',
+            'category_id' => 'nullable|integer|exists:categories,id',
         ], [
             'tags.array' => 'The tags field must be an array.',
             'is_headline.boolean' => 'The is headline field must be true or false.',
@@ -131,6 +140,11 @@ class ArticleController extends Controller
         // Set default values
         $validated['position'] = $validated['position'] ?? 0;
         $validated['is_headline'] = $validated['is_headline'] ?? false;
+        // Set default category_id to first blog category if not provided
+        if (!isset($validated['category_id']) || empty($validated['category_id'])) {
+            $defaultCategory = Category::ofType('blog')->active()->first();
+            $validated['category_id'] = $defaultCategory ? $defaultCategory->id : null;
+        }
 
         if ($validated['status'] === 'published' && !isset($validated['published_at'])) {
             $validated['published_at'] = now();
@@ -162,10 +176,12 @@ class ArticleController extends Controller
     {
         $article = Article::findOrFail($id);
         $authors = User::orderBy('name')->get();
+        $blogCategories = Category::ofType('blog')->active()->orderBy('name')->get();
 
         return Inertia::render('backpanel/article/edit', [
             'article' => $article,
             'authors' => $authors,
+            'blogCategories' => $blogCategories,
         ]);
     }
 
@@ -203,6 +219,7 @@ class ArticleController extends Controller
             'tags.*' => 'nullable|string|max:50',
             'position' => 'nullable|integer|min:0',
             'is_headline' => 'nullable|boolean',
+            'category_id' => 'nullable|integer|exists:categories,id',
         ];
 
         $validationRules = array_intersect_key($fieldRules, $requestData);
@@ -247,6 +264,10 @@ class ArticleController extends Controller
         // Set default values
         $validated['position'] = $validated['position'] ?? 0;
         $validated['is_headline'] = $validated['is_headline'] ?? false;
+        // Keep existing category_id if not being updated
+        if (!isset($validated['category_id']) || empty($validated['category_id'])) {
+            unset($validated['category_id']);
+        }
 
         if ($validated['status'] === 'published' && !isset($validated['published_at'])) {
             $validated['published_at'] = now();

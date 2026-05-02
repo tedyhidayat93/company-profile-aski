@@ -167,51 +167,56 @@ export default function Dashboard({
         <div className="grid gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 xxl:grid-cols-5">
           {stats.map((stat) => {
             const Icon = iconMap[stat.icon] || Package;
-            const colorClass = stat.color.replace('bg-', ''); // mengambil nama warna (misal: 'blue-500')
-
             return (
               <Card 
                 key={stat.name} 
-                className={`border-t-4 border-b-0 border-l-0 border-r-0 border-${colorClass} group relative overflow-hidden bg-white/50 backdrop-blur-sm transition-all duration-500 hover:bg-white shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)] hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1)] ring-1 ring-slate-200/60`}
+                className={`group relative overflow-hidden bg-white border-none shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
               >
-                {/* Glow Effect Background - Sangat Halus */}
-                <div className={`absolute -right-4 -top-4 h-24 w-24 rounded-full bg-${colorClass} opacity-[0.03] transition-opacity duration-500 group-hover:opacity-[0.08] blur-2xl`} />
+                {/* Aksentuasi Warna: Garis Vertikal di Sisi Kiri saat Hover */}
+                <div className={`absolute left-0 top-0 bottom-0 w-1 ${stat.color} opacity-0 group-hover:opacity-100 transition-all duration-300`} />
                 
-                <CardContent className="">
-                  <div className="flex flex-col gap-4">
-                    {/* Header: Icon & Label */}
-                    <div className="flex items-center justify-between">
-                      <div className={`p-2.5 rounded-lg bg-${colorClass}/10 transition-colors duration-300 group-hover:bg-${colorClass} group-hover:text-white`}>
-                        <Icon className={`h-5 w-5 text-${colorClass} transition-colors duration-300 group-hover:text-white`} />
+                <CardContent className="px-6">
+                  <div className="relative z-10 flex flex-col">
+                    
+                    {/* Top Row: Icon & Badge Tren */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`p-3 rounded-2xl ${stat.color.replace('bg-', 'bg-')}/10 text-white transition-transform duration-500 group-hover:rotate-[10deg]`}>
+                        <Icon className={`h-6 w-6 ${stat.color.replace('bg-', 'text-')}`} />
                       </div>
-                      {/* Dot Indicator */}
-                      <div className={`h-1.5 w-1.5 rounded-full bg-${colorClass} animate-pulse`} />
+                      {/* Badge Persentase (Opsional/Statis) - Menambah kesan profesional */}
+                      <span className={`text-[10px] px-2 h-5 animate-pulse flex items-center justify-center font-bold rounded-full bg-red-50 text-red-600 ring-1 ring-red-100 ${stat.name === 'Total Seluruh Pesanan' ? '' : 'hidden'}`}>
+                        {stat.name === 'Total Seluruh Pesanan' && (
+                          <span> {newOrdersCount} Pesanan Baru</span>
+                        )}
+                      </span>
                     </div>
 
-                    {/* Content: Value & Name */}
-                    <div className="space-y-0.5">
-                      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em]">
+                    {/* Main Content: Value & Label */}
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">
                         {stat.name}
                       </p>
-                      <div className="flex items-baseline gap-1">
-                        <h3 className="text-4xl font-bold tracking-tight text-slate-800 transition-all duration-300 group-hover:scale-[1.02] origin-left">
+                      <div className="flex items-baseline">
+                        <h3 className="text-5xl font-black tracking-tighter text-slate-900 transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-slate-900 group-hover:to-slate-600">
                           {stat.value.toLocaleString()}
                         </h3>
                       </div>
                     </div>
 
-                    {/* Footer: Simple Progress Bar atau Tren Kecil */}
-                    <div className="pt-2">
-                      <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full bg-${colorClass} opacity-60 transition-all duration-1000 group-hover:opacity-100`} 
-                          style={{ width: '65%' }} // Ini bisa dinamis berdasarkan target
-                        />
+                    {/* Footer: Visual Subtil */}
+                    <div className="mt-6 flex items-center gap-2">
+                      <div className="h-1 flex-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${stat.color} w-2/3 opacity-30 group-hover:opacity-100 transition-all duration-700`} />
                       </div>
-                      <p className="text-[10px] mt-1.5 text-slate-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        Data diperbarui berkala
-                      </p>
+                      <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
+                        Live Stats
+                      </span>
                     </div>
+                  </div>
+
+                  {/* Background Decorative Number - Membuat tampilan sangat modern */}
+                  <div className="absolute -bottom-2 -right-2 text-8xl font-black text-slate-50 select-none pointer-events-none group-hover:text-slate-100/50 transition-colors duration-300">
+                    {stat.value.toString().slice(-1)}
                   </div>
                 </CardContent>
               </Card>

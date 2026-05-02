@@ -29,7 +29,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="mb-4 font-semibold text-white">Navigasi</h4>
+            <h4 className="mb-4 font-semibold text-white">Pintasan</h4>
             <ul className="space-y-2">
               {NAV_LINKS.map((link: NavLink) => (
                 <li key={link.name} className='text-sm'>
@@ -45,12 +45,13 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="mb-4 font-semibold text-white">Kontak</h4>
+            <h4 className="mb-4 font-semibold text-white">Navigasi</h4>
             <ul className="space-y-2 text-gray-400 text-sm">
+              <li>Alamat: {getConfig('address', CONTACT_INFO.address)}</li>
               <li>Email: {getConfig('contact_email', CONTACT_INFO.email)}</li>
               {/* <li>WhatsApp: {getConfig('contact_whatsapp', CONTACT_INFO.phone)}</li> */}
               <li>Telepon: {getConfig('contact_phone', CONTACT_INFO.phone)}</li>
-              <li>Alamat: {getConfig('address', CONTACT_INFO.address)}</li>
+              <li>WhatsApp: <a className='text-white hover:text-primary' href={`https://wa.me/${getConfig('contact_whatsapp', CONTACT_INFO.whatsapp)}`} target="_blank" rel="noopener noreferrer">Klik Untuk Menghubungi</a></li>
             </ul>
           </div>
 

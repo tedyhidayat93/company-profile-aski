@@ -12,7 +12,8 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $orders = Order::with('customer')
+        // Build base query with filters for both pagination and statistics
+        $baseQuery = Order::with('customer')
             ->when($request->search, function ($query, $search) {
                 return $query->where('order_number', 'like', "%{$search}%")
                     ->orWhere('company_name', 'like', "%{$search}%")
@@ -31,14 +32,113 @@ class OrderController extends Controller
             })
             ->when($request->date_to, function ($query, $dateTo) {
                 return $query->whereDate('created_at', '<=', $dateTo);
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            });
+
+        // Get order statistics with same filters
+        $orderStatistics = $this->getOrderStatistics($baseQuery);
+
+        // Get paginated orders
+        $orders = $baseQuery->orderBy('created_at', 'desc')->paginate(10);
 
         return Inertia::render('backpanel/orders/index', [
             'orders' => $orders,
+            'orderStatistics' => $orderStatistics,
             'filters' => $request->only(['search', 'status', 'date_from', 'date_to'])
         ]);
+    }
+
+    /**
+     * Calculate order statistics based on filtered query
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $baseQuery
+     * @return array
+     */
+    private function getOrderStatistics($baseQuery): array
+    {
+        // Clone the base query to avoid affecting pagination
+        $statsQuery = clone $baseQuery;
+
+        // Get total count with filters applied
+        $totalOrders = $statsQuery->count();
+
+        // Get counts by status with same filters
+        $statusCounts = (clone $statsQuery)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        // Define all possible statuses with their labels
+        $statusLabels = [
+            'pending' => 'Pesanan Baru',
+            'confirmed' => 'Dikonfirmasi',
+            'processing' => 'Diproses',
+            'shipped' => 'Dikirim',
+            'completed' => 'Selesai',
+            'cancelled' => 'Dibatalkan'
+        ];
+
+        // Build statistics array
+        $statistics = [
+            [
+                'name' => 'Total Semua Pesanan',
+                'value' => $totalOrders,
+                'icon' => 'shopping-cart',
+                'color' => 'bg-blue-100 text-blue-800'
+            ]
+        ];
+
+        // Add status-specific statistics
+        foreach ($statusLabels as $status => $label) {
+            $statistics[] = [
+                'name' => $label,
+                'value' => $statusCounts[$status] ?? 0,
+                'icon' => $this->getStatusIcon($status),
+                'color' => $this->getStatusColor($status)
+            ];
+        }
+
+        return $statistics;
+    }
+
+    /**
+     * Get icon for order status
+     *
+     * @param string $status
+     * @return string
+     */
+    private function getStatusIcon(string $status): string
+    {
+        $icons = [
+            'pending' => 'clock',
+            'confirmed' => 'check-circle',
+            'processing' => 'clock',
+            'shipped' => 'package',
+            'completed' => 'check-circle',
+            'cancelled' => 'x-circle'
+        ];
+
+        return $icons[$status] ?? 'file-text';
+    }
+
+    /**
+     * Get color for order status
+     *
+     * @param string $status
+     * @return string
+     */
+    private function getStatusColor(string $status): string
+    {
+        $colors = [
+            'pending' => 'bg-yellow-100 text-yellow-800',
+            'confirmed' => 'bg-blue-100 text-blue-800',
+            'processing' => 'bg-purple-100 text-purple-800',
+            'shipped' => 'bg-indigo-100 text-indigo-800',
+            'completed' => 'bg-green-100 text-green-800',
+            'cancelled' => 'bg-red-100 text-red-800'
+        ];
+
+        return $colors[$status] ?? 'bg-gray-100 text-gray-800';
     }
 
     public function create()

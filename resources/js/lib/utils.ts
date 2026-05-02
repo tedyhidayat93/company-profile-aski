@@ -1,3 +1,4 @@
+import { Category } from '@/pages/backpanel/category/create';
 import { InertiaLinkProps } from '@inertiajs/react';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -30,3 +31,24 @@ export function formatDate(date: string): string {
     hour12: false, // Menggunakan format 24 jam
   }).format(d).replace(',', ''); // Menghapus koma bawaan toLocale standar
 }
+
+export const flattenCategories = (
+  categories: Category[],
+  level = 0
+): { id: number; name: string; level: number }[] => {
+  let result: any[] = [];
+
+  categories.forEach((cat) => {
+    result.push({
+      id: cat.id,
+      name: cat.name,
+      level,
+    });
+
+    if (cat.children && cat.children.length > 0) {
+      result = result.concat(flattenCategories(cat.children, level + 1));
+    }
+  });
+
+  return result;
+};
