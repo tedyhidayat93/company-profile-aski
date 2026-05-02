@@ -521,6 +521,9 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                         stock: relatedProduct.quantity,
                                         image: relatedProduct.image_path || '',
                                         category: relatedProduct.category?.name || '',
+                                        created_at: relatedProduct.published_at || new Date().toISOString(),
+                                        updated_at: relatedProduct.published_at || new Date().toISOString(),
+                                        sku: relatedProduct.sku || '',
                                     };
                                     return <ProductCard key={relatedProduct.id} product={mappedProduct} />;
                                 })}

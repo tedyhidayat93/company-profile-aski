@@ -67,10 +67,14 @@ export interface Product {
   is_new: boolean;
   is_for_sell: boolean;
   is_rent: boolean;
+  show_price: boolean;
+  show_stock: boolean;
   position?: number;
   brand_id?: number;
   category_id?: number;
   image_path?: string; // Processed image path with /storage/ prefix
+  stock: number;
+  image: string;
   coverImage?: {
     id: number;
     image_path: string;

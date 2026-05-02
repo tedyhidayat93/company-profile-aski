@@ -4,27 +4,9 @@ import { formatPrice } from '@/utils/currency';
 import { getProductTypeText } from '@/utils/product';
 import PlaceholderImage from '@/assets/images/placeholder.png';
 import { ShoppingBag, Star, ArrowRight } from 'lucide-react';
+import type { Product } from '@/types';
 
 
-interface Product {
-    id: number;
-    name: string;
-    slug: string;
-    type: string;
-    quantity: number;
-    category: string;
-    price: number;
-    compare_at_price?: number;
-    stock: number;
-    image: string;
-    description: string;
-    is_bestseller: boolean;
-    show_price: boolean;
-    show_stock: boolean;
-    is_new: boolean;
-    is_for_sell: boolean;
-    is_rent: boolean;
-}
 
 interface ProductCardProps {
     product: Product;
