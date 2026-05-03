@@ -90,6 +90,7 @@ export interface Product {
     name: string;
   };
   tags: string[];
+  specific_specs?: Array<{ label: string; value: string; note: string }>;
   created_at: string;
   updated_at: string;
   [key: string]: unknown;

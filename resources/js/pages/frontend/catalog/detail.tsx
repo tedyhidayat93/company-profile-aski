@@ -15,6 +15,7 @@ import { generateCatalogUrl } from '@/utils/app';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import SingleGalleryPreview from '@/components/single-gallery-preview';
+import { Product } from '@/types';
 
 type OrderFormData = {
   companyName: string;
@@ -28,32 +29,6 @@ interface Specification {
     [key: string]: string;
 }
 
-interface Product {
-    id: number;
-    name: string;
-    slug: string;
-    type: string;
-    category: string;
-    brand?: string;
-    price: number;
-    show_price: boolean;
-    compare_at_price?: number;
-    stock: number | null;
-    image: string;
-    description: string;
-    short_description?: string;
-    sku?: string;
-    barcode?: string;
-    is_bestseller?: boolean;
-    is_new?: boolean;
-    is_featured?: boolean;
-    is_for_sell?: boolean;
-    is_rent?: boolean;
-    images: ProductImage[];
-    show_stock: boolean;
-    tags: string[];
-}
-
 interface ProductImage {
     id: number;
     path: string;
@@ -61,56 +36,10 @@ interface ProductImage {
     position: number;
 }
 
-interface RelatedProduct {
-    id: number;
-    name: string;
-    slug: string;
-    type: string;
-    description: string;
-    short_description?: string;
-    sku?: string;
-    price: number;
-    compare_at_price?: number;
-    cost_per_item?: number;
-    track_quantity: boolean;
-    quantity: number;
-    barcode?: string;
-    status: string;
-    is_featured: boolean;
-    is_bestseller: boolean;
-    is_new: boolean;
-    is_for_sell: boolean;
-    is_rent: boolean;
-    show_price: boolean;
-    show_stock: boolean;
-    published_at?: string;
-    position?: number;
-    brand_id?: number;
-    category_id?: number;
-    meta_title?: string;
-    meta_description?: string;
-    views: number;
-    tags: string[];
-    image_path?: string;
-    brand?: {
-        id: number;
-        name: string;
-    };
-    category?: {
-        id: number;
-        name: string;
-    };
-    images?: Array<{
-        id: number;
-        image_path: string;
-        is_cover: boolean;
-    }>;
-}
 
 interface DetailProps {
     product: Product;
-    relatedProducts: RelatedProduct[];
-    siteconfig: any;
+    relatedProducts: Product[];
 }
 
 interface ImagesGalleryPreview {
@@ -118,35 +47,34 @@ interface ImagesGalleryPreview {
     thumbnail: string;
 }
 
-export default function Detail({ product, relatedProducts, siteconfig }: DetailProps) {
+export default function Detail({ product, relatedProducts }: DetailProps) {
     const { getConfig } = useConfig();
     const [quantity, setQuantity] = useState(1);
     const [productImages, setProductImages] = useState<ImagesGalleryPreview[]>([]);
     const [selectedImage, setSelectedImage] = useState(
-        product.images.find(img => img.is_cover)?.path || product.images[0]?.path || product.image
+        product.coverImage?.image_path || product.image || ''
     );
     const [isImageLoaded, setIsImageLoaded] = useState(false);
     
     const [imageSrc, setImageSrc] = useState(
-        product.images.find(img => img.is_cover)?.path || product.images[0]?.path || product.image
+        product.coverImage?.image_path || product.image || ''
     );
 
     // Effect untuk mengolah product images dari database
     useEffect(() => {
-        if (product.images && product.images.length > 0) {
-            const formattedImages = product.images.map(img => ({
-                original: img.path,
-                thumbnail: img.path
-            }));
-            setProductImages(formattedImages);
+        if (product.coverImage) {
+            setProductImages([{
+                original: product.coverImage.image_path,
+                thumbnail: product.coverImage.image_path
+            }]);
         } else if (product.image) {
-            // Fallback jika tidak ada images array tapi ada single image
+            // Fallback jika tidak ada cover image tapi ada single image
             setProductImages([{
                 original: product.image,
                 thumbnail: product.image
             }]);
         }
-    }, [product.images, product.image]);
+    }, [product.coverImage, product.image]);
 
 
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
@@ -277,8 +205,8 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
 
     const handleQuantityChange = (value: number) => {
         const newQuantity = quantity + value;
-        // Only check stock limit if track_quantity is enabled (stock is not null)
-        if (newQuantity > 0 && (product.stock === null || newQuantity <= product.stock)) {
+        // Check stock limit
+        if (newQuantity > 0 && newQuantity <= product.stock) {
             setQuantity(newQuantity);
         }
     };
@@ -371,8 +299,8 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                     </span> 
                                     {
                                         product.show_stock && (
-                                            <span className={`text-sm ${product.stock && product.stock > 0 ? 'text-gray-500' : 'text-red-500 font-medium'}`}>
-                                                {product.stock !== null ? `Tersedia ${product.stock} unit` : 'Stok Tersedia'}
+                                            <span className={`text-sm ${product.stock > 0 ? 'text-gray-500' : 'text-red-500 font-medium'}`}>
+                                                {product.stock > 0 ? `Tersedia ${product.stock} unit` : 'Stok Habis'}
                                             </span>
                                         )
                                     }
@@ -490,14 +418,14 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                     <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                                         <dt className="text-sm font-medium text-gray-500">Merek</dt>
                                         <dd className="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
-                                            {product.brand}
+                                            {product.brand.name}
                                         </dd>
                                     </div>
                                 )}
                                 <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                                     <dt className="text-sm font-medium text-gray-500">Kategori</dt>
                                     <dd className="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
-                                        {product.category}
+                                        {product.category?.name || '-'}
                                     </dd>
                                 </div>
                             </dl>
@@ -506,6 +434,40 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                             <p className="mt-2 text-gray-600 dark:text-gray-300">
                                 {product.description}
                             </p>
+
+                            {product?.specific_specs && product?.specific_specs?.length > 0 && (
+                                <div className="mt-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                        Spesifikasi Produk
+                                    </h3>
+
+                                    <div className="space-y-4">
+                                        {product?.specific_specs?.map((spec, index) => (
+                                            <div key={index} className="border-b border-gray-200 dark:border-gray-600 pb-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                        {spec.label}
+                                                    </dt>
+                                                    <dd className="mt-1 text-sm text-gray-900 dark:text-white">
+                                                        {spec.value}
+                                                    </dd>
+                                                </div>
+
+                                                {spec.note && (
+                                                    <div className="col-span-1 md:col-span-2">
+                                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                            Catatan
+                                                        </dt>
+                                                        <dd className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                                                            {spec.note}
+                                                        </dd>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -515,17 +477,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white">Produk Terkait</h2>
                             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                                 {relatedProducts.map((relatedProduct) => {
-                                    // Map RelatedProduct to Product interface
-                                    const mappedProduct = {
-                                        ...relatedProduct,
-                                        stock: relatedProduct.quantity,
-                                        image: relatedProduct.image_path || '',
-                                        category: relatedProduct.category?.name || '',
-                                        created_at: relatedProduct.published_at || new Date().toISOString(),
-                                        updated_at: relatedProduct.published_at || new Date().toISOString(),
-                                        sku: relatedProduct.sku || '',
-                                    };
-                                    return <ProductCard key={relatedProduct.id} product={mappedProduct} />;
+                                    return <ProductCard key={relatedProduct.id} product={relatedProduct} />;
                                 })}
                             </div>
                         </div>
@@ -557,7 +509,7 @@ export default function Detail({ product, relatedProducts, siteconfig }: DetailP
                                     <div className="p-4">
                                         <h4 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">{product.name}</h4>
                                         <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded shadow-sm">
-                                            {product.category}
+                                            {product.category?.name || '-'}
                                         </span>
                                     </div>
                                 </div>

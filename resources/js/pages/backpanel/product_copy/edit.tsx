@@ -14,35 +14,65 @@ import { formatPrice, parseCurrencyInput, formatCurrencyInput } from '@/utils/cu
 import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon, Plus, Trash2 } from 'lucide-react';
 import TreeSelect from '@/components/tree-select';
 import { flattenCategories } from '@/lib/utils';
+import { Category } from '../category/create';
 
 interface Brand {
   id: number;
   name: string;
 }
 
-interface Category {
+interface ProductImage {
+  id: number;
+  product_id: number;
+  image_path: string;
+  is_cover: boolean;
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Product {
   id: number;
   name: string;
   slug: string;
+  type: 'physical' | 'digital';
   description?: string;
-  image?: string;
-  type: string;
-  parent_id?: number;
-  is_active: boolean;
+  short_description?: string;
+  sku?: string;
+  price: number;
+  compare_at_price?: number;
+  cost_per_item?: number;
+  track_quantity: boolean;
+  quantity?: number;
+  barcode?: string;
+  status: 'draft' | 'published';
+  is_featured: boolean;
+  is_bestseller: boolean;
+  is_new: boolean;
+  is_for_sell: boolean;
+  is_rent: boolean;
+  show_price: boolean;
+  show_stock: boolean;
+  published_at?: string;
+  position?: number;
+  brand_id?: number;
+  category_id?: number;
   meta_title?: string;
   meta_description?: string;
-  parent?: Category;
-  children?: Category[];
-  created_at?: string;
-  updated_at?: string;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+  images: ProductImage[];
+  specific_specs?: Array<{ label: string; value: string; note: string }>;
 }
 
 interface Props {
+  product: Product;
   brands: Brand[];
   categories: Category[];
 }
 
-export default function ProductCreate({ brands, categories }: Props) {
+export default function ProductEdit({ product, brands, categories }: Props) {
   const { props } = usePage();
   const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
   
@@ -58,15 +88,34 @@ export default function ProductCreate({ brands, categories }: Props) {
   }, [flash]);
 
   const [imagePreviews, setImagePreviews] = useState<Array<{ file: File; preview: string }>>([]);
-  const [coverImageIndex, setCoverImageIndex] = useState<number>(0);
-  const [tags, setTags] = useState<string[]>([]);
+  const [removeImages, setRemoveImages] = useState<number[]>([]);
+  const [tags, setTags] = useState<string[]>(product.tags);
   const [tagInput, setTagInput] = useState('');
-  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [imageErrors, setImageErrors] = useState<string[]>([]);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
   // State for formatted currency display
-  const [formattedPrice, setFormattedPrice] = useState('');
-  const [formattedComparePrice, setFormattedComparePrice] = useState('');
+  const [formattedPrice, setFormattedPrice] = useState(
+    product.price ? formatCurrencyInput(product.price.toString()) : ''
+  );
+  const [formattedComparePrice, setFormattedComparePrice] = useState(
+    product.compare_at_price ? formatCurrencyInput(product.compare_at_price.toString()) : ''
+  );
+
+  // Calculate initial cover image index from active images (excluding removed ones)
+  const getInitialCoverIndex = () => {
+    const activeImages = product.images.filter(img => !removeImages.includes(img.id));
+    const coverImage = activeImages.find(img => img.is_cover);
+    return coverImage ? activeImages.indexOf(coverImage) : 0;
+  };
+
+  // Get the actual cover image ID for form submission
+  const getInitialCoverImageId = () => {
+    const coverImage = product.images.find(img => img.is_cover);
+    return coverImage ? coverImage.id : null;
+  };
+
+  const [coverImageIndex, setCoverImageIndex] = useState<number>(getInitialCoverIndex());
 
   const { data, setData, post, processing, errors, reset } = useForm<{
     name: string;
@@ -90,44 +139,46 @@ export default function ProductCreate({ brands, categories }: Props) {
     show_price: boolean;
     show_stock: boolean;
     position: number;
-    brand_id: number | null;
-    category_id: number | null;
+    brand_id: string | null;
+    category_id: string | null;
     meta_title: string;
     meta_description: string;
     tags: string[];
     images: File[];
-    cover_image: number;
-    specific_specs: Array<{ label: string; value: string; note: string }>;
+    cover_image: number | null;
+    remove_images: number[];
+    specific_specs: any[];
   }>({
-    name: '',
-    slug: '',
-    type: 'physical',
-    description: '',
-    short_description: '',
-    sku: '',
-    price: '',
-    compare_at_price: '',
-    cost_per_item: '',
-    track_quantity: true,
-    quantity: '',
-    barcode: '',
-    status: 'draft',
-    is_featured: false,
-    is_bestseller: false,
-    is_new: false,
-    is_for_sell: true,
-    is_rent: true,
-    show_price: true,
-    show_stock: true,
-    position: 0,
-    brand_id: null,
-    category_id: null,
-    meta_title: '',
-    meta_description: '',
-    tags: [],
+    name: product.name,
+    slug: product.slug,
+    type: product.type,
+    description: product.description || '',
+    short_description: product.short_description || '',
+    sku: product.sku || '',
+    price: product.price.toString(),
+    compare_at_price: product.compare_at_price?.toString() || '',
+    cost_per_item: product.cost_per_item?.toString() || '',
+    track_quantity: product.track_quantity,
+    quantity: product.quantity?.toString() || '',
+    barcode: product.barcode || '',
+    status: product.status,
+    is_featured: product.is_featured,
+    is_bestseller: product.is_bestseller,
+    is_new: product.is_new,
+    is_for_sell: product.is_for_sell,
+    is_rent: product.is_rent,
+    show_price: product.show_price,
+    show_stock: product.show_stock,
+    position: product.position || 0,
+    brand_id: product.brand_id?.toString() || null,
+    category_id: product.category_id?.toString() || null,
+    meta_title: product.meta_title || '',
+    meta_description: product.meta_description || '',
+    tags: product.tags,
     images: [] as File[],
-    cover_image: 0,
-    specific_specs: [],
+    cover_image: getInitialCoverImageId(),
+    remove_images: [] as number[],
+    specific_specs: product.specific_specs || [],
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -173,16 +224,6 @@ export default function ProductCreate({ brands, categories }: Props) {
     e.target.value = formattedValue;
   };
 
-  const addSpecRow = () => {
-    const newSpec = { label: '', value: '', note: '' };
-    setData('specific_specs', [...data.specific_specs, newSpec]);
-  };
-
-  const removeSpecRow = (index: number) => {
-    const newSpecs = data.specific_specs.filter((_, i) => i !== index);
-    setData('specific_specs', newSpecs);
-  };
-
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
@@ -192,12 +233,11 @@ export default function ProductCreate({ brands, categories }: Props) {
       setImageErrors([]);
       
       // Validate file count
-      const totalImages = data.images.length + newFiles.length;
+      const totalImages = activeImages.length + imagePreviews.length + newFiles.length;
       if (totalImages > 5) {
         errors.push('Maksimal 5 gambar yang diperbolehkan');
         setImageErrors(errors);
         e.target.value = '';
-        return;
       }
       
       // Validate each file
@@ -245,7 +285,7 @@ export default function ProductCreate({ brands, categories }: Props) {
     }
   };
 
-  const handleRemoveImage = (index: number) => {
+  const handleRemoveNewImage = (index: number) => {
     const newImages = data.images.filter((_, i) => i !== index);
     const newPreviews = imagePreviews.filter((_, i) => i !== index);
     
@@ -253,15 +293,58 @@ export default function ProductCreate({ brands, categories }: Props) {
     setImagePreviews(newPreviews);
     
     // Adjust cover image index if needed
-    if (coverImageIndex >= newImages.length) {
-      setCoverImageIndex(Math.max(0, newImages.length - 1));
-      setData('cover_image', Math.max(0, newImages.length - 1));
+    if (coverImageIndex >= product.images.length + newImages.length) {
+      setCoverImageIndex(Math.max(0, product.images.length + newImages.length - 1));
+      setData('cover_image', Math.max(0, product.images.length + newImages.length - 1));
+    }
+  };
+
+  const handleRemoveExistingImage = (imageId: number) => {
+    const newRemoveImages = [...removeImages, imageId];
+    setRemoveImages(newRemoveImages);
+    setData('remove_images', newRemoveImages);
+    
+    // Adjust cover image if the removed image was the cover
+    const removedImage = product.images.find(img => img.id === imageId);
+    if (removedImage && removedImage.is_cover) {
+      // Find a new cover image from remaining active images
+      const newCoverImage = product.images.find((img) => 
+        img.id !== imageId && !newRemoveImages.includes(img.id)
+      );
+      const newCoverImageId = newCoverImage ? newCoverImage.id : null;
+      
+      // Update UI index
+      const newCoverIndex = newCoverImage ? 
+        product.images.filter(img => !newRemoveImages.includes(img.id)).indexOf(newCoverImage) : 0;
+      setCoverImageIndex(newCoverIndex);
+      setData('cover_image', newCoverImageId);
     }
   };
 
   const handleSetCoverImage = (index: number) => {
     setCoverImageIndex(index);
-    setData('cover_image', index);
+    // If this is a new image (index >= activeImages.length), send the relative index
+    if (index >= activeImages.length) {
+      const newImageIndex = index - activeImages.length;
+      setData('cover_image', newImageIndex);
+    } else {
+      // This shouldn't happen for new images, but handle it gracefully
+      setData('cover_image', index);
+    }
+  };
+
+  const handleSetExistingCoverImage = (imageId: number) => {
+    // Find the actual index in the filtered activeImages array
+    const actualIndex = activeImages.findIndex(img => img.id === imageId);
+    console.log('Setting cover image:', { imageId, actualIndex, totalActiveImages: activeImages.length });
+    
+    if (actualIndex !== -1) {
+      setCoverImageIndex(actualIndex);
+      setData('cover_image', imageId); // Send image ID, not index
+      console.log('Cover image set to image ID:', imageId);
+    } else {
+      console.log('Image not found in active images:', imageId);
+    }
   };
 
   const addTag = () => {
@@ -279,11 +362,18 @@ export default function ProductCreate({ brands, categories }: Props) {
     setData('tags', newTags);
   };
 
+  const addSpecRow = () => {
+    const newSpec = { label: '', value: '', note: '' };
+    setData('specific_specs', [...data.specific_specs, newSpec]);
+  };
+
+  const removeSpecRow = (index: number) => {
+    const newSpecs = data.specific_specs.filter((_, i) => i !== index);
+    setData('specific_specs', newSpecs);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('Form submitted with data:', data);
-    console.log('Processing:', processing);
     
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
@@ -293,32 +383,32 @@ export default function ProductCreate({ brands, categories }: Props) {
         });
       } else if (key === 'tags') {
         // Send tags as array elements instead of JSON string
-        tags.forEach((tag, index) => {
+        (value as string[]).forEach((tag, index) => {
           formData.append(`tags[${index}]`, tag);
         });
       } else if (key === 'price' || key === 'compare_at_price' || key === 'cost_per_item') {
         formData.append(key, value?.toString() || '');
       } else if (key === 'track_quantity' || key === 'is_featured' || key === 'is_bestseller' || key === 'is_new' || key === 'is_for_sell' || key === 'is_rent' || key === 'show_price' || key === 'show_stock') {
         formData.append(key, value ? '1' : '0');
+      } else if (key === 'remove_images') {
+        (value as number[]).forEach((id, index) => {
+          formData.append(`remove_images[${index}]`, id.toString());
+        });
+      } else if (key === 'cover_image') {
+        if (value !== null && value !== '') {
+          formData.append(key, value.toString());
+        }
       } else if (key !== 'images' && key !== 'tags') {
         formData.append(key, value?.toString() || '');
       }
     });
 
-    console.log('Submitting to: /cpanel/cms/product');
-    
-    router.post('/cpanel/cms/product', formData, {
+    formData.append('_method', 'PUT');
+
+    router.post(`/cpanel/cms/product/${product.id}`, formData, {
       onSuccess: () => {
-        console.log('Form submitted successfully');
-        reset();
         setImagePreviews([]);
-        setCoverImageIndex(0);
-        setTags([]);
-        setTagInput('');
-        setSlugManuallyEdited(false);
-      },
-      onError: (errors) => {
-        console.log('Form submission errors:', errors);
+        setRemoveImages([]);
       },
     });
   };
@@ -333,26 +423,33 @@ export default function ProductCreate({ brands, categories }: Props) {
       href: '/cpanel/cms/product',
     },
     {
-      title: 'Tambah',
-      href: '/cpanel/cms/product/create',
+      title: product.name,
+      href: `/cpanel/cms/product/${product.id}`,
+    },
+    {
+      title: 'Ubah',
+      href: `/cpanel/cms/product/edit/${product.id}`,
     },
   ];
 
+  const activeImages = product.images.filter(img => !removeImages.includes(img.id));
+  const totalImages = activeImages.length + imagePreviews.length;
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Tambah Produk" />
+      <Head title={`Ubah Produk: ${product.name}`} />
       
       <div className="space-y-6 p-6">
         <HeaderTitle
-          title="Tambah Produk"
-          description="Tambah produk baru"
+          title="Ubah Produk"
+          description={`Ubah produk: ${product.name}`}
         />
 
-        <Card className='pt-0 overflow-hidden'>
-          <CardHeader className='bg-slate-900 py-5 text-inverse'>
-            <CardTitle className='text-xl text-white pb-0'>Form Produk</CardTitle>
-            <CardDescription className='pt-0 text-slate-200'>
-              Isi informasi produk di bawah
+        <Card>
+          <CardHeader>
+            <CardTitle>Form Produk</CardTitle>
+            <CardDescription>
+              Ubah informasi produk di bawah
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -414,7 +511,7 @@ export default function ProductCreate({ brands, categories }: Props) {
 
                 <div className="space-y-2">
                   <Label htmlFor="brand_id">Merek</Label>
-                  <Select value={data.brand_id?.toString() || undefined} onValueChange={(value) => setData('brand_id', value === 'none' ? null : parseInt(value))}>
+                  <Select value={data.brand_id || undefined} onValueChange={(value) => setData('brand_id', value || null)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih merek" />
                     </SelectTrigger>
@@ -434,8 +531,8 @@ export default function ProductCreate({ brands, categories }: Props) {
                   <Label htmlFor="category_id">Kategori</Label>
                   <TreeSelect
                     data={categories}
-                    value={data.category_id?.toString() || null}
-                    onChange={(val) => setData('category_id', val ? parseInt(val) : null)}
+                    value={data.category_id}
+                    onChange={(val) => setData('category_id', val)}
                   />
                   {errors.category_id && <p className="text-sm text-red-600">{errors.category_id}</p>}
                 </div>
@@ -536,107 +633,6 @@ export default function ProductCreate({ brands, categories }: Props) {
                 {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
               </div>
 
-              {/* Specific Specifications */}
-              <div className="p-4 space-y-4 bg-slate-100/80 border rounded-lg">
-
-                {/* HEADER */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900">
-                      Spesifikasi Lainnya
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      Tambahkan detail spesifikasi produk secara lengkap
-                    </p>
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addSpecRow}
-                    className="shadow-sm"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah
-                  </Button>
-                </div>
-
-                {/* LIST */}
-                <div className="space-y-3">
-
-                  {data.specific_specs && data.specific_specs.map((spec: { label: string; value: string; note: string }, index: number) => (
-
-                    <div
-                      key={index}
-                      className="relative border rounded-xl p-4 bg-white hover:shadow-sm transition"
-                    >
-
-                      {/* DELETE BUTTON FLOAT */}
-                      <div className="absolute top-3 right-3">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeSpecRow(index)}
-                          className="text-red-500 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-
-                      {/* FORM GRID */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                        {/* LABEL */}
-                        <div className="space-y-2">
-                          <Label htmlFor={`spec_label_${index}`}>Label</Label>
-                          <Input
-                            id={`spec_label_${index}`}
-                            name={`specific_specs[${index}][label]`}
-                            value={spec.label || ''}
-                            onChange={handleInputChange}
-                            placeholder="Contoh: Warna"
-                            className="focus-visible:ring-primary"
-                          />
-                        </div>
-
-                        {/* VALUE */}
-                        <div className="space-y-2">
-                          <Label htmlFor={`spec_value_${index}`}>Nilai</Label>
-                          <Input
-                            id={`spec_value_${index}`}
-                            name={`specific_specs[${index}][value]`}
-                            value={spec.value || ''}
-                            onChange={handleInputChange}
-                            placeholder="Contoh: Merah"
-                            className="focus-visible:ring-primary"
-                          />
-                        </div>
-
-                        {/* NOTE */}
-                        <div className="space-y-2">
-                          <Label htmlFor={`spec_note_${index}`}>Catatan</Label>
-                          <Textarea
-                            id={`spec_note_${index}`}
-                            name={`specific_specs[${index}][note]`}
-                            value={spec.note || ''}
-                            onChange={handleInputChange}
-                            placeholder="Opsional"
-                            rows={2}
-                            className="resize-none focus-visible:ring-primary"
-                          />
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  ))}
-
-                </div>
-              </div>
-
               <div className="space-y-2">
                 <Label>Tags</Label>
                 <div className="flex items-center space-x-2 mb-2">
@@ -652,7 +648,7 @@ export default function ProductCreate({ brands, categories }: Props) {
                     }}
                     className="flex-1"
                   />
-                  <Button type="button" variant="default" onClick={addTag}>
+                  <Button type="button" onClick={addTag}>
                     Tambah
                   </Button>
                 </div>
@@ -676,7 +672,7 @@ export default function ProductCreate({ brands, categories }: Props) {
 
               <div className="space-y-3">
 
-                {/* HEADER */}
+                {/* LABEL */}
                 <div className="flex items-center justify-between">
                   <Label htmlFor="images" className="text-sm font-semibold text-slate-800">
                     Gambar Produk
@@ -689,7 +685,7 @@ export default function ProductCreate({ brands, categories }: Props) {
                 {/* UPLOAD AREA */}
                 <div className="border-2 border-dashed border-slate-300 rounded-xl p-5 bg-slate-50/50 hover:border-blue-400 transition">
 
-                  {imagePreviews.length === 0 ? (
+                  {totalImages === 0 ? (
                     <div className="flex flex-col items-center justify-center text-center space-y-3 py-6">
                       <ImageIcon className="h-10 w-10 text-slate-400" />
 
@@ -712,22 +708,23 @@ export default function ProductCreate({ brands, categories }: Props) {
                   ) : (
                     <div className="space-y-4">
 
-                      {/* GRID */}
+                      {/* GRID IMAGE */}
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
 
-                        {imagePreviews.map((image, index) => (
-                          <div key={index} className="relative group">
+                        {/* EXISTING */}
+                        {activeImages.map((image, index) => (
+                          <div key={image.id} className="relative group">
 
                             <img
-                              src={image.preview}
-                              alt={`Preview ${index + 1}`}
+                              src={`/storage/${image.image_path}`}
+                              alt={`Image ${index + 1}`}
                               className="w-full aspect-square object-cover rounded-lg border border-slate-200"
                             />
 
                             {/* DELETE */}
                             <button
                               type="button"
-                              onClick={() => handleRemoveImage(index)}
+                              onClick={() => handleRemoveExistingImage(image.id)}
                               className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
                             >
                               <X className="h-3 w-3" />
@@ -736,7 +733,7 @@ export default function ProductCreate({ brands, categories }: Props) {
                             {/* COVER */}
                             <button
                               type="button"
-                              onClick={() => handleSetCoverImage(index)}
+                              onClick={() => handleSetExistingCoverImage(image.id)}
                               className={`absolute bottom-2 left-2 text-[10px] px-2 py-1 rounded font-medium
                                 ${coverImageIndex === index
                                   ? 'bg-blue-500 text-white'
@@ -749,13 +746,50 @@ export default function ProductCreate({ brands, categories }: Props) {
                           </div>
                         ))}
 
+                        {/* NEW */}
+                        {imagePreviews.map((image, index) => (
+                          <div key={`new-${index}`} className="relative group">
+
+                            <img
+                              src={image.preview}
+                              alt={`New ${index + 1}`}
+                              className="w-full aspect-square object-cover rounded-lg border border-blue-200"
+                            />
+
+                            {/* DELETE */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveNewImage(index)}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+
+                            {/* COVER */}
+                            <button
+                              type="button"
+                              onClick={() => handleSetCoverImage(activeImages.length + index)}
+                              className={`absolute bottom-2 left-2 text-[10px] px-2 py-1 rounded font-medium
+                                ${coverImageIndex === activeImages.length + index
+                                  ? 'bg-blue-500 text-white'
+                                  : 'bg-black/70 text-white hover:bg-black'}
+                              `}
+                            >
+                              {coverImageIndex === activeImages.length + index ? 'Cover' : 'Set'}
+                            </button>
+
+                          </div>
+                        ))}
+
                         {/* ADD BUTTON */}
-                        <label
-                          htmlFor="images-hidden"
-                          className="flex items-center justify-center aspect-square border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition text-sm text-slate-500"
-                        >
-                          + Tambah
-                        </label>
+                        {totalImages < 5 && (
+                          <label
+                            htmlFor="images-hidden"
+                            className="flex items-center justify-center aspect-square border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition text-sm text-slate-500"
+                          >
+                            + Tambah
+                          </label>
+                        )}
 
                       </div>
 
@@ -821,14 +855,13 @@ export default function ProductCreate({ brands, categories }: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid border-y py-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 
                 {/* Unggulan */}
                 <label
                   htmlFor="is_featured"
-                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all
-                    hover:shadow-sm hover:-translate-y-[1px]
-                    ${data.is_featured ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200'}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.is_featured ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
                   `}
                 >
                   <Checkbox
@@ -836,17 +869,14 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.is_featured}
                     onCheckedChange={(checked) => setData('is_featured', Boolean(checked))}
                   />
-                  <Label htmlFor="is_featured" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Unggulan
-                  </Label>
+                  <span className="text-sm font-medium text-slate-700">Unggulan</span>
                 </label>
 
                 {/* Terlaris */}
                 <label
                   htmlFor="is_bestseller"
-                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all
-                    hover:shadow-sm hover:-translate-y-[1px]
-                    ${data.is_bestseller ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200'}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.is_bestseller ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
                   `}
                 >
                   <Checkbox
@@ -854,17 +884,14 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.is_bestseller}
                     onCheckedChange={(checked) => setData('is_bestseller', Boolean(checked))}
                   />
-                  <Label htmlFor="is_bestseller" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Terlaris
-                  </Label>
+                  <span className="text-sm font-medium text-slate-700">Terlaris</span>
                 </label>
 
-                {/* Harga */}
+                {/* Show Price */}
                 <label
                   htmlFor="show_price"
-                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all
-                    hover:shadow-sm hover:-translate-y-[1px]
-                    ${data.show_price ? 'bg-purple-50 border-purple-300' : 'bg-white border-slate-200'}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.show_price ? 'bg-purple-50 border-purple-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
                   `}
                 >
                   <Checkbox
@@ -872,17 +899,14 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.show_price}
                     onCheckedChange={(checked) => setData('show_price', Boolean(checked))}
                   />
-                  <Label htmlFor="show_price" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Tampilkan Harga
-                  </Label>
+                  <span className="text-sm font-medium text-slate-700">Tampilkan Harga</span>
                 </label>
 
-                {/* Stok */}
+                {/* Show Stock */}
                 <label
                   htmlFor="show_stock"
-                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all
-                    hover:shadow-sm hover:-translate-y-[1px]
-                    ${data.show_stock ? 'bg-purple-50 border-purple-300' : 'bg-white border-slate-200'}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.show_stock ? 'bg-purple-50 border-purple-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
                   `}
                 >
                   <Checkbox
@@ -890,17 +914,14 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.show_stock}
                     onCheckedChange={(checked) => setData('show_stock', Boolean(checked))}
                   />
-                  <Label htmlFor="show_stock" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Tampilkan Stok
-                  </Label>
+                  <span className="text-sm font-medium text-slate-700">Tampilkan Stok</span>
                 </label>
 
                 {/* Baru */}
                 <label
                   htmlFor="is_new"
-                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all
-                    hover:shadow-sm hover:-translate-y-[1px]
-                    ${data.is_new ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200'}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.is_new ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
                   `}
                 >
                   <Checkbox
@@ -908,17 +929,14 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.is_new}
                     onCheckedChange={(checked) => setData('is_new', Boolean(checked))}
                   />
-                  <Label htmlFor="is_new" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Produk Baru
-                  </Label>
+                  <span className="text-sm font-medium text-slate-700">Produk Baru</span>
                 </label>
 
                 {/* Dijual */}
                 <label
                   htmlFor="is_for_sell"
-                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all
-                    hover:shadow-sm hover:-translate-y-[1px]
-                    ${data.is_for_sell ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-slate-200'}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.is_for_sell ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
                   `}
                 >
                   <Checkbox
@@ -926,17 +944,14 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.is_for_sell}
                     onCheckedChange={(checked) => setData('is_for_sell', Boolean(checked))}
                   />
-                  <Label htmlFor="is_for_sell" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Dijual
-                  </Label>
+                  <span className="text-sm font-medium text-slate-700">Dijual</span>
                 </label>
 
                 {/* Disewakan */}
                 <label
                   htmlFor="is_rent"
-                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all
-                    hover:shadow-sm hover:-translate-y-[1px]
-                    ${data.is_rent ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-slate-200'}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.is_rent ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
                   `}
                 >
                   <Checkbox
@@ -944,13 +959,11 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.is_rent}
                     onCheckedChange={(checked) => setData('is_rent', Boolean(checked))}
                   />
-                  <Label htmlFor="is_rent" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Disewakan
-                  </Label>
+                  <span className="text-sm font-medium text-slate-700">Disewakan</span>
                 </label>
 
-              </div>
 
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="meta_title">Meta Title</Label>
@@ -979,8 +992,113 @@ export default function ProductCreate({ brands, categories }: Props) {
                 </div>
               </div>
 
+              {/* Specific Specifications */}
+              <div className="mt-6 space-y-4">
+
+                {/* HEADER */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      Spesifikasi Produk
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Tambahkan detail spesifikasi produk
+                    </p>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addSpecRow}
+                    className="shadow-sm"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tambah
+                  </Button>
+                </div>
+
+                {/* LIST */}
+                <div className="space-y-3">
+
+                  {data.specific_specs && data.specific_specs.map((spec: { label: string; value: string; note: string }, index: number) => (
+
+                    <div
+                      key={index}
+                      className="border rounded-xl p-4 bg-white transition hover:shadow-sm"
+                    >
+
+                      {/* TOP BAR */}
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs text-slate-400 font-medium">
+                          Spesifikasi #{index + 1}
+                        </span>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeSpecRow(index)}
+                          className="text-red-500 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {/* FORM */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                        {/* LABEL */}
+                        <div className="space-y-2">
+                          <Label htmlFor={`spec_label_${index}`}>Label</Label>
+                          <Input
+                            id={`spec_label_${index}`}
+                            name={`specific_specs[${index}][label]`}
+                            value={spec.label || ''}
+                            onChange={handleInputChange}
+                            placeholder="Contoh: Warna"
+                            className="focus-visible:ring-primary"
+                          />
+                        </div>
+
+                        {/* VALUE */}
+                        <div className="space-y-2">
+                          <Label htmlFor={`spec_value_${index}`}>Nilai</Label>
+                          <Input
+                            id={`spec_value_${index}`}
+                            name={`specific_specs[${index}][value]`}
+                            value={spec.value || ''}
+                            onChange={handleInputChange}
+                            placeholder="Contoh: Merah"
+                            className="focus-visible:ring-primary"
+                          />
+                        </div>
+
+                        {/* NOTE */}
+                        <div className="space-y-2">
+                          <Label htmlFor={`spec_note_${index}`}>Catatan</Label>
+                          <Textarea
+                            id={`spec_note_${index}`}
+                            name={`specific_specs[${index}][note]`}
+                            value={spec.note || ''}
+                            onChange={handleInputChange}
+                            placeholder="Opsional"
+                            rows={2}
+                            className="resize-none focus-visible:ring-primary"
+                          />
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  ))}
+
+                </div>
+              </div>
+
               <div className="flex justify-end space-x-2">
-                <Link href="/cpanel/cms/product">
+                <Link href={`/cpanel/cms/product`}>
                   <Button variant="outline">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Batal

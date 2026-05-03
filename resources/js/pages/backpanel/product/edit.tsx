@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { formatPrice, parseCurrencyInput, formatCurrencyInput } from '@/utils/currency';
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon, Plus, Trash2 } from 'lucide-react';
 import TreeSelect from '@/components/tree-select';
 import { flattenCategories } from '@/lib/utils';
 import { Category } from '../category/create';
@@ -63,6 +63,7 @@ interface Product {
   created_at: string;
   updated_at: string;
   images: ProductImage[];
+  specific_specs?: Array<{ label: string; value: string; note: string }>;
 }
 
 interface Props {
@@ -90,6 +91,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
   const [removeImages, setRemoveImages] = useState<number[]>([]);
   const [tags, setTags] = useState<string[]>(product.tags);
   const [tagInput, setTagInput] = useState('');
+  const [imageErrors, setImageErrors] = useState<string[]>([]);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
   // State for formatted currency display
@@ -145,6 +147,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     images: File[];
     cover_image: number | null;
     remove_images: number[];
+    specific_specs: any[];
   }>({
     name: product.name,
     slug: product.slug,
@@ -175,6 +178,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     images: [] as File[],
     cover_image: getInitialCoverImageId(),
     remove_images: [] as number[],
+    specific_specs: product.specific_specs || [],
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -223,13 +227,61 @@ export default function ProductEdit({ product, brands, categories }: Props) {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
-      const newPreviews = newFiles.map(file => ({
-        file,
-        preview: URL.createObjectURL(file)
-      }));
+      const errors: string[] = [];
       
-      setData('images', [...data.images, ...newFiles]);
-      setImagePreviews([...imagePreviews, ...newPreviews]);
+      // Clear previous errors
+      setImageErrors([]);
+      
+      // Validate file count
+      const totalImages = activeImages.length + imagePreviews.length + newFiles.length;
+      if (totalImages > 5) {
+        errors.push('Maksimal 5 gambar yang diperbolehkan');
+        setImageErrors(errors);
+        e.target.value = '';
+      }
+      
+      // Validate each file
+      const validFiles: File[] = [];
+      const validPreviews: { file: File; preview: string }[] = [];
+      
+      for (const file of newFiles) {
+        // Validate file extension
+        const validExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+        const fileExtension = file.name.split('.').pop()?.toLowerCase();
+        
+        if (!fileExtension || !validExtensions.includes(fileExtension)) {
+          errors.push(`File "${file.name}" tidak valid. Hanya file JPG, JPEG, PNG, dan GIF yang diperbolehkan`);
+          continue;
+        }
+        
+        // Validate file size (2MB = 2 * 1024 * 1024 bytes)
+        const maxSize = 2 * 1024 * 1024;
+        if (file.size > maxSize) {
+          errors.push(`File "${file.name}" terlalu besar. Maksimal ukuran file adalah 2MB`);
+          continue;
+        }
+        
+        validFiles.push(file);
+        validPreviews.push({
+          file,
+          preview: URL.createObjectURL(file)
+        });
+      }
+      
+      // Set errors if any
+      if (errors.length > 0) {
+        setImageErrors(errors);
+      }
+      
+      if (validFiles.length > 0) {
+        setData('images', [...data.images, ...validFiles]);
+        setImagePreviews([...imagePreviews, ...validPreviews]);
+      }
+      
+      // Clear input if no valid files
+      if (validFiles.length === 0) {
+        e.target.value = '';
+      }
     }
   };
 
@@ -271,7 +323,14 @@ export default function ProductEdit({ product, brands, categories }: Props) {
 
   const handleSetCoverImage = (index: number) => {
     setCoverImageIndex(index);
-    setData('cover_image', index);
+    // If this is a new image (index >= activeImages.length), send the relative index
+    if (index >= activeImages.length) {
+      const newImageIndex = index - activeImages.length;
+      setData('cover_image', newImageIndex);
+    } else {
+      // This shouldn't happen for new images, but handle it gracefully
+      setData('cover_image', index);
+    }
   };
 
   const handleSetExistingCoverImage = (imageId: number) => {
@@ -301,6 +360,16 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     const newTags = tags.filter(tag => tag !== tagToRemove);
     setTags(newTags);
     setData('tags', newTags);
+  };
+
+  const addSpecRow = () => {
+    const newSpec = { label: '', value: '', note: '' };
+    setData('specific_specs', [...data.specific_specs, newSpec]);
+  };
+
+  const removeSpecRow = (index: number) => {
+    const newSpecs = data.specific_specs.filter((_, i) => i !== index);
+    setData('specific_specs', newSpecs);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -376,10 +445,10 @@ export default function ProductEdit({ product, brands, categories }: Props) {
           description={`Ubah produk: ${product.name}`}
         />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Form Produk</CardTitle>
-            <CardDescription>
+        <Card className='pt-0 overflow-hidden'>
+          <CardHeader className='bg-slate-900 py-5 text-inverse'>
+            <CardTitle className='text-xl text-white pb-0'>Form Produk</CardTitle>
+            <CardDescription className='pt-0 text-slate-200'>
               Ubah informasi produk di bawah
             </CardDescription>
           </CardHeader>
@@ -490,7 +559,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="compare_at_price">Harga Banding</Label>
+                  <Label htmlFor="compare_at_price">Harga Coret </Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">Rp</span>
                     <Input
@@ -564,6 +633,111 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                 {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
               </div>
 
+              {/* Specific Specifications */}
+              <div className="p-4 space-y-4 bg-slate-100/80 border rounded-lg">
+
+                {/* HEADER */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      Spesifikasi Lainnya
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Tambahkan detail spesifikasi produk
+                    </p>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addSpecRow}
+                    className="shadow-sm"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tambah
+                  </Button>
+                </div>
+
+                {/* LIST */}
+                <div className="space-y-3">
+
+                  {data.specific_specs && data.specific_specs.map((spec: { label: string; value: string; note: string }, index: number) => (
+
+                    <div
+                      key={index}
+                      className="border rounded-xl p-4 bg-white transition hover:shadow-sm"
+                    >
+
+                      {/* TOP BAR */}
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs text-slate-400 font-medium">
+                          Spesifikasi #{index + 1}
+                        </span>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeSpecRow(index)}
+                          className="text-red-500 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {/* FORM */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                        {/* LABEL */}
+                        <div className="space-y-2">
+                          <Label htmlFor={`spec_label_${index}`}>Label</Label>
+                          <Input
+                            id={`spec_label_${index}`}
+                            name={`specific_specs[${index}][label]`}
+                            value={spec.label || ''}
+                            onChange={handleInputChange}
+                            placeholder="Contoh: Warna"
+                            className="focus-visible:ring-primary"
+                          />
+                        </div>
+
+                        {/* VALUE */}
+                        <div className="space-y-2">
+                          <Label htmlFor={`spec_value_${index}`}>Nilai</Label>
+                          <Input
+                            id={`spec_value_${index}`}
+                            name={`specific_specs[${index}][value]`}
+                            value={spec.value || ''}
+                            onChange={handleInputChange}
+                            placeholder="Contoh: Merah"
+                            className="focus-visible:ring-primary"
+                          />
+                        </div>
+
+                        {/* NOTE */}
+                        <div className="space-y-2">
+                          <Label htmlFor={`spec_note_${index}`}>Catatan</Label>
+                          <Textarea
+                            id={`spec_note_${index}`}
+                            name={`specific_specs[${index}][note]`}
+                            value={spec.note || ''}
+                            onChange={handleInputChange}
+                            placeholder="Opsional"
+                            rows={2}
+                            className="resize-none focus-visible:ring-primary"
+                          />
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  ))}
+
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label>Tags</Label>
                 <div className="flex items-center space-x-2 mb-2">
@@ -601,106 +775,135 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                 {errors.tags && <p className="text-sm text-red-600">{errors.tags}</p>}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="images">Gambar Produk (Maks 5)</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                  <div className="space-y-4">
-                    {totalImages === 0 ? (
-                      <div className="text-center">
-                        <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <div className="mt-2">
-                          <label
-                            htmlFor="images-hidden"
-                            className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                          >
-                            <span>Upload file</span>
-                          </label>
-                          <p className="text-sm text-gray-500">atau drag and drop</p>
-                        </div>
-                        <p className="text-xs text-gray-500">PNG, JPG, GIF, SVG up to 2MB each</p>
+              <div className="space-y-3">
+
+                {/* LABEL */}
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="images" className="text-sm font-semibold text-slate-800">
+                    Gambar Produk
+                  </Label>
+                  <span className="text-xs text-slate-400">
+                    Maksimal 5 gambar
+                  </span>
+                </div>
+
+                {/* UPLOAD AREA */}
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-5 bg-slate-50/50 hover:border-blue-400 transition">
+
+                  {totalImages === 0 ? (
+                    <div className="flex flex-col items-center justify-center text-center space-y-3 py-6">
+                      <ImageIcon className="h-10 w-10 text-slate-400" />
+
+                      <div>
+                        <label
+                          htmlFor="images-hidden"
+                          className="cursor-pointer text-sm font-semibold text-blue-600 hover:text-blue-500"
+                        >
+                          Upload gambar
+                        </label>
+                        <p className="text-xs text-slate-400">
+                          atau drag & drop
+                        </p>
                       </div>
-                    ) : (
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                        {/* Existing images */}
+
+                      <p className="text-xs text-slate-400">
+                        PNG, JPG, GIF, SVG (max 2MB)
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+
+                      {/* GRID IMAGE */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+
+                        {/* EXISTING */}
                         {activeImages.map((image, index) => (
                           <div key={image.id} className="relative group">
+
                             <img
                               src={`/storage/${image.image_path}`}
                               alt={`Image ${index + 1}`}
-                              className="h-24 w-24 object-cover rounded-lg border-2 border-gray-200"
+                              className="w-full aspect-square object-cover rounded-lg border border-slate-200"
                             />
-                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveExistingImage(image.id)}
-                                className="bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </div>
-                            <div className="absolute bottom-2 left-2">
-                              <button
-                                type="button"
-                                onClick={() => handleSetExistingCoverImage(image.id)}
-                                className={`px-2 py-1 text-xs rounded ${
-                                  coverImageIndex === index
-                                    ? 'bg-blue-500 text-white'
-                                    : 'bg-gray-800 text-white hover:bg-gray-700'
-                                }`}
-                              >
-                                {coverImageIndex === index ? 'Cover' : 'Set Cover'}
-                              </button>
-                            </div>
+
+                            {/* DELETE */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveExistingImage(image.id)}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+
+                            {/* COVER */}
+                            <button
+                              type="button"
+                              onClick={() => handleSetExistingCoverImage(image.id)}
+                              className={`absolute bottom-2 left-2 text-[10px] px-2 py-1 rounded font-medium
+                                ${coverImageIndex === index
+                                  ? 'bg-blue-500 text-white'
+                                  : 'bg-black/70 text-white hover:bg-black'}
+                              `}
+                            >
+                              {coverImageIndex === index ? 'Cover' : 'Set'}
+                            </button>
+
                           </div>
                         ))}
-                        
-                        {/* New images */}
+
+                        {/* NEW */}
                         {imagePreviews.map((image, index) => (
                           <div key={`new-${index}`} className="relative group">
+
                             <img
                               src={image.preview}
                               alt={`New ${index + 1}`}
-                              className="h-24 w-24 object-cover rounded-lg border-2 border-blue-200"
+                              className="w-full aspect-square object-cover rounded-lg border border-blue-200"
                             />
-                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveNewImage(index)}
-                                className="bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </div>
-                            <div className="absolute bottom-2 left-2">
-                              <button
-                                type="button"
-                                onClick={() => handleSetCoverImage(activeImages.length + index)}
-                                className={`px-2 py-1 text-xs rounded ${
-                                  coverImageIndex === activeImages.length + index
-                                    ? 'bg-blue-500 text-white'
-                                    : 'bg-gray-800 text-white hover:bg-gray-700'
-                                }`}
-                              >
-                                {coverImageIndex === activeImages.length + index ? 'Cover' : 'Set Cover'}
-                              </button>
-                            </div>
+
+                            {/* DELETE */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveNewImage(index)}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+
+                            {/* COVER */}
+                            <button
+                              type="button"
+                              onClick={() => handleSetCoverImage(activeImages.length + index)}
+                              className={`absolute bottom-2 left-2 text-[10px] px-2 py-1 rounded font-medium
+                                ${coverImageIndex === activeImages.length + index
+                                  ? 'bg-blue-500 text-white'
+                                  : 'bg-black/70 text-white hover:bg-black'}
+                              `}
+                            >
+                              {coverImageIndex === activeImages.length + index ? 'Cover' : 'Set'}
+                            </button>
+
                           </div>
                         ))}
-                        
+
+                        {/* ADD BUTTON */}
                         {totalImages < 5 && (
-                          <div className="col-span-full">
-                            <label
-                              htmlFor="images-hidden"
-                              className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                            >
-                              <span>Tambah Gambar</span>
-                            </label>
-                          </div>
+                          <label
+                            htmlFor="images-hidden"
+                            className="flex items-center justify-center aspect-square border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition text-sm text-slate-500"
+                          >
+                            + Tambah
+                          </label>
                         )}
+
                       </div>
-                    )}
-                  </div>
+
+                    </div>
+                  )}
+
                 </div>
+
+                {/* INPUT */}
                 <input
                   id="images-hidden"
                   name="images"
@@ -710,7 +913,22 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                   className="sr-only"
                   onChange={handleImageChange}
                 />
-                {errors.images && <p className="text-sm text-red-600">{errors.images}</p>}
+
+                {/* ERROR */}
+                {errors.images && (
+                  <p className="text-sm text-red-600">{errors.images}</p>
+                )}
+
+                {imageErrors.length > 0 && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg space-y-1">
+                    {imageErrors.map((error, index) => (
+                      <p key={index} className="text-xs text-red-600">
+                        ⚠️ {error}
+                      </p>
+                    ))}
+                  </div>
+                )}
+
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -742,71 +960,115 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                 </div>
               </div>
 
-              <div className="grid border-t border-b py-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="flex items-center space-x-2">
+              <div className="grid border-y py-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+
+                {/* Unggulan */}
+                <label
+                  htmlFor="is_featured"
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.is_featured ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
+                  `}
+                >
                   <Checkbox
                     id="is_featured"
                     checked={data.is_featured}
                     onCheckedChange={(checked) => setData('is_featured', Boolean(checked))}
                   />
-                  <Label htmlFor="is_featured">Unggulan</Label>
-                </div>
+                  <span className="text-sm font-medium text-slate-700">Unggulan</span>
+                </label>
 
-                <div className="flex items-center space-x-2">
+                {/* Terlaris */}
+                <label
+                  htmlFor="is_bestseller"
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.is_bestseller ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
+                  `}
+                >
                   <Checkbox
                     id="is_bestseller"
                     checked={data.is_bestseller}
                     onCheckedChange={(checked) => setData('is_bestseller', Boolean(checked))}
                   />
-                  <Label htmlFor="is_bestseller">Terlaris</Label>
-                </div>
+                  <span className="text-sm font-medium text-slate-700">Terlaris</span>
+                </label>
 
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="is_new"
-                    checked={data.is_new}
-                    onCheckedChange={(checked) => setData('is_new', Boolean(checked))}
-                  />
-                  <Label htmlFor="is_new">Baru</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="is_for_sell"
-                    checked={data.is_for_sell}
-                    onCheckedChange={(checked) => setData('is_for_sell', Boolean(checked))}
-                  />
-                  <Label htmlFor="is_for_sell">Dijual</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="is_rent"
-                    checked={data.is_rent}
-                    onCheckedChange={(checked) => setData('is_rent', Boolean(checked))}
-                  />
-                  <Label htmlFor="is_rent">Disewakan</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
+                {/* Show Price */}
+                <label
+                  htmlFor="show_price"
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.show_price ? 'bg-purple-50 border-purple-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
+                  `}
+                >
                   <Checkbox
                     id="show_price"
                     checked={data.show_price}
                     onCheckedChange={(checked) => setData('show_price', Boolean(checked))}
                   />
-                  <Label htmlFor="show_price">Tampilkan Harga</Label>
-                </div>
+                  <span className="text-sm font-medium text-slate-700">Tampilkan Harga</span>
+                </label>
 
-                <div className="flex items-center space-x-2">
+                {/* Show Stock */}
+                <label
+                  htmlFor="show_stock"
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.show_stock ? 'bg-purple-50 border-purple-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
+                  `}
+                >
                   <Checkbox
                     id="show_stock"
                     checked={data.show_stock}
                     onCheckedChange={(checked) => setData('show_stock', Boolean(checked))}
                   />
-                  <Label htmlFor="show_stock">Tampilkan Stok</Label>
-                </div>
-              </div>
+                  <span className="text-sm font-medium text-slate-700">Tampilkan Stok</span>
+                </label>
 
+                {/* Baru */}
+                <label
+                  htmlFor="is_new"
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.is_new ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
+                  `}
+                >
+                  <Checkbox
+                    id="is_new"
+                    checked={data.is_new}
+                    onCheckedChange={(checked) => setData('is_new', Boolean(checked))}
+                  />
+                  <span className="text-sm font-medium text-slate-700">Produk Baru</span>
+                </label>
+
+                {/* Dijual */}
+                <label
+                  htmlFor="is_for_sell"
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.is_for_sell ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
+                  `}
+                >
+                  <Checkbox
+                    id="is_for_sell"
+                    checked={data.is_for_sell}
+                    onCheckedChange={(checked) => setData('is_for_sell', Boolean(checked))}
+                  />
+                  <span className="text-sm font-medium text-slate-700">Dijual</span>
+                </label>
+
+                {/* Disewakan */}
+                <label
+                  htmlFor="is_rent"
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition
+                    ${data.is_rent ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-slate-200 hover:bg-slate-50'}
+                  `}
+                >
+                  <Checkbox
+                    id="is_rent"
+                    checked={data.is_rent}
+                    onCheckedChange={(checked) => setData('is_rent', Boolean(checked))}
+                  />
+                  <span className="text-sm font-medium text-slate-700">Disewakan</span>
+                </label>
+
+
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="meta_title">Meta Title</Label>

@@ -348,11 +348,11 @@ export default function ProductCreate({ brands, categories }: Props) {
           description="Tambah produk baru"
         />
 
-        <Card className='pt-0 overflow-hidden'>
-          <CardHeader className='bg-slate-900 py-5 text-inverse'>
-            <CardTitle className='text-xl text-white pb-0'>Form Produk</CardTitle>
-            <CardDescription className='pt-0 text-slate-200'>
-              Isi informasi produk di bawah
+        <Card>
+          <CardHeader>
+            <CardTitle>Form Produk</CardTitle>
+            <CardDescription>
+              Isi form di bawah untuk menambah produk baru
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -536,107 +536,6 @@ export default function ProductCreate({ brands, categories }: Props) {
                 {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
               </div>
 
-              {/* Specific Specifications */}
-              <div className="p-4 space-y-4 bg-slate-100/80 border rounded-lg">
-
-                {/* HEADER */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900">
-                      Spesifikasi Lainnya
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      Tambahkan detail spesifikasi produk secara lengkap
-                    </p>
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addSpecRow}
-                    className="shadow-sm"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah
-                  </Button>
-                </div>
-
-                {/* LIST */}
-                <div className="space-y-3">
-
-                  {data.specific_specs && data.specific_specs.map((spec: { label: string; value: string; note: string }, index: number) => (
-
-                    <div
-                      key={index}
-                      className="relative border rounded-xl p-4 bg-white hover:shadow-sm transition"
-                    >
-
-                      {/* DELETE BUTTON FLOAT */}
-                      <div className="absolute top-3 right-3">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeSpecRow(index)}
-                          className="text-red-500 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-
-                      {/* FORM GRID */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                        {/* LABEL */}
-                        <div className="space-y-2">
-                          <Label htmlFor={`spec_label_${index}`}>Label</Label>
-                          <Input
-                            id={`spec_label_${index}`}
-                            name={`specific_specs[${index}][label]`}
-                            value={spec.label || ''}
-                            onChange={handleInputChange}
-                            placeholder="Contoh: Warna"
-                            className="focus-visible:ring-primary"
-                          />
-                        </div>
-
-                        {/* VALUE */}
-                        <div className="space-y-2">
-                          <Label htmlFor={`spec_value_${index}`}>Nilai</Label>
-                          <Input
-                            id={`spec_value_${index}`}
-                            name={`specific_specs[${index}][value]`}
-                            value={spec.value || ''}
-                            onChange={handleInputChange}
-                            placeholder="Contoh: Merah"
-                            className="focus-visible:ring-primary"
-                          />
-                        </div>
-
-                        {/* NOTE */}
-                        <div className="space-y-2">
-                          <Label htmlFor={`spec_note_${index}`}>Catatan</Label>
-                          <Textarea
-                            id={`spec_note_${index}`}
-                            name={`specific_specs[${index}][note]`}
-                            value={spec.note || ''}
-                            onChange={handleInputChange}
-                            placeholder="Opsional"
-                            rows={2}
-                            className="resize-none focus-visible:ring-primary"
-                          />
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  ))}
-
-                </div>
-              </div>
-
               <div className="space-y-2">
                 <Label>Tags</Label>
                 <div className="flex items-center space-x-2 mb-2">
@@ -652,7 +551,7 @@ export default function ProductCreate({ brands, categories }: Props) {
                     }}
                     className="flex-1"
                   />
-                  <Button type="button" variant="default" onClick={addTag}>
+                  <Button type="button" onClick={addTag}>
                     Tambah
                   </Button>
                 </div>
@@ -979,6 +878,106 @@ export default function ProductCreate({ brands, categories }: Props) {
                 </div>
               </div>
 
+              {/* Specific Specifications */}
+              <div className="mt-6 space-y-4">
+
+                {/* HEADER */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      Spesifikasi Produk
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Tambahkan detail spesifikasi produk secara lengkap
+                    </p>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addSpecRow}
+                    className="shadow-sm"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tambah
+                  </Button>
+                </div>
+
+                {/* LIST */}
+                <div className="space-y-3">
+
+                  {data.specific_specs && data.specific_specs.map((spec: { label: string; value: string; note: string }, index: number) => (
+
+                    <div
+                      key={index}
+                      className="relative border rounded-xl p-4 bg-white hover:shadow-sm transition"
+                    >
+
+                      {/* DELETE BUTTON FLOAT */}
+                      <div className="absolute top-3 right-3">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeSpecRow(index)}
+                          className="text-red-500 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {/* FORM GRID */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                        {/* LABEL */}
+                        <div className="space-y-2">
+                          <Label htmlFor={`spec_label_${index}`}>Label</Label>
+                          <Input
+                            id={`spec_label_${index}`}
+                            name={`specific_specs[${index}][label]`}
+                            value={spec.label || ''}
+                            onChange={handleInputChange}
+                            placeholder="Contoh: Warna"
+                            className="focus-visible:ring-primary"
+                          />
+                        </div>
+
+                        {/* VALUE */}
+                        <div className="space-y-2">
+                          <Label htmlFor={`spec_value_${index}`}>Nilai</Label>
+                          <Input
+                            id={`spec_value_${index}`}
+                            name={`specific_specs[${index}][value]`}
+                            value={spec.value || ''}
+                            onChange={handleInputChange}
+                            placeholder="Contoh: Merah"
+                            className="focus-visible:ring-primary"
+                          />
+                        </div>
+
+                        {/* NOTE */}
+                        <div className="space-y-2">
+                          <Label htmlFor={`spec_note_${index}`}>Catatan</Label>
+                          <Textarea
+                            id={`spec_note_${index}`}
+                            name={`specific_specs[${index}][note]`}
+                            value={spec.note || ''}
+                            onChange={handleInputChange}
+                            placeholder="Opsional"
+                            rows={2}
+                            className="resize-none focus-visible:ring-primary"
+                          />
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  ))}
+
+                </div>
+              </div>
               <div className="flex justify-end space-x-2">
                 <Link href="/cpanel/cms/product">
                   <Button variant="outline">

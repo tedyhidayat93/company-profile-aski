@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -105,12 +105,10 @@ interface Props {
 }
 
 export default function OrderIndex({ orders, orderStatistics, filters }: Props) {
-  const { data, setData, get, processing } = useForm({
-    search: filters.search || '',
-    status: filters.status || '',
-    date_from: filters.date_from || '',
-    date_to: filters.date_to || '',
-  });
+  const [search, setSearch] = React.useState(filters.search || '');
+  const [statusFilter, setStatusFilter] = React.useState(filters.status || 'all');
+  const [dateFrom, setDateFrom] = React.useState(filters.date_from || '');
+  const [dateTo, setDateTo] = React.useState(filters.date_to || '');
 
   // Map backend statistics to frontend format with icon components
   const orderStats = orderStatistics.map(stat => ({
@@ -132,17 +130,58 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
     return iconMap[iconName] || FileText;
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    get('/cpanel/crm/orders', { preserveState: true });
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    const params = new URLSearchParams(window.location.search);
+    if (value) {
+      params.set('search', value);
+    } else {
+      params.delete('search');
+    }
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+    
+    router.get(`/cpanel/crm/orders?${params.toString()}`, {}, { preserveState: true });
+  };
+
+  const handleStatusFilter = (value: string) => {
+    setStatusFilter(value);
+    const params = new URLSearchParams(window.location.search);
+    if (search) params.set('search', search);
+    if (value !== 'all') {
+      params.set('status', value);
+    } else {
+      params.delete('status');
+    }
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+    
+    router.get(`/cpanel/crm/orders?${params.toString()}`, {}, { preserveState: true });
+  };
+
+  const handleDateFilter = (type: 'from' | 'to', value: string) => {
+    if (type === 'from') {
+      setDateFrom(value);
+    } else {
+      setDateTo(value);
+    }
+    
+    const params = new URLSearchParams(window.location.search);
+    if (search) params.set('search', search);
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+    
+    router.get(`/cpanel/crm/orders?${params.toString()}`, {}, { preserveState: true });
   };
 
   const handleReset = () => {
-    setData('search', '');
-    setData('status', '');
-    setData('date_from', '');
-    setData('date_to', '');
-    get('/cpanel/crm/orders', { preserveState: true });
+    setSearch('');
+    setStatusFilter('all');
+    setDateFrom('');
+    setDateTo('');
+    router.get('/cpanel/crm/orders', {}, { preserveState: true });
   };
 
   const breadcrumbs: BreadcrumbItem[] = [
@@ -232,17 +271,17 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
             {/* Filters */}
             <Card className='gap-3 shadow-none p-0 border-0 border-b pb-3 rounded-none'>
               <CardContent className='p-0'>
-                <form onSubmit={handleSearch} className="space-y-2">
+                <div className="space-y-2">
                     <div>
                       <Input
                         placeholder="Cari nomor pesanan, perusahaan, PIC..."
-                        value={data.search}
-                        onChange={(e) => setData('search', e.target.value)}
+                        value={search}
+                        onChange={(e) => handleSearch(e.target.value)}
                       />
                     </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div className="col-span-2">
-                      <Select value={data.status} onValueChange={(value) => setData('status', value)}>
+                      <Select value={statusFilter} onValueChange={handleStatusFilter}>
                         <SelectTrigger>
                           <SelectValue placeholder="Status" />
                         </SelectTrigger>
@@ -261,29 +300,25 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
                       <Input
                         type="date"
                         placeholder="Dari tanggal (DD/MM/YYYY)"
-                        value={data.date_from}
-                        onChange={(e) => setData('date_from', e.target.value)}
+                        value={dateFrom}
+                        onChange={(e) => handleDateFilter('from', e.target.value)}
                       />
                     </div>
                     <div>
                       <Input
                         type="date"
                         placeholder="Sampai tanggal (DD/MM/YYYY)"
-                        value={data.date_to}
-                        onChange={(e) => setData('date_to', e.target.value)}
+                        value={dateTo}
+                        onChange={(e) => handleDateFilter('to', e.target.value)}
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button type="submit" disabled={processing}>
-                        <Search className="h-4 w-4 mr-2" />
-                        Cari
-                      </Button>
                       <Button type="button" variant="outline" onClick={handleReset}>
                         Reset
                       </Button>
                     </div>
                   </div>
-                </form>
+                </div>
               </CardContent>
             </Card>
             

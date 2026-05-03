@@ -64,6 +64,11 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 };
 
 export default function TrafficDashboard({ websiteTrafficData }: Props) {
+  // Debug: Log the received data
+  React.useEffect(() => {
+    console.log('TrafficDashboard - websiteTrafficData:', websiteTrafficData);
+  }, [websiteTrafficData]);
+
   // 3. State dengan explicit type
   const [dateFilter, setDateFilter] = React.useState<DateFilter>('thisMonth');
 

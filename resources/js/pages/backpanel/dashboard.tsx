@@ -1,8 +1,6 @@
-import React from 'react';
 import HeaderTitle from '@/components/header-title';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -11,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Chart } from '@/components/ui/chart';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
@@ -28,42 +25,23 @@ import {
   TrendingUp,
   TrendingDown,
   Calendar,
-  Plus,
-  Edit,
   User,
-  Phone,
-  Mail,
   ShoppingBag,
   Calendar1,
 } from 'lucide-react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Area,
-  AreaChart,
-} from 'recharts';
-import { useState } from 'react';
-import OrderStatusInfoModal from '@/components/order-status-info-modal';
 import { OrderStatusBadge } from '@/utils/order-status';
 import { Button } from '@/components/ui/button';
 import TrafficDashboard from '@/components/traffic-dashboard';
 import TrafficPerCountryRegion, { CountryData, RegionData } from '@/components/traffic-per-country-region';
 import { formatCurrencyDisplay } from '@/utils/currency';
 import { formatDate } from '@/lib/utils';
+import TrafficVisitorCharts from '@/components/traffic-visitor-charts';
 
 // Type definitions
 interface TrafficData {
   time?: string;
   date?: string;
   visitors: number;
-  pageViews: number;
-  bounceRate: number;
 }
 
 interface WebsiteTrafficData {
@@ -394,15 +372,12 @@ export default function Dashboard({
 
         </div>
 
-        {/* traffic Dashboard */}
-        <TrafficDashboard websiteTrafficData={websiteTrafficData} />
-
-        {/* Traffic per country & region */}
-        <TrafficPerCountryRegion 
+        {/* traffic Visitors */}
+        <TrafficVisitorCharts
+          websiteTrafficData={websiteTrafficData}
           countryStats={countryStats}
           regionStats={regionStats}
         />
-
       </div>
     </AppLayout>
   );

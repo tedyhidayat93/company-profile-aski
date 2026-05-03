@@ -41,6 +41,7 @@ class Product extends Model
         'meta_description',
         'views',
         'tags',
+        'specific_specs',
     ];
 
     protected $casts = [
@@ -58,6 +59,7 @@ class Product extends Model
         'published_at' => 'datetime',
         'deleted_at' => 'datetime',
         'tags' => 'array',
+        'specific_specs' => 'array',
         'position' => 'integer',
         'views' => 'integer',
     ];

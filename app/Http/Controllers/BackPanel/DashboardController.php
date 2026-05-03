@@ -12,16 +12,27 @@ use App\Models\LogVisitor;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): Response
     {
-        // Get real stats
-        $stats = [
+        return Inertia::render('backpanel/dashboard', [
+            'stats' => $this->getStats(),
+            'topSearchedProducts' => $this->getTopSearchedProducts(),
+            'latestProducts' => $this->getLatestProducts(),
+            'recentOrders' => $this->getRecentOrders(),
+            'websiteTrafficData' => $this->buildWebsiteTrafficData(),
+            'countryStats' => $this->getCountryStats(),
+            'regionStats' => $this->getRegionStats(),
+        ]);
+    }
+
+    // ================= STATS =================
+    private function getStats(): array
+    {
+        return [
             [
                 'name' => 'Total Produk',
                 'value' => Product::count(),
@@ -63,146 +74,161 @@ class DashboardController extends Controller
                 'color' => 'bg-cyan-500 text-white'
             ],
         ];
+    }
 
-        // Get latest products
-        $latestProducts = Product::with('category')
-            ->orderBy('created_at', 'desc')
+    // ================= PRODUCTS =================
+    private function getLatestProducts()
+    {
+        return Product::with('category')
+            ->latest()
             ->take(5)
             ->get()
-            ->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'sku' => $product->sku,
-                    'added' => $product->created_at->diffForHumans(),
-                    'status' => $product->is_active ? 'active' : 'draft',
-                    'edit_url' => ''
-                ];
-            });
+            ->map(fn ($product) => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'added' => $product->created_at->diffForHumans(),
+                'status' => $product->is_active ? 'active' : 'draft',
+                'edit_url' => ''
+            ]);
+    }
 
-        // Get recent orders
-        $recentOrders = Order::with('customer')
-            // ->where('status', 'pending')
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
-
-        // Get top searched products (based on most views)
+    private function getTopSearchedProducts(): array
+    {
         $products = Product::with(['category', 'coverImage'])
             ->where('views', '>', 0)
-            ->orderBy('views', 'desc')
+            ->orderByDesc('views')
             ->take(5)
             ->get();
-        
-        // Check if all products have 0 views
-        $allViewsZero = $products->every(function ($product) {
-            return $product->views == 0;
-        });
-        
-        $topSearchedProducts = [];
-        
-        // Only process and return products if not all views are 0
-        if (!$allViewsZero) {
-            $topSearchedProducts = $products->map(function ($product, $index) { 
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'searches' => $product->views,
-                    'image_path' => function () use ($product) {
-                        // Get cover image with proper path validation
-                        $coverImagePath = $product->coverImage?->image_path;
-                        if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
-                            $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
-                        } elseif (!$coverImagePath) {
-                            $coverImagePath = '/images/placeholder.png';
-                        }
-                        
-                        // Check if the image file actually exists
-                        $fullPath = public_path($coverImagePath);
-                        if (!file_exists($fullPath)) {
-                            $coverImagePath = '/images/placeholder.png';
-                        }
-                        
-                        return $coverImagePath;
-                    }
-                ];
-            });
+
+        if ($products->every(fn ($p) => $p->views == 0)) {
+            return [];
         }
 
-        // Get real traffic data from LogVisitor
-        $todayVisitors = LogVisitor::whereDate('timestamp', today())
-            ->selectRaw('HOUR(timestamp) as hour, COUNT(*) as visitors')
-            ->groupBy('hour')
-            ->orderBy('hour')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'time' => sprintf('%02d:00', $item->hour),
-                    'visitors' => $item->visitors
-                ];
-            });
+        return $products->map(fn ($product) => [
+            'id' => $product->id,
+            'name' => $product->name,
+            'searches' => $product->views,
+            'image_path' => $this->resolveImagePath($product->coverImage?->image_path)
+        ])->toArray();
+    }
 
-        // Fill missing hours with zero data
-        $todayData = [];
-        for ($hour = 0; $hour < 24; $hour += 4) {
-            $hourData = $todayVisitors->firstWhere('time', sprintf('%02d:00', $hour));
-            $todayData[] = $hourData ?: [
-                'time' => sprintf('%02d:00', $hour),
-                'visitors' => 0
-            ];
+    private function resolveImagePath(?string $path): string
+    {
+        if (!$path) return '/images/placeholder.png';
+
+        if (!str_starts_with($path, '/storage/')) {
+            $path = '/storage/' . ltrim($path, '/');
         }
 
-        // Get monthly data
-        $monthlyVisitors = LogVisitor::whereMonth('timestamp', now()->month)
-            ->selectRaw('DAY(timestamp) as day, COUNT(*) as visitors')
-            ->groupBy('day')
-            ->orderBy('day')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'date' => now()->setDay($item->day)->format('d M'),
-                    'visitors' => $item->visitors
-                ];
-            });
+        return file_exists(public_path($path)) ? $path : '/images/placeholder.png';
+    }
 
-        // Get country and region statistics
-        $countryStats = LogVisitor::selectRaw('country, COUNT(*) as visitors')
+    // ================= ORDERS =================
+    private function getRecentOrders()
+    {
+        return Order::with('customer')
+            ->latest()
+            ->take(5)
+            ->get();
+    }
+
+    // ================= COUNTRY & REGION =================
+    private function getCountryStats(): array
+    {
+        return LogVisitor::selectRaw('country, COUNT(*) as visitors')
             ->whereNotNull('country')
             ->groupBy('country')
             ->orderByDesc('visitors')
             ->limit(10)
-            ->get();
+            ->get()
+            ->toArray();
+    }
 
-        $regionStats = LogVisitor::selectRaw('region, COUNT(*) as visitors')
+    private function getRegionStats(): array
+    {
+        return LogVisitor::selectRaw('region, COUNT(*) as visitors')
             ->whereNotNull('region')
             ->groupBy('region')
             ->orderByDesc('visitors')
             ->limit(10)
-            ->get();
+            ->get()
+            ->toArray();
+    }
 
-        $websiteTrafficData = [
-            'today' => $todayData,
-            'thisMonth' => $monthlyVisitors->toArray(),
-            'last3Months' => [
-                ['date' => 'Jan', 'visitors' => LogVisitor::whereMonth('timestamp', 1)->count(), 'pageViews' => 72000, 'bounceRate' => 38],
-                ['date' => 'Feb', 'visitors' => LogVisitor::whereMonth('timestamp', 2)->count(), 'pageViews' => 85000, 'bounceRate' => 35],
-                ['date' => 'Mar', 'visitors' => LogVisitor::whereMonth('timestamp', 3)->count(), 'pageViews' => 92000, 'bounceRate' => 32],
-            ],
-            'thisYear' => [
-                ['date' => 'Jan', 'visitors' => LogVisitor::whereMonth('timestamp', 1)->count(), 'pageViews' => 92000, 'bounceRate' => 32],
-                ['date' => 'Feb', 'visitors' => LogVisitor::whereMonth('timestamp', 2)->count(), 'pageViews' => 88000, 'bounceRate' => 34],
-                ['date' => 'Mar', 'visitors' => LogVisitor::whereMonth('timestamp', 3)->count(), 'pageViews' => 98000, 'bounceRate' => 30],
-            ],
+    // ================= TRAFFIC =================
+    private function buildWebsiteTrafficData(): array
+    {
+        return [
+            'today' => $this->getTodayTraffic(),
+            'thisMonth' => $this->getMonthlyTraffic(),
+            'last3Months' => $this->getLastMonthsTraffic(3),
+            'thisYear' => $this->getYearlyTraffic(),
         ];
+    }
 
-        return Inertia::render('backpanel/dashboard', [
-            'stats' => $stats,
-            'topSearchedProducts' => $topSearchedProducts,
-            'latestProducts' => $latestProducts,
-            'recentOrders' => $recentOrders,
-            'websiteTrafficData' => $websiteTrafficData,
-            'countryStats' => $countryStats,
-            'regionStats' => $regionStats,
-        ]);
+    private function getTodayTraffic(): array
+    {
+        $data = LogVisitor::whereDate('timestamp', today())
+            ->selectRaw('HOUR(timestamp) as hour, COUNT(*) as visitors')
+            ->groupBy('hour')
+            ->pluck('visitors', 'hour');
+
+        return collect(range(0, 23))->map(fn ($hour) => [
+            'time' => sprintf('%02d:00', $hour),
+            'visitors' => $data[$hour] ?? 0,
+        ])->toArray();
+    }
+
+    private function getMonthlyTraffic(): array
+    {
+        $now = now();
+
+        $data = LogVisitor::whereMonth('timestamp', $now->month)
+            ->whereYear('timestamp', $now->year)
+            ->selectRaw('DAY(timestamp) as day, COUNT(*) as visitors')
+            ->groupBy('day')
+            ->pluck('visitors', 'day');
+
+        return collect(range(1, $now->daysInMonth))->map(function ($day) use ($data, $now) {
+            $date = Carbon::create($now->year, $now->month, $day);
+
+            return [
+                'date' => $date->format('d M'),
+                'visitors' => $data[$day] ?? 0,
+            ];
+        })->toArray();
+    }
+
+    private function getLastMonthsTraffic(int $months): array
+    {
+        return collect(range(0, $months - 1))
+            ->reverse()
+            ->map(function ($i) {
+                $month = now()->copy()->subMonths($i);
+
+                return [
+                    'date' => $month->format('M'),
+                    'visitors' => LogVisitor::whereMonth('timestamp', $month->month)
+                        ->whereYear('timestamp', $month->year)
+                        ->count(),
+                ];
+            })
+            ->values()
+            ->toArray();
+    }
+
+    private function getYearlyTraffic(): array
+    {
+        return collect(range(1, 12))->map(function ($month) {
+            $date = Carbon::create(now()->year, $month, 1);
+
+            return [
+                'date' => $date->format('M'),
+                'visitors' => LogVisitor::whereMonth('timestamp', $month)
+                    ->whereYear('timestamp', now()->year)
+                    ->count(),
+            ];
+        })->toArray();
     }
 }

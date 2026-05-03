@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { Filter, Search, ArrowUpDown, ChevronDown, X, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Filter, Search, ArrowUpDown, ChevronDown, X, ArrowRight, ArrowLeft, HandHeartIcon, LayoutDashboard } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import ProductCard from '@/components/ProductCard';
@@ -68,6 +68,23 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
     });
     const [isFiltersOpen, setIsFiltersOpen] = useState(true);
     const [hasChanges, setHasChanges] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    
+    // Product Skeleton Component
+    const ProductSkeleton = () => (
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm animate-pulse">
+            <div className="aspect-square w-full rounded-md bg-gray-200 mb-4"></div>
+            <div className="space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                <div className="flex space-x-2">
+                    <div className="h-8 bg-gray-200 rounded flex-1"></div>
+                    <div className="h-8 bg-gray-200 rounded flex-1"></div>
+                </div>
+            </div>
+        </div>
+    );
     
     // Extract products and pagination from the API response
     const { data: products, pagination } = initialProducts;
@@ -85,6 +102,13 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
         });
     }, [initialFilters]);
 
+    // Reset loading state when products are updated
+    useEffect(() => {
+        if (products && products.length >= 0) {
+            setIsLoading(false);
+        }
+    }, [products]);
+
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         const newFilters = { ...filters, [name]: value };
@@ -93,6 +117,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
     };
 
     const applyFilters = () => {
+        setIsLoading(true); // Show skeleton loading
         // Update URL with new filters
         const params = new URLSearchParams();
         
@@ -157,7 +182,10 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                             name="search"
                             placeholder="Cari produk..."
                             value={filters.search}
-                            onChange={handleFilterChange}
+                            onChange={(e) => {
+                                setFilters(prev => ({ ...prev, search: e.target.value }));
+                                setHasChanges(true);
+                            }}
                             className="w-full rounded-lg border dark:text-black border-gray-300 py-2 pl-10 pr-4 focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                         />
                     </div>
@@ -170,7 +198,10 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                             <select
                                 name="type"
                                 value={filters.type || ''}
-                                onChange={handleFilterChange}
+                                onChange={(e) => {
+                                    setFilters(prev => ({ ...prev, type: e.target.value }));
+                                    setHasChanges(true);
+                                }}
                                 className="w-full rounded-lg border dark:text-black border-gray-300 p-2 focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                             >
                                 <option value="">Semua</option>
@@ -208,7 +239,10 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                                 placeholder="Min"
                                 min={0}
                                 value={filters.minPrice}
-                                onChange={handleFilterChange}
+                                onChange={(e) => {
+                                    setFilters(prev => ({ ...prev, minPrice: e.target.value }));
+                                    setHasChanges(true);
+                                }}
                                 className="w-full rounded-lg border dark:text-black border-gray-300 p-2"
                                 />
                             </div>
@@ -220,7 +254,10 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                                 placeholder="Max"
                                 min={0}
                                 value={filters.maxPrice}
-                                onChange={handleFilterChange}
+                                onChange={(e) => {
+                                    setFilters(prev => ({ ...prev, maxPrice: e.target.value }));
+                                    setHasChanges(true);
+                                }}
                                 className="w-full rounded-lg border dark:text-black border-gray-300 p-2"
                                 />
                             </div>
@@ -234,7 +271,10 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                             <select
                                 name="sort"
                                 value={filters.sort || 'price-asc'}
-                                onChange={handleFilterChange}
+                                onChange={(e) => {
+                                    setFilters(prev => ({ ...prev, sort: e.target.value }));
+                                    setHasChanges(true);
+                                }}
                                 className="w-full rounded-lg border dark:text-black border-gray-300 p-2 focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                             >
                                 <option value="price-asc">Harga Terendah</option>
@@ -280,9 +320,26 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                         <select 
                             className="rounded-lg border border-gray-300 p-1.5 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                             value={String(filters.perPage || '12')}
-                            onChange={(e) => handleFilterChange({
-                                target: { name: 'perPage', value: e.target.value }
-                            } as any)}
+                            onChange={(e) => {
+                                const newFilters = { ...filters, perPage: e.target.value };
+                                setFilters(newFilters);
+                                setIsLoading(true); // Show skeleton loading
+                                
+                                // Update URL with new filters immediately
+                                const params = new URLSearchParams();
+                                if (newFilters.search) params.append('search', newFilters.search);
+                                if (newFilters.type) params.append('type', newFilters.type);
+                                if (newFilters.category) params.append('category', newFilters.category);
+                                params.append('perPage', newFilters.perPage);
+                                if (newFilters.minPrice) params.append('minPrice', newFilters.minPrice);
+                                if (newFilters.maxPrice) params.append('maxPrice', newFilters.maxPrice);
+                                if (newFilters.sort) params.append('sort', newFilters.sort);
+                                
+                                router.get(`/catalog?${params.toString()}`, {}, {
+                                    preserveState: true,
+                                    only: ['products', 'filters']
+                                });
+                            }}
                         >
                             <option value="12">12</option>
                             <option value="24">24</option>
@@ -292,9 +349,16 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
                     </div>
                 </div>
     
-                {products.length === 0 ? (
-                    <div className="rounded-lg bg-white p-12 text-center shadow">
-                        <label className="mb-2 text-lg font-medium">Produk tidak ditemukan</label>
+                {isLoading ? (
+                    <div className="grid md:grid-cols-2 gap-3 md:gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3">
+                        {Array.from({ length: parseInt(filters.perPage) || 12 }).map((_, index) => (
+                            <ProductSkeleton key={index} />
+                        ))}
+                    </div>
+                ) : products.length === 0 ? (
+                    <div className="rounded-lg bg-white p-12 min-h-[60vh] flex items-center justify-center flex-col text-center shadow">
+                        <LayoutDashboard className="mx-auto mb-4 h-24 w-24 text-orange-400" />
+                        <label className="mb-2 text-2xl font-medium">Produk tidak ditemukan</label>
                         <p className="mb-4 text-gray-600">Coba ubah filter pencarian Anda</p>
                         <button
                             onClick={resetFilters}

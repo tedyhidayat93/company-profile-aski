@@ -15,145 +15,6 @@ use App\Traits\TracksVisitors;
 class CatalogController extends Controller
 {
     use TracksVisitors;
-    public function show(Request $request, $slug)
-    {
-        // Track visitor
-        $this->trackPageVisit($request, 'Product Detail - ' . $slug);
-        
-        $product = Product::published()
-            ->with(['category', 'brand', 'images' => function ($query) {
-                $query->orderBy('position', 'asc');
-            }])
-            ->where('slug', $slug)
-            ->firstOrFail();
-
-        // Increment product view count with rate limiting (per IP per hour)
-        $this->incrementProductView($product, $request->ip());
-
-        // Get related products
-        $relatedProducts = Product::published()
-            ->where('category_id', $product->category_id)
-            ->where('id', '!=', $product->id)
-            ->with(['category', 'coverImage'])
-            ->limit(4)
-            ->get()
-            ->map(function ($product) {
-                // Get cover image with proper path validation like backpanel
-                $coverImagePath = $product->coverImage?->image_path;
-                if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
-                    $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
-                } elseif (!$coverImagePath) {
-                    $coverImagePath = '/images/placeholder.png';
-                }
-                
-                // Check if the image file actually exists
-                $fullPath = public_path($coverImagePath);
-                if (!file_exists($fullPath)) {
-                    $coverImagePath = '/images/placeholder.png';
-                }
-                
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'slug' => $product->slug,
-                    'type' => $product->type,
-                    'description' => $product->description ?? '',
-                    'short_description' => $product->short_description,
-                    'sku' => $product->sku ?? '',
-                    'price' => $product->price,
-                    'compare_at_price' => $product->compare_at_price,
-                    'cost_per_item' => $product->cost_per_item,
-                    'track_quantity' => $product->track_quantity ?? false,
-                    'quantity' => $product->quantity,
-                    'barcode' => $product->barcode,
-                    'status' => $product->status ?? 'active',
-                    'is_featured' => $product->is_featured ?? false,
-                    'is_bestseller' => $product->is_bestseller ?? false,
-                    'is_new' => $product->is_new ?? false,
-                    'is_for_sell' => $product->is_for_sell ?? false,
-                    'is_rent' => $product->is_rent ?? false,
-                    'show_price' => $product->show_price ?? true,
-                    'show_stock' => $product->show_stock ?? true,
-                    'position' => $product->position,
-                    'brand_id' => $product->brand_id,
-                    'category_id' => $product->category_id,
-                    'image_path' => $product->coverImage?->image_path ? '/storage/' . $product->coverImage->image_path : '/images/placeholder.png',
-                    'stock' => $product->quantity ?? 0,
-                    'image' => $product->coverImage?->image_path ? '/storage/' . $product->coverImage->image_path : '/images/placeholder.png',
-                    'coverImage' => $product->coverImage ? [
-                        'id' => $product->coverImage->id,
-                        'image_path' => '/storage/' . $product->coverImage->image_path,
-                        'is_cover' => $product->coverImage->is_cover,
-                        'position' => $product->coverImage->position ?? 0,
-                    ] : null,
-                    'brand' => $product->brand ? [
-                        'id' => $product->brand->id,
-                        'name' => $product->brand->name,
-                    ] : null,
-                    'category' => $product->category ? [
-                        'id' => $product->category->id,
-                        'name' => $product->category->name,
-                    ] : null,
-                    'tags' => $product->tags ?? [],
-                    'created_at' => $product->created_at?->toISOString() ?? now()->toISOString(),
-                    'updated_at' => $product->updated_at?->toISOString() ?? now()->toISOString(),
-                ];
-            });
-
-        $productData = [
-            'id' => $product->id,
-            'name' => $product->name,
-            'slug' => $product->slug,
-            'type' => $product->type,
-            'category' => $this->getCategoryHierarchy($product->category),
-            'brand' => $product->brand?->name,
-            'price' => $product->price,
-            'compare_at_price' => $product->compare_at_price,
-            'stock' => $product->track_quantity ? $product->quantity : null,
-            'description' => $product->description,
-            'short_description' => $product->short_description,
-            'sku' => $product->sku,
-            'barcode' => $product->barcode,
-            'is_bestseller' => $product->is_bestseller,
-            'is_new' => $product->is_new,
-            'is_featured' => $product->is_featured,
-            'is_for_sell' => $product->is_for_sell,
-            'show_price' => $product->show_price,
-            'show_stock' => $product->show_stock,
-            'is_rent' => $product->is_rent,
-            'images' => $product->images->isNotEmpty() ? $product->images->map(function ($image) {
-                // Use the same path as backpanel - just prepend /storage/ if not already present
-                $imagePath = $image->image_path;
-                if (!str_starts_with($imagePath, '/storage/')) {
-                    $imagePath = '/storage/' . ltrim($imagePath, '/');
-                }
-                
-                // Check if the image file actually exists, otherwise use placeholder
-                $fullPath = public_path($imagePath);
-                if (!file_exists($fullPath)) {
-                    $imagePath = '/images/placeholder.png';
-                }
-                
-                return [
-                    'id' => $image->id,
-                    'path' => $imagePath,
-                    'is_cover' => $image->is_cover,
-                    'position' => $image->position,
-                ];
-            }) : [[
-                'id' => 0,
-                'path' => '/images/placeholder.png',
-                'is_cover' => true,
-                'position' => 0,
-            ]],
-            'tags' => $product->tags,
-        ];
-
-        return Inertia::render('frontend/catalog/detail', [
-            'product' => $productData,
-            'relatedProducts' => $relatedProducts
-        ]);
-    }
 
     /**
      * Increment product view count with rate limiting
@@ -217,12 +78,12 @@ class CatalogController extends Controller
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'LIKE', '%' . $search . '%')
-                        ->orWhere('description', 'LIKE', '%' . $search . '%')
-                        ->orWhere('meta_title', 'LIKE', '%' . $search . '%')
-                        ->orWhere('meta_description', 'LIKE', '%' . $search . '%')
-                        ->orWhere('tags', 'LIKE', '%' . $search . '%')
-                        ->orWhere('short_description', 'LIKE', '%' . $search . '%')
-                        ->orWhere('sku', 'LIKE', '%' . $search . '%');
+                        ->orWhere('description', 'LIKE', '%' . $search . '%');
+                        // ->orWhere('meta_title', 'LIKE', '%' . $search . '%')
+                        // ->orWhere('meta_description', 'LIKE', '%' . $search . '%')
+                        // ->orWhere('tags', 'LIKE', '%' . $search . '%')
+                        // ->orWhere('short_description', 'LIKE', '%' . $search . '%')
+                        // ->orWhere('sku', 'LIKE', '%' . $search . '%');
                 });
             })
             ->when($request->type, function ($query, $type) {
@@ -385,6 +246,146 @@ class CatalogController extends Controller
             'categories' => $categories,
             'types' => $types,
             'filters' => $request->only(['search', 'type', 'category', 'minPrice', 'maxPrice', 'sort', 'perPage'])
+        ]);
+    }
+
+    public function show(Request $request, $slug)
+    {
+        // Track visitor
+        $this->trackPageVisit($request, 'Product Detail - ' . $slug);
+        
+        $product = Product::published()
+            ->with(['category', 'brand', 'images' => function ($query) {
+                $query->orderBy('position', 'asc');
+            }])
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        // Increment product view count with rate limiting (per IP per hour)
+        $this->incrementProductView($product, $request->ip());
+
+        // Get related products
+        $relatedProducts = Product::published()
+            ->where('category_id', $product->category_id)
+            ->where('id', '!=', $product->id)
+            ->with(['category', 'coverImage'])
+            ->limit(4)
+            ->get()
+            ->map(function ($product) {
+                // Get cover image with proper path validation like backpanel
+                $coverImagePath = $product->coverImage?->image_path;
+                if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
+                    $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
+                } elseif (!$coverImagePath) {
+                    $coverImagePath = '/images/placeholder.png';
+                }
+                
+                // Check if the image file actually exists
+                $fullPath = public_path($coverImagePath);
+                if (!file_exists($fullPath)) {
+                    $coverImagePath = '/images/placeholder.png';
+                }
+                
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'slug' => $product->slug,
+                    'type' => $product->type,
+                    'description' => $product->description ?? '',
+                    'short_description' => $product->short_description,
+                    'sku' => $product->sku ?? '',
+                    'price' => $product->price,
+                    'compare_at_price' => $product->compare_at_price,
+                    'cost_per_item' => $product->cost_per_item,
+                    'track_quantity' => $product->track_quantity ?? false,
+                    'quantity' => $product->quantity,
+                    'barcode' => $product->barcode,
+                    'status' => $product->status ?? 'active',
+                    'is_featured' => $product->is_featured ?? false,
+                    'is_bestseller' => $product->is_bestseller ?? false,
+                    'is_new' => $product->is_new ?? false,
+                    'is_for_sell' => $product->is_for_sell ?? false,
+                    'is_rent' => $product->is_rent ?? false,
+                    'show_price' => $product->show_price ?? true,
+                    'show_stock' => $product->show_stock ?? true,
+                    'position' => $product->position,
+                    'brand_id' => $product->brand_id,
+                    'category_id' => $product->category_id,
+                    'image_path' => $product->coverImage?->image_path ? '/storage/' . $product->coverImage->image_path : '/images/placeholder.png',
+                    'stock' => $product->quantity ?? 0,
+                    'image' => $product->coverImage?->image_path ? '/storage/' . $product->coverImage->image_path : '/images/placeholder.png',
+                    'coverImage' => $product->coverImage ? [
+                        'id' => $product->coverImage->id,
+                        'image_path' => '/storage/' . $product->coverImage->image_path,
+                        'is_cover' => $product->coverImage->is_cover,
+                        'position' => $product->coverImage->position ?? 0,
+                    ] : null,
+                    'brand' => $product->brand ? [
+                        'id' => $product->brand->id,
+                        'name' => $product->brand->name,
+                    ] : null,
+                    'category' => $product->category ? [
+                        'id' => $product->category->id,
+                        'name' => $product->category->name,
+                    ] : null,
+                    'tags' => $product->tags ?? [],
+                    'created_at' => $product->created_at?->toISOString() ?? now()->toISOString(),
+                    'updated_at' => $product->updated_at?->toISOString() ?? now()->toISOString(),
+                ];
+            });
+
+        $productData = [
+            'id' => $product->id,
+            'name' => $product->name,
+            'slug' => $product->slug,
+            'type' => $product->type,
+            'category' => $this->getCategoryHierarchy($product->category),
+            'brand' => $product->brand?->name,
+            'price' => $product->price,
+            'compare_at_price' => $product->compare_at_price,
+            'stock' => $product->track_quantity ? $product->quantity : null,
+            'description' => $product->description,
+            'short_description' => $product->short_description,
+            'sku' => $product->sku,
+            'barcode' => $product->barcode,
+            'is_bestseller' => $product->is_bestseller,
+            'is_new' => $product->is_new,
+            'is_featured' => $product->is_featured,
+            'is_for_sell' => $product->is_for_sell,
+            'show_price' => $product->show_price,
+            'show_stock' => $product->show_stock,
+            'is_rent' => $product->is_rent,
+            'images' => $product->images->isNotEmpty() ? $product->images->map(function ($image) {
+                // Use the same path as backpanel - just prepend /storage/ if not already present
+                $imagePath = $image->image_path;
+                if (!str_starts_with($imagePath, '/storage/')) {
+                    $imagePath = '/storage/' . ltrim($imagePath, '/');
+                }
+                
+                // Check if the image file actually exists, otherwise use placeholder
+                $fullPath = public_path($imagePath);
+                if (!file_exists($fullPath)) {
+                    $imagePath = '/images/placeholder.png';
+                }
+                
+                return [
+                    'id' => $image->id,
+                    'path' => $imagePath,
+                    'is_cover' => $image->is_cover,
+                    'position' => $image->position,
+                ];
+            }) : [[
+                'id' => 0,
+                'path' => '/images/placeholder.png',
+                'is_cover' => true,
+                'position' => 0,
+            ]],
+            'tags' => $product->tags,
+        ];
+
+        return Inertia::render('frontend/catalog/detail', [
+            'product' => $productData,
+            'relatedProducts' => $relatedProducts
         ]);
     }
 

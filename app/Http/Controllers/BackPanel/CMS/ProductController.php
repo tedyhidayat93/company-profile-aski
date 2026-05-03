@@ -281,36 +281,8 @@ class ProductController extends Controller
             'category_id' => 'nullable|integer|exists:categories,id',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
-            'tags' => 'nullable|array',
-            'tags.*' => 'nullable|string|max:50',
-            'images' => 'nullable|array|max:5',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'cover_image' => 'nullable|integer|min:0',
-            'remove_images' => 'nullable|array',
-            'remove_images.*' => 'nullable|integer',
         ]);
-        
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['name']);
-        }
 
-        if (isset($validated['tags'])) {
-            $validated['tags'] = array_filter($validated['tags']);
-            $this->insertNewTags($validated['tags'], 'product');
-        }
-
-        $validated['is_featured'] = $validated['is_featured'] ?? $product->is_featured;
-        $validated['is_bestseller'] = $validated['is_bestseller'] ?? $product->is_bestseller;
-        $validated['is_new'] = $validated['is_new'] ?? $product->is_new;
-        $validated['show_price'] = $validated['show_price'] ?? $product->show_price;
-        $validated['show_stock'] = $validated['show_stock'] ?? $product->show_stock;
-        $validated['track_quantity'] = $validated['track_quantity'] ?? $product->track_quantity;
-        $validated['position'] = $validated['position'] ?? $product->position;
-        
-        // Handle "none" values for brand_id and category_id
-        if ($validated['brand_id'] === 'none') {
-            $validated['brand_id'] = null;
-        }
         if ($validated['category_id'] === 'none') {
             $validated['category_id'] = null;
         }
@@ -331,32 +303,46 @@ class ProductController extends Controller
         }
 
         // Handle new image uploads
+        $newImageIds = [];
         if ($request->hasFile('images')) {
             $images = $request->file('images');
-            $coverImageIndex = $validated['cover_image'] ?? 0;
             $maxPosition = $product->images()->max('position') ?? 0;
             
             foreach ($images as $index => $image) {
                 $path = $image->store('products', 'public');
                 
-                ProductImage::create([
+                $productImage = ProductImage::create([
                     'product_id' => $product->id,
                     'image_path' => $path,
-                    'is_cover' => $index === $coverImageIndex,
+                    'is_cover' => false, // Will be set later
                     'position' => $maxPosition + $index + 1,
                 ]);
+                
+                $newImageIds[] = $productImage->id;
             }
         }
 
-        // Update cover image if specified
+        // Handle cover image setting
         if (isset($validated['cover_image']) && $validated['cover_image'] !== '') {
-            // Reset all cover images
+            // Reset all cover images first
             $product->images()->update(['is_cover' => false]);
             
-            // Set new cover image
-            $coverImage = $product->images()->where('id', $validated['cover_image'])->first();
-            if ($coverImage) {
-                $coverImage->update(['is_cover' => true]);
+            $coverImageValue = $validated['cover_image'];
+            
+            // Check if cover_image is referring to a new image (by index) or existing image (by ID)
+            if (is_numeric($coverImageValue)) {
+                // If the value corresponds to a new image index
+                if ($request->hasFile('images') && $coverImageValue < count($newImageIds)) {
+                    // Set cover for new image by index
+                    $newImageId = $newImageIds[$coverImageValue];
+                    ProductImage::where('id', $newImageId)->update(['is_cover' => true]);
+                } else {
+                    // Try to find existing image by ID
+                    $coverImage = $product->images()->where('id', $coverImageValue)->first();
+                    if ($coverImage) {
+                        $coverImage->update(['is_cover' => true]);
+                    }
+                }
             }
         }
 

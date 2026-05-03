@@ -32,6 +32,12 @@ interface CustomTooltipProps {
 }
 
 export default function TrafficPerCountryRegion({ countryStats, regionStats }: { countryStats: CountryData[], regionStats: RegionData[] }) {
+  // Debug: Log the received data
+  React.useEffect(() => {
+    console.log('TrafficPerCountryRegion - countryStats:', countryStats);
+    console.log('TrafficPerCountryRegion - regionStats:', regionStats);
+  }, [countryStats, regionStats]);
+
   // Komponen Tooltip Custom agar lebih elegan
   const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
@@ -67,7 +73,7 @@ export default function TrafficPerCountryRegion({ countryStats, regionStats }: {
     </div>
   );
 
-  // Check if there's data to displaymin-h-[250px]
+  // Check if there's data to displaymin-h-[200px]
   const hasCountryData = countryStats && countryStats.length > 0 && countryStats.some(item => item.visitors > 0);
   const hasRegionData = regionStats && regionStats.length > 0 && regionStats.some(item => item.visitors > 0);
 
@@ -80,7 +86,7 @@ export default function TrafficPerCountryRegion({ countryStats, regionStats }: {
           <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
         </CardHeader>
         <CardContent>
-          <div className="min-h-[250px] w-full mt-4">
+          <div className="min-h-[200px] w-full mt-4">
             {hasCountryData ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -135,7 +141,7 @@ export default function TrafficPerCountryRegion({ countryStats, regionStats }: {
           <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
         </CardHeader>
         <CardContent>
-          <div className="min-h-[250px] w-full mt-4">
+          <div className="min-h-[200px] w-full mt-4">
             {hasRegionData ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
