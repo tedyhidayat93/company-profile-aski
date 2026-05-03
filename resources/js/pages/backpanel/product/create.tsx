@@ -132,6 +132,30 @@ export default function ProductCreate({ brands, categories }: Props) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    // Handle specific_specs array fields
+    if (name.startsWith('specific_specs[')) {
+      const match = name.match(/specific_specs\[(\d+)\]\[(.+)\]/);
+      if (match) {
+        const index = parseInt(match[1]);
+        const field = match[2];
+        const newSpecs = [...data.specific_specs];
+        
+        // Ensure the index exists
+        while (newSpecs.length <= index) {
+          newSpecs.push({ label: '', value: '', note: '' });
+        }
+        
+        newSpecs[index] = {
+          ...newSpecs[index],
+          [field]: value
+        };
+        
+        setData('specific_specs', newSpecs);
+        return;
+      }
+    }
+    
     setData(name as keyof typeof data, value);
     
     // Auto-generate slug from name only if slug hasn't been manually edited
@@ -300,7 +324,13 @@ export default function ProductCreate({ brands, categories }: Props) {
         formData.append(key, value?.toString() || '');
       } else if (key === 'track_quantity' || key === 'is_featured' || key === 'is_bestseller' || key === 'is_new' || key === 'is_for_sell' || key === 'is_rent' || key === 'show_price' || key === 'show_stock') {
         formData.append(key, value ? '1' : '0');
-      } else if (key !== 'images' && key !== 'tags') {
+      } else if (key === 'specific_specs') {
+        (value as Array<{label: string, value: string, note: string}>).forEach((spec, index) => {
+          formData.append(`specific_specs[${index}][label]`, spec.label || '');
+          formData.append(`specific_specs[${index}][value]`, spec.value || '');
+          formData.append(`specific_specs[${index}][note]`, spec.note || '');
+        });
+      } else if (key !== 'images' && key !== 'tags' && key !== 'specific_specs') {
         formData.append(key, value?.toString() || '');
       }
     });
@@ -543,7 +573,7 @@ export default function ProductCreate({ brands, categories }: Props) {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-slate-900">
-                      Spesifikasi Lainnya
+                      Spesifikasi Detail
                     </h3>
                     <p className="text-xs text-slate-400">
                       Tambahkan detail spesifikasi produk secara lengkap
@@ -569,7 +599,7 @@ export default function ProductCreate({ brands, categories }: Props) {
 
                     <div
                       key={index}
-                      className="relative border rounded-xl p-4 bg-white hover:shadow-sm transition"
+                      className="relative border rounded-xl px-4 py-2 bg-white hover:shadow-sm transition"
                     >
 
                       {/* DELETE BUTTON FLOAT */}

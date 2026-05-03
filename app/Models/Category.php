@@ -87,4 +87,48 @@ class Category extends Model
     {
         return is_null($this->parent_id);
     }
+
+    /**
+     * Get category hierarchy as string (parent > child > grandchild)
+     *
+     * @return string
+     */
+    public function getHierarchy(): string
+    {
+        $ancestors = [];
+        $current = $this;
+
+        // Build hierarchy from top to bottom
+        while ($current) {
+            array_unshift($ancestors, $current->name);
+            $current = $current->parent;
+        }
+
+        return implode(' > ', $ancestors);
+    }
+
+    /**
+     * Get category hierarchy as string for a given category instance
+     * Static method for backward compatibility
+     *
+     * @param mixed $category Category model instance
+     * @return string
+     */
+    public static function getHierarchyStatic($category): string
+    {
+        if (!$category) {
+            return 'Uncategorized';
+        }
+
+        $ancestors = [];
+        $current = $category;
+
+        // Build hierarchy from top to bottom
+        while ($current) {
+            array_unshift($ancestors, $current->name);
+            $current = $current->parent;
+        }
+
+        return implode(' > ', $ancestors);
+    }
 }

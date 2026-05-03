@@ -86,7 +86,7 @@ class ProductController extends Controller
         $products->setCollection($transformedProducts);
 
         $brands = Brand::orderBy('name')->get();
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::ofType('product')->orderBy('name')->get();
 
         return Inertia::render('backpanel/product/index', [
             'products' => $products,
@@ -100,6 +100,7 @@ class ProductController extends Controller
     {
         $brands = Brand::orderBy('name')->get();
         $parentCategories = Category::with('children')
+            ->ofType('product')
             ->root()
             ->active()
             ->orderBy('lft')
@@ -148,6 +149,10 @@ class ProductController extends Controller
             'meta_description' => 'nullable|string|max:500',
             'tags' => 'nullable|array',
             'tags.*' => 'nullable|string|max:50',
+            'specific_specs' => 'nullable|array',
+            'specific_specs.*.label' => 'required|string|max:255',
+            'specific_specs.*.value' => 'required|string|max:255',
+            'specific_specs.*.note' => 'nullable|string|max:500',
             'images' => 'nullable|array|max:5',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'cover_image' => 'nullable|integer|min:0',
@@ -208,6 +213,8 @@ class ProductController extends Controller
             $query->orderBy('position');
         }])->findOrFail($id);
 
+        $product->setAttribute('full_category', $product->category->getHierarchy());
+
         return Inertia::render('backpanel/product/show', [
             'product' => $product
         ]);
@@ -221,6 +228,7 @@ class ProductController extends Controller
         $brands = Brand::orderBy('name')->get();
         // $categories = Category::orderBy('name')->get();
         $parentCategories = Category::with('children')
+            ->ofType('product')
             ->root()
             ->active()
             ->orderBy('lft')
@@ -281,6 +289,11 @@ class ProductController extends Controller
             'category_id' => 'nullable|integer|exists:categories,id',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
+            'specific_specs' => 'nullable|array',
+            'specific_specs.*.label' => 'required|string|max:255',
+            'specific_specs.*.value' => 'required|string|max:255',
+            'specific_specs.*.note' => 'nullable|string|max:500',
+            'cover_image' => 'nullable|string',
         ]);
 
         if ($validated['category_id'] === 'none') {
@@ -329,19 +342,21 @@ class ProductController extends Controller
             
             $coverImageValue = $validated['cover_image'];
             
-            // Check if cover_image is referring to a new image (by index) or existing image (by ID)
-            if (is_numeric($coverImageValue)) {
-                // If the value corresponds to a new image index
-                if ($request->hasFile('images') && $coverImageValue < count($newImageIds)) {
-                    // Set cover for new image by index
-                    $newImageId = $newImageIds[$coverImageValue];
+            // Check if cover_image starts with 'new_' prefix for new images
+            if (strpos($coverImageValue, 'new_') === 0) {
+                // Extract the index from 'new_X' format
+                $newImageIndex = (int) substr($coverImageValue, 4);
+                
+                // Set cover for new image by index
+                if (isset($newImageIds[$newImageIndex])) {
+                    $newImageId = $newImageIds[$newImageIndex];
                     ProductImage::where('id', $newImageId)->update(['is_cover' => true]);
-                } else {
-                    // Try to find existing image by ID
-                    $coverImage = $product->images()->where('id', $coverImageValue)->first();
-                    if ($coverImage) {
-                        $coverImage->update(['is_cover' => true]);
-                    }
+                }
+            } elseif (is_numeric($coverImageValue)) {
+                // Try to find existing image by ID
+                $coverImage = $product->images()->where('id', $coverImageValue)->first();
+                if ($coverImage) {
+                    $coverImage->update(['is_cover' => true]);
                 }
             }
         }

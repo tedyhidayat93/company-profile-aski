@@ -74,23 +74,34 @@ export interface Product {
   category_id?: number;
   image_path?: string; // Processed image path with /storage/ prefix
   stock: number;
-  image: string;
+  images: Array<{
+    id: number;
+    path: string;
+    is_cover: boolean;
+    position: number;
+  }>;
   coverImage?: {
     id: number;
     image_path: string;
     is_cover: boolean;
     position: number;
   };
+  images?: Array<{
+    id: number;
+    image_path: string;
+    is_cover: boolean;
+    position: number;
+  }>;
   brand?: {
     id: number;
     name: string;
   };
-  category?: {
-    id: number;
-    name: string;
-  };
+  category?: string;
   tags: string[];
   specific_specs?: Array<{ label: string; value: string; note: string }>;
+  meta_title?: string;
+  meta_description?: string;
+  views?: number;
   created_at: string;
   updated_at: string;
   [key: string]: unknown;

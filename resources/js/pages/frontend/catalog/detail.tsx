@@ -25,17 +25,6 @@ type OrderFormData = {
   notes?: string;
 };
 
-interface Specification {
-    [key: string]: string;
-}
-
-interface ProductImage {
-    id: number;
-    path: string;
-    is_cover: boolean;
-    position: number;
-}
-
 
 interface DetailProps {
     product: Product;
@@ -52,29 +41,35 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
     const [quantity, setQuantity] = useState(1);
     const [productImages, setProductImages] = useState<ImagesGalleryPreview[]>([]);
     const [selectedImage, setSelectedImage] = useState(
-        product.coverImage?.image_path || product.image || ''
+        product.coverImage?.image_path || product.image_path || ''
     );
     const [isImageLoaded, setIsImageLoaded] = useState(false);
     
-    const [imageSrc, setImageSrc] = useState(
-        product.coverImage?.image_path || product.image || ''
-    );
+    const [imageSrc, setImageSrc] = useState(() => {
+        if (product.images && product.images.length > 0) {
+            const coverImage = product.images.find(img => img.is_cover);
+            return coverImage?.path || product.images[0].path;
+        }
+        return product.image_path || '';
+    });
 
     // Effect untuk mengolah product images dari database
     useEffect(() => {
-        if (product.coverImage) {
+        if (product.images && product.images.length > 0) {
+            // Map all images to gallery format
+            const galleryImages = product.images.map(img => ({
+                original: img.path,
+                thumbnail: img.path
+            }));
+            setProductImages(galleryImages);
+        } else if (product.image_path) {
+            // Fallback jika tidak ada images tapi ada single image
             setProductImages([{
-                original: product.coverImage.image_path,
-                thumbnail: product.coverImage.image_path
-            }]);
-        } else if (product.image) {
-            // Fallback jika tidak ada cover image tapi ada single image
-            setProductImages([{
-                original: product.image,
-                thumbnail: product.image
+                original: product.image_path,
+                thumbnail: product.image_path
             }]);
         }
-    }, [product.coverImage, product.image]);
+    }, [product.images]);
 
 
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
@@ -184,25 +179,6 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
     // Get wishlist state and actions
     const { isInWishlist, toggleWishlistItem, wishlist } = useWishlist();
 
-    useEffect(() => {
-        setImageSrc(selectedImage);
-        setIsImageLoaded(false);
-        
-        const img = new Image();
-        img.src = selectedImage;
-        
-        const onLoad = () => setIsImageLoaded(true);
-        const onError = () => handleImageError({ target: img } as any, '/images/placeholder.png', product.name);
-        
-        img.addEventListener('load', onLoad);
-        img.addEventListener('error', onError);
-        
-        return () => {
-            img.removeEventListener('load', onLoad);
-            img.removeEventListener('error', onError);
-        };
-    }, [selectedImage, product.name]);
-
     const handleQuantityChange = (value: number) => {
         const newQuantity = quantity + value;
         // Check stock limit
@@ -311,7 +287,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                             <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
                                 {product.show_price ? (
                                     <div className="flex flex-col">
-                                        <span className="text-sm text-gray-900 mb-1">Harga Terbaik</span>
+                                        <span className="text-xs font-bold text-gray-900 mb-1">Harga Terbaik</span>
                                         <div className="flex items-baseline gap-3">
                                             <span className="text-3xl font-black text-primary dark:text-orange-400">
                                                 {formatPrice(product.price)}
@@ -337,12 +313,11 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                 )}
                             </div>
 
-                            {/* Short Description */}
-                            <div className="mt-6">
-                                <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide">Deskripsi Singkat</h3>
-                                <p className="mt-2 text-gray-600 dark:text-gray-300 leading-relaxed">
-                                    {product.short_description || product.description}
-                                </p>
+                            {/* DESCRIPTION */}
+                            <div className="space-y-3 mt-3">
+                                <div className="bg-gray-50/10 dark:bg-gray-800/40 p-4 rounded-xl text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                                {product.description || '-'}
+                                </div>
                             </div>
 
                             {/* Selection & Actions */}
@@ -383,7 +358,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                             id: product.id, 
                                             name: product.name, 
                                             price: product.price, 
-                                            image: imageSrc, 
+                                            image: imageSrc || '/images/placeholder-product.svg', 
                                             slug: product.slug 
                                         })}
                                             className="h-12 w-12 flex items-center justify-center rounded-lg border-2 border-gray-100 hover:bg-red-50 hover:border-red-100 transition-all group"
@@ -409,68 +384,60 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                         </div>
                     </div>
 
-                    {/* Product Details */}
-                    <div className="mt-16">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Detail Produk</h2>
-                        <div className="mt-6 overflow-hidden border-t border-gray-200 dark:border-gray-600">
-                            <dl className="divide-y divide-gray-200 dark:divide-gray-600">
+                    {/* ================= SPEC TABLE ================= */}
+                    <div className="mt-6 space-y-4">
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                            Spesifikasi Detail
+                        </h2>
+
+                        <div className="border rounded-xl overflow-hidden">
+
+                            <table className="w-full text-sm">
+
+                            <tbody className="divide-y">
+
+                                {/* BASIC INFO */}
                                 {product.brand && (
-                                    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                                        <dt className="text-sm font-medium text-gray-500">Merek</dt>
-                                        <dd className="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
-                                            {product.brand.name}
-                                        </dd>
-                                    </div>
+                                    <tr>
+                                        <td className="px-4 py-3 text-gray-500">Brand</td>
+                                        <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
+                                        {product.brand.name}
+                                        </td>
+                                    </tr>
                                 )}
-                                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                                    <dt className="text-sm font-medium text-gray-500">Kategori</dt>
-                                    <dd className="mt-1 text-sm text-gray-900 dark:text-white sm:col-span-2 sm:mt-0">
-                                        {product.category?.name || '-'}
-                                    </dd>
-                                </div>
-                            </dl>
 
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mt-6">Deskripsi Produk</h2>
-                            <p className="mt-2 text-gray-600 dark:text-gray-300">
-                                {product.description}
-                            </p>
+                                <tr>
+                                    <td className="px-4 py-3 text-gray-500">Kategori</td>
+                                    <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
+                                        {product.category || '-'}
+                                    </td>
+                                </tr>
 
-                            {product?.specific_specs && product?.specific_specs?.length > 0 && (
-                                <div className="mt-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                        Spesifikasi Produk
-                                    </h3>
+                                {/* SPECIFICATIONS */}
+                                {product?.specific_specs?.map((spec, index) => (
+                                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition">
+                                    <td className="px-4 py-3 text-gray-500">
+                                        {spec.label}
+                                    </td>
+                                    <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
+                                        {spec.value}
 
-                                    <div className="space-y-4">
-                                        {product?.specific_specs?.map((spec, index) => (
-                                            <div key={index} className="border-b border-gray-200 dark:border-gray-600 pb-4">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                                        {spec.label}
-                                                    </dt>
-                                                    <dd className="mt-1 text-sm text-gray-900 dark:text-white">
-                                                        {spec.value}
-                                                    </dd>
-                                                </div>
+                                        {spec.note && (
+                                            <>
+                                                <br />
+                                                *{spec.note}
+                                            </>
+                                        )}
+                                    </td>
+                                </tr>
+                                ))}
 
-                                                {spec.note && (
-                                                    <div className="col-span-1 md:col-span-2">
-                                                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                                            Catatan
-                                                        </dt>
-                                                        <dd className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                                                            {spec.note}
-                                                        </dd>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            </tbody>
+
+                            </table>
+
                         </div>
                     </div>
-
                     {/* Related Products */}
                     {relatedProducts.length > 0 && (
                         <div className="mt-16">
@@ -492,7 +459,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                 <div className="fixed inset-0 flex items-center justify-center p-4">
                     <DialogPanel className="w-full max-w-4xl rounded-2xl bg-white dark:bg-gray-900 shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[95vh]">
                         
-                        {/* SISI KIRI: Ringkasan Produk (Review) */}
+                        {/* SISI KIRI: Ringkasan (Review) */}
                         <div className="w-full md:w-5/12 bg-slate-50 dark:bg-gray-800/50 p-6 md:p-8 border-r border-gray-100 dark:border-gray-800 overflow-y-auto">
                             <div className="sticky top-0">
                                 <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-6">
@@ -508,9 +475,11 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     />
                                     <div className="p-4">
                                         <h4 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">{product.name}</h4>
-                                        <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded shadow-sm">
-                                            {product.category?.name || '-'}
-                                        </span>
+                                        {product.category && (
+                                            <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded shadow-sm">
+                                                {product.category}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 

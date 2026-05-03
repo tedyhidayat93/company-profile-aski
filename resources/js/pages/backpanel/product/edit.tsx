@@ -145,7 +145,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     meta_description: string;
     tags: string[];
     images: File[];
-    cover_image: number | null;
+    cover_image: string | number | null;
     remove_images: number[];
     specific_specs: any[];
   }>({
@@ -183,6 +183,30 @@ export default function ProductEdit({ product, brands, categories }: Props) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    // Handle specific_specs array fields
+    if (name.startsWith('specific_specs[')) {
+      const match = name.match(/specific_specs\[(\d+)\]\[(.+)\]/);
+      if (match) {
+        const index = parseInt(match[1]);
+        const field = match[2];
+        const newSpecs = [...data.specific_specs];
+        
+        // Ensure the index exists
+        while (newSpecs.length <= index) {
+          newSpecs.push({ label: '', value: '', note: '' });
+        }
+        
+        newSpecs[index] = {
+          ...newSpecs[index],
+          [field]: value
+        };
+        
+        setData('specific_specs', newSpecs);
+        return;
+      }
+    }
+    
     setData(name as keyof typeof data, value);
     
     // Auto-generate slug from name only if slug hasn't been manually edited
@@ -323,10 +347,10 @@ export default function ProductEdit({ product, brands, categories }: Props) {
 
   const handleSetCoverImage = (index: number) => {
     setCoverImageIndex(index);
-    // If this is a new image (index >= activeImages.length), send the relative index
+    // If this is a new image (index >= activeImages.length), send the relative index with new_ prefix
     if (index >= activeImages.length) {
       const newImageIndex = index - activeImages.length;
-      setData('cover_image', newImageIndex);
+      setData('cover_image', `new_${newImageIndex}` as string | number);
     } else {
       // This shouldn't happen for new images, but handle it gracefully
       setData('cover_image', index);
@@ -394,11 +418,17 @@ export default function ProductEdit({ product, brands, categories }: Props) {
         (value as number[]).forEach((id, index) => {
           formData.append(`remove_images[${index}]`, id.toString());
         });
+      } else if (key === 'specific_specs') {
+        (value as Array<{label: string, value: string, note: string}>).forEach((spec, index) => {
+          formData.append(`specific_specs[${index}][label]`, spec.label || '');
+          formData.append(`specific_specs[${index}][value]`, spec.value || '');
+          formData.append(`specific_specs[${index}][note]`, spec.note || '');
+        });
       } else if (key === 'cover_image') {
         if (value !== null && value !== '') {
           formData.append(key, value.toString());
         }
-      } else if (key !== 'images' && key !== 'tags') {
+      } else if (key !== 'images' && key !== 'tags' && key !== 'specific_specs') {
         formData.append(key, value?.toString() || '');
       }
     });
@@ -640,7 +670,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-slate-900">
-                      Spesifikasi Lainnya
+                      Spesifikasi Detail
                     </h3>
                     <p className="text-xs text-slate-400">
                       Tambahkan detail spesifikasi produk
@@ -666,7 +696,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
 
                     <div
                       key={index}
-                      className="border rounded-xl p-4 bg-white transition hover:shadow-sm"
+                      className="border rounded-xl px-4 py-2 bg-white transition hover:shadow-sm"
                     >
 
                       {/* TOP BAR */}
@@ -687,7 +717,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                       </div>
 
                       {/* FORM */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
 
                         {/* LABEL */}
                         <div className="space-y-2">
