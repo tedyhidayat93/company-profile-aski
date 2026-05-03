@@ -493,14 +493,11 @@ export default function Homepage({
                               </div>
                             )}
                           </div>
-                          <div className="absolute top-4 left-4">
-                            <span className="rounded-full bg-amber-600 px-3 py-1 text-xs font-medium text-white">
-                              {article.category}
-                            </span>
-                          </div>
                         </div>
                       <div className="p-6">
-                        <div className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+                        <div className="mb-3 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                          {article.category}
+                          {article.category && <span>•</span>}
                           {article.date}
                         </div>
                         <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-white group-hover:text-amber-600 transition-colors">

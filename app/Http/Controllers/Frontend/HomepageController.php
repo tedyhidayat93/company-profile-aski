@@ -123,7 +123,7 @@ class HomepageController extends Controller
         // Get latest articles for homepage
         $articles = Article::where('status', 'published')
             ->where('is_headline', true)
-            ->with(['author'])
+            ->with(['author', 'category'])
             ->orderBy('published_at', 'desc')
             ->take(3)
             ->get()
@@ -133,7 +133,7 @@ class HomepageController extends Controller
                     'title' => $article->title,
                     'excerpt' => $article->excerpt ?? '',
                     'image' => $article->featured_image ?? '/images/placeholder.png',
-                    'category' => 'Artikel',
+                    'category' => $article->category ? $article->category->name : 'Artikel',
                     'date' => $article->published_at?->format('d M Y') ?? '',
                     'slug' => $article->slug
                 ];

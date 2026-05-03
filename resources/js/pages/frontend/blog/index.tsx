@@ -1,7 +1,9 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { Calendar, Eye, User } from 'lucide-react';
+import { Calendar, Eye, User, Search, Filter, Tag, TagIcon } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 type BlogPost = {
     id: number;
@@ -14,6 +16,11 @@ type BlogPost = {
     };
     published_at: string;
     views_count: number;
+    category?: {
+        id: number;
+        name: string;
+        slug: string;
+    };
 };
 
 type Props = {
@@ -24,20 +31,60 @@ type Props = {
         data: BlogPost[];
         links: any;
     };
+    categories: Array<{ id: number; name: string; slug: string; type: string; }>;
+    popular_tags: string[];
+    filters?: {
+        search?: string;
+        category?: string;
+        tag?: string;
+    };
 };
 
-export default function BlogIndex(props: Props) {
-    const {
-        headline_posts,
-        most_read_posts,
-        recent_posts,
-        all_posts,
-    } = props;
+export default function BlogIndex({ 
+    headline_posts, 
+    most_read_posts, 
+    recent_posts, 
+    all_posts, 
+    categories, 
+    popular_tags,
+    filters = {} 
+}: Props) {
+    const { data, setData, get } = useForm({
+        search: filters.search || '',
+        category: filters.category || '',
+        tag: filters.tag || '',
+    });
 
     const isLoading =
         !headline_posts ||
         !most_read_posts ||
         !recent_posts;
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        get('/blog', {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleCategoryChange = (categoryId: string) => {
+        setData('category', categoryId);
+        setData('tag', ''); // Clear tag when category changes
+        get('/blog', {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const handleTagClick = (tag: string) => {
+        setData('tag', tag);
+        setData('category', ''); // Clear category when tag changes
+        get('/blog', {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
 
     const formatDate = (date: string) =>
         new Date(date).toLocaleDateString('id-ID', {
@@ -87,13 +134,20 @@ export default function BlogIndex(props: Props) {
                     </p>
                 )}
 
-                <div className="text-xs text-gray-400 mt-2 flex gap-3">
-                    <span className="flex items-center gap-1">
+                <div className="text-xs text-gray-400 mt-2 flex gap-3 flex-wrap">
+                    {/* <span className="flex items-center gap-1">
                         <User size={12} /> {post.author.name}
-                    </span>
+                    </span> */}
+                    {post.category && (
+                        <span className="flex items-center gap-1">
+                            <TagIcon size={12} /> { post.category?.name ?? 'Artikel'}
+                        </span>
+                    )}
+                    {post.category && <span>•</span>}
                     <span className="flex items-center gap-1">
                         <Calendar size={12} /> {formatDate(post.published_at)}
                     </span>
+                    {post.views_count > 0 && (<span>•</span>)}
                     <span className="flex items-center gap-1">
                         <Eye size={12} /> {post.views_count}
                     </span>
@@ -136,7 +190,117 @@ export default function BlogIndex(props: Props) {
         <FrontendLayout>
             <Head title="Berita" />
 
-            <div className="max-w-6xl mx-auto px-4 py-8 spac-y-7">
+            <div className="max-w-6xl mx-auto px-4 py-8 space-y-7">
+
+                {/* 🔍 FILTER + TAGS */}
+                <div className="bg-white rounded-xl border shadow-sm p-5 space-y-4">
+                    {/* HEADER */}
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4 text-gray-500" />
+                        <h3 className="text-sm font-semibold text-gray-700">
+                            Filter Berita
+                        </h3>
+                        </div>
+
+                        {/* RESET */}
+                        {(data.search || data.category || data.tag) && (
+                        <button
+                            onClick={() => {
+                            setData({ search: '', category: '', tag: '' });
+                            router.get('/blog', {}, { preserveState: true });
+                            }}
+                            className="text-xs text-red-500 hover:underline"
+                        >
+                            Reset Filter
+                        </button>
+                        )}
+                    </div>
+
+                    {/* SEARCH */}
+                    <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3">
+                        <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                            type="text"
+                            placeholder="Cari berita..."
+                            value={data.search}
+                            onChange={(e) => setData('search', e.target.value)}
+                            className="pl-10"
+                        />
+                        </div>
+
+                        <select
+                        value={data.category}
+                        onChange={(e) => handleCategoryChange(e.target.value)}
+                        className="px-3 py-2 border rounded-md text-sm w-full md:w-56"
+                        >
+                        <option value="">Semua kategori</option>
+                        {categories.filter(cat => cat.type === 'blog').map((category) => (
+                            <option key={category.id} value={category.id}>
+                            {category.name}
+                            </option>
+                        ))}
+                        </select>
+
+                        <Button type="submit">
+                        Cari
+                        </Button>
+                    </form>
+
+                    {/* ACTIVE FILTER BADGE */}
+                    {(data.search || data.category || data.tag) && (
+                        <div className="flex flex-wrap gap-2 pt-2 border-t">
+
+                        {data.search && (
+                            <span className="px-3 py-1 text-xs bg-gray-100 rounded-full">
+                            🔍 {data.search}
+                            </span>
+                        )}
+
+                        {data.category && (
+                            <span className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
+                            📂 {categories.find(c => c.id.toString() === data.category)?.name}
+                            </span>
+                        )}
+
+                        {data.tag && (
+                            <span className="px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-full">
+                            #{data.tag}
+                            </span>
+                        )}
+
+                        </div>
+                    )}
+
+                    {/* TAGS */}
+                    {popular_tags.length > 0 && (
+                        <div className="space-y-2 pt-2 border-t">
+
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Tag className="h-4 w-4" />
+                            Tags Populer
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            {popular_tags.map((tag, index) => (
+                            <button
+                                key={index}
+                                onClick={() => handleTagClick(tag)}
+                                className={`px-3 py-1 text-xs rounded-full transition-all
+                                ${data.tag === tag
+                                    ? 'bg-blue-600 text-white shadow-sm'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
+                                `}
+                            >
+                                #{tag}
+                            </button>
+                            ))}
+                        </div>
+
+                        </div>
+                    )}
+                </div>
 
                 {/* 🔥 HEADLINE BESAR */}
                 {!isLoading && headline_posts[0] && (
@@ -148,6 +312,7 @@ export default function BlogIndex(props: Props) {
                                         `/storage/${headline_posts[0].featured_image}` ||
                                         '/images/placeholder.png'
                                     }
+                                    onError={handleImageError}
                                     className="w-full h-[420px] object-cover"
                                 />
 

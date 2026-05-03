@@ -14,6 +14,7 @@ import HeaderTitle from '@/components/header-title';
 import FlashMessage from '@/components/flash-message';
 import { type BreadcrumbItem } from '@/types';
 import { Label } from '@/components/ui/label';
+import TreeSelect from '@/components/tree-select';
 import { 
   Plus, 
   Edit, 
@@ -303,19 +304,11 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                 </div>
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Kategori</Label>
-                  <Select value={categoryFilter} onValueChange={(value) => handleFilterChange('category', value)}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
-                      {blogCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <TreeSelect
+                    data={blogCategories}
+                    value={categoryFilter?.toString() || null}
+                    onChange={(val) => handleFilterChange('category', val || 'all')}
+                  />
                 </div>
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Headline</Label>

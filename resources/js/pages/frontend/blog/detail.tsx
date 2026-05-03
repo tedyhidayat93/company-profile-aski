@@ -22,6 +22,11 @@ interface Article {
     reading_time?: number;
     tags?: string[];
     is_headline?: boolean;
+    category?: {
+        id: number;
+        name: string;
+        slug: string;
+    };
 }
 
 interface BlogDetailProps {
@@ -71,11 +76,32 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
 
             <div className="max-w-4xl mx-auto px-4 py-10">
 
-                {/* 🔹 BACK */}
-                <Link href="/blog" className="text-sm text-gray-500 flex items-center mb-6">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Kembali ke Berita
-                </Link>
+                {/* 🧭 BREADCRUMB */}
+                <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-6">
+                    <Link href="/" className="hover:text-gray-700 transition-colors">
+                        Beranda
+                    </Link>
+                    <span className="text-gray-400">/</span>
+                    <Link href="/blog" className="hover:text-gray-700 transition-colors">
+                        Berita
+                    </Link>
+                    {post.category && (
+                        <>
+                            <span className="text-gray-400">/</span>
+                            <Link 
+                                href={`/blog?category=${post.category.id}`} 
+                                className="hover:text-gray-700 transition-colors"
+                            >
+                                {post.category.name}
+                            </Link>
+                        </>
+                    )}
+                    <span className="text-gray-400">/</span>
+                    <span className="text-gray-700 font-medium truncate max-w-xs">
+                        {post.title}
+                    </span>
+                </nav>
+
 
                 {/* 🔥 HEADER */}
                 <div className="mb-6">
@@ -109,6 +135,16 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                             <Eye size={14} />
                             {post.views_count} Dilihat
                         </span>
+
+                        {/* CATEGORY */}
+                        {post.category && (
+                            <>
+                                <span>•</span>
+                                <Link href={`/blog?category=${post.category.id}`} className="text-blue-600 hover:text-blue-800">
+                                    {post.category.name}
+                                </Link>
+                            </>
+                        )}
 
                         {/* HEADLINE BADGE */}
                         {post.is_headline && (

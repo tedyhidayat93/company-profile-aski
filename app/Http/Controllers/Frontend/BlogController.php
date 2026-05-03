@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Traits\TracksVisitors;
@@ -16,31 +17,87 @@ class BlogController extends Controller
         // Track visitor
         $this->trackPageVisit($request, 'Blog Index');
         
+        // Get filters
+        $search = $request->get('search');
+        $categoryId = $request->get('category');
+        $tag = $request->get('tag');
+        
+        // Get blog categories
+        $categories = Category::where('type', 'blog')
+            ->where('is_active', true)
+            ->with('children')
+            ->get();
+        
+        // Get popular tags
+        $popularTags = Article::published()
+            ->whereNotNull('tags')
+            ->where('tags', '!=', '')
+            ->pluck('tags')
+            ->flatMap(function($tags) {
+                // Handle both string (JSON) and array formats
+                if (is_string($tags)) {
+                    return json_decode($tags, true) ?: [];
+                } elseif (is_array($tags)) {
+                    return $tags;
+                }
+                return [];
+            })
+            ->filter(function($tag) {
+                return !empty($tag) && is_string($tag);
+            })
+            ->countBy()
+            ->sortDesc()
+            ->take(10)
+            ->keys()
+            ->toArray();    
+        
+        // Base query for articles
+        $baseQuery = Article::published()
+            ->with(['author', 'category']);
+        
+        // Apply search filter
+        if ($search) {
+            $baseQuery->where(function($query) use ($search) {
+                $query->where('title', 'LIKE', "%{$search}%")
+                      ->orWhere('excerpt', 'LIKE', "%{$search}%")
+                      ->orWhere('content', 'LIKE', "%{$search}%");
+            });
+        }
+        
+        // Apply category filter
+        if ($categoryId) {
+            $baseQuery->where('category_id', $categoryId);
+        }
+        
+        // Apply tag filter
+        if ($tag) {
+            $baseQuery->where(function($query) use ($tag) {
+                $query->where('tags', 'LIKE', "%\"{$tag}\"%")
+                      ->orWhere('tags', 'LIKE', "%{$tag}%");
+            });
+        }
+        
         // 1. Headline articles (is_headline = true) - 5 articles
-        $headlinePosts = Article::published()
+        $headlinePosts = (clone $baseQuery)
             ->headline()
-            ->with(['author'])
             ->orderBy('published_at', 'desc')
             ->limit(5)
             ->get();
 
         // 2. Most read articles (views_count) - 5 articles
-        $mostReadPosts = Article::published()
-            ->with(['author'])
+        $mostReadPosts = (clone $baseQuery)
             ->orderBy('views_count', 'desc')
             ->limit(5)
             ->get();
 
         // 3. Recently published articles - 5 articles
-        $recentPosts = Article::published()
-            ->with(['author'])
+        $recentPosts = (clone $baseQuery)
             ->orderBy('published_at', 'desc')
             ->limit(5)
             ->get();
 
         // 4. All other articles with pagination
-        $allPosts = Article::published()
-            ->with(['author'])
+        $allPosts = $baseQuery
             ->orderBy('published_at', 'desc')
             ->paginate(12);
 
@@ -49,6 +106,13 @@ class BlogController extends Controller
             'most_read_posts' => $mostReadPosts,
             'recent_posts' => $recentPosts,
             'all_posts' => $allPosts,
+            'categories' => $categories,
+            'popular_tags' => $popularTags,
+            'filters' => [
+                'search' => $search,
+                'category' => $categoryId,
+                'tag' => $tag,
+            ],
         ]);
     }
 
@@ -58,7 +122,7 @@ class BlogController extends Controller
         $this->trackPageVisit($request, 'Blog Article - ' . $slug);
         
         $post = Article::where('slug', $slug)
-            ->with(['author'])
+            ->with(['author', 'category'])
             ->firstOrFail();
 
         // Increment view count

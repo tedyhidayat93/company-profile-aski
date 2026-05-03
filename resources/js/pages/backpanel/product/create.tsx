@@ -13,7 +13,6 @@ import { type BreadcrumbItem } from '@/types';
 import { formatPrice, parseCurrencyInput, formatCurrencyInput } from '@/utils/currency';
 import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon, Plus, Trash2 } from 'lucide-react';
 import TreeSelect from '@/components/tree-select';
-import { flattenCategories } from '@/lib/utils';
 
 interface Brand {
   id: number;
