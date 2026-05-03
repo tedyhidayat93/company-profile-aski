@@ -364,27 +364,13 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                     />
                   </div>
                 </div>
-                {hasActiveFilters && (
-                    <div className="flex flex-col space-y-1">
-                      <Label className="text-xs font-medium text-gray-600">&nbsp;</Label>
-                      <Button 
-                        type="button" 
-                        size="sm"
-                        variant="destructive" 
-                        onClick={handleResetFilters}
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                        Reset
-                      </Button>
-                    </div>
-                )}
               </div>
               
               <div className="flex flex-wrap gap-2 items-center">
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Tipe Jual</Label>
                   <Select value={typeFilter} onValueChange={handleTypeFilter}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="min-w-[190px]">
                       <SelectValue placeholder="Tipe" />
                     </SelectTrigger>
                     <SelectContent>
@@ -399,7 +385,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Merek</Label>
                   <Select value={brandFilter} onValueChange={handleBrandFilter}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="min-w-[190px]">
                       <SelectValue placeholder="Merek" />
                     </SelectTrigger>
                     <SelectContent>
@@ -416,7 +402,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Kategori</Label>
                   <Select value={categoryFilter} onValueChange={handleCategoryFilter}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="min-w-[190px]">
                       <SelectValue placeholder="Kategori" />
                     </SelectTrigger>
                     <SelectContent>
@@ -433,7 +419,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Status</Label>
                   <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="min-w-[190px]">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -447,7 +433,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Unggulan</Label>
                   <Select value={featuredFilter} onValueChange={handleFeaturedFilter}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="min-w-[190px]">
                       <SelectValue placeholder="Unggulan" />
                     </SelectTrigger>
                     <SelectContent>
@@ -461,7 +447,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Terlaris</Label>
                   <Select value={bestsellerFilter} onValueChange={handleBestsellerFilter}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="min-w-[190px]">
                       <SelectValue placeholder="Terlaris" />
                     </SelectTrigger>
                     <SelectContent>
@@ -471,6 +457,21 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                     </SelectContent>
                   </Select>
                 </div>
+
+                {hasActiveFilters && (
+                    <div className="flex flex-col space-y-1">
+                      <Label className="text-xs font-medium text-gray-600">&nbsp;</Label>
+                      <Button 
+                        type="button" 
+                        size="sm"
+                        variant="destructive" 
+                        onClick={handleResetFilters}
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Reset
+                      </Button>
+                    </div>
+                )}
               </div>
             </div>
 

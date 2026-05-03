@@ -18,8 +18,9 @@ class CustomerController extends Controller
                     ->orWhere('phone', 'like', "%{$search}%")
                     ->orWhere('address', 'like', "%{$search}%");
             })
-            ->when($request->active !== null, function ($query, $active) {
-                return $query->where('is_active', $active === 'true');
+            ->when($request->has('active'), function ($query) use ($request) {
+                $isActive = $request->boolean('active');
+                return $query->where('is_active', $isActive);
             })
             ->orderBy('name')
             ->paginate(15);

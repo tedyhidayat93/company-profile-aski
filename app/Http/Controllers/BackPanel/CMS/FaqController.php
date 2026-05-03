@@ -16,11 +16,12 @@ class FaqController extends Controller
                 return $query->where('question', 'like', "%{$search}%")
                     ->orWhere('answer', 'like', "%{$search}%");
             })
-            ->when($request->category, function ($query, $category) {
-                return $query->where('category', $category);
+            ->when($request->has('category'), function ($query) use ($request) {
+                return $query->where('category', $request->category);
             })
-            ->when($request->active !== null, function ($query, $active) {
-                return $query->where('is_active', $active === 'true');
+            ->when($request->has('active'), function ($query) use ($request) {
+                $isActive = $request->boolean('active');
+                return $query->where('is_active', $isActive);
             })
             ->orderBy('category')
             ->orderBy('position')

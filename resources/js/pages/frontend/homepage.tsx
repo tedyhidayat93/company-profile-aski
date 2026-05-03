@@ -73,19 +73,41 @@ export default function Homepage({
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
-    setIsSearching(true);
-    // Simulate API call or processing
-    setTimeout(() => {
-        router.get(`/catalog?search=${encodeURIComponent(searchQuery.trim())}`, {}, {
-            preserveState: true,
-            onFinish: () => {
-                setIsSearching(false);
-            }
-        });
-    }, 1000);
-  };
 
+    if (isSearching) return;
+
+    const query = searchQuery.trim();
+
+    // 🔥 HANDLE KOSONG DI LUAR setTimeout
+    if (!query) {
+      setIsSearching(true);
+
+      setTimeout(() => {
+        router.get('/catalog', {}, {
+          preserveState: false, // penting!
+          preserveScroll: true,
+          onFinish: () => setIsSearching(false),
+        });
+      }, 600);
+
+      return;
+    }
+
+    // 🔥 HANDLE ADA QUERY
+    setIsSearching(true);
+
+    setTimeout(() => {
+      router.get(
+        '/catalog',
+        { search: query },
+        {
+          preserveState: true,
+          preserveScroll: true,
+          onFinish: () => setIsSearching(false),
+        }
+      );
+    }, 600);
+  };
 
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
@@ -101,16 +123,92 @@ export default function Homepage({
 
   return (
     <FrontendLayout title="Beranda">
-      <Head title={`${getConfig('site_name', 'Your site name')} - ${getConfig('site_tagline', 'Your site tagline')}`}>
-        <meta name="description" content={getConfig('meta_description', 'PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer dengan kualitas terbaik dan harga kompetitif')} />
-        <meta name="keywords" content={getConfig('meta_keywords', 'jual kontainer, sewa kontainer, kontainer bekas, kontainer modifikasi, PT. Alumoda Sinergi Kontainer Indonesia')} />
+      <Head title={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')} - ${getConfig('site_tagline', 'Jual & Sewa Kontainer Berkualitas')}`}>
+        {/* Basic Meta Tags */}
+        <meta name="description" content={getConfig('meta_description', 'PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer dengan kualitas terbaik dan harga kompetitif. Menyediakan berbagai jenis kontainer untuk kebutuhan bisnis Anda.')} />
+        <meta name="keywords" content={getConfig('meta_keywords', 'jual kontainer, sewa kontainer, kontainer bekas, kontainer modifikasi, PT. Alumoda Sinergi Kontainer Indonesia, kontainer office, kontainer gudang')} />
+        <meta name="author" content={getConfig('site_name', 'PT. Alumoda Sinergi Kontainer Indonesia')} />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+        <meta name="language" content="id" />
+        <meta name="geo.region" content="ID" />
+        <meta name="geo.placename" content="Indonesia" />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href={typeof window !== 'undefined' ? window.location.href : 'https://alumodasinergi.com'} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')} - ${getConfig('site_tagline', 'Jual & Sewa Kontainer Berkualitas')}`} />
+        <meta property="og:description" content={getConfig('meta_description', 'PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer dengan kualitas terbaik dan harga kompetitif. Menyediakan berbagai jenis kontainer untuk kebutuhan bisnis Anda.')} />
+        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : 'https://alumodasinergi.com'} />
+        <meta property="og:site_name" content={getConfig('site_name', 'Alumoda Sinergi Kontainer')} />
+        <meta property="og:image" content="/images/og-image.jpg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')} - Jual & Sewa Kontainer`} />
+        <meta property="og:locale" content="id_ID" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')} - ${getConfig('site_tagline', 'Jual & Sewa Kontainer Berkualitas')}`} />
+        <meta name="twitter:description" content={getConfig('meta_description', 'PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer dengan kualitas terbaik dan harga kompetitif.')} />
+        <meta name="twitter:image" content="/images/og-image.jpg" />
+        <meta name="twitter:image:alt" content={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')} - Jual & Sewa Kontainer`} />
+        <meta name="twitter:site" content="@alumoda_id" />
+        <meta name="twitter:creator" content="@alumoda_id" />
+        
+        {/* Additional SEO Meta */}
+        <meta name="theme-color" content="#f59e0b" />
+        <meta name="msapplication-TileColor" content="#f59e0b" />
+        <meta name="application-name" content={getConfig('site_name', 'Alumoda Sinergi Kontainer')} />
+        <meta name="apple-mobile-web-app-title" content={getConfig('site_name', 'Alumoda')} />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        
+        {/* Favicon and App Icons */}
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        
+        {/* Structured Data for Business */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": getConfig('site_name', 'PT. Alumoda Sinergi Kontainer Indonesia'),
+              "url": "https://alumodasinergi.com",
+              "logo": "/images/logo-main.png",
+              "description": getConfig('meta_description', 'PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer dengan kualitas terbaik dan harga kompetitif.'),
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "ID",
+                "addressRegion": "Indonesia"
+              },
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+62-812-3456-7890",
+                "contactType": "customer service",
+                "availableLanguage": ["Indonesian", "English"]
+              },
+              "sameAs": [
+                "https://www.facebook.com/alumodakontainer",
+                "https://www.instagram.com/alumodakontainer",
+                "https://www.linkedin.com/company/alumoda-sinergi-kontainer"
+              ]
+            })
+          }}
+        />
+        
         <style
           jsx
           global
         >{`
           html {
             scroll-behavior: smooth;
-            top: 10;
           }
         `}</style>
       </Head>
@@ -122,9 +220,15 @@ export default function Homepage({
           className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-500 via-amber-400 to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
         >
           
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-300/90 via-amber-400/80 to-orange-800/80 dark:from-gray-900/80 dark:via-gray-800/80 dark:to-gray-900/80 z-20 " />
+          <div className="absolute inset-0 z-20 overflow-hidden">
+            {/* BASE */}
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-300/90 via-amber-400/80 to-orange-800/80 animate-gradient-wave" />
 
-          
+            {/* WAVE LAYER */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent animate-gradient-wave-slow blur-xl" />
+
+          </div>
+
           <img 
             src={getConfig('hero_image', '/images/bg-hero.png')} 
             alt="Alumoda Sinergi Kontainer Indonesia - Solusi Terpercaya untuk Kontainer Anda" 
@@ -146,7 +250,7 @@ export default function Homepage({
                 }} />
               </h1>
               
-              <p className="mx-auto mb-10 max-w-2xl font-medium text-sm md:text-xl dark:text-orange-200 text-slate-900 leading-7 lg:text-xl">
+              <p className="mx-auto mb-10 max-w-2xl font-bold text-sm md:text-xl dark:text-orange-200 text-slate-900 leading-7 lg:text-xl">
                 {getConfig('hero_description', 'Kami menyediakan berbagai pilihan kontainer untuk disewa atau dibeli. Mulai dari Kontainer standar hingga Kontainer Custom sesuai kebutuhan Anda.')}
               </p>
 
@@ -467,7 +571,7 @@ export default function Homepage({
                   {articles.map((article) => (
                     <div 
                       key={article.id} 
-                      onClick={() => window.location.href=`/blog/${article.slug}`}
+                      onClick={() => window.location.href=`/articles/${article.slug}`}
                       className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800"
                     >
                       <div className="relative h-52 overflow-hidden bg-gray-100 dark:bg-gray-700">
@@ -509,7 +613,7 @@ export default function Homepage({
 
                         <div className="flex items-center justify-between">
                           <Link 
-                            href={`/blog/${article.slug}`} 
+                            href={`/articles/${article.slug}`} 
                             className="flex items-center text-sm font-medium text-slate-400 transition-colors hover:text-amber-700 dark:hover:text-amber-300"
                           >
                             Baca Selengkapnya
@@ -523,7 +627,7 @@ export default function Homepage({
                 
                 <div className="mt-12 text-center flex items-center justify-center">
                   <Link 
-                    href="/blog"
+                    href="/articles"
                     className="btn btn-ghost flex items-center"
                   >
                     Tampilkan Lebih Banyak <ArrowRight className="ml-1 h-4 w-4" />  

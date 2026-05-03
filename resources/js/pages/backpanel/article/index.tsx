@@ -255,27 +255,13 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                     />
                   </div>
                 </div>
-                {hasActiveFilters && (
-                    <div className="flex flex-col space-y-1">
-                      <Label className="text-xs font-medium text-gray-600">&nbsp;</Label>
-                      <Button 
-                        type="button" 
-                        size="sm"
-                        variant="destructive" 
-                        onClick={handleResetFilters}
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                        Reset
-                      </Button>
-                    </div>
-                )}
               </div>
               
-              <div className="flex flex-wrap gap-2 items-center">
+              <div className="flex flex-wrap w-full gap-2 items-center">
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Status</Label>
                   <Select value={statusFilter} onValueChange={(value) => handleFilterChange('status', value)}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="min-w-[240px]">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -289,7 +275,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Penulis</Label>
                   <Select value={authorFilter} onValueChange={(value) => handleFilterChange('author', value)}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="min-w-[240px]">
                       <SelectValue placeholder="Penulis" />
                     </SelectTrigger>
                     <SelectContent>
@@ -313,7 +299,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Headline</Label>
                   <Select value={headlineFilter} onValueChange={(value) => handleFilterChange('headline', value)}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="min-w-[240px]">
                       <SelectValue placeholder="Headline" />
                     </SelectTrigger>
                     <SelectContent>
@@ -326,7 +312,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Urutkan</Label>
                   <Select value={sortFilter} onValueChange={(value) => handleFilterChange('sort', value)}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="min-w-[240px]">
                       <SelectValue placeholder="Urutkan" />
                     </SelectTrigger>
                     <SelectContent>
@@ -338,6 +324,21 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                     </SelectContent>
                   </Select>
                 </div>
+
+                {hasActiveFilters && (
+                    <div className="flex flex-col space-y-1">
+                      <Label className="text-xs font-medium text-gray-600">&nbsp;</Label>
+                      <Button 
+                        type="button" 
+                        size="sm"
+                        variant="destructive" 
+                        onClick={handleResetFilters}
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Reset
+                      </Button>
+                    </div>
+                )}
               </div>
             </div>
 

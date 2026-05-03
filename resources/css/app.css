@@ -251,6 +251,10 @@
   label {
     @apply mb-2;
   }
+
+  thead {
+    @apply bg-orange-100;
+  }
 }
 
 @keyframes marquee {
@@ -309,4 +313,31 @@
 
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+@keyframes gradient-wave {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-wave {
+  background-size: 200% 200%;
+  animation: gradient-wave 8s ease infinite;
+}
+
+@keyframes gradient-wave-slow {
+  0% { transform: translateX(-20%) translateY(0); }
+  50% { transform: translateX(20%) translateY(10%); }
+  100% { transform: translateX(-20%) translateY(0); }
+}
+
+.animate-gradient-wave-slow {
+  animation: gradient-wave-slow 12s ease-in-out infinite;
 }

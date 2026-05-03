@@ -30,11 +30,13 @@ import {
   CheckCircle,
   XCircle,
   FileText,
-  ShoppingCart
+  ShoppingCart,
+  RefreshCw
 } from 'lucide-react';
 import { orderStatusColors, orderStatusLabels, getOrderStatusBadgeProps, OrderStatusBadge } from '@/utils/order-status';
 import { formatCurrencyDisplay } from '@/utils/currency';
 import { formatDate } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 interface Order {
   id: number;
@@ -109,6 +111,8 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
   const [statusFilter, setStatusFilter] = React.useState(filters.status || 'all');
   const [dateFrom, setDateFrom] = React.useState(filters.date_from || '');
   const [dateTo, setDateTo] = React.useState(filters.date_to || '');
+
+  const hasActiveFilters = search || statusFilter !== 'all' || dateFrom || dateTo;
 
   // Map backend statistics to frontend format with icon components
   const orderStats = orderStatistics.map(stat => ({
@@ -312,11 +316,19 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
                         onChange={(e) => handleDateFilter('to', e.target.value)}
                       />
                     </div>
-                    <div className="flex gap-2">
-                      <Button type="button" variant="outline" onClick={handleReset}>
-                        Reset
-                      </Button>
-                    </div>
+                    {hasActiveFilters && (
+                        <div className="flex flex-col max-w-20 space-y-1">
+                          <Button 
+                            type="button" 
+                            size="sm"
+                            variant="destructive" 
+                            onClick={handleReset}
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                            Reset
+                          </Button>
+                        </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

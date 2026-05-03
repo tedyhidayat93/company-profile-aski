@@ -171,8 +171,8 @@ export default function TestimonialIndex({ testimonials, filters }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="true">Publik</SelectItem>
-                  <SelectItem value="false">Draft</SelectItem>
+                  <SelectItem value="true">Ditampilkan</SelectItem>
+                  <SelectItem value="false">Disembunyikan</SelectItem>
                 </SelectContent>
               </Select>
 

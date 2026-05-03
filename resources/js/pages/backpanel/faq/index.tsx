@@ -86,17 +86,17 @@ export default function FaqIndex({ faqs, filters }: Props) {
   ];
 
   const [search, setSearch] = React.useState(filters.search || '');
-  const [categoryFilter, setCategoryFilter] = React.useState(filters.category || '');
-  const [activeFilter, setActiveFilter] = React.useState(filters.active || '');
+  const [categoryFilter, setCategoryFilter] = React.useState(filters.category || 'all');
+  const [activeFilter, setActiveFilter] = React.useState(filters.active || 'all');
 
   const handleSearch = (value: string) => {
     setSearch(value);
     router.get(
       '/cpanel/cms/faq',
       { 
-        search: value, 
-        category: categoryFilter,
-        active: activeFilter
+        search: value || undefined, 
+        category: categoryFilter === 'all' ? undefined : categoryFilter,
+        active: activeFilter === 'all' ? undefined : activeFilter
       },
       { preserveState: true, preserveScroll: true }
     );
@@ -108,8 +108,8 @@ export default function FaqIndex({ faqs, filters }: Props) {
       '/cpanel/cms/faq',
       { 
         search: search, 
-        category: value,
-        active: activeFilter
+        category: value === 'all' ? undefined : value,
+        active: activeFilter === 'all' ? undefined : activeFilter
       },
       { preserveState: true, preserveScroll: true }
     );
@@ -121,8 +121,8 @@ export default function FaqIndex({ faqs, filters }: Props) {
       '/cpanel/cms/faq',
       { 
         search: search, 
-        category: categoryFilter,
-        active: value
+        category: categoryFilter === 'all' ? undefined : categoryFilter,
+        active: value === 'all' ? undefined : value
       },
       { preserveState: true, preserveScroll: true }
     );
@@ -174,12 +174,12 @@ export default function FaqIndex({ faqs, filters }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Kategori</SelectItem>
-                  <SelectItem value="general">Umum</SelectItem>
-                  <SelectItem value="product">Produk</SelectItem>
-                  <SelectItem value="service">Layanan</SelectItem>
-                  <SelectItem value="payment">Pembayaran</SelectItem>
-                  <SelectItem value="shipping">Pengiriman</SelectItem>
-                  <SelectItem value="account">Akun</SelectItem>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="product">Product</SelectItem>
+                  <SelectItem value="service">Services</SelectItem>
+                  <SelectItem value="payment">Payment</SelectItem>
+                  <SelectItem value="shipping">Shipping</SelectItem>
+                  <SelectItem value="account">Account</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={activeFilter} onValueChange={handleActiveFilter}>

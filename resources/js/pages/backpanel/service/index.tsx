@@ -236,11 +236,11 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="true">Featured</SelectItem>
-                  <SelectItem value="false">Not Featured</SelectItem>
+                  <SelectItem value="true">Unggulan</SelectItem>
+                  <SelectItem value="false">Bukan Unggulan</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={categoryFilter} onValueChange={handleCategoryFilter}>
+              {/* <Select value={categoryFilter} onValueChange={handleCategoryFilter}>
                 <SelectTrigger className="w-[180px]">
                   <Package className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Category" />
@@ -253,7 +253,7 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select> */}
             </div>
 
             <Table>

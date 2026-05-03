@@ -15,17 +15,20 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::firstOrCreate(
-            ['email' => 'sadmin@alumodasinergi.com'],
-            [
-                'name' => 'Super Admin',
-                'password' => bcrypt('password'),
-                'email_verified_at' => now(),
-                'is_active' => true,
-            ]
-        );
+        // User::firstOrCreate(
+        //     ['email' => 'sadmin@alumodasinergi.com'],
+        //     [
+        //         'name' => 'Super Admin',
+        //         'password' => bcrypt('password'),
+        //         'email_verified_at' => now(),
+        //         'is_active' => true,
+        //     ]
+        // );
+
+
 
         $this->call([
+            UserSeeder::class,
             PermissionSeeder::class,
             RoleSeeder::class,
             ConfigurationSeeder::class,

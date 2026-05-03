@@ -82,14 +82,14 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                         Beranda
                     </Link>
                     <span className="text-gray-400">/</span>
-                    <Link href="/blog" className="hover:text-gray-700 transition-colors">
-                        Berita
+                    <Link href="/articles" className="hover:text-gray-700 transition-colors">
+                        Artikel
                     </Link>
                     {post.category && (
                         <>
                             <span className="text-gray-400">/</span>
                             <Link 
-                                href={`/blog?category=${post.category.id}`} 
+                                href={`/articles?category=${post.category.id}`} 
                                 className="hover:text-gray-700 transition-colors"
                             >
                                 {post.category.name}
@@ -140,7 +140,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                         {post.category && (
                             <>
                                 <span>•</span>
-                                <Link href={`/blog?category=${post.category.id}`} className="text-blue-600 hover:text-blue-800">
+                                <Link href={`/articles?category=${post.category.id}`} className="text-blue-600 hover:text-blue-800">
                                     {post.category.name}
                                 </Link>
                             </>
@@ -287,7 +287,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                             {related_posts.map((item) => (
                                 <Link
                                     key={item.id}
-                                    href={`/blog/${item.slug}`}
+                                    href={`/articles/${item.slug}`}
                                     className="group"
                                 >
                                     <div className="flex gap-4">

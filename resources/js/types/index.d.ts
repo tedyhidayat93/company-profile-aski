@@ -72,6 +72,7 @@ export interface Product {
   position?: number;
   brand_id?: number;
   category_id?: number;
+  image?: string; // Processed image path with /storage/ prefix
   image_path?: string; // Processed image path with /storage/ prefix
   stock: number;
   images: Array<{

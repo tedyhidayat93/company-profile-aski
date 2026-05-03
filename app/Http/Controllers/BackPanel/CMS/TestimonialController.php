@@ -19,8 +19,9 @@ class TestimonialController extends Controller
                     ->orWhere('perusahaan', 'like', "%{$search}%")
                     ->orWhere('testimoni', 'like', "%{$search}%");
             })
-            ->when($request->public !== null, function ($query, $public) {
-                return $query->where('is_show_public', $public === 'true');
+            ->when($request->has('public'), function ($query) use ($request) {
+                $isShowPublic = $request->boolean('public');
+                return $query->where('is_show_public', $isShowPublic);
             })
             ->when($request->rating, function ($query, $rating) {
                 return $query->where('rate_star', $rating);

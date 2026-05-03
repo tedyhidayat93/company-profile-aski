@@ -18,73 +18,143 @@ class BlogCategorySeeder extends Seeder
                 'name' => 'Produk Container',
                 'slug' => 'produk-container',
                 'type' => 'blog',
-                'description' => 'Informasi produk container baru, bekas, dan modifikasi',
-                'parent_id' => null,
+                'description' => 'Informasi produk container dan jenisnya',
                 'children' => [
-                    ['name' => 'Container 20 Feet', 'slug' => 'container-20-feet', 'type' => 'blog', 'description' => 'Container ukuran 20 feet'],
-                    ['name' => 'Container 40 Feet', 'slug' => 'container-40-feet', 'type' => 'blog', 'description' => 'Container ukuran 40 feet dan high cube'],
-                    ['name' => 'Reefer Container', 'slug' => 'reefer-container', 'type' => 'blog', 'description' => 'Container pendingin (cold storage)'],
-                    ['name' => 'Container Bekas', 'slug' => 'container-bekas', 'type' => 'blog', 'description' => 'Container second dengan berbagai kondisi'],
-                    ['name' => 'Container Modifikasi', 'slug' => 'container-modifikasi', 'type' => 'blog', 'description' => 'Container custom untuk cafe, kantor, dll'],
+                    [
+                        'name' => 'Jenis Container',
+                        'slug' => 'jenis-container',
+                        'type' => 'blog',
+                        'description' => 'Berbagai jenis container seperti dry, reefer, open top, dll',
+                    ],
+                    [
+                        'name' => 'Container Bekas',
+                        'slug' => 'container-bekas',
+                        'type' => 'blog',
+                        'description' => 'Container second dengan berbagai kondisi',
+                    ],
+                    [
+                        'name' => 'Container Modifikasi',
+                        'slug' => 'container-modifikasi',
+                        'type' => 'blog',
+                        'description' => 'Container custom untuk cafe, kantor, dll',
+                    ],
                 ]
             ],
+
             [
-                'name' => 'Harga & Penawaran',
+                'name' => 'Harga Container',
                 'slug' => 'harga-container',
                 'type' => 'blog',
-                'description' => 'Informasi harga container terbaru dan penawaran',
-                'parent_id' => null,
+                'description' => 'Informasi harga dan penawaran container',
                 'children' => [
-                    ['name' => 'Harga Container 20ft', 'slug' => 'harga-container-20ft', 'type' => 'blog', 'description' => 'Update harga container 20 feet'],
-                    ['name' => 'Harga Container 40ft', 'slug' => 'harga-container-40ft', 'type' => 'blog', 'description' => 'Update harga container 40 feet'],
-                    ['name' => 'Faktor Harga', 'slug' => 'faktor-harga-container', 'type' => 'blog', 'description' => 'Faktor yang mempengaruhi harga container'],
+                    [
+                        'name' => 'Update Harga',
+                        'slug' => 'update-harga-container',
+                        'type' => 'blog',
+                        'description' => 'Harga terbaru container',
+                    ],
+                    [
+                        'name' => 'Faktor Harga',
+                        'slug' => 'faktor-harga-container',
+                        'type' => 'blog',
+                        'description' => 'Faktor yang mempengaruhi harga',
+                    ],
                 ]
             ],
+
             [
-                'name' => 'Edukasi & Panduan',
-                'slug' => 'edukasi-container',
+                'name' => 'Panduan & Edukasi',
+                'slug' => 'panduan-container',
                 'type' => 'blog',
-                'description' => 'Panduan dan tips seputar container',
-                'parent_id' => null,
+                'description' => 'Tips dan panduan seputar container',
                 'children' => [
-                    ['name' => 'Panduan Membeli', 'slug' => 'panduan-membeli-container', 'type' => 'blog', 'description' => 'Tips membeli container'],
-                    ['name' => 'Perawatan Container', 'slug' => 'perawatan-container', 'type' => 'blog', 'description' => 'Cara merawat container agar tahan lama'],
-                    ['name' => 'Jenis Container', 'slug' => 'jenis-container', 'type' => 'blog', 'description' => 'Perbedaan jenis container'],
-                    ['name' => 'Pengiriman Container', 'slug' => 'pengiriman-container', 'type' => 'blog', 'description' => 'Logistik dan pengiriman container'],
+                    [
+                        'name' => 'Panduan Membeli',
+                        'slug' => 'panduan-membeli-container',
+                        'type' => 'blog',
+                        'description' => 'Tips membeli container',
+                    ],
+                    [
+                        'name' => 'Perawatan',
+                        'slug' => 'perawatan-container',
+                        'type' => 'blog',
+                        'description' => 'Cara merawat container',
+                    ],
+                    [
+                        'name' => 'Pengiriman',
+                        'slug' => 'pengiriman-container',
+                        'type' => 'blog',
+                        'description' => 'Logistik dan pengiriman container',
+                    ],
                 ]
             ],
+
             [
                 'name' => 'Inspirasi & Penggunaan',
                 'slug' => 'inspirasi-container',
                 'type' => 'blog',
-                'description' => 'Inspirasi penggunaan container',
-                'parent_id' => null,
+                'description' => 'Ide penggunaan container',
                 'children' => [
-                    ['name' => 'Container Cafe', 'slug' => 'container-cafe', 'type' => 'blog', 'description' => 'Inspirasi cafe dari container'],
-                    ['name' => 'Container Office', 'slug' => 'container-office', 'type' => 'blog', 'description' => 'Kantor dari container'],
-                    ['name' => 'Container Rumah', 'slug' => 'container-rumah', 'type' => 'blog', 'description' => 'Hunian berbasis container'],
+                    [
+                        'name' => 'Container Cafe',
+                        'slug' => 'container-cafe',
+                        'type' => 'blog',
+                        'description' => 'Inspirasi cafe dari container',
+                    ],
+                    [
+                        'name' => 'Container Kantor',
+                        'slug' => 'container-kantor',
+                        'type' => 'blog',
+                        'description' => 'Kantor berbasis container',
+                    ],
+                    [
+                        'name' => 'Container Rumah',
+                        'slug' => 'container-rumah',
+                        'type' => 'blog',
+                        'description' => 'Hunian berbasis container',
+                    ],
                 ]
             ],
+
             [
-                'name' => 'Proyek & Portofolio',
+                'name' => 'Proyek & Studi Kasus',
                 'slug' => 'proyek-container',
                 'type' => 'blog',
-                'description' => 'Dokumentasi proyek container',
-                'parent_id' => null,
+                'description' => 'Dokumentasi dan analisis proyek',
                 'children' => [
-                    ['name' => 'Proyek Client', 'slug' => 'proyek-client', 'type' => 'blog', 'description' => 'Implementasi container oleh client'],
-                    ['name' => 'Studi Kasus', 'slug' => 'studi-kasus-container', 'type' => 'blog', 'description' => 'Analisis penggunaan container'],
+                    [
+                        'name' => 'Proyek Client',
+                        'slug' => 'proyek-client',
+                        'type' => 'blog',
+                        'description' => 'Implementasi container oleh client',
+                    ],
+                    [
+                        'name' => 'Studi Kasus',
+                        'slug' => 'studi-kasus',
+                        'type' => 'blog',
+                        'description' => 'Analisis penggunaan container',
+                    ],
                 ]
             ],
+
             [
                 'name' => 'Berita Industri',
-                'slug' => 'berita-industri-container',
+                'slug' => 'berita-container',
                 'type' => 'blog',
-                'description' => 'Update industri logistik dan container',
-                'parent_id' => null,
+                'description' => 'Update industri container dan logistik',
                 'children' => [
-                    ['name' => 'Tren Pasar', 'slug' => 'tren-pasar-container', 'type' => 'blog', 'description' => 'Perkembangan harga dan supply'],
-                    ['name' => 'Regulasi', 'slug' => 'regulasi-container', 'type' => 'blog', 'description' => 'Kebijakan terkait container'],
+                    [
+                        'name' => 'Tren Pasar',
+                        'slug' => 'tren-pasar',
+                        'type' => 'blog',
+                        'description' => 'Perkembangan harga dan supply',
+                    ],
+                    [
+                        'name' => 'Regulasi',
+                        'slug' => 'regulasi',
+                        'type' => 'blog',
+                        'description' => 'Kebijakan terkait container',
+                    ],
                 ]
             ],
         ];

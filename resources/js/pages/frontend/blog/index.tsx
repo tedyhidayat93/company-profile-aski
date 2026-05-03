@@ -62,7 +62,7 @@ export default function BlogIndex({
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        get('/blog', {
+        get('/articles', {
             preserveState: true,
             preserveScroll: true,
         });
@@ -71,7 +71,7 @@ export default function BlogIndex({
     const handleCategoryChange = (categoryId: string) => {
         setData('category', categoryId);
         setData('tag', ''); // Clear tag when category changes
-        get('/blog', {
+        get('/articles', {
             preserveState: true,
             preserveScroll: true,
         });
@@ -80,7 +80,7 @@ export default function BlogIndex({
     const handleTagClick = (tag: string) => {
         setData('tag', tag);
         setData('category', ''); // Clear category when tag changes
-        get('/blog', {
+        get('/articles', {
             preserveState: true,
             preserveScroll: true,
         });
@@ -120,7 +120,7 @@ export default function BlogIndex({
             />
 
             <div className="flex-1">
-                <Link href={`/blog/${post.slug}`}>
+                <Link href={`/articles/${post.slug}`}>
                     <h3 className={`font-bold text-gray-900 leading-snug hover:text-orange-600 ${
                         headline ? 'text-base' : 'text-xl'
                     }`}>
@@ -208,7 +208,7 @@ export default function BlogIndex({
                         <button
                             onClick={() => {
                             setData({ search: '', category: '', tag: '' });
-                            router.get('/blog', {}, { preserveState: true });
+                            router.get('/articles', {}, { preserveState: true });
                             }}
                             className="text-xs text-red-500 hover:underline"
                         >
@@ -305,7 +305,7 @@ export default function BlogIndex({
                 {/* 🔥 HEADLINE BESAR */}
                 {!isLoading && headline_posts[0] && (
                     <div className="mb-10">
-                        <Link href={`/blog/${headline_posts[0].slug}`}>
+                        <Link href={`/articles/${headline_posts[0].slug}`}>
                             <div className="relative rounded-xl overflow-hidden">
                                 <img
                                     src={

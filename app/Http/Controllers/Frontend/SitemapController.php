@@ -26,7 +26,7 @@ class SitemapController extends Controller
             ->get(['id', 'title', 'slug', 'published_at']);
 
         // Get all active products
-        $products = Product::where('status', 'active')
+        $products = Product::where('status', 'published')
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'created_at']);
 
@@ -35,7 +35,7 @@ class SitemapController extends Controller
             ['name' => 'Beranda', 'href' => '/'],
             ['name' => 'Layanan', 'href' => '/#services'],
             ['name' => 'Katalog Produk', 'href' => '/catalog'],
-            ['name' => 'Artikel', 'href' => '/blog'],
+            ['name' => 'Artikel', 'href' => '/articles'],
             ['name' => 'Testimoni', 'href' => '/testimonial'],
             ['name' => 'Kontak', 'href' => '/#contact'],
             ['name' => 'Site Map', 'href' => '/sitemap'],
@@ -97,7 +97,7 @@ class SitemapController extends Controller
         foreach ($articles as $article) {
             $sitemap .= '
                 <url>
-                    <loc>' . $baseUrl . '/blog/' . $article->slug . '</loc>
+                    <loc>' . $baseUrl . '/articles/' . $article->slug . '</loc>
                     <lastmod>' . $article->updated_at->toAtomString() . '</lastmod>
                     <changefreq>monthly</changefreq>
                     <priority>0.7</priority>
@@ -105,7 +105,7 @@ class SitemapController extends Controller
         }
         
         // Add products
-        $products = Product::where('status', 'active')->get(['slug', 'updated_at']);
+        $products = Product::where('status', 'published')->get(['slug', 'updated_at']);
         foreach ($products as $product) {
             $sitemap .= '
                 <url>

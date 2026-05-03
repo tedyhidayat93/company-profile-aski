@@ -20,6 +20,9 @@ class ConfigurationSeeder extends Seeder
         
         // Homepage Configuration
         $this->createHomepageConfiguration();
+        
+        // Other Configuration
+        $this->createOtherConfiguration();
     }
 
     /**
@@ -462,6 +465,46 @@ class ConfigurationSeeder extends Seeder
         ];
 
         foreach ($homepageConfigs as $config) {
+            Configuration::firstOrCreate(
+                ['key' => $config['key'], 'group' => $config['group']],
+                $config
+            );
+        }
+    }
+
+    /**
+     * Create other configuration settings
+     */
+    private function createOtherConfiguration(): void
+    {
+        $otherConfigs = [
+            [
+                'label' => 'Notifikasi Email ke Owner Saat Pesanan Dibuat',
+                'description' => 'Aktifkan notifikasi email ke pemilik saat pelanggan membuat pesanan baru',
+                'group' => 'other',
+                'key' => 'notify_email_owner_order_created',
+                'value' => 'true',
+                'type' => 'checkbox',
+            ],
+            [
+                'label' => 'Notifikasi Email ke Pelanggan Saat Pesanan Berhasil',
+                'description' => 'Aktifkan notifikasi email ke pelanggan saat pesanan berhasil diproses',
+                'group' => 'other',
+                'key' => 'notify_email_customer_order_success',
+                'value' => 'true',
+                'type' => 'checkbox',
+            ],
+            [
+                'label' => 'Email Target Owner',
+                'description' => 'Alamat email tujuan untuk notifikasi ke pemilik',
+                'group' => 'other',
+                'key' => 'target_email_address_owner',
+                'value' => 'owner@alumodasinergi.com',
+                'type' => 'text',
+            ],
+        ];
+
+        foreach ($otherConfigs as $config) {
             Configuration::firstOrCreate(
                 ['key' => $config['key'], 'group' => $config['group']],
                 $config

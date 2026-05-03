@@ -19,8 +19,9 @@ class BrandController extends Controller
                     ->orWhere('description', 'like', "%{$search}%")
                     ->orWhere('website', 'like', "%{$search}%");
             })
-            ->when($request->active, function ($query, $active) {
-                return $query->where('is_active', $active === 'true');
+            ->when($request->has('active'), function ($query) use ($request) {
+                $isActive = $request->boolean('active');
+                return $query->where('is_active', $isActive);
             })
             ->orderBy('position')
             ->orderBy('name')

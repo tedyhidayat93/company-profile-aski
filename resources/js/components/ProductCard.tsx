@@ -14,7 +14,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-    const [imageSrc, setImageSrc] = useState<string>(product.image);
+    const [imageSrc, setImageSrc] = useState<string>(product?.image || product?.image_path || product?.coverImage?.image_path || '');
 
     const handleImageError = () => {
         if (imageSrc !== PlaceholderImage) {
@@ -87,7 +87,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     {/* Price Row */}
                     {product.show_price && (
                     <div className="flex items-end justify-between">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center  2xl:gap-2 flex-wrap">
                         <span className="text-lg font-extrabold text-slate-900 dark:text-white">
                             {formatPrice(product.price)}
                         </span>

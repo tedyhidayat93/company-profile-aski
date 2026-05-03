@@ -119,7 +119,7 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
                                     {articles.map((article) => (
                                         <li key={article.id}>
                                             <Link
-                                                href={`/blog/${article.slug}`}
+                                                href={`/articles/${article.slug}`}
                                                 className="text-gray-600 hover:text-amber-600 transition-colors text-sm"
                                             >
                                                 {article.title}
