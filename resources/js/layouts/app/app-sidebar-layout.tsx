@@ -8,10 +8,14 @@ import { type PropsWithChildren } from 'react';
 export default function AppSidebarLayout({
   children,
   breadcrumbs = [],
-}: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
+  recentOrders = [],
+}: PropsWithChildren<{ 
+  breadcrumbs?: BreadcrumbItem[];
+  recentOrders?: any[];
+}>) {
   return (
     <AppShell variant="sidebar">
-      <AppSidebar />
+      <AppSidebar recentOrders={recentOrders} />
       <AppContent variant="sidebar" className="overflow-x-hidden">
         <AppSidebarHeader breadcrumbs={breadcrumbs} />
         {children}

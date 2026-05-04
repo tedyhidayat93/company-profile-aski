@@ -139,7 +139,14 @@ const footerNavItems: NavItem[] = [
   },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  recentOrders?: any[];
+}
+
+export function AppSidebar({ recentOrders = [] }: AppSidebarProps) {
+  // Count new orders (pending status)
+  const newOrdersCount = recentOrders.filter(order => order.status === 'pending').length;
+
   return (
     <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader>
@@ -156,7 +163,7 @@ export function AppSidebar() {
 
       <SidebarContent className="-space-y-2!">
         {mainNavGroups.map(({ group }, index) => (
-          <NavMain key={index} items={group.items} groupTitle={group.title} />
+          <NavMain key={index} items={group.items} groupTitle={group.title} newOrdersCount={newOrdersCount} />
         ))}
       </SidebarContent>
 

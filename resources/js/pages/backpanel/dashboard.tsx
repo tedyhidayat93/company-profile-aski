@@ -126,7 +126,7 @@ export default function Dashboard({
   const newOrdersCount = recentOrders.filter(order => order.status === 'pending').length;
 
   return (
-    <AppLayout breadcrumbs={breadcrumbs}>
+    <AppLayout breadcrumbs={breadcrumbs} recentOrders={recentOrders}>
       <Head title="Dashboard" />
 
       <div className="space-y-8 p-6 bg-slate-50/50 min-h-screen">

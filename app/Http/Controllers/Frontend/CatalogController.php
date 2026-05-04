@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,6 +16,13 @@ use App\Traits\TracksVisitors;
 class CatalogController extends Controller
 {
     use TracksVisitors;
+
+    protected $emailService;
+
+    public function __construct(EmailService $emailService)
+    {
+        $this->emailService = $emailService;
+    }
 
     /**
      * Increment product view count with rate limiting
@@ -399,7 +407,7 @@ class CatalogController extends Controller
             // Prepare order data using existing table structure
             $orderData = [
                 'customer_id' => $customer->id, // Now available after migration
-                'order_number' => \App\Models\Order::generateOrderNumber(),
+                'order_number' => \App\Models\Order::generateOrderNumber(\App\Models\Configuration::getValue('prefix_product_order', 'ORD')),
                 'company_name' => $validated['company_name'],
                 'pic_name' => $validated['pic_name'],
                 'phone' => $validated['phone'],
@@ -423,6 +431,9 @@ class CatalogController extends Controller
             ];
 
             $order = \App\Models\Order::create($orderData);
+
+            // Send email notifications
+            $this->emailService->sendOrderNotifications($order);
 
             return response()->json([
                 'success' => true,

@@ -23,7 +23,7 @@ class CategorySeeder extends Seeder
 
                 [
                     'name' => 'Standar (Dry Container)',
-                    'slug' => 'standar',
+                    'slug' => 'standar-container',
                     'type' => 'product',
                     'description' => 'Container standar untuk pengiriman umum',
                 ],
@@ -89,6 +89,72 @@ class CategorySeeder extends Seeder
 
             ]
         ],
+
+        [
+            'name' => 'Service',
+            'slug' => 'service',
+            'type' => 'service',
+            'description' => 'Berbagai layanan profesional untuk kebutuhan kontainer dan logistik',
+            'children' => [
+
+                [
+                    'name' => 'Domestic Shipping',
+                    'slug' => 'domestic-shipping',
+                    'type' => 'service',
+                    'description' => 'Pengiriman domestik meliputi trucking, pickup & delivery, cargo oversize, serta jalur udara dan laut',
+                ],
+
+                [
+                    'name' => 'Jual & Beli Kontainer',
+                    'slug' => 'jual-beli-container',
+                    'type' => 'service',
+                    'description' => 'Menjual berbagai jenis kontainer baru dan bekas dengan harga kompetitif',
+                ],
+
+                [
+                    'name' => 'Maintenance & Repairing',
+                    'slug' => 'maintenance-repairing',
+                    'type' => 'service',
+                    'description' => 'Perawatan dan perbaikan kontainer oleh tim bersertifikasi IICL dengan garansi',
+                ],
+
+                [
+                    'name' => 'Modifikasi Kontainer',
+                    'slug' => 'modifikasi-container',
+                    'type' => 'service',
+                    'description' => 'Layanan modifikasi kontainer untuk berbagai kebutuhan seperti rumah, kantor, dan bisnis',
+                ],
+
+                [
+                    'name' => 'Sewa Alat Berat',
+                    'slug' => 'sewa-alat-berat',
+                    'type' => 'service',
+                    'description' => 'Penyewaan alat berat seperti Reach Stacker dan Forklift dengan layanan 24 jam',
+                ],
+
+                [
+                    'name' => 'Sewa Depo',
+                    'slug' => 'sewa-depo',
+                    'type' => 'service',
+                    'description' => 'Pengelolaan container yard dan depot penitipan kontainer di lokasi strategis',
+                ],
+
+                [
+                    'name' => 'Sewa Gudang',
+                    'slug' => 'sewa-gudang',
+                    'type' => 'service',
+                    'description' => 'Gudang terbuka dan tertutup untuk kegiatan stuffing dan stripping',
+                ],
+
+                [
+                    'name' => 'Sewa Kontainer',
+                    'slug' => 'sewa-container',
+                    'type' => 'service',
+                    'description' => 'Penyewaan berbagai tipe kontainer dengan harga kompetitif',
+                ],
+
+            ]
+        ]
     ];
 
         $this->createCategories($categories);

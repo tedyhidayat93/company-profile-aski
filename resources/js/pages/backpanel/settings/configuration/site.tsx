@@ -328,7 +328,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
                 </div>
 
                 {/* Search Bar */}
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 mb-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
@@ -356,7 +356,11 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
                   {filteredConfigurations.map((config) => (
                     <TableRow key={config.id}>
                       <TableCell className='text-xs'>{getGroupTitle(config.group)}</TableCell>
-                      <TableCell className="font-medium">{config.label}</TableCell>
+                      <TableCell className="font-medium">
+                        {config.label}
+                        <br />
+                        <small className='text-slate-400'>{config.description}</small>
+                      </TableCell>
                       <TableCell>
                         <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">
                           {config.key}

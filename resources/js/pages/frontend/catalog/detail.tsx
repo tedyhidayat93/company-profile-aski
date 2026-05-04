@@ -660,10 +660,19 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                 <div className="pt-4 flex flex-col gap-3">
                                     <Button
                                         type="submit"
-                                        className="w-full py-6 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] font-bold text-lg"
+                                        className={`w-full py-6 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] font-bold text-lg ${
+                                            isSubmitting ? 'animate-pulse bg-primary/90' : ''
+                                        }`}
                                         disabled={isSubmitting}
                                     >
-                                        {isSubmitting ? 'Memproses...' : 'Konfirmasi & Buat Pesanan'}
+                                        {isSubmitting ? (
+                                            <span className="flex items-center justify-center gap-2">
+                                                <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></span>
+                                                <span className="animate-pulse">Memproses...</span>
+                                            </span>
+                                        ) : (
+                                            'Konfirmasi & Buat Pesanan'
+                                        )}
                                     </Button>
                                     <p className="text-[10px] text-center text-gray-400 italic">
                                         Dengan menekan tombol, Anda setuju untuk dihubungi oleh tim sales kami.

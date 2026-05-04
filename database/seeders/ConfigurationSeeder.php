@@ -502,6 +502,14 @@ class ConfigurationSeeder extends Seeder
                 'value' => 'owner@alumodasinergi.com',
                 'type' => 'text',
             ],
+            [
+                'label' => 'Prefix Order',
+                'description' => 'Prefix untuk nomor pesanan (contoh: ORD)',
+                'group' => 'other',
+                'key' => 'prefix_product_order',
+                'value' => 'ORD',
+                'type' => 'text',
+            ],
         ];
 
         foreach ($otherConfigs as $config) {

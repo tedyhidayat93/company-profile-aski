@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   SidebarGroup,
@@ -18,13 +19,14 @@ import { useState } from 'react';
 interface NavMainProps {
   items: NavItem[];
   groupTitle: string;
+  newOrdersCount?: number;
 }
 
 interface NavItemWithActive extends NavItem {
   isOpen?: boolean;
 }
 
-export function NavMain({ items, groupTitle }: NavMainProps) {
+export function NavMain({ items, groupTitle, newOrdersCount }: NavMainProps) {
   const { url } = usePage();
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [isGroupOpen, setIsGroupOpen] = useState(groupTitle === 'CMS');
@@ -90,6 +92,16 @@ export function NavMain({ items, groupTitle }: NavMainProps) {
                   {item.icon && <item.icon className="h-4 w-4 shrink-0" />}
                   <span className="truncate">{item.title}</span>
                 </Link>
+                {/* Badge for new orders */}
+                {
+                  !newOrdersCount ? null : (
+                    item.title === 'Daftar Pesanan' && newOrdersCount > 0 && (
+                      <Badge className="animate-pulse h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-600">
+                        {newOrdersCount}
+                      </Badge>
+                    )
+                  )
+                }
                 {hasChildren && (
                   <ChevronDown
                     className={cn(

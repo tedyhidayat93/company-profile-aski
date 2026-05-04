@@ -43,9 +43,8 @@ class Order extends Model
         'updated_at' => 'datetime',
     ];
 
-    public static function generateOrderNumber(): string
+    public static function generateOrderNumber(string $prefix = 'ORD'): string
     {
-        $prefix = 'ORD';
         $date = now()->format('Ymd');
         $lastOrder = static::where('order_number', 'like', $prefix . $date . '%')
             ->orderBy('order_number', 'desc')
