@@ -38,6 +38,8 @@ Route::get('/api/configurations/{group?}', [App\Http\Controllers\Frontend\Config
 Route::get('/', [HomepageController::class, 'index'])->name('homepage');
 
 Route::get('/testimonial', [TestimonialFrontendController::class, 'index'])->name('testimonial.index');
+Route::match(['get', 'post'], '/testimonial/send-your-testimoni', [TestimonialFrontendController::class, 'submit'])->name('testimonial.submit');
+Route::get('/testimonial/maps', [TestimonialFrontendController::class, 'maps'])->name('testimonial.maps');
 
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
 
@@ -221,7 +223,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('create', [UserManagementController::class, 'create'])->name('create');
                 Route::post('', [UserManagementController::class, 'store'])->name('store');
                 Route::get('{id}', [UserManagementController::class, 'show'])->name('show');
-                Route::get('edit/{id}', [UserManagementController::class, 'edit'])->name('edit');
+                Route::get('{id}/edit', [UserManagementController::class, 'edit'])->name('edit');
                 Route::put('{id}', [UserManagementController::class, 'update'])->name('update');
                 Route::delete('{id}', [UserManagementController::class, 'destroy'])->name('destroy');
                 Route::patch('{id}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('toggle-status');

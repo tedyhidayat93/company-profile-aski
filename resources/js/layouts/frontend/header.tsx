@@ -100,21 +100,125 @@ export default function Header() {
         <nav className={`sticky top-0 z-50 bg-white shadow-md transition-all duration-300 dark:bg-gray-900 ${
           isScrolled ? 'shadow-md' : ''
         }`}>
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Mobile First: Base Layout */}
+            <div className="flex items-center justify-between h-16 lg:h-20">
+              {/* Logo - Responsive sizing */}
+              <div className="flex items-center space-x-2 sm:space-x-4">
                 <Link href="/">
                   <img
                     src={logoImage}
                     alt={getConfig('site_name', '-')}
-                    className="h-12 w-auto"
+                    className="h-8 sm:h-10 lg:h-12 w-auto"
                     onError={(e) => handleImageError(e, '/images/logo-main.png', 'Site logo header')}
                   />
                 </Link>
               </div>
 
-              {/* Desktop Navigation */}
-              <nav className="hidden space-x-4 md:flex items-center">
+              {/* Mobile & Tablet Navigation & Actions */}
+              <div className="flex items-center space-x-2 sm:space-x-3 lg:hidden">
+                {/* Wishlist Button - Mobile/Tablet */}
+                <button 
+                  type="button" 
+                  className="relative p-2 text-gray-700 hover:text-primary dark:text-white"
+                  onClick={() => setIsWishlistOpen(true)}
+                >
+                  <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+                  {wishlist.length > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-red-500 text-[10px] sm:text-xs font-medium text-white">
+                      {wishlist.length}
+                    </span>
+                  )}
+                </button>
+                
+                {/* Mobile Menu Toggle */}
+                <button
+                  type="button"
+                  className="p-2 text-gray-700 hover:text-primary focus:outline-none dark:text-white"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                >
+                  <span className="sr-only">Open main menu</span>
+                  {isMenuOpen ? (
+                    <X className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+                  ) : (
+                    <AlignEndVerticalIcon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
+
+              {/* Desktop Navigation - Hidden on mobile/tablet */}
+              <div className="hidden lg:flex items-center justify-between flex-1 max-w-6xl mx-auto">
+                {/* Navigation Links */}
+                <nav className="flex items-center justify-center pl-2 md:pl-10 xl:pl-13 space-x-1 xl:space-x-2">
+                  {NAV_LINKS2.map((link) => (
+                    <a
+                      key={link.name}
+                      href={link.href}
+                      onClick={(e) => {
+                        scrollToSection(e, link.id);
+                        setIsMenuOpen(false);
+                      }}
+                      className="rounded-md px-3 py-2 xl:px-4 text-sm xl:text-base text-gray-900 hover:text-primary font-medium hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                    >
+                      {link.name}
+                    </a>
+                  ))}
+                </nav>
+
+                {/* Desktop Actions */}
+                <div className="flex items-center space-x-2 xl:space-x-4 ml-4 xl:ml-8">
+                  {/* Wishlist - Desktop */}
+                  <button 
+                    type="button" 
+                    className="relative p-2 text-gray-700 hover:text-primary dark:text-white"
+                    onClick={() => setIsWishlistOpen(true)}
+                  >
+                    <Heart className="h-5 w-5" />
+                    {wishlist.length > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
+                        {wishlist.length}
+                      </span>
+                    )}
+                  </button>
+                  
+                  {/* Auth Links - Desktop */}
+                  {auth?.user ? (
+                    <Link
+                      href={dashboard()}
+                      className="px-3 py-2 text-sm xl:text-base text-gray-700 hover:text-primary font-medium"
+                    >
+                      Dashboard
+                    </Link>
+                  ) : (
+                    <Link
+                      href={login()}
+                      className="px-3 py-2 text-sm xl:text-base text-gray-700 hover:text-primary font-medium"
+                    >
+                      Masuk
+                    </Link>
+                  )}
+                  
+                  {/* CTA Button - Desktop */}
+                  <a 
+                    href={`https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=Halo%20Alumoda%2C%20saya%20ingin%20bertanya`} 
+                    className="cursor-pointer"
+                  >
+                    <Button className="text-sm xl:text-base px-4 xl:px-6 py-2">
+                      <Phone className="mr-2 h-4 w-4" />
+                      <span className="hidden sm:inline">Hubungi Kami</span>
+                      <span className="sm:hidden">Hubungi</span>
+                    </Button>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Menu - Overlay */}
+            <div className={`lg:hidden transition-all duration-300 ease-in-out ${
+              isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+            }`}>
+              <div className="py-4 space-y-2 border-t border-gray-200 dark:border-gray-700">
+                {/* Navigation Links - Mobile */}
                 {NAV_LINKS2.map((link) => (
                   <a
                     key={link.name}
@@ -123,125 +227,44 @@ export default function Header() {
                       scrollToSection(e, link.id);
                       setIsMenuOpen(false);
                     }}
-                    className="block rounded-md px-4 py-2 text-gray-900 hover:text-primary font-semibold hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800 cursor-pointer"
+                    className="block rounded-md px-3 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   >
                     {link.name}
                   </a>
                 ))}
-              </nav>
-
-              {/* Desktop Actions */}
-              <div className="hidden md:flex items-center space-x-4">
-                <button 
-                  type="button" 
-                  className="p-2 cursor-pointer text-gray-700 hover:text-primary relative"
-                  onClick={() => setIsWishlistOpen(true)}
-                >
-                  <Heart className="h-5 w-5" />
-                  {wishlist.length > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
-                      {wishlist.length}
-                    </span>
-                  )}
-                </button>
                 
+                {/* Auth Links - Mobile */}
                 {auth?.user ? (
                   <Link
                     href={dashboard()}
-                    className="text-gray-700 hover:text-primary px-3 py-2"
+                    className="block rounded-md px-3 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     Dashboard
                   </Link>
                 ) : (
                   <Link
                     href={login()}
-                    className="text-gray-700 hover:text-primary px-3 py-2"
+                    className="block rounded-md px-3 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
                   >
-                    Masuk
+                    Masuk / Daftar
                   </Link>
                 )}
                 
-                <a 
-                  href={`https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=Halo%20Alumoda%2C%20saya%20ingin%20bertanya`} 
-                  className="ml-2 cursor-pointer"
-                >
-                  <Button className="ml-2 cursor-pointer">
-                    <Phone className="mr-1 h-4 w-4" />
-                    Hubungi Kami
-                  </Button>
-                </a>
+                {/* CTA Button - Mobile */}
+                <div className="pt-2">
+                  <a 
+                    href={`https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=Halo%20Alumoda%2C%20saya%20ingin%20bertanya`} 
+                    className="block w-full"
+                  >
+                    <Button className="w-full text-base py-3">
+                      <Phone className="mr-2 h-4 w-4" />
+                      Hubungi Kami
+                    </Button>
+                  </a>
+                </div>
               </div>
-
-              {/* Mobile menu button */}
-              <div className="flex items-center md:hidden">
-                <button
-                  type="button"
-                  className="p-2 text-gray-700 hover:text-primary"
-                  onClick={() => setIsWishlistOpen(true)}
-                >
-                  <Heart className="h-5 w-5 dark:text-white" />
-                  {wishlist.length > 0 && (
-                    <span className="absolute top-3 right-12 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {wishlist.length}
-                    </span>
-                  )}
-                </button>
-                
-                <button
-                  type="button"
-                  className="p-2 text-gray-700 hover:text-primary focus:outline-none dark:text-white"
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                >
-                  <span className="sr-only">Open main menu</span>
-                  {isMenuOpen ? (
-                    <X className="h-6 w-6" aria-hidden="true" />
-                  ) : (
-                    <AlignEndVerticalIcon className="h-6 w-6" aria-hidden="true" />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile menu */}
-          <div className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'}`}>
-            <div className="space-y-1 px-2 pb-3 pt-2">
-              {NAV_LINKS2.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={(e) => {
-                    scrollToSection(e, link.id);
-                    setIsMenuOpen(false);
-                  }}
-                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 text-xs md:text-sm "
-                >
-                  {link.name}
-                </a>
-              ))}
-              
-              {auth?.user ? (
-                <Link
-                  href={dashboard()}
-                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 text-xs md:text-sm "
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
-              ) : (
-                <Link
-                  href={login()}
-                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 text-xs md:text-sm "
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Masuk / Daftar
-                </Link>
-              )}
-              
-              <a href="/#contact" className="w-full mt-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-                <PhoneCall className="mr-2 inline h-4 w-4" />
-                Hubungi Kami
-              </a>
             </div>
           </div>
         </nav>

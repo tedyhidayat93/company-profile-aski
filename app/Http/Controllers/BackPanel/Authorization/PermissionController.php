@@ -76,8 +76,9 @@ class PermissionController extends Controller
             ->with('success', 'Permission berhasil dibuat.');
     }
 
-    public function show(Permission $permission)
+    public function show($id)
     {
+        $permission = Permission::findOrFail($id);
         $permission->load('roles', 'users');
 
         return Inertia::render('backpanel/authorization/permissions/show', [
@@ -85,15 +86,17 @@ class PermissionController extends Controller
         ]);
     }
 
-    public function edit(Permission $permission)
+    public function edit($id)
     {
+        $permission = Permission::findOrFail($id);
         return Inertia::render('backpanel/authorization/permissions/edit', [
             'permission' => $permission,
         ]);
     }
 
-    public function update(Request $request, Permission $permission)
+    public function update(Request $request, $id)
     {
+        $permission = Permission::findOrFail($id);
         $validator = Validator::make($request->all(), [
             'name' => [
                 'required',
@@ -121,8 +124,9 @@ class PermissionController extends Controller
             ->with('success', 'Permission berhasil diperbarui.');
     }
 
-    public function destroy(Permission $permission)
+    public function destroy($id)
     {
+        $permission = Permission::findOrFail($id);
         if ($permission->roles()->count() > 0) {
             return back()->with('error', 'Permission tidak dapat dihapus karena masih digunakan oleh role.');
         }

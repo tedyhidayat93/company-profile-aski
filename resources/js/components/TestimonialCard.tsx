@@ -14,11 +14,11 @@ interface TestimonialCardProps {
 
 export default function TestimonialCard({ testimonial, className = "" }: TestimonialCardProps) {
   return (
-    <div className={`rounded-xl bg-gray-50 p-8 dark:bg-gray-800 ${className}`}>
+    <div className={`rounded-xl bg-slate-50/10 p-8 dark:bg-gray-800 ${className}`}>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center">
           <img
-            src={testimonial.avatar}
+            src={`/storage/${testimonial.avatar}`}
             alt={testimonial.name}
             className="mr-4 h-12 w-12 rounded-full object-cover"
             onError={(e) => {
@@ -29,7 +29,7 @@ export default function TestimonialCard({ testimonial, className = "" }: Testimo
             <h4 className="font-semibold text-gray-900 dark:text-white">
               {testimonial.name}
             </h4>
-            <p className="text-sm text-gray-500">{testimonial.role}</p>
+            {/* <p className="text-sm text-gray-500">{testimonial.role}</p> */}
             {testimonial.company && (
               <p className="text-xs text-gray-400">{testimonial.company}</p>
             )}

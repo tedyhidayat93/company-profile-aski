@@ -10,7 +10,7 @@ import { logout } from '@/routes';
 import { edit } from '@/routes/settings/profile';
 import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, User as UserIcon, Key } from 'lucide-react';
 
 interface UserMenuContentProps {
   user: User;
@@ -34,9 +34,15 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
       <DropdownMenuSeparator />
       <DropdownMenuGroup>
         <DropdownMenuItem asChild>
-          <Link className="block w-full" href={edit()} as="button" prefetch onClick={cleanup}>
-            <Settings className="mr-2" />
-            Pengaturan
+          <Link className="block w-full" href="/cpanel/settings/profile" as="button" prefetch onClick={cleanup}>
+            <UserIcon className="mr-2" />
+            Edit Profil
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link className="block w-full" href="/cpanel/settings/password" as="button" prefetch onClick={cleanup}>
+            <Key className="mr-2" />
+            Ubah Password
           </Link>
         </DropdownMenuItem>
       </DropdownMenuGroup>

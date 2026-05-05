@@ -245,7 +245,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                     {/* Product Section */}
                     <div className="lg:flex lg:gap-12">
                         {/* Product Images - Sticky on scroll for better UX */}
-                        <div className="lg:w-1/2 lg:sticky lg:top-8 h-fit">
+                        <div className="lg:w-1/2 lg:sticky lg:top-32 h-fit">
                             <SingleGalleryPreview images={productImages} />
                         </div>
 
@@ -313,15 +313,8 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                 )}
                             </div>
 
-                            {/* DESCRIPTION */}
-                            <div className="space-y-3 mt-3">
-                                <div className="bg-gray-50/10 dark:bg-gray-800/40 p-4 rounded-xl text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-                                {product.description || '-'}
-                                </div>
-                            </div>
-
                             {/* Selection & Actions */}
-                            <div className="mt-8 border-t border-gray-100 pt-6">
+                            <div className="mt-3 border-gray-100">
                                 <div className="flex flex-col sm:flex-row sm:items-end gap-6">
                                     {/* Quantity */}
                                     <div className="w-32">
@@ -371,6 +364,69 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                 </div>
                             </div>
 
+                            {/* DESCRIPTION */}
+                            <div className="space-y-3 mt-6">
+                                <div className="bg-gray-50/10 dark:bg-gray-800/40 p-4 lg:p-0 rounded-xl text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                                {product.description || '-'}
+                                </div>
+                            </div>
+
+                            {/* ================= SPEC TABLE ================= */}
+                            <div className="mt-6 space-y-4">
+                                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                                    Spesifikasi Detail
+                                </h2>
+
+                                <div className="border rounded-xl overflow-hidden">
+
+                                    <table className="w-full text-sm">
+
+                                    <tbody className="divide-y">
+
+                                        {/* BASIC INFO */}
+                                        {product.brand && (
+                                            <tr>
+                                                <td className="px-4 py-3 text-gray-500">Brand</td>
+                                                <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
+                                                {product.brand.name}
+                                                </td>
+                                            </tr>
+                                        )}
+
+                                        <tr>
+                                            <td className="px-4 py-3 text-gray-500">Kategori</td>
+                                            <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
+                                                {product.category || '-'}
+                                            </td>
+                                        </tr>
+
+                                        {/* SPECIFICATIONS */}
+                                        {product?.specific_specs?.map((spec, index) => (
+                                        <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition">
+                                            <td className="px-4 py-3 text-gray-500">
+                                                {spec.label}
+                                            </td>
+                                            <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
+                                                {spec.value}
+
+                                                {spec.note && (
+                                                    <>
+                                                        <br />
+                                                        *{spec.note}
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                        ))}
+
+                                    </tbody>
+
+                                    </table>
+
+                                </div>
+                            </div>
+
+
                             {/* Tags/Keywords */}
                             {product.tags && product.tags.length > 0 && (
                                 <div className="mt-8 flex flex-wrap gap-2">
@@ -384,60 +440,6 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                         </div>
                     </div>
 
-                    {/* ================= SPEC TABLE ================= */}
-                    <div className="mt-6 space-y-4">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                            Spesifikasi Detail
-                        </h2>
-
-                        <div className="border rounded-xl overflow-hidden">
-
-                            <table className="w-full text-sm">
-
-                            <tbody className="divide-y">
-
-                                {/* BASIC INFO */}
-                                {product.brand && (
-                                    <tr>
-                                        <td className="px-4 py-3 text-gray-500">Brand</td>
-                                        <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
-                                        {product.brand.name}
-                                        </td>
-                                    </tr>
-                                )}
-
-                                <tr>
-                                    <td className="px-4 py-3 text-gray-500">Kategori</td>
-                                    <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
-                                        {product.category || '-'}
-                                    </td>
-                                </tr>
-
-                                {/* SPECIFICATIONS */}
-                                {product?.specific_specs?.map((spec, index) => (
-                                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition">
-                                    <td className="px-4 py-3 text-gray-500">
-                                        {spec.label}
-                                    </td>
-                                    <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
-                                        {spec.value}
-
-                                        {spec.note && (
-                                            <>
-                                                <br />
-                                                *{spec.note}
-                                            </>
-                                        )}
-                                    </td>
-                                </tr>
-                                ))}
-
-                            </tbody>
-
-                            </table>
-
-                        </div>
-                    </div>
                     {/* Related Products */}
                     {relatedProducts.length > 0 && (
                         <div className="mt-16">

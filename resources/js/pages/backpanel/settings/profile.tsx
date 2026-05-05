@@ -3,6 +3,7 @@ import { send } from '@/routes/verification';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
+import React from 'react';
 
 import DeleteUser from '@/components/delete-user';
 import HeadingSmall from '@/components/heading-small';
@@ -13,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/settings/profile';
+import { Upload, X, User } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -29,6 +31,25 @@ export default function Profile({
   status?: string;
 }) {
   const { auth } = usePage<SharedData>().props;
+  const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = React.useState<File | null>(null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+  };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -37,6 +58,63 @@ export default function Profile({
       <SettingsLayout>
         <div className="space-y-6">
           <HeadingSmall title="Informasi Profil" description="Edit informasi profil Anda" />
+
+          {/* Avatar Section */}
+          <div className="space-y-4">
+            <Label>Avatar</Label>
+            <div className="flex items-center space-x-6">
+              <div className="flex-shrink-0">
+                {avatarPreview ? (
+                  <div className="relative">
+                    <img
+                      src={avatarPreview}
+                      alt="Avatar preview"
+                      className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeAvatar}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : auth.user.avatar ? (
+                  <div className="relative">
+                    <img
+                      src={`/storage/${auth.user.avatar}`}
+                      alt="Current avatar"
+                      className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeAvatar}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="h-24 w-24 rounded-full bg-gray-100 border-4 border-gray-200 flex items-center justify-center">
+                    <User className="h-12 w-12 text-gray-400" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <Input
+                  id="avatar"
+                  name="avatar"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Format: jpeg, jpg, png, gif. Maksimal: 2MB
+                </p>
+              </div>
+            </div>
+          </div>
 
           <Form
             {...ProfileController.update.form()}
@@ -116,6 +194,15 @@ export default function Profile({
                     <p className="text-sm text-neutral-600">Disimpan</p>
                   </Transition>
                 </div>
+                
+                {/* Hidden input for avatar file */}
+                {avatarFile && (
+                  <input
+                    type="hidden"
+                    name="avatar"
+                    value={avatarFile.name}
+                  />
+                )}
               </>
             )}
           </Form>

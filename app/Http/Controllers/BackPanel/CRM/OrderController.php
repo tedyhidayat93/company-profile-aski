@@ -13,7 +13,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         // Build base query with filters for both pagination and statistics
-        $baseQuery = Order::with('customer')
+        $baseQuery = Order::with(['customer'])
             ->when($request->search, function ($query, $search) {
                 return $query->where('order_number', 'like', "%{$search}%")
                     ->orWhere('company_name', 'like', "%{$search}%")
@@ -38,12 +38,13 @@ class OrderController extends Controller
         $orderStatistics = $this->getOrderStatistics($baseQuery);
 
         // Get paginated orders
-        $orders = $baseQuery->orderBy('created_at', 'desc')->paginate(10);
+        $perPage = $request->get('per_page', 5);
+        $orders = $baseQuery->orderBy('created_at', 'desc')->paginate($perPage);
 
         return Inertia::render('backpanel/orders/index', [
             'orders' => $orders,
             'orderStatistics' => $orderStatistics,
-            'filters' => $request->only(['search', 'status', 'date_from', 'date_to'])
+            'filters' => $request->only(['search', 'status', 'date_from', 'date_to', 'per_page'])
         ]);
     }
 

@@ -10,6 +10,7 @@ use App\Models\Role;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class UserManagementController extends Controller
 {
@@ -70,10 +71,21 @@ class UserManagementController extends Controller
             'roles' => 'array',
             'roles.*' => 'exists:roles,name',
             'is_active' => 'boolean',
+            'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+        ], [
+            'avatar.image' => 'File harus berupa gambar',
+            'avatar.mimes' => 'Format gambar yang diperbolehkan: jpeg, jpg, png, gif',
+            'avatar.max' => 'Ukuran gambar maksimal 2MB',
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
+        }
+
+        // Handle avatar upload
+        $avatarPath = null;
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
         }
 
         $user = User::create([
@@ -81,6 +93,8 @@ class UserManagementController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'is_active' => $request->is_active ?? true,
+            'email_verified_at' => now(),
+            'avatar' => $avatarPath,
         ]);
 
         if ($request->roles) {
@@ -91,17 +105,18 @@ class UserManagementController extends Controller
             ->with('success', 'User berhasil dibuat.');
     }
 
-    public function show(User $user)
+    public function show($id)
     {
-        $user->load('roles', 'permissions');
+        $user = User::with('roles.permissions')->findOrFail($id);
 
         return Inertia::render('backpanel/authorization/users/show', [
             'user' => $user,
         ]);
     }
 
-    public function edit(User $user)
+    public function edit($id)
     {
+        $user = User::findOrFail($id);
         $user->load('roles');
         $roles = Role::orderBy('name')->get();
 
@@ -111,8 +126,9 @@ class UserManagementController extends Controller
         ]);
     }
 
-    public function update(Request $request, User $user)
+    public function update(Request $request, $id)
     {
+        $user = User::findOrFail($id);
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => [
@@ -126,16 +142,41 @@ class UserManagementController extends Controller
             'roles' => 'array',
             'roles.*' => 'exists:roles,name',
             'is_active' => 'boolean',
+            'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+            'remove_avatar' => 'boolean',
+        ], [
+            'avatar.image' => 'File harus berupa gambar',
+            'avatar.mimes' => 'Format gambar yang diperbolehkan: jpeg, jpg, png, gif',
+            'avatar.max' => 'Ukuran gambar maksimal 2MB',
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
 
+        // Handle avatar upload or removal
+        $avatarPath = $user->avatar; // Keep existing avatar by default
+        
+        if ($request->boolean('remove_avatar')) {
+            // Remove existing avatar
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $avatarPath = null;
+        } elseif ($request->hasFile('avatar')) {
+            // Upload new avatar
+            // Remove old avatar if exists
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+        }
+
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
             'is_active' => $request->is_active ?? true,
+            'avatar' => $avatarPath,
         ]);
 
         if ($request->password) {
@@ -154,8 +195,9 @@ class UserManagementController extends Controller
             ->with('success', 'User berhasil diperbarui.');
     }
 
-    public function destroy(User $user)
+    public function destroy($id)
     {
+        $user = User::findOrFail($id);
         if ($user->id === auth()->id()) {
             return back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
         }
@@ -170,8 +212,9 @@ class UserManagementController extends Controller
             ->with('success', 'User berhasil dihapus.');
     }
 
-    public function toggleStatus(User $user)
+    public function toggleStatus($id)
     {
+        $user = User::findOrFail($id);
         if ($user->id === auth()->id()) {
             return back()->with('error', 'Anda tidak dapat mengubah status akun sendiri.');
         }

@@ -388,7 +388,7 @@ class CatalogController extends Controller
             $product = \App\Models\Product::with('coverImage')->findOrFail($validated['product_id']);
             
             // Get cover image or fallback to product image
-            $productImage = $product->coverImage?->path ?? $product->image;
+            $productImage = $product->coverImage?->image_path ?? $product->image;
 
             // Check if customer exists (optional, for future use)
             $customer = \App\Models\Customer::where('email', $validated['email'])->first();

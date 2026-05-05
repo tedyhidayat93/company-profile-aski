@@ -7,10 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { Plus, Edit, Trash2, MoreHorizontal, Search, Filter, ToggleLeft, ToggleRight, Users, Shield } from 'lucide-react';
+import { Plus, Edit, Trash2, MoreHorizontal, Search, Filter, ToggleLeft, ToggleRight, Users, Shield, Eye } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 interface User {
   id: number;
@@ -18,9 +20,12 @@ interface User {
   email: string;
   is_active: boolean;
   created_at: string;
+  updated_at: string;
+  avatar?: string;
   roles: Array<{
     id: number;
     name: string;
+    guard_name: string;
   }>;
 }
 
@@ -89,6 +94,22 @@ export default function UserIndex({ users, roles, filters }: Props) {
     router.patch(`/cpanel/authorization/user-management/${id}/toggle-status`);
   };
 
+  const getRoleBadge = (roles: User['roles']) => {
+    if (roles.length === 0) {
+      return <Badge variant="outline">No Role</Badge>;
+    }
+    
+    return (
+      <div className="flex flex-wrap gap-1">
+        {roles.map((role) => (
+          <Badge key={role.id} variant="secondary" className="text-xs">
+            {role.name}
+          </Badge>
+        ))}
+      </div>
+    );
+  };
+
   const getActiveBadge = (isActive: boolean) => {
     return isActive ? <Badge variant="default">Aktif</Badge> : <Badge variant="secondary">Tidak Aktif</Badge>;
   };
@@ -98,42 +119,49 @@ export default function UserIndex({ users, roles, filters }: Props) {
       <Head title="User Management" />
       
       <div className="space-y-6 p-6">
-        <HeaderTitle title="management User" description="Kelola user dan hak akses sistem">
+        <HeaderTitle title="User Management" description="Kelola user dan hak akses sistem">
           <Link href="/cpanel/authorization/user-management/create">
             <Button><Plus className="mr-2 h-4 w-4" />Tambah User</Button>
           </Link>
         </HeaderTitle>
 
         <Card>
-          <CardContent>
-            <div className="flex items-center space-x-4 mb-4">
+          <CardContent className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input placeholder="Cari user..." value={search} onChange={(e) => handleSearch(e.target.value)} className="pl-10" />
+                <Input 
+                  placeholder="Cari user..." 
+                  value={search} 
+                  onChange={(e) => handleSearch(e.target.value)} 
+                  className="pl-10" 
+                />
               </div>
-              <Select value={roleFilter} onValueChange={handleRoleFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Role</SelectItem>
-                  {roles.map((role) => (
-                    <SelectItem key={role} value={role}>{role}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="true">Aktif</SelectItem>
-                  <SelectItem value="false">Tidak Aktif</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value={roleFilter} onValueChange={handleRoleFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Role</SelectItem>
+                    {roles.map((role) => (
+                      <SelectItem key={role} value={role}>{role}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={statusFilter} onValueChange={handleStatusFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="true">Aktif</SelectItem>
+                    <SelectItem value="false">Tidak Aktif</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Table>
@@ -151,8 +179,20 @@ export default function UserIndex({ users, roles, filters }: Props) {
                 {users.data.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Users className="h-4 w-4 text-blue-500" />
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          {user.avatar ? (
+                            <img
+                              src={`/storage/${user.avatar}`}
+                              alt={user.name}
+                              className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
+                              <Users className="h-5 w-5 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
                         <div>
                           <div className="font-medium">{user.name}</div>
                           <div className="text-sm text-gray-500">ID: {user.id}</div>
@@ -162,21 +202,20 @@ export default function UserIndex({ users, roles, filters }: Props) {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {user.roles.map((role) => (
-                          <Badge key={role.id} variant="outline" className="flex items-center">
-                            <Shield className="mr-1 h-3 w-3" />
-                            {role.name}
-                          </Badge>
-                        ))}
+                        {user.roles.length > 0 ? (
+                          user.roles.map((role) => (
+                            <Badge key={role.id} variant="secondary" className="flex items-center">
+                              <Shield className="mr-1 h-3 w-3" />
+                              {role.name}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="outline">No Role</Badge>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>{getActiveBadge(user.is_active)}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" onClick={() => handleToggleStatus(user.id)} className="p-1">
-                        {user.is_active ? <ToggleRight className="h-5 w-5 text-green-600" /> : <ToggleLeft className="h-5 w-5 text-gray-400" />}
-                      </Button>
-                    </TableCell>
-                    <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>{formatDate(user.created_at)}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -187,17 +226,20 @@ export default function UserIndex({ users, roles, filters }: Props) {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
                             <Link href={`/cpanel/authorization/user-management/${user.id}`}>
-                              <Users className="mr-2 h-4 w-4" />
+                              <Eye className="mr-2 h-4 w-4" />
                               Detail
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link href={`/cpanel/authorization/user-management/edit/${user.id}`}>
+                            <Link href={`/cpanel/authorization/user-management/${user.id}/edit`}>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(user.id, user.name)} className="text-red-600">
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(user.id, user.name)}
+                            className="text-red-600"
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Hapus
                           </DropdownMenuItem>

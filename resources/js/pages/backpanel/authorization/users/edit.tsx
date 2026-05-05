@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Users, Shield } from 'lucide-react';
+import { ArrowLeft, Save, Users, Shield, Upload, X, Eye, EyeOff } from 'lucide-react';
 
 interface Role {
   id: number;
@@ -22,9 +22,11 @@ interface User {
   email: string;
   is_active: boolean;
   created_at: string;
+  avatar?: string;
   roles: Array<{
     id: number;
     name: string;
+    guard_name: string;
   }>;
 }
 
@@ -47,6 +49,8 @@ export default function UserEdit({ user, roles }: Props) {
     password_confirmation: '',
     is_active: user.is_active,
     roles: user.roles.map(r => r.name),
+    avatar: null as File | null,
+    remove_avatar: false,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,6 +61,35 @@ export default function UserEdit({ user, roles }: Props) {
       setData(name as keyof typeof data, value);
     }
   };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setData('avatar', file);
+      setData('remove_avatar', false);
+    }
+  };
+
+  const removeAvatar = () => {
+    setData('avatar', null);
+    setData('remove_avatar', true);
+  };
+
+  const [preview, setPreview] = React.useState<string | null>(null);
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+
+  React.useEffect(() => {
+    if (data.avatar) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(data.avatar);
+    } else {
+      setPreview(null);
+    }
+  }, [data.avatar]);
 
   const handleRoleChange = (roleName: string, checked: boolean) => {
     if (checked) {
@@ -114,14 +147,97 @@ export default function UserEdit({ user, roles }: Props) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input id="password" name="password" type="password" value={data.password} onChange={handleInputChange} placeholder="Kosongkan jika tidak ingin mengubah" />
+                  <div className="relative">
+                    <Input id="password" name="password" type={showPassword ? 'text' : 'password'} value={data.password} onChange={handleInputChange} placeholder="Kosongkan jika tidak ingin mengubah" className="pr-10" />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
                   {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
                   <p className="text-xs text-gray-500">Biarkan kosong untuk tidak mengubah password</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password_confirmation">Konfirmasi Password</Label>
-                  <Input id="password_confirmation" name="password_confirmation" type="password" value={data.password_confirmation} onChange={handleInputChange} placeholder="Ulangi password baru" />
+                  <div className="relative">
+                    <Input id="password_confirmation" name="password_confirmation" type={showConfirmPassword ? 'text' : 'password'} value={data.password_confirmation} onChange={handleInputChange} placeholder="Ulangi password baru" className="pr-10" />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
                   {errors.password_confirmation && <p className="text-sm text-red-600">{errors.password_confirmation}</p>}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Avatar</Label>
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0">
+                    {preview ? (
+                      <div className="relative">
+                        <img
+                          src={preview}
+                          alt="Avatar preview"
+                          className="h-20 w-20 rounded-full object-cover border-2 border-gray-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeAvatar}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : user.avatar ? (
+                      <div className="relative">
+                        <img
+                          src={`/storage/${user.avatar}`}
+                          alt="Current avatar"
+                          className="h-20 w-20 rounded-full object-cover border-2 border-gray-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeAvatar}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="h-20 w-20 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
+                        <Users className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      id="avatar"
+                      name="avatar"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Format: jpeg, jpg, png, gif. Maksimal: 2MB
+                    </p>
+                    {errors.avatar && <p className="text-sm text-red-600">{errors.avatar}</p>}
+                  </div>
                 </div>
               </div>
 

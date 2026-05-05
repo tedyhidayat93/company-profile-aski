@@ -282,7 +282,7 @@ export default function TestimonialEdit({ testimonial }: Props) {
                 <Checkbox
                   id="is_show_public"
                   checked={data.is_show_public}
-                  onCheckedChange={(checked) => setData('is_show_public', checked)}
+                  onCheckedChange={(checked) => setData('is_show_public', checked === true)}
                 />
                 <Label htmlFor="is_show_public">Tampilkan di publik</Label>
               </div>

@@ -234,6 +234,7 @@ export default function TestimonialIndex({ testimonials, filters }: Props) {
                         {renderStars(testimonial.rate_star)}
                         <span className="text-sm text-gray-500 ml-1">({testimonial.rate_star})</span>
                       </div>
+                      {testimonial.testimoni || '-'}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -243,9 +244,13 @@ export default function TestimonialIndex({ testimonials, filters }: Props) {
                         className="p-1"
                       >
                         {testimonial.is_show_public ? (
-                          <ToggleRight className="h-5 w-5 text-green-600" />
+                          <>
+                            <ToggleRight className="h-5 w-5 text-green-600" /> Ditampilkan
+                          </>
                         ) : (
-                          <ToggleLeft className="h-5 w-5 text-gray-400" />
+                          <>
+                            <ToggleLeft className="h-5 w-5 text-gray-400" /> Disembunyikan
+                          </>
                         )}
                       </Button>
                     </TableCell>

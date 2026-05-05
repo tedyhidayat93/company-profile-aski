@@ -208,8 +208,6 @@ export default function RoleIndex({ roles, filters }: Props) {
                     </TableCell>
                     <TableCell>
                       {getActiveBadge(role.is_active)}
-                    </TableCell>
-                    <TableCell>
                       <Button
                         variant="ghost"
                         size="sm"

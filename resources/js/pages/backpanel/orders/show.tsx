@@ -20,7 +20,8 @@ import {
   Hash,
   DollarSign,
   FileText,
-  Clock
+  Clock,
+  Eye
 } from 'lucide-react';
 import OrderStatusInfoModal from '@/components/order-status-info-modal';
 import { getOrderStatusBadgeProps, OrderStatusBadge } from '@/utils/order-status';
@@ -229,14 +230,25 @@ export default function OrderShow({ order }: Props) {
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
                     <img 
-                      src={order.product?.coverImage?.image_path || '/images/placeholder.png'} 
+                      src={order.product_image ? `/storage/${order.product_image}` : order.product?.coverImage?.image_path || '/images/placeholder.png'} 
                       alt={order.product_name}
                       className="h-24 w-24 object-cover rounded-md border"
                     />
                   </div>
                   <div className="flex-1 space-y-2">
                     <div>
-                      <div className="font-medium text-lg">{order.product_name}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-lg">{order.product_name}</div>
+                        {order.product_id && (
+                          <Link 
+                            href={`/cpanel/cms/product/${order.product_id}`}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
+                          >
+                            <Eye className="h-3 w-3" />
+                            Lihat Detail
+                          </Link>
+                        )}
+                      </div>
                       <div className="text-sm text-gray-500">{order.product_category}</div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-sm">

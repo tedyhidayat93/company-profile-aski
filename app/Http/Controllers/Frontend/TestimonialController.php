@@ -109,4 +109,72 @@ class TestimonialController extends Controller
             'relatedTestimonials' => $relatedTestimonials,
         ]);
     }
+
+    /**
+     * Handle testimonial submission form display and processing
+     */
+    public function submit(Request $request)
+    {
+        // Track visitor
+        $this->trackPageVisit($request, 'Testimonial Submission');
+
+        // Handle POST request - form submission
+        if ($request->isMethod('post')) {
+            // Validate the request
+            $validated = $request->validate([
+                'nama' => 'required|string|max:255',
+                'keterangan' => 'nullable|string|max:255',
+                'perusahaan' => 'nullable|string|max:255',
+                'testimoni' => 'required|string|min:10|max:2000',
+                'rate_star' => 'required|integer|min:1|max:5',
+                'foto_avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+            ], [
+                'nama.required' => 'Nama wajib diisi',
+                'testimoni.required' => 'Testimoni wajib diisi',
+                'testimoni.min' => 'Testimoni minimal 10 karakter',
+                'testimoni.max' => 'Testimoni maksimal 2000 karakter',
+                'rate_star.required' => 'Rating wajib dipilih',
+                'rate_star.min' => 'Rating minimal 1 bintang',
+                'rate_star.max' => 'Rating maksimal 5 bintang',
+                'foto_avatar.image' => 'File harus berupa gambar',
+                'foto_avatar.mimes' => 'Format gambar yang diperbolehkan: jpeg, jpg, png, gif',
+                'foto_avatar.max' => 'Ukuran gambar maksimal 2MB',
+            ]);
+
+            // Handle file upload
+            $fotoPath = null;
+            if ($request->hasFile('foto_avatar')) {
+                $fotoPath = $request->file('foto_avatar')->store('testimonials', 'public');
+            }
+
+            // Create testimonial
+            $testimonial = Testimonial::create([
+                'nama' => $validated['nama'],
+                'keterangan' => $validated['keterangan'],
+                'perusahaan' => $validated['perusahaan'],
+                'testimoni' => $validated['testimoni'],
+                'rate_star' => $validated['rate_star'],
+                'foto_avatar' => $fotoPath,
+                'is_show_public' => false, // Default to false, admin can approve later
+                'sequence' => 0,
+            ]);
+
+            // Redirect with success message
+            return redirect()
+                ->route('testimonial.submit')
+                ->with('success', 'Terima kasih! Testimoni Anda telah berhasil dikirim dan akan ditinjau oleh tim kami.');
+        }
+
+        // Handle GET request - display form
+        return Inertia::render('frontend/testimonial/submit', [
+            'maxRating' => 5,
+            'minTestimonialLength' => 10,
+            'maxTestimonialLength' => 2000,
+            'allowedImageTypes' => ['jpeg', 'jpg', 'png', 'gif'],
+            'maxImageSize' => 2048, // 2MB in KB
+            'siteName' => \App\Models\Configuration::getValue('site_name', 'Testimonial'),
+            'siteLogo' => \App\Models\Configuration::getValue('site_logo'),
+            'googleMapsEmbed' => \App\Models\Configuration::getValue('google_maps_embed'),
+        ]);
+    }
 }

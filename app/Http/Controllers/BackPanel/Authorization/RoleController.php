@@ -69,8 +69,9 @@ class RoleController extends Controller
             ->with('success', 'Role berhasil dibuat.');
     }
 
-    public function show(Role $role)
+    public function show($id)
     {
+        $role = Role::findOrFail($id);
         $role->load('permissions', 'users');
 
         return Inertia::render('backpanel/authorization/roles/show', [
@@ -78,15 +79,17 @@ class RoleController extends Controller
         ]);
     }
 
-    public function edit(Role $role)
+    public function edit($id)
     {
+        $role = Role::findOrFail($id);
         return Inertia::render('backpanel/authorization/roles/edit', [
             'role' => $role,
         ]);
     }
 
-    public function update(Request $request, Role $role)
+    public function update(Request $request, $id)
     {
+        $role = Role::findOrFail($id);
         $validator = Validator::make($request->all(), [
             'name' => [
                 'required',
@@ -114,8 +117,9 @@ class RoleController extends Controller
             ->with('success', 'Role berhasil diperbarui.');
     }
 
-    public function destroy(Role $role)
+    public function destroy($id)
     {
+        $role = Role::findOrFail($id);
         if ($role->name === 'Super Admin') {
             return back()->with('error', 'Role Super Admin tidak dapat dihapus.');
         }
@@ -130,8 +134,9 @@ class RoleController extends Controller
             ->with('success', 'Role berhasil dihapus.');
     }
 
-    public function toggleStatus(Role $role)
+    public function toggleStatus($id)
     {
+        $role = Role::findOrFail($id);
         if ($role->name === 'Super Admin') {
             return back()->with('error', 'Status role Super Admin tidak dapat diubah.');
         }
@@ -143,8 +148,9 @@ class RoleController extends Controller
         return back()->with('success', 'Status role berhasil diperbarui.');
     }
 
-    public function permissions(Role $role)
+    public function permissions($id)
     {
+        $role = Role::findOrFail($id);
         $role->load('permissions');
         $permissions = Permission::orderBy('name')->get()->groupBy(function ($permission) {
             $parts = explode('-', $permission->name);
@@ -157,8 +163,9 @@ class RoleController extends Controller
         ]);
     }
 
-    public function syncPermissions(Request $request, Role $role)
+    public function syncPermissions(Request $request, $id)
     {
+        $role = Role::findOrFail($id);
         $request->validate([
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,id',

@@ -3,12 +3,14 @@ import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Save, Key } from 'lucide-react';
+import { GUARD_OPTIONS, PERMISSION_GROUPS } from '@/constants/permissions';
 
 export default function PermissionCreate() {
   const breadcrumbs: BreadcrumbItem[] = [
@@ -35,6 +37,10 @@ export default function PermissionCreate() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    setData(name as keyof typeof data, value);
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
     setData(name as keyof typeof data, value);
   };
 
@@ -96,14 +102,18 @@ export default function PermissionCreate() {
                 
                 <div className="space-y-2">
                   <Label htmlFor="guard_name">Guard Name *</Label>
-                  <Input
-                    id="guard_name"
-                    name="guard_name"
-                    value={data.guard_name}
-                    onChange={handleInputChange}
-                    placeholder="web"
-                    required
-                  />
+                  <Select value={data.guard_name} onValueChange={(value) => handleSelectChange('guard_name', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih guard" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GUARD_OPTIONS.map((guard) => (
+                        <SelectItem key={guard.value} value={guard.value}>
+                          {guard.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.guard_name && <p className="text-sm text-red-600">{errors.guard_name}</p>}
                 </div>
               </div>
@@ -111,34 +121,22 @@ export default function PermissionCreate() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="group_name">Group Name</Label>
-                  <Input
-                    id="group_name"
-                    name="group_name"
-                    value={data.group_name}
-                    onChange={handleInputChange}
-                    placeholder="User Management"
-                  />
+                  <Select value={data.group_name} onValueChange={(value) => handleSelectChange('group_name', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih group" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PERMISSION_GROUPS.map((group) => (
+                        <SelectItem key={group.value} value={group.value}>
+                          {group.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.group_name && <p className="text-sm text-red-600">{errors.group_name}</p>}
                   <p className="text-xs text-gray-500">
                     Digunakan untuk mengelompokkan permissions
                   </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Contoh Group Names</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {['User Management', 'Article Management', 'Product Management', 'Settings'].map((group) => (
-                      <Button
-                        key={group}
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setData('group_name', group)}
-                      >
-                        {group}
-                      </Button>
-                    ))}
-                  </div>
                 </div>
               </div>
 

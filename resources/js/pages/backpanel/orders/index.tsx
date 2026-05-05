@@ -103,6 +103,7 @@ interface Props {
     status?: string;
     date_from?: string;
     date_to?: string;
+    per_page?: string;
   };
 }
 
@@ -111,6 +112,7 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
   const [statusFilter, setStatusFilter] = React.useState(filters.status || 'all');
   const [dateFrom, setDateFrom] = React.useState(filters.date_from || '');
   const [dateTo, setDateTo] = React.useState(filters.date_to || '');
+  const [perPageFilter, setPerPageFilter] = React.useState(filters.per_page || '5');
 
   const hasActiveFilters = search || statusFilter !== 'all' || dateFrom || dateTo;
 
@@ -180,11 +182,24 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
     router.get(`/cpanel/crm/orders?${params.toString()}`, {}, { preserveState: true });
   };
 
+  const handlePerPageFilter = (value: string) => {
+    setPerPageFilter(value);
+    const params = new URLSearchParams(window.location.search);
+    if (search) params.set('search', search);
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+    if (value !== '5') params.set('per_page', value);
+    
+    router.get(`/cpanel/crm/orders?${params.toString()}`, {}, { preserveState: true });
+  };
+
   const handleReset = () => {
     setSearch('');
     setStatusFilter('all');
     setDateFrom('');
     setDateTo('');
+    setPerPageFilter('5');
     router.get('/cpanel/crm/orders', {}, { preserveState: true });
   };
 
@@ -275,16 +290,18 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
             {/* Filters */}
             <Card className='gap-3 shadow-none p-0 border-0 border-b pb-3 rounded-none'>
               <CardContent className='p-0'>
-                <div className="space-y-2">
+                <div className="space-y-4">
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Pencarian</label>
                       <Input
                         placeholder="Cari nomor pesanan, perusahaan, PIC..."
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
                       />
                     </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                     <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                       <Select value={statusFilter} onValueChange={handleStatusFilter}>
                         <SelectTrigger>
                           <SelectValue placeholder="Status" />
@@ -301,6 +318,7 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
                       </Select>
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
                       <Input
                         type="date"
                         placeholder="Dari tanggal (DD/MM/YYYY)"
@@ -309,6 +327,7 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
                       />
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
                       <Input
                         type="date"
                         placeholder="Sampai tanggal (DD/MM/YYYY)"
@@ -316,19 +335,34 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
                         onChange={(e) => handleDateFilter('to', e.target.value)}
                       />
                     </div>
-                    {hasActiveFilters && (
-                        <div className="flex flex-col max-w-20 space-y-1">
-                          <Button 
-                            type="button" 
-                            size="sm"
-                            variant="destructive" 
-                            onClick={handleReset}
-                          >
-                            <RefreshCw className="h-4 w-4" />
-                            Reset
-                          </Button>
-                        </div>
-                    )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Tampilkan per Halaman</label>
+                      <Select value={perPageFilter} onValueChange={handlePerPageFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Per Halaman" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-end">
+                      {hasActiveFilters && (
+                        <Button 
+                          type="button" 
+                          size="sm"
+                          variant="destructive" 
+                          onClick={handleReset}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Reset
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -371,11 +405,32 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-1">
-                        <div className="text-base font-medium">{order.product_name}</div>
-                        <div className="text-xs text-gray-500">Qty: {order.quantity} x {formatCurrencyDisplay(order.product_price)}</div>
-                        <div className="font-medium text-xs text-green-700">
-                          Total: {formatCurrencyDisplay(order.total_price)}
+                      <div className="flex gap-3">
+                        {/* Product Image */}
+                        <div className="flex-shrink-0">
+                          {order.product_image ? (
+                            <img 
+                              src={`/storage/${order.product_image}`} 
+                              alt={order.product_name}
+                              className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                              onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                                e.currentTarget.src = '/placeholder-product.png';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
+                              <Package className="w-6 h-6 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Product Info */}
+                        <div className="space-y-1 flex-1">
+                          <div className="text-base font-medium">{order.product_name}</div>
+                          <div className="text-xs text-gray-500">Qty: {order.quantity} x {formatCurrencyDisplay(order.product_price)}</div>
+                          <div className="font-medium text-xs text-green-700">
+                            Total: {formatCurrencyDisplay(order.total_price)}
+                          </div>
                         </div>
                       </div>
                     </TableCell>

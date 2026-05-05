@@ -429,34 +429,47 @@ export default function Homepage({
         </section>
 
         {/* Testimoni Section */}
-        <section className="bg-white dark:bg-gray-900">
-          {
-            testimonials.length > 0 && (
-            <div className="container py-20  mx-auto px-4">
-              <div className="mb-12 text-center">
-                <h2 className="mb-4">Apa Kata Mereka</h2>
-                <p className="mx-auto max-w-2xl text-gray-600 dark:text-gray-300">
+        <section className="bg-gradient-to-b from-orange-100 to-gray-50 dark:from-gray-900 dark:to-gray-950">
+          {testimonials.length > 0 && (
+            <div className="container mx-auto px-4 py-20">
+
+              {/* Header */}
+              <div className="mb-16 text-center max-w-2xl mx-auto">
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+                  Apa Kata Mereka
+                </h2>
+                <p className="mt-4 text-gray-600 dark:text-gray-400">
                   Testimoni dari klien yang telah menggunakan layanan kami
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+              {/* Testimonials Grid */}
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {testimonials.map((testimonial) => (
-                  <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+                  <div 
+                    key={testimonial.id}
+                    className="group h-full"
+                  >
+                    <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                      <TestimonialCard testimonial={testimonial} />
+                    </div>
+                  </div>
                 ))}
               </div>
 
-              <div className="mt-12 text-center flex items-center justify-center">
-                  <Link 
-                    href="/testimonial"
-                    className="btn btn-ghost flex items-center"
-                  >
-                    Tampilkan Lebih Banyak <ArrowRight className="ml-1 h-4 w-4" />  
-                  </Link>
-                </div>
+              {/* CTA */}
+              <div className="mt-16 flex justify-center">
+                <Link
+                  href="/testimonial"
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:gap-3"
+                >
+                  Tampilkan Lebih Banyak
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
+
             </div>
-            )
-          }
+          )}
         </section>
 
         {/* FAQ Section */}
