@@ -8,11 +8,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Gate;
 
 class TagController extends Controller
 {
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:tag-list')->only(['index', 'show']);
+        $this->middleware('permission:tag-create')->only(['create', 'store']);
+        $this->middleware('permission:tag-edit')->only(['edit', 'update']);
+        $this->middleware('permission:tag-delete')->only(['destroy']);
+    }
     public function index(Request $request)
     {
+        Gate::authorize('tag-list');
+        
         $tags = Tag::when($request->search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
@@ -31,11 +42,15 @@ class TagController extends Controller
 
     public function create()
     {
+        Gate::authorize('tag-create');
+        
         return Inertia::render('backpanel/tag/create');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('tag-create');
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:tags,slug',
@@ -55,6 +70,8 @@ class TagController extends Controller
     
     public function show($id)
     {
+        Gate::authorize('tag-list');
+        
         $tag = Tag::findOrFail($id);
 
         return Inertia::render('backpanel/tag/show', [
@@ -64,6 +81,8 @@ class TagController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('tag-edit');
+        
         $tag = Tag::findOrFail($id);
 
         return Inertia::render('backpanel/tag/edit', [
@@ -73,6 +92,8 @@ class TagController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('tag-edit');
+        
         $tag = Tag::findOrFail($id);
 
         $validated = $request->validate([
@@ -99,6 +120,8 @@ class TagController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('tag-delete');
+        
         $tag = Tag::findOrFail($id);
 
         $tag->delete();

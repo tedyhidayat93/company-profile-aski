@@ -108,80 +108,6 @@ export default function RolePermissions({ role, permissions }: Props) {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Shield className="mr-2 h-5 w-5" />
-              {role.name} - Permissions
-            </CardTitle>
-            <CardDescription>
-              Pilih permissions yang akan diberikan kepada role ini.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {Object.entries(permissions).map(([groupName, groupPermissions]) => (
-                <div key={groupName} className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">{groupName}</h3>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`select-all-${groupName}`}
-                        checked={isGroupFullySelected(groupName)}
-                        onCheckedChange={(checked) => handleSelectAllInGroup(groupName, checked as boolean)}
-                      />
-                      <Label htmlFor={`select-all-${groupName}`} className="text-sm">
-                        Pilih Semua
-                      </Label>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {groupPermissions.map((permission) => (
-                      <div key={permission.id} className="flex items-center space-x-2 p-3 border rounded-lg">
-                        <Checkbox
-                          id={`permission-${permission.id}`}
-                          checked={data.permissions.includes(permission.id)}
-                          onCheckedChange={(checked) => handlePermissionChange(permission.id, checked as boolean)}
-                        />
-                        <div className="flex-1">
-                          <Label htmlFor={`permission-${permission.id}`} className="text-sm font-medium cursor-pointer">
-                            <div className="flex items-center space-x-2">
-                              <Key className="h-4 w-4 text-blue-500" />
-                              <span>{permission.name}</span>
-                              {data.permissions.includes(permission.id) && (
-                                <Check className="h-3 w-3 text-green-500" />
-                              )}
-                            </div>
-                          </Label>
-                          {permission.description && (
-                            <p className="text-xs text-gray-500 mt-1">{permission.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              <div className="flex justify-end space-x-2 pt-4 border-t">
-                <Link href="/cpanel/authorization/roles">
-                  <Button type="button" variant="outline">
-                    Batal
-                  </Button>
-                </Link>
-                <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {processing ? 'Menyimpan...' : 'Simpan Permissions'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Ringkasan</CardTitle>
-          </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
@@ -209,6 +135,140 @@ export default function RolePermissions({ role, permissions }: Props) {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Shield className="mr-2 h-5 w-5" />
+              {role.name} - Permissions
+            </CardTitle>
+            <CardDescription>
+              Pilih permissions yang akan diberikan kepada role ini.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+
+              <div className="overflow-auto border rounded-lg">
+
+                <table className="w-full text-sm">
+                  
+                  {/* HEADER */}
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-3 w-[50px]"></th>
+                      <th className="px-4 py-3 text-left">Permission</th>
+                      <th className="px-4 py-3 text-left">Deskripsi</th>
+                      <th className="px-4 py-3 text-left w-[200px]">Group</th>
+                    </tr>
+                  </thead>
+
+                  {/* BODY */}
+                  <tbody className="divide-y">
+
+                    {Object.entries(permissions).map(([groupName, groupPermissions]) => (
+                      <React.Fragment key={groupName}>
+
+                        {/* GROUP HEADER */}
+                        <tr className="bg-gray-100 dark:bg-gray-800/60">
+                          <td colSpan={4} className="px-4 py-2">
+                            <div className="flex items-center justify-between">
+
+                              <span className="font-semibold text-gray-800 dark:text-white">
+                                {groupName}
+                              </span>
+
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id={`select-all-${groupName}`}
+                                  checked={isGroupFullySelected(groupName)}
+                                  onCheckedChange={(checked) =>
+                                    handleSelectAllInGroup(groupName, checked as boolean)
+                                  }
+                                />
+                                <Label htmlFor={`select-all-${groupName}`} className="text-xs">
+                                  Pilih Semua
+                                </Label>
+                              </div>
+
+                            </div>
+                          </td>
+                        </tr>
+
+                        {/* ROW PERMISSION */}
+                        {groupPermissions.map((permission) => {
+                          const checked = data.permissions.includes(permission.id);
+
+                          return (
+                            <tr
+                              key={permission.id}
+                              className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition"
+                            >
+
+                              {/* CHECKBOX */}
+                              <td className="px-4 py-3">
+                                <Checkbox
+                                  id={`permission-${permission.id}`}
+                                  checked={checked}
+                                  onCheckedChange={(val) =>
+                                    handlePermissionChange(permission.id, val as boolean)
+                                  }
+                                />
+                              </td>
+
+                              {/* NAME */}
+                              <td className="px-4 py-3 font-mono text-xs">
+                                <label
+                                  htmlFor={`permission-${permission.id}`}
+                                  className="cursor-pointer flex items-center gap-2"
+                                >
+                                  <Key className="h-3 w-3 text-blue-500" />
+                                  {permission.name}
+                                </label>
+                              </td>
+
+                              {/* DESCRIPTION */}
+                              <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                                {permission.description || '-'}
+                              </td>
+
+                              {/* GROUP */}
+                              <td className="px-4 py-3">
+                                <span className="text-xs text-gray-500">
+                                  {groupName}
+                                </span>
+                              </td>
+
+                            </tr>
+                          );
+                        })}
+
+                      </React.Fragment>
+                    ))}
+
+                  </tbody>
+                </table>
+              </div>
+
+              {/* ACTION */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Link href="/cpanel/authorization/roles">
+                  <Button type="button" variant="outline">
+                    Batal
+                  </Button>
+                </Link>
+
+                <Button type="submit" disabled={processing}>
+                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? 'Menyimpan...' : 'Simpan Permissions'}
+                </Button>
+              </div>
+
+            </form>
+          </CardContent>
+        </Card>
+
       </div>
     </AppLayout>
   );

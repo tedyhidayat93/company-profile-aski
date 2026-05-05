@@ -24,6 +24,7 @@ use App\Http\Controllers\BackPanel\Settings\{
     SettingsController,
     ConfigurationController 
 };
+use App\Http\Controllers\BackPanel\Analytics\VisitorLogController;
 use App\Http\Controllers\BackPanel\Authorization\{
     RoleController,
     PermissionController,
@@ -212,6 +213,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::put('{id}', [CustomerController::class, 'update'])->name('update');
                 Route::delete('{id}', [CustomerController::class, 'destroy'])->name('destroy');
                 Route::patch('{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('toggle-status');
+            });
+        });
+    
+        // Analytics
+        Route::prefix('analytics')->name('analytics.')->group(function () {
+            // Visitor Logs
+            Route::prefix('visitor-logs')->name('visitor-logs.')->group(function () {
+                Route::get('', [VisitorLogController::class, 'index'])->name('index');
+                Route::get('{id}', [VisitorLogController::class, 'show'])->name('show');
             });
         });
     

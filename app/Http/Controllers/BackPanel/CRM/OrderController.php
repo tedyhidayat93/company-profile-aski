@@ -7,11 +7,22 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Gate;
 
 class OrderController extends Controller
 {
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:order-list')->only(['index', 'show']);
+        $this->middleware('permission:order-create')->only(['create', 'store']);
+        $this->middleware('permission:order-edit')->only(['edit', 'update', 'updateStatus']);
+        $this->middleware('permission:order-delete')->only(['destroy']);
+    }
     public function index(Request $request)
     {
+        Gate::authorize('order-list');
+        
         // Build base query with filters for both pagination and statistics
         $baseQuery = Order::with(['customer'])
             ->when($request->search, function ($query, $search) {
@@ -144,11 +155,15 @@ class OrderController extends Controller
 
     public function create()
     {
+        Gate::authorize('order-create');
+        
         return Inertia::render('backpanel/orders/create');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('order-create');
+        
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
             'pic_name' => 'required|string|max:255',
@@ -183,6 +198,8 @@ class OrderController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('order-list');
+        
         $order = Order::with(['product.coverImage'])->find($id);
         
         if ($order) {
@@ -196,6 +213,8 @@ class OrderController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('order-edit');
+        
         $order = Order::find($id);
         return Inertia::render('backpanel/orders/edit', [
             'order' => $order
@@ -204,6 +223,8 @@ class OrderController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('order-edit');
+        
         $order = Order::find($id);
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
@@ -236,6 +257,8 @@ class OrderController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('order-delete');
+        
         $order = Order::find($id);
         $order->delete();
 
@@ -245,6 +268,8 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        Gate::authorize('order-edit');
+        
         $order = Order::find($id);
         
         if (!$order) {

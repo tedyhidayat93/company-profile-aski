@@ -7,13 +7,24 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:category-list')->only(['index', 'show']);
+        $this->middleware('permission:category-create')->only(['create', 'store']);
+        $this->middleware('permission:category-edit')->only(['edit', 'update', 'toggleStatus']);
+        $this->middleware('permission:category-delete')->only(['destroy']);
+    }
     public function index(Request $request)
     {
+        Gate::authorize('category-list');
+        
         $query = Category::query()
             ->with(['parent']);
 
@@ -78,6 +89,8 @@ class CategoryController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('category-list');
+        
         $category = Category::with('parent', 'children')->findOrFail($id);
 
         return Inertia::render('backpanel/category/show', [
@@ -87,6 +100,8 @@ class CategoryController extends Controller
 
     public function create()
     {
+        Gate::authorize('category-create');
+        
         $parentCategories = Category::with('children')
             ->root()
             ->active()
@@ -100,6 +115,8 @@ class CategoryController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('category-edit');
+        
         $category = Category::with('parent', 'children')->findOrFail($id);
         $parentCategories = Category::with('children')
             ->root()
@@ -115,6 +132,8 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('category-create');
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:categories,slug',
@@ -147,6 +166,8 @@ class CategoryController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('category-edit');
+        
         $category = Category::findOrFail($id);
 
         $validated = $request->validate([
@@ -192,6 +213,8 @@ class CategoryController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('category-delete');
+        
         $category = Category::findOrFail($id);
 
         if ($category->children()->count() > 0) {
@@ -211,6 +234,8 @@ class CategoryController extends Controller
 
     public function toggleStatus($id)
     {
+        Gate::authorize('category-edit');
+        
         $category = Category::findOrFail($id);
         $category->is_active = !$category->is_active;
         $category->save();

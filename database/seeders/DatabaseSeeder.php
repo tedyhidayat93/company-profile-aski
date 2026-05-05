@@ -28,10 +28,11 @@ class DatabaseSeeder extends Seeder
 
 
         $this->call([
-            UserSeeder::class,
+            ConfigurationSeeder::class,
             PermissionSeeder::class,
             RoleSeeder::class,
-            ConfigurationSeeder::class,
+            RolePermissionSeeder::class,
+            UserSeeder::class,
             CategorySeeder::class,
             BlogCategorySeeder::class,
             BrandSeeder::class,
@@ -40,6 +41,9 @@ class DatabaseSeeder extends Seeder
             ClientSeeder::class,
             FaqSeeder::class,
             ArticleSeeder::class,
+            // OrderSeeder::class,
+            // TestimonialSeeder::class,
+            // LogVisitorSeeder::class,
         ]);
     }
 }

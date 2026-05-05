@@ -10,13 +10,24 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ArticleController extends Controller
 {
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:article-list')->only(['index', 'show']);
+        $this->middleware('permission:article-create')->only(['create', 'store']);
+        $this->middleware('permission:article-edit')->only(['edit', 'update', 'toggleStatus', 'updatePosition']);
+        $this->middleware('permission:article-delete')->only(['destroy']);
+    }
     public function index(Request $request)
     {
+        Gate::authorize('article-list');
+        
         $articles = Article::when($request->search, function ($query, $search) {
                 return $query->where('title', 'like', "%{$search}%")
                     ->orWhere('content', 'like', "%{$search}%")
@@ -79,6 +90,8 @@ class ArticleController extends Controller
 
     public function create()
     {
+        Gate::authorize('article-create');
+        
         $authors = User::orderBy('name')->get();
         $blogCategories = Category::with('children')
             ->root()
@@ -95,6 +108,8 @@ class ArticleController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('article-create');
+        
         // Handle tags and is_headline before validation
         $requestData = $request->all();
         
@@ -176,6 +191,8 @@ class ArticleController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('article-list');
+        
         $article = Article::with(['author'])->findOrFail($id);
 
         return Inertia::render('backpanel/article/show', [
@@ -185,6 +202,8 @@ class ArticleController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('article-edit');
+        
         $article = Article::findOrFail($id);
         $authors = User::orderBy('name')->get();
         $blogCategories = Category::with('children')
@@ -203,6 +222,8 @@ class ArticleController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('article-edit');
+        
         $article = Article::findOrFail($id);
 
         // Handle tags and is_headline before validation
@@ -313,6 +334,8 @@ class ArticleController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('article-delete');
+        
         $article = Article::findOrFail($id);
 
         // Delete featured image if exists
@@ -328,6 +351,8 @@ class ArticleController extends Controller
 
     public function toggleStatus($id)
     {
+        Gate::authorize('article-edit');
+        
         $article = Article::findOrFail($id);
         
         if ($article->status === 'published') {
@@ -349,6 +374,8 @@ class ArticleController extends Controller
 
     public function updatePosition(Request $request)
     {
+        Gate::authorize('article-edit');
+        
         $validated = $request->validate([
             'articles' => 'required|array',
             'articles.*.id' => 'required|integer|exists:articles,id',

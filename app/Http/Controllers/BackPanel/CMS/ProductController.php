@@ -11,13 +11,24 @@ use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ProductController extends Controller
 {
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:product-list')->only(['index', 'show']);
+        $this->middleware('permission:product-create')->only(['create', 'store']);
+        $this->middleware('permission:product-edit')->only(['edit', 'update', 'toggleStatus', 'toggleFeatured', 'toggleBestseller', 'updatePosition']);
+        $this->middleware('permission:product-delete')->only(['destroy']);
+    }
     public function index(Request $request)
     {
+        Gate::authorize('product-list');
+        
         $products = Product::when($request->search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
@@ -98,6 +109,8 @@ class ProductController extends Controller
 
     public function create()
     {
+        Gate::authorize('product-create');
+        
         $brands = Brand::orderBy('name')->get();
         $parentCategories = Category::with('children')
             ->ofType('product')
@@ -114,6 +127,8 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('product-create');
+        
         // Normalize currency inputs
         $request->merge([
             'price' => normalize_currency($request->price),
@@ -209,6 +224,8 @@ class ProductController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('product-list');
+        
         $product = Product::with(['brand', 'category', 'images' => function($query) {
             $query->orderBy('position');
         }])->findOrFail($id);
@@ -222,6 +239,8 @@ class ProductController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('product-edit');
+        
         $product = Product::with(['brand', 'category', 'images' => function($query) {
             $query->orderBy('position');
         }])->findOrFail($id);
@@ -244,6 +263,8 @@ class ProductController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('product-edit');
+        
         $product = Product::findOrFail($id);
 
         // Normalize currency inputs
@@ -367,6 +388,8 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('product-delete');
+        
         $product = Product::with('images')->findOrFail($id);
 
         // Delete all product images from storage
@@ -383,6 +406,8 @@ class ProductController extends Controller
 
     public function toggleStatus($id)
     {
+        Gate::authorize('product-edit');
+        
         $product = Product::findOrFail($id);
         $product->status = $product->status === 'published' ? 'draft' : 'published';
         $product->save();
@@ -393,6 +418,8 @@ class ProductController extends Controller
 
     public function toggleFeatured($id)
     {
+        Gate::authorize('product-edit');
+        
         $product = Product::findOrFail($id);
         $product->is_featured = !$product->is_featured;
         $product->save();
@@ -403,6 +430,8 @@ class ProductController extends Controller
 
     public function toggleBestseller($id)
     {
+        Gate::authorize('product-edit');
+        
         $product = Product::findOrFail($id);
         $product->is_bestseller = !$product->is_bestseller;
         $product->save();
@@ -413,6 +442,8 @@ class ProductController extends Controller
 
     public function updatePosition(Request $request)
     {
+        Gate::authorize('product-edit');
+        
         $validated = $request->validate([
             'products' => 'required|array',
             'products.*.id' => 'required|integer|exists:products,id',

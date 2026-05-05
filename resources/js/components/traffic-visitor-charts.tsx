@@ -11,6 +11,9 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
+import { Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
+import { List } from 'lucide-react';
 
 interface TrafficData {
   time?: string;
@@ -72,16 +75,24 @@ export default function TrafficVisitorCharts({
             </p>
           </div>
 
-          <select
-            className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm shadow-sm focus:ring-2 focus:ring-blue-500"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as any)}
-          >
-            <option value="today">Hari Ini</option>
-            <option value="thisMonth">Bulan Ini</option>
-            <option value="last3Months">3 Bulan</option>
-            <option value="thisYear">Tahun</option>
-          </select>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/cpanel/analytics/visitor-logs">
+                <List className="h-4 w-4 mr-2" />
+                Lihat Detail
+              </Link>
+            </Button>
+            <select
+              className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm shadow-sm focus:ring-2 focus:ring-blue-500"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as any)}
+            >
+              <option value="today">Hari Ini</option>
+              <option value="thisMonth">Bulan Ini</option>
+              <option value="last3Months">3 Bulan</option>
+              <option value="thisYear">Tahun</option>
+            </select>
+          </div>
         </div>
 
         {/* Chart */}

@@ -9,19 +9,23 @@ use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 
 class RoleController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:role-list|role-create|role-edit|role-delete', ['only' => ['index', 'show']]);
-    //     $this->middleware('permission:role-create', ['only' => ['create', 'store']]);
-    //     $this->middleware('permission:role-edit', ['only' => ['edit', 'update', 'syncPermissions']]);
-    //     $this->middleware('permission:role-delete', ['only' => ['destroy']]);
-    // }
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:role-list')->only(['index', 'show', 'permissions']);
+        $this->middleware('permission:role-create')->only(['create', 'store']);
+        $this->middleware('permission:role-edit')->only(['edit', 'update', 'toggleStatus', 'syncPermissions']);
+        $this->middleware('permission:role-delete')->only(['destroy']);
+    }
 
     public function index(Request $request)
     {
+        Gate::authorize('role-list');
+        
         $roles = Role::with('permissions')
             ->when($request->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%");
@@ -42,11 +46,15 @@ class RoleController extends Controller
 
     public function create()
     {
+        Gate::authorize('role-create');
+        
         return Inertia::render('backpanel/authorization/roles/create');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('role-create');
+        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:roles,name',
             'guard_name' => 'required|string|max:255',
@@ -71,6 +79,8 @@ class RoleController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('role-list');
+        
         $role = Role::findOrFail($id);
         $role->load('permissions', 'users');
 
@@ -81,6 +91,8 @@ class RoleController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('role-edit');
+        
         $role = Role::findOrFail($id);
         return Inertia::render('backpanel/authorization/roles/edit', [
             'role' => $role,
@@ -89,6 +101,8 @@ class RoleController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('role-edit');
+        
         $role = Role::findOrFail($id);
         $validator = Validator::make($request->all(), [
             'name' => [
@@ -119,6 +133,8 @@ class RoleController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('role-delete');
+        
         $role = Role::findOrFail($id);
         if ($role->name === 'Super Admin') {
             return back()->with('error', 'Role Super Admin tidak dapat dihapus.');
@@ -136,6 +152,8 @@ class RoleController extends Controller
 
     public function toggleStatus($id)
     {
+        Gate::authorize('role-edit');
+        
         $role = Role::findOrFail($id);
         if ($role->name === 'Super Admin') {
             return back()->with('error', 'Status role Super Admin tidak dapat diubah.');
@@ -150,6 +168,8 @@ class RoleController extends Controller
 
     public function permissions($id)
     {
+        Gate::authorize('role-list');
+        
         $role = Role::findOrFail($id);
         $role->load('permissions');
         $permissions = Permission::orderBy('name')->get()->groupBy(function ($permission) {
@@ -165,6 +185,8 @@ class RoleController extends Controller
 
     public function syncPermissions(Request $request, $id)
     {
+        Gate::authorize('role-edit');
+        
         $role = Role::findOrFail($id);
         $request->validate([
             'permissions' => 'array',

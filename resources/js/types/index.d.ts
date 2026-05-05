@@ -3,6 +3,7 @@ import { LucideIcon } from 'lucide-react';
 
 export interface Auth {
   user: User;
+  permissions: string[];
 }
 
 export interface BreadcrumbItem {
@@ -25,6 +26,7 @@ export interface NavItem {
   icon?: LucideIcon | null;
   isActive?: boolean;
   items?: NavItem[];
+  permission?: string;
 }
 
 export interface SharedData {
@@ -32,6 +34,15 @@ export interface SharedData {
   quote: { message: string; author: string };
   auth: Auth;
   sidebarOpen: boolean;
+  siteconfig: Array<{
+    id: number;
+    key: string;
+    value: string;
+    type: string;
+    label: string;
+    description: string;
+    group: string;
+  }>;
   [key: string]: unknown;
 }
 

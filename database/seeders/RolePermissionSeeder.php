@@ -32,13 +32,13 @@ class RolePermissionSeeder extends Seeder
 
         // Admin gets most permissions except user/role/permission management
         if ($admin) {
-            $adminPermissions = Permission::whereNotIn('group_name', ['Authorization'])->get();
+            $adminPermissions = Permission::whereNotIn('group_name', ['authorization'])->get();
             $admin->givePermissionTo($adminPermissions);
         }
 
         // Editor gets CMS and Dashboard permissions only
         if ($editor) {
-            $editorPermissions = Permission::whereIn('group_name', ['Dashboard', 'CMS'])->get();
+            $editorPermissions = Permission::whereIn('group_name', ['dashboard', 'cms'])->get();
             $editor->givePermissionTo($editorPermissions);
         }
     }

@@ -11,19 +11,23 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 
 class UserManagementController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:user-list|user-create|user-edit|user-delete', ['only' => ['index', 'show']]);
-    //     $this->middleware('permission:user-create', ['only' => ['create', 'store']]);
-    //     $this->middleware('permission:user-edit', ['only' => ['edit', 'update']]);
-    //     $this->middleware('permission:user-delete', ['only' => ['destroy']]);
-    // }
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:user-list')->only(['index', 'show']);
+        $this->middleware('permission:user-create')->only(['create', 'store']);
+        $this->middleware('permission:user-edit')->only(['edit', 'update', 'toggleStatus']);
+        $this->middleware('permission:user-delete')->only(['destroy']);
+    }
 
     public function index(Request $request)
     {
+        Gate::authorize('user-list');
+        
         $users = User::with('roles', 'permissions')
             ->when($request->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
@@ -55,6 +59,8 @@ class UserManagementController extends Controller
 
     public function create()
     {
+        Gate::authorize('user-create');
+        
         $roles = Role::orderBy('name')->get();
 
         return Inertia::render('backpanel/authorization/users/create', [
@@ -64,6 +70,8 @@ class UserManagementController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('user-create');
+        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
@@ -107,6 +115,8 @@ class UserManagementController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('user-list');
+        
         $user = User::with('roles.permissions')->findOrFail($id);
 
         return Inertia::render('backpanel/authorization/users/show', [
@@ -116,6 +126,8 @@ class UserManagementController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('user-edit');
+        
         $user = User::findOrFail($id);
         $user->load('roles');
         $roles = Role::orderBy('name')->get();
@@ -128,6 +140,8 @@ class UserManagementController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('user-edit');
+        
         $user = User::findOrFail($id);
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -197,6 +211,8 @@ class UserManagementController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('user-delete');
+        
         $user = User::findOrFail($id);
         if ($user->id === auth()->id()) {
             return back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
@@ -214,6 +230,8 @@ class UserManagementController extends Controller
 
     public function toggleStatus($id)
     {
+        Gate::authorize('user-edit');
+        
         $user = User::findOrFail($id);
         if ($user->id === auth()->id()) {
             return back()->with('error', 'Anda tidak dapat mengubah status akun sendiri.');

@@ -8,13 +8,24 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ServiceController extends Controller
 {
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:service-list')->only(['index', 'show']);
+        $this->middleware('permission:service-create')->only(['create', 'store']);
+        $this->middleware('permission:service-edit')->only(['edit', 'update', 'toggleStatus']);
+        $this->middleware('permission:service-delete')->only(['destroy']);
+    }
     public function index(Request $request)
     {
+        Gate::authorize('service-list');
+        
         $services = Service::with('category')
             ->when($request->search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
@@ -50,6 +61,8 @@ class ServiceController extends Controller
 
     public function create()
     {
+        Gate::authorize('service-create');
+        
         $categories = Category::with('children')
             ->root()
             ->active()
@@ -64,6 +77,8 @@ class ServiceController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('service-create');
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:services,slug',
@@ -106,6 +121,8 @@ class ServiceController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('service-list');
+        
         $service = Service::with('category')->findOrFail($id);
 
         return Inertia::render('backpanel/service/show', [
@@ -115,6 +132,8 @@ class ServiceController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('service-edit');
+        
         $service = Service::with('category')->findOrFail($id);
         
         $categories = Category::with('children')
@@ -132,6 +151,8 @@ class ServiceController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('service-edit');
+        
         $service = Service::findOrFail($id);
 
         $validated = $request->validate([
@@ -189,6 +210,8 @@ class ServiceController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('service-delete');
+        
         $service = Service::findOrFail($id);
 
         $service->delete();
@@ -199,6 +222,8 @@ class ServiceController extends Controller
 
     public function toggleStatus($id)
     {
+        Gate::authorize('service-edit');
+        
         $service = Service::findOrFail($id);
         $service->is_active = !$service->is_active;
         $service->save();
@@ -209,6 +234,8 @@ class ServiceController extends Controller
 
     public function toggleFeatured($id)
     {
+        Gate::authorize('service-edit');
+        
         $service = Service::findOrFail($id);
         $service->is_featured = !$service->is_featured;
         $service->save();

@@ -93,9 +93,13 @@ class PermissionSeeder extends Seeder
             ['name' => 'permission-edit', 'guard_name' => 'web', 'group_name' => 'authorization', 'description' => 'Mengedit permission'],
             ['name' => 'permission-delete', 'guard_name' => 'web', 'group_name' => 'authorization', 'description' => 'Menghapus permission'],
             
+            // Analytics
+            ['name' => 'visitor-log-list', 'guard_name' => 'web', 'group_name' => 'analytics', 'description' => 'Melihat log visitor'],
+            
             // Settings
-            ['name' => 'settings-view', 'guard_name' => 'web', 'group_name' => 'settings', 'description' => 'Melihat pengaturan'],
-            ['name' => 'settings-edit', 'guard_name' => 'web', 'group_name' => 'settings', 'description' => 'Mengedit pengaturan'],
+            ['name' => 'setting-configuration-list', 'guard_name' => 'web', 'group_name' => 'settings', 'description' => 'Melihat pengaturan konfigurasi'],
+            ['name' => 'setting-configuration-create', 'guard_name' => 'web', 'group_name' => 'settings', 'description' => 'Menambah pengaturan konfigurasi'],
+            ['name' => 'setting-configuration-edit', 'guard_name' => 'web', 'group_name' => 'settings', 'description' => 'Mengedit pengaturan konfigurasi'],
         ];
 
         foreach ($permissions as $permission) {
@@ -103,3 +107,4 @@ class PermissionSeeder extends Seeder
         }
     }
 }
+    

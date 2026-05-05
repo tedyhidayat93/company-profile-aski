@@ -8,19 +8,23 @@ use Inertia\Inertia;
 use App\Models\Permission;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 
 class PermissionController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('permission:permission-list|permission-create|permission-edit|permission-delete', ['only' => ['index', 'show']]);
-    //     $this->middleware('permission:permission-create', ['only' => ['create', 'store']]);
-    //     $this->middleware('permission:permission-edit', ['only' => ['edit', 'update']]);
-    //     $this->middleware('permission:permission-delete', ['only' => ['destroy']]);
-    // }
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:permission-list')->only(['index', 'show', 'groups']);
+        $this->middleware('permission:permission-create')->only(['create', 'store']);
+        $this->middleware('permission:permission-edit')->only(['edit', 'update']);
+        $this->middleware('permission:permission-delete')->only(['destroy']);
+    }
 
     public function index(Request $request)
     {
+        Gate::authorize('permission-list');
+        
         $permissions = Permission::with('roles')
             ->when($request->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
@@ -49,11 +53,15 @@ class PermissionController extends Controller
 
     public function create()
     {
+        Gate::authorize('permission-create');
+        
         return Inertia::render('backpanel/authorization/permissions/create');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('permission-create');
+        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:permissions,name',
             'guard_name' => 'required|string|max:255',
@@ -78,6 +86,8 @@ class PermissionController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('permission-list');
+        
         $permission = Permission::findOrFail($id);
         $permission->load('roles', 'users');
 
@@ -88,6 +98,8 @@ class PermissionController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('permission-edit');
+        
         $permission = Permission::findOrFail($id);
         return Inertia::render('backpanel/authorization/permissions/edit', [
             'permission' => $permission,
@@ -96,6 +108,8 @@ class PermissionController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('permission-edit');
+        
         $permission = Permission::findOrFail($id);
         $validator = Validator::make($request->all(), [
             'name' => [
@@ -126,6 +140,8 @@ class PermissionController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('permission-delete');
+        
         $permission = Permission::findOrFail($id);
         if ($permission->roles()->count() > 0) {
             return back()->with('error', 'Permission tidak dapat dihapus karena masih digunakan oleh role.');
@@ -143,6 +159,8 @@ class PermissionController extends Controller
 
     public function groups()
     {
+        Gate::authorize('permission-list');
+        
         $groups = Permission::distinct('group_name')
             ->whereNotNull('group_name')
             ->pluck('group_name')

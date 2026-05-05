@@ -7,13 +7,24 @@ use App\Models\Brand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class BrandController extends Controller
 {
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:brand-list')->only(['index', 'show']);
+        $this->middleware('permission:brand-create')->only(['create', 'store']);
+        $this->middleware('permission:brand-edit')->only(['edit', 'update', 'toggleStatus']);
+        $this->middleware('permission:brand-delete')->only(['destroy']);
+    }
     public function index(Request $request)
     {
+        Gate::authorize('brand-list');
+        
         $brands = Brand::when($request->search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
@@ -35,11 +46,15 @@ class BrandController extends Controller
 
     public function create()
     {
+        Gate::authorize('brand-create');
+        
         return Inertia::render('backpanel/brand/create');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('brand-create');
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:brands,slug',
@@ -73,6 +88,8 @@ class BrandController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('brand-list');
+        
         $brand = Brand::findOrFail($id);
 
         return Inertia::render('backpanel/brand/show', [
@@ -82,6 +99,8 @@ class BrandController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('brand-edit');
+        
         $brand = Brand::findOrFail($id);
 
         return Inertia::render('backpanel/brand/edit', [
@@ -91,6 +110,8 @@ class BrandController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('brand-edit');
+        
         $brand = Brand::findOrFail($id);
 
         $validated = $request->validate([
@@ -144,6 +165,8 @@ class BrandController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('brand-delete');
+        
         $brand = Brand::findOrFail($id);
 
         if ($brand->logo) {
@@ -158,6 +181,8 @@ class BrandController extends Controller
 
     public function toggleStatus($id)
     {
+        Gate::authorize('brand-edit');
+        
         $brand = Brand::findOrFail($id);
         $brand->is_active = !$brand->is_active;
         $brand->save();

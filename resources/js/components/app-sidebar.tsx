@@ -10,8 +10,8 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavGroupItem, type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { type NavGroupItem, type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import {
   Activity,
   BarChart,
@@ -50,76 +50,91 @@ const mainNavGroups: NavGroupItem[] = [
           title: 'Daftar Pesanan',
           href: '/cpanel/crm/orders',
           icon: ShoppingCart,
+          permission: 'order-list',
         },
         {
           title: 'Posting Artikel',
           href: '/cpanel/cms/article',
           icon: FileText,
+          permission: 'article-list',
         },
         {
           title: 'Produk',
           href: '/cpanel/cms/product',
           icon: LayoutGrid,
+          permission: 'product-list',
         },
         {
           title: 'Pelanggan',
           href: '/cpanel/crm/customer',
           icon: Users,
+          permission: 'customer-list',
         },
         {
           title: 'Klien',
           href: '/cpanel/cms/client',
           icon: HandshakeIcon,
+          permission: 'client-list',
         },
         {
           title: 'Merek',
           href: '/cpanel/cms/brand',
           icon: Tag,
+          permission: 'brand-list',
         },
         {
           title: 'Layanan',
           href: '/cpanel/cms/service',
           icon: HandHeart,
+          permission: 'service-list',
         },
         {
           title: 'Kategori',
           href: '/cpanel/cms/category',
           icon: Folder,
+          permission: 'category-list',
         },
         // {
         //   title: 'Tag',
         //   href: '/cpanel/cms/tag',
         //   icon: BookmarkCheck,
+        //   permission: 'tag-list',
         // },
         {
           title: 'FAQ',
           href: '/cpanel/cms/faq',
           icon: MessageCircleQuestion,
+          permission: 'faq-list',
         },
         {
           title: 'Testimonial',
           href: '/cpanel/cms/testimonial',
           icon: MessageSquare,
+          permission: 'testimonial-list',
         },
         {
           title: 'User',
           href: '/cpanel/authorization/user-management',
           icon: UsersIcon,
+          permission: 'user-list',
         },
         {
           title: 'Role',
           href: '/cpanel/authorization/roles',
           icon: ShieldEllipsis,
+          permission: 'role-list',
         },
         {
           title: 'Hak Akses',
           href: '/cpanel/authorization/permissions',
           icon: Shield,
+          permission: 'permission-list',
         },
         {
           title: 'Pengaturan',
           href: '/cpanel/settings/configuration/site',
           icon: Settings,
+          permission: 'setting-configuration-list',
         }
       ],
     }
@@ -144,8 +159,24 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ recentOrders = [] }: AppSidebarProps) {
+  const { auth } = usePage<SharedData>().props;
+  const userPermissions = auth.permissions || [];
+
   // Count new orders (pending status)
   const newOrdersCount = recentOrders.filter(order => order.status === 'pending').length;
+
+  // Filter menu items based on user permissions
+  const filteredNavGroups = mainNavGroups.map(({ group }) => ({
+    group: {
+      ...group,
+      items: group.items.filter(item => {
+        // If no permission is required, show the item
+        if (!item.permission) return true;
+        // Show item if user has the required permission
+        return userPermissions.includes(item.permission);
+      })
+    }
+  }));
 
   return (
     <Sidebar collapsible="icon" variant="inset">
@@ -162,7 +193,7 @@ export function AppSidebar({ recentOrders = [] }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="-space-y-2!">
-        {mainNavGroups.map(({ group }, index) => (
+        {filteredNavGroups.map(({ group }, index) => (
           <NavMain key={index} items={group.items} groupTitle={group.title} newOrdersCount={newOrdersCount} />
         ))}
       </SidebarContent>

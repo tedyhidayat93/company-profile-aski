@@ -7,13 +7,24 @@ use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ClientController extends Controller
 {
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:client-list')->only(['index', 'show']);
+        $this->middleware('permission:client-create')->only(['create', 'store']);
+        $this->middleware('permission:client-edit')->only(['edit', 'update', 'toggleStatus']);
+        $this->middleware('permission:client-delete')->only(['destroy']);
+    }
     public function index(Request $request)
     {
+        Gate::authorize('client-list');
+        
         $clients = Client::when($request->search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
@@ -34,11 +45,15 @@ class ClientController extends Controller
 
     public function create()
     {
+        Gate::authorize('client-create');
+        
         return Inertia::render('backpanel/client/create');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('client-create');
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'website' => 'nullable|url|max:255',
@@ -68,6 +83,8 @@ class ClientController extends Controller
 
     public function show($id)
     {
+        Gate::authorize('client-list');
+        
         $client = Client::findOrFail($id);
 
         return Inertia::render('backpanel/client/show', [
@@ -77,6 +94,8 @@ class ClientController extends Controller
 
     public function edit($id)
     {
+        Gate::authorize('client-edit');
+        
         $client = Client::findOrFail($id);
 
         return Inertia::render('backpanel/client/edit', [
@@ -86,6 +105,8 @@ class ClientController extends Controller
 
     public function update(Request $request, $id)
     {
+        Gate::authorize('client-edit');
+        
         $client = Client::findOrFail($id);
 
         $validated = $request->validate([
@@ -130,6 +151,8 @@ class ClientController extends Controller
 
     public function destroy($id)
     {
+        Gate::authorize('client-delete');
+        
         $client = Client::findOrFail($id);
 
         if ($client->image) {
@@ -144,6 +167,8 @@ class ClientController extends Controller
 
     public function toggleStatus($id)
     {
+        Gate::authorize('client-edit');
+        
         $client = Client::findOrFail($id);
         $client->is_active = !$client->is_active;
         $client->save();

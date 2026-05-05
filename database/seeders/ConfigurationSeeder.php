@@ -462,6 +462,32 @@ class ConfigurationSeeder extends Seeder
                 'value' => 'Hubungi Kami via WhatsApp',
                 'type' => 'text',
             ],
+            
+            // Auth Layout Configuration
+            [
+                'label' => 'Homepage Logo',
+                'description' => 'Logo untuk halaman login dan registrasi',
+                'group' => 'view_homepage',
+                'key' => 'homepage_logo',
+                'value' => '/assets/images/logo-main-square.png',
+                'type' => 'image',
+            ],
+            [
+                'label' => 'Homepage Logo Alt Text',
+                'description' => 'Text alternatif untuk logo homepage',
+                'group' => 'view_homepage',
+                'key' => 'homepage_logo_alt',
+                'value' => 'PT Alumoda Sinergi Kontainer Indonesia',
+                'type' => 'text',
+            ],
+            [
+                'label' => 'Homepage Background Image',
+                'description' => 'Gambar latar belakang untuk halaman login',
+                'group' => 'view_homepage',
+                'key' => 'homepage_bg_image',
+                'value' => '/assets/images/bg-hero.png',
+                'type' => 'image',
+            ],
         ];
 
         foreach ($homepageConfigs as $config) {
