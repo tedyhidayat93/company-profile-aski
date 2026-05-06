@@ -24,7 +24,19 @@ export default function CategoryFilter({
 }: CategoryFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
+    const initialExpanded: Record<string, boolean> = {};
+    const initializeExpanded = (items: CategoryOption[]) => {
+      items.forEach(item => {
+        initialExpanded[item.value] = true;
+        if (item.subcategories) {
+          initializeExpanded(item.subcategories);
+        }
+      });
+    };
+    initializeExpanded(categories);
+    return initialExpanded;
+  });
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // 🔒 click outside
