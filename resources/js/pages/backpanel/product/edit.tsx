@@ -11,10 +11,12 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { formatPrice, parseCurrencyInput, formatCurrencyInput } from '@/utils/currency';
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon, Plus, Trash2, ChevronDown } from 'lucide-react';
 import TreeSelect from '@/components/tree-select';
 import { flattenCategories } from '@/lib/utils';
+import { getContainerSpecs, type ContainerSpec } from '@/utils/product';
 import { Category } from '../category/create';
+import TinyMCEEditor from '@/components/TinyMCEEditor';
 
 interface Brand {
   id: number;
@@ -73,6 +75,7 @@ interface Props {
 }
 
 export default function ProductEdit({ product, brands, categories }: Props) {
+  const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
   const { props } = usePage();
   const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
   
@@ -93,6 +96,9 @@ export default function ProductEdit({ product, brands, categories }: Props) {
   const [tagInput, setTagInput] = useState('');
   const [imageErrors, setImageErrors] = useState<string[]>([]);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+  // Calculate active images (existing images that haven't been removed)
+  const activeImages = product.images.filter(img => !removeImages.includes(img.id));
 
   // State for formatted currency display
   const [formattedPrice, setFormattedPrice] = useState(
@@ -298,8 +304,18 @@ export default function ProductEdit({ product, brands, categories }: Props) {
       }
       
       if (validFiles.length > 0) {
-        setData('images', [...data.images, ...validFiles]);
-        setImagePreviews([...imagePreviews, ...validPreviews]);
+        const newImages = [...data.images, ...validFiles];
+        const newPreviews = [...imagePreviews, ...validPreviews];
+        
+        setData('images', newImages);
+        setImagePreviews(newPreviews);
+        
+        // Auto-set first new image as cover if no cover is set
+        if (coverImageIndex === null || coverImageIndex === undefined || coverImageIndex === -1) {
+          const firstNewImageIndex = activeImages.length; // Index of the first newly uploaded image
+          setCoverImageIndex(firstNewImageIndex);
+          setData('cover_image', `new_${firstNewImageIndex - activeImages.length}`);
+        }
       }
       
       // Clear input if no valid files
@@ -391,6 +407,12 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     setData('specific_specs', [...data.specific_specs, newSpec]);
   };
 
+  const addTemplateSpecs = (templateType: string) => {
+    const presetSpecs = getContainerSpecs(templateType);
+    setData('specific_specs', [...data.specific_specs, ...presetSpecs]);
+    setIsTemplateDropdownOpen(false);
+  };
+
   const removeSpecRow = (index: number) => {
     const newSpecs = data.specific_specs.filter((_, i) => i !== index);
     setData('specific_specs', newSpecs);
@@ -462,7 +484,6 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     },
   ];
 
-  const activeImages = product.images.filter(img => !removeImages.includes(img.id));
   const totalImages = activeImages.length + imagePreviews.length;
 
   return (
@@ -652,13 +673,10 @@ export default function ProductEdit({ product, brands, categories }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="description">Deskripsi</Label>
-                <Textarea
-                  id="description"
-                  name="description"
+                <TinyMCEEditor
                   value={data.description}
-                  onChange={handleInputChange}
-                  placeholder="Deskripsi lengkap produk"
-                  rows={4}
+                  onChange={(content) => setData('description', content)}
+                  height={300}
                 />
                 {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
               </div>
@@ -677,16 +695,81 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                     </p>
                   </div>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addSpecRow}
-                    className="shadow-sm"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addSpecRow}
+                      className="shadow-sm"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Tambah
+                    </Button>
+                    
+                    <div className="relative">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsTemplateDropdownOpen(!isTemplateDropdownOpen)}
+                        className="shadow-sm"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Template
+                        <ChevronDown className="ml-2 h-4 w-4" />
+                      </Button>
+                      
+                      {isTemplateDropdownOpen && (
+                        <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                          <div className="py-1">
+                            <button
+                              type="button"
+                              onClick={() => addTemplateSpecs('standar-container')}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Standar Container
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => addTemplateSpecs('reefer')}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Reefer Container
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => addTemplateSpecs('open-top')}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Open Top Container
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => addTemplateSpecs('flat-rack')}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Flat Rack Container
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => addTemplateSpecs('tank-container')}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Tank Container
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => addTemplateSpecs('custom-container')}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Custom Container
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* LIST */}

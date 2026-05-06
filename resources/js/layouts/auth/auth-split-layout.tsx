@@ -25,14 +25,14 @@ export default function AuthSplitLayout({
     return config?.value || defaultValue;
   };
 
-  const homepageLogo = getHomepageConfig('homepage_logo');
+  const homepageLogo = getHomepageConfig('site_logo');
   const homepageLogoAlt = getHomepageConfig('homepage_logo_alt', 'Company Logo');
   const homepageBgImage = getHomepageConfig('homepage_bg_image');
 
   return (
     <div className="relative bg-white grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
       <div 
-        className={`relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r image-center bg-cover bg-center [background-image:url(${homepageBgImage ? `/storage/${homepageBgImage}` : BgHero})]`}>
+        className={`relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r image-center bg-center [background-image:url(${homepageBgImage ? `/storage/${homepageBgImage}` : BgHero})]`}>
         <div className="absolute inset-0 bg-zinc-900" />
         <Link href={homepage()} className="relative z-20 flex items-center text-lg font-medium">
           {name}

@@ -230,7 +230,7 @@ export default function Homepage({
           </div>
 
           <img 
-            src={getConfig('hero_image', '/images/bg-hero.png')} 
+            src={'/storage/' + getConfig('hero_image', '')} 
             alt="Alumoda Sinergi Kontainer Indonesia - Solusi Terpercaya untuk Kontainer Anda" 
             className="absolute inset-0 z-10 object-cover w-full h-full"
             loading="eager"
@@ -266,7 +266,7 @@ export default function Homepage({
                       />
                       <button 
                           type="submit"
-                          disabled={isSearching || !searchQuery.trim()}
+                          disabled={isSearching}
                           className={`absolute right-1.5 cursor-pointer top-1/2 -translate-y-1/2 transform rounded-full px-3 py-2 md:px-8 md:py-3 font-semibold transition-all ${
                               isSearching 
                                   ? 'bg-amber-400 text-white cursor-wait' 
@@ -378,15 +378,25 @@ export default function Homepage({
                 </p>
               </div>
               <Link href={catalog.index()} className="btn btn-ghost flex items-center">
-                Tampilkan Lebih Banyak <ArrowRight className="ml-1 h-4 w-4" /> 
+                Semua Produk <ArrowRight className="ml-1 h-4 w-4" /> 
               </Link>
             </div>
 
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.slug} product={product} />
               ))}
             </div>
+
+            <div className="mt-16 flex justify-center">
+                <Link
+                  href="/catalog"
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:gap-3"
+                >
+                  Tampilkan Lebih Banyak
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
           </div>
         </section>
 
@@ -585,13 +595,13 @@ export default function Homepage({
                     <div 
                       key={article.id} 
                       onClick={() => window.location.href=`/articles/${article.slug}`}
-                      className="group overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800"
+                      className="group overflow-hidden rounded-xl bg-white shadow-sm cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800"
                     >
                       <div className="relative h-52 overflow-hidden bg-gray-100 dark:bg-gray-700">
                           <div className="absolute inset-0 bg-gradient-to-r from-amber-100 to-amber-200 dark:from-gray-700 dark:to-gray-600 transition-transform duration-500 group-hover:scale-110" />
                           <div className="absolute inset-0 flex items-center justify-center">
                             <img 
-                              src={article.image} 
+                              src={'storage/' + article.image} 
                               alt={article.title} 
                               className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-110 ${
                                 loadedImages[article.id] ? 'opacity-100' : 'opacity-0'

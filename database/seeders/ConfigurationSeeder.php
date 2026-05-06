@@ -199,7 +199,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Server host untuk SMTP',
                 'group' => 'email',
                 'key' => 'smtp_host',
-                'value' => 'smtp.gmail.com',
+                'value' => 'sandbox.smtp.mailtrap.io',
                 'type' => 'text',
             ],
             [
@@ -215,7 +215,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Username untuk autentikasi SMTP',
                 'group' => 'email',
                 'key' => 'smtp_username',
-                'value' => 'noreply@companyprofile-aski.com',
+                'value' => '5047d4d9b73dfc',
                 'type' => 'text',
             ],
             [
@@ -223,7 +223,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Password untuk autentikasi SMTP',
                 'group' => 'email',
                 'key' => 'smtp_password',
-                'value' => 'your_app_password_here',
+                'value' => '9381037ea04fe8',
                 'type' => 'text',
             ],
             [
@@ -239,7 +239,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Email pengirim default',
                 'group' => 'email',
                 'key' => 'mail_from_address',
-                'value' => 'noreply@companyprofile-aski.com',
+                'value' => 'noreply@yourdomain.com',
                 'type' => 'text',
             ],
             [
@@ -247,7 +247,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Nama pengirim default',
                 'group' => 'email',
                 'key' => 'mail_from_name',
-                'value' => 'Company Profile ASKI',
+                'value' => 'Your Company',
                 'type' => 'text',
             ],
         ];
@@ -465,26 +465,18 @@ class ConfigurationSeeder extends Seeder
             
             // Auth Layout Configuration
             [
-                'label' => 'Homepage Logo',
+                'label' => 'Auth Logo',
                 'description' => 'Logo untuk halaman login dan registrasi',
                 'group' => 'view_homepage',
-                'key' => 'homepage_logo',
-                'value' => '/assets/images/logo-main-square.png',
+                'key' => 'auth_logo',
+                'value' => '/assets/images/logo-main.png',
                 'type' => 'image',
             ],
             [
-                'label' => 'Homepage Logo Alt Text',
-                'description' => 'Text alternatif untuk logo homepage',
-                'group' => 'view_homepage',
-                'key' => 'homepage_logo_alt',
-                'value' => 'PT Alumoda Sinergi Kontainer Indonesia',
-                'type' => 'text',
-            ],
-            [
-                'label' => 'Homepage Background Image',
+                'label' => 'Auth Background Image',
                 'description' => 'Gambar latar belakang untuk halaman login',
                 'group' => 'view_homepage',
-                'key' => 'homepage_bg_image',
+                'key' => 'auth_bg_image',
                 'value' => '/assets/images/bg-hero.png',
                 'type' => 'image',
             ],

@@ -13,12 +13,12 @@ class VisitorLogController extends Controller
     public function __construct()
     {
         // Apply permission middleware to all methods
-        // $this->middleware('permission:visitor-log-list')->only(['index', 'show']);
+        $this->middleware('permission:visitor-log-list')->only(['index', 'show']);
     }
 
     public function index(Request $request)
     {
-        // Gate::authorize('visitor-log-list');
+        Gate::authorize('visitor-log-list');
         
         // Build base query with filters
         $baseQuery = LogVisitor::query()
@@ -61,7 +61,7 @@ class VisitorLogController extends Controller
 
     public function show($id)
     {
-        // Gate::authorize('visitor-log-list');
+        Gate::authorize('visitor-log-list');
         
         $visitorLog = LogVisitor::findOrFail($id);
         

@@ -698,9 +698,21 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                             <DialogTitle className="text-lg font-medium text-gray-900 dark:text-white">Pesanan Berhasil Dikirim!</DialogTitle>
                             <div className="mt-2">
                                 <p className="text-sm text-gray-500">
-                                    Terima kasih atas pemesanan Anda. Kami akan segera menghubungi Anda melalui WhatsApp, telepon, atau email untuk informasi lebih lanjut.
+                                    Terima kasih atas pesanan Anda 🙏 Kami akan segera menghubungi Anda melalui WhatsApp, telepon, atau email untuk memberikan informasi lebih lanjut.
                                 </p>
-                            </div>
+
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Kami juga ingin mendengar pengalaman Anda berbelanja di Alumoda. 
+                                    Bagikan cerita Anda{' '}
+                                    <a 
+                                    href="/testimonial/send-your-testimoni" 
+                                    className="text-blue-600 hover:text-blue-800 underline font-medium"
+                                    >
+                                    di sini
+                                    </a>
+                                    {' '}— ulasan Anda dapat membantu pelanggan lain membuat keputusan yang tepat.
+                                </p>
+                                </div>
                         </div>
                         <div className="mt-5">
                             <button

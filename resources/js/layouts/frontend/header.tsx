@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Phone, Mail, Megaphone, X, AlignEndVerticalIcon, Heart, ShoppingCart, PhoneCall } from 'lucide-react';
+import { Phone, Mail, X, Heart, ShoppingCart, PhoneCall, Menu } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useWishlist } from '@/hooks/useWishlist';
 import { CONTACT_INFO } from '@/constants/navigation';
@@ -18,8 +18,8 @@ export default function Header() {
   
   const { auth } = usePage().props as any;
   const { getConfig } = useConfig();
-  const siteLogo = getConfig('site_logo', '/images/logo-main.png');
-  const logoImage = siteLogo.startsWith('configurations/') ? `/storage/${siteLogo}` : siteLogo;
+  const siteLogo = getConfig('/storage/' + 'site_logo', '/images/logo-main.png');
+  const logoImage = siteLogo;
   const { url } = usePage();
   const isHomepage = url === '/';
   const isCatalog = url === '/catalog';
@@ -123,7 +123,7 @@ export default function Header() {
                   className="relative p-2 text-gray-700 hover:text-primary dark:text-white"
                   onClick={() => setIsWishlistOpen(true)}
                 >
-                  <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Heart className="h-4 w-4 sm:h-5 sm:w-5 cursor-pointer" />
                   {wishlist.length > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-red-500 text-[10px] sm:text-xs font-medium text-white">
                       {wishlist.length}
@@ -141,7 +141,7 @@ export default function Header() {
                   {isMenuOpen ? (
                     <X className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
                   ) : (
-                    <AlignEndVerticalIcon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+                    <Menu className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
                   )}
                 </button>
               </div>
@@ -158,7 +158,7 @@ export default function Header() {
                         scrollToSection(e, link.id);
                         setIsMenuOpen(false);
                       }}
-                      className="rounded-md px-3 py-2 xl:px-4 text-sm xl:text-base text-gray-900 hover:text-primary font-medium hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                      className="rounded-md px-3 py-2 xl:px-4 text-sm xl:text-base text-gray-900 hover:text-white font-bold hover:bg-orange-400 dark:text-gray-300 dark:hover:bg-gray-800 cursor-pointer transition-colors"
                     >
                       {link.name}
                     </a>
@@ -173,7 +173,7 @@ export default function Header() {
                     className="relative p-2 text-gray-700 hover:text-primary dark:text-white"
                     onClick={() => setIsWishlistOpen(true)}
                   >
-                    <Heart className="h-5 w-5" />
+                    <Heart className="h-5 w-5 cursor-pointer" />
                     {wishlist.length > 0 && (
                       <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
                         {wishlist.length}
@@ -204,7 +204,7 @@ export default function Header() {
                     className="cursor-pointer"
                   >
                     <Button className="text-sm xl:text-base px-4 xl:px-6 py-2">
-                      <Phone className="mr-2 h-4 w-4" />
+                      <Phone className="h-4 w-4" />
                       <span className="hidden sm:inline">Hubungi Kami</span>
                       <span className="sm:hidden">Hubungi</span>
                     </Button>
@@ -217,7 +217,7 @@ export default function Header() {
             <div className={`lg:hidden transition-all duration-300 ease-in-out ${
               isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
             }`}>
-              <div className="py-4 space-y-2 border-t border-gray-200 dark:border-gray-700">
+              <div className="py-3 space-y-2 border-t border-gray-200 dark:border-gray-700">
                 {/* Navigation Links - Mobile */}
                 {NAV_LINKS2.map((link) => (
                   <a

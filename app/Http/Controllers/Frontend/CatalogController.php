@@ -193,37 +193,39 @@ class CatalogController extends Controller
         // Transform products for frontend
         $transformedProducts = $products->getCollection()->map(function ($product) {
             // Get cover image with proper path validation like backpanel
-                $coverImagePath = $product->coverImage?->image_path;
-                if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
-                    $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
-                } elseif (!$coverImagePath) {
-                    $coverImagePath = '/images/placeholder.png';
-                }
-                
-                // Check if the image file actually exists
-                $fullPath = public_path($coverImagePath);
-                if (!file_exists($fullPath)) {
-                    $coverImagePath = '/images/placeholder.png';
-                }
-                
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'slug' => $product->slug,
-                    'type' => $product->type,
-                    'quantity' => $product->quantity,
-                    'category' => $product->category?->name ?? 'Uncategorized',
-                    'price' => $product->price,
-                    'compare_at_price' => $product->compare_at_price,
-                    'stock' => $product->quantity ?? 0,
-                    'image' => $coverImagePath,
-                    'description' => $product->short_description ?? $product->description ?? '',
-                    'is_bestseller' => $product->is_bestseller ?? false,
-                    'show_price' => $product->show_price,
-                    'show_stock' => $product->show_stock,
-                    'is_new' => $product->is_new ?? false,
-                    'is_for_sell' => $product->is_for_sell ?? false,
-                    'is_rent' => $product->is_rent ?? false
+            $coverImagePath = $product->coverImage?->image_path;
+            if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
+                $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
+            } elseif (!$coverImagePath) {
+                $coverImagePath = '/images/placeholder.png';
+            }
+            
+            // Check if the image file actually exists
+            $fullPath = public_path($coverImagePath);
+            if (!file_exists($fullPath)) {
+                $coverImagePath = '/images/placeholder.png';
+            }
+            
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'type' => $product->type,
+                'quantity' => $product->quantity,
+                'category' => $product->category?->parent 
+                    ? ($product->category->parent->name . ' > ' . $product->category->name)
+                    : ($product->category?->name ?? 'Uncategorized'),
+                'price' => $product->price,
+                'compare_at_price' => $product->compare_at_price,
+                'stock' => $product->quantity ?? 0,
+                'image' => $coverImagePath,
+                'description' => $product->short_description ?? $product->description ?? '',
+                'is_bestseller' => $product->is_bestseller ?? false,
+                'show_price' => $product->show_price,
+                'show_stock' => $product->show_stock,
+                'is_new' => $product->is_new ?? false,
+                'is_for_sell' => $product->is_for_sell ?? false,
+                'is_rent' => $product->is_rent ?? false
             ];
         });
 

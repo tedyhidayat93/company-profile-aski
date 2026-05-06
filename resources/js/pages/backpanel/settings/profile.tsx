@@ -51,6 +51,10 @@ export default function Profile({
     setAvatarPreview(null);
   };
 
+  const shouldRemoveAvatar = () => {
+    return avatarPreview === null && !avatarFile && auth.user.avatar !== null;
+  };
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Pengaturan Profil" />
@@ -58,63 +62,6 @@ export default function Profile({
       <SettingsLayout>
         <div className="space-y-6">
           <HeadingSmall title="Informasi Profil" description="Edit informasi profil Anda" />
-
-          {/* Avatar Section */}
-          <div className="space-y-4">
-            <Label>Avatar</Label>
-            <div className="flex items-center space-x-6">
-              <div className="flex-shrink-0">
-                {avatarPreview ? (
-                  <div className="relative">
-                    <img
-                      src={avatarPreview}
-                      alt="Avatar preview"
-                      className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={removeAvatar}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ) : auth.user.avatar ? (
-                  <div className="relative">
-                    <img
-                      src={`/storage/${auth.user.avatar}`}
-                      alt="Current avatar"
-                      className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={removeAvatar}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="h-24 w-24 rounded-full bg-gray-100 border-4 border-gray-200 flex items-center justify-center">
-                    <User className="h-12 w-12 text-gray-400" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1">
-                <Input
-                  id="avatar"
-                  name="avatar"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Format: jpeg, jpg, png, gif. Maksimal: 2MB
-                </p>
-              </div>
-            </div>
-          </div>
 
           <Form
             {...ProfileController.update.form()}
@@ -125,6 +72,62 @@ export default function Profile({
           >
             {({ processing, recentlySuccessful, errors }) => (
               <>
+                {/* Avatar Section */}
+                <div className="space-y-4">
+                  <Label>Avatar</Label>
+                  <div className="flex items-center space-x-6">
+                    <div className="flex-shrink-0">
+                      {avatarPreview ? (
+                        <div className="relative">
+                          <img
+                            src={avatarPreview}
+                            alt="Avatar preview"
+                            className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={removeAvatar}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : auth.user.avatar ? (
+                        <div className="relative">
+                          <img
+                            src={`/storage/${auth.user.avatar}`}
+                            alt="Current avatar"
+                            className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={removeAvatar}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="h-24 w-24 rounded-full bg-gray-100 border-4 border-gray-200 flex items-center justify-center">
+                          <User className="h-12 w-12 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        id="avatar"
+                        name="avatar"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Format: jpeg, jpg, png, gif. Maksimal: 2MB
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 <div className="grid gap-2">
                   <Label htmlFor="name">Nama Lengkap</Label>
 
@@ -195,12 +198,12 @@ export default function Profile({
                   </Transition>
                 </div>
                 
-                {/* Hidden input for avatar file */}
-                {avatarFile && (
+                {/* Hidden input for avatar removal */}
+                {shouldRemoveAvatar() && (
                   <input
                     type="hidden"
-                    name="avatar"
-                    value={avatarFile.name}
+                    name="remove_avatar"
+                    value="1"
                   />
                 )}
               </>

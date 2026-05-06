@@ -25,6 +25,12 @@ class UserSeeder extends Seeder
                 'role' => 'Admin',
             ],
             [
+                'name' => 'Halo ASKI',
+                'email' => 'halo_aski@alumodasinergi.com',
+                'password' => 'passwordhaloaski',
+                'role' => 'Admin',
+            ],
+            [
                 'name' => 'Editor',
                 'email' => 'editor@alumodasinergi.com',
                 'password' => 'passwordeditor',

@@ -32,51 +32,40 @@ class HomepageController extends Controller
             ->take(6)
             ->get()
             ->map(function ($product) {
+                // Get cover image with proper path validation like backpanel
+                $coverImagePath = $product->coverImage?->image_path;
+                if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
+                    $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
+                } elseif (!$coverImagePath) {
+                    $coverImagePath = '/images/placeholder.png';
+                }
+                
+                // Check if the image file actually exists
+                $fullPath = public_path($coverImagePath);
+                if (!file_exists($fullPath)) {
+                    $coverImagePath = '/images/placeholder.png';
+                }
+                
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'slug' => $product->slug,
                     'type' => $product->type,
-                    'description' => $product->description ?? '',
-                    'short_description' => $product->short_description,
-                    'sku' => $product->sku ?? '',
+                    'quantity' => $product->quantity,
+                    'category' => $product->category?->parent 
+                        ? ($product->category->parent->name . ' > ' . $product->category->name)
+                        : ($product->category?->name ?? 'Uncategorized'),
                     'price' => $product->price,
                     'compare_at_price' => $product->compare_at_price,
-                    'cost_per_item' => $product->cost_per_item,
-                    'track_quantity' => $product->track_quantity ?? false,
-                    'quantity' => $product->quantity,
-                    'barcode' => $product->barcode,
-                    'status' => $product->status ?? 'active',
-                    'is_featured' => $product->is_featured ?? false,
+                    'stock' => $product->quantity ?? 0,
+                    'image' => $coverImagePath,
+                    'description' => $product->short_description ?? $product->description ?? '',
                     'is_bestseller' => $product->is_bestseller ?? false,
+                    'show_price' => $product->show_price,
+                    'show_stock' => $product->show_stock,
                     'is_new' => $product->is_new ?? false,
                     'is_for_sell' => $product->is_for_sell ?? false,
-                    'is_rent' => $product->is_rent ?? false,
-                    'show_price' => $product->show_price ?? true,
-                    'show_stock' => $product->show_stock ?? true,
-                    'position' => $product->position,
-                    'brand_id' => $product->brand_id,
-                    'category_id' => $product->category_id,
-                    'image_path' => $product->coverImage?->image_path ? '/storage/' . $product->coverImage->image_path : '/images/placeholder.png',
-                    'stock' => $product->quantity ?? 0,
-                    'image' => $product->coverImage?->image_path ? '/storage/' . $product->coverImage->image_path : '/images/placeholder.png',
-                    'coverImage' => $product->coverImage ? [
-                        'id' => $product->coverImage->id,
-                        'image_path' => '/storage/' . $product->coverImage->image_path,
-                        'is_cover' => $product->coverImage->is_cover,
-                        'position' => $product->coverImage->position ?? 0,
-                    ] : null,
-                    'brand' => $product->brand ? [
-                        'id' => $product->brand->id,
-                        'name' => $product->brand->name,
-                    ] : null,
-                    'category' => $product->category ? [
-                        'id' => $product->category->id,
-                        'name' => $product->category->name,
-                    ] : null,
-                    'tags' => $product->tags ?? [],
-                    'created_at' => $product->created_at?->toISOString() ?? now()->toISOString(),
-                    'updated_at' => $product->updated_at?->toISOString() ?? now()->toISOString(),
+                    'is_rent' => $product->is_rent ?? false
                 ];
             });
 
