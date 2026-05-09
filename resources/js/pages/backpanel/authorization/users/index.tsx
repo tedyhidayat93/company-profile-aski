@@ -2,16 +2,15 @@ import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { Plus, Edit, Trash2, MoreHorizontal, Search, Filter, ToggleLeft, ToggleRight, Users, Shield, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, MoreHorizontal, Search, Filter, Users, Shield, Eye } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 interface User {

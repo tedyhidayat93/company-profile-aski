@@ -11,6 +11,7 @@ import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
+import { formatDate } from '@/lib/utils';
 import { 
   Plus, 
   Edit, 
@@ -209,7 +210,7 @@ export default function PermissionIndex({ permissions, groups, filters }: Props)
                       </div>
                     </TableCell>
                     <TableCell>
-                      {new Date(permission.created_at).toLocaleDateString()}
+                      {formatDate(permission.created_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

@@ -25,10 +25,10 @@ class ProductController extends Controller
         $this->middleware('permission:product-edit')->only(['edit', 'update', 'toggleStatus', 'toggleFeatured', 'toggleBestseller', 'updatePosition']);
         $this->middleware('permission:product-delete')->only(['destroy']);
     }
+    
     public function index(Request $request)
     {
         Gate::authorize('product-list');
-        
         $products = Product::when($request->search, function ($query, $search) {
                 return $query->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
@@ -37,9 +37,10 @@ class ProductController extends Controller
             ->when($request->type_sell, function ($query, $type) {
                 if($type === 'sell') {
                     return $query->where('is_for_sell', true)->where('is_rent', false);
-                } elseif($type === 'rent') {
-                    return $query->where('is_rent', true)->where('is_for_sell', false)->orWhere(function($q) {
-                        return $q->where('is_rent', false)->where('is_for_sell', false);
+                }elseif ($type === 'rent') {
+                    return $query->where(function ($q) {
+                        $q->where('is_rent', true)
+                        ->where('is_for_sell', false);
                     });
                 } elseif($type === 'rent-and-sell') {
                     return $query->where('is_for_sell', true)->where('is_rent', true);
@@ -61,16 +62,33 @@ class ProductController extends Controller
                     return $query->where('status', 'draft');
                 }
             })
-            ->when($request->featured !== null, function ($query, $featured) {
-                return $query->where('is_featured', $featured === 'true');
+            ->when($request->filled('featured'), function ($query) use ($request) {
+                return $query->where('is_featured', $request->featured === 'true');
             })
-            ->when($request->bestseller !== null, function ($query, $bestseller) {
-                return $query->where('is_bestseller', $bestseller === 'true');
+            ->when($request->filled('bestseller'), function ($query) use ($request) {
+                return $query->where('is_bestseller', $request->bestseller === 'true');
+            })
+            ->when($request->sort, function ($query, $sort) {
+                switch ($sort) {
+                    case 'newest':
+                        return $query->orderBy('created_at', 'desc');
+                    case 'oldest':
+                        return $query->orderBy('created_at', 'asc');
+                    case 'most_viewed':
+                        return $query->orderBy('views', 'desc');
+                    case 'least_viewed':
+                        return $query->orderBy('views', 'asc');
+                    case 'name_asc':
+                        return $query->orderBy('name', 'asc');
+                    case 'name_desc':
+                        return $query->orderBy('name', 'desc');
+                    default:
+                        return $query->orderBy('id', 'desc');
+                }
             })
             ->with(['brand', 'category', 'coverImage'])
-            ->orderBy('id', 'desc')
-            // ->orderBy('name')
-            ->paginate(10);
+            ->paginate($request->per_page ?? 10)
+            ->withQueryString();
 
         // Transform products to include proper image paths
         $transformedProducts = $products->getCollection()->map(function ($product) {
@@ -95,15 +113,24 @@ class ProductController extends Controller
 
         // Replace the collection in the paginator
         $products->setCollection($transformedProducts);
-
         $brands = Brand::orderBy('name')->get();
         $categories = Category::ofType('product')->orderBy('name')->get();
 
         return Inertia::render('backpanel/product/index', [
-            'products' => $products,
+            'products' => $products ?? [],
             'brands' => $brands,
             'categories' => $categories,
-            'filters' => $request->only(['search', 'type', 'brand', 'category', 'status', 'featured', 'bestseller'])
+            'filters' => [
+                'search' => $request->search ?? '',
+                'type_sell' => $request->type_sell ?? 'all',
+                'brand' => $request->brand ?? 'all',
+                'category' => $request->category ?? 'all',
+                'status' => $request->status ?? 'all',
+                'featured' => $request->featured ?? 'all',
+                'bestseller' => $request->bestseller ?? 'all',
+                'sort' => $request->sort ?? 'newest',
+                'per_page' => $request->per_page ?? '10',
+            ]
         ]);
     }
 

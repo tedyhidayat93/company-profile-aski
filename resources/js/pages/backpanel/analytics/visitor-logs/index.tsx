@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import HeadingSmall from '@/components/heading-small';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
+import { formatDate } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import { 
   Search, 
@@ -71,6 +72,7 @@ interface Props {
     action?: string;
     date_from?: string;
     date_to?: string;
+    per_page?: string;
   };
   statistics: {
     total_visitors: number;
@@ -131,6 +133,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
     action: filters.action || '',
     date_from: filters.date_from || '',
     date_to: filters.date_to || '',
+    per_page: filters.per_page || '50',
   });
 
   const handleFilter = (e: React.FormEvent) => {
@@ -148,6 +151,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
       action: '',
       date_from: '',
       date_to: '',
+      per_page: '50',
     });
     router.get('/cpanel/analytics/visitor-logs', {}, {
       preserveState: true,
@@ -255,7 +259,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
               <CardContent className='p-0'>
                 <form onSubmit={handleFilter} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div>
+                    <div className='col-span-5'>
                       <Label htmlFor="search">Cari</Label>
                       <Input
                         id="search"
@@ -318,7 +322,24 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                         className="mt-1"
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="per_page">Per Halaman</Label>
+                      <Select value={data.per_page} onValueChange={(value) => setData('per_page', value)}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Pilih per halaman" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                          <SelectItem value="200">200</SelectItem>
+                          <SelectItem value="500">500</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
+
 
                   <div className="flex gap-2">
                     <Button type="submit" disabled={processing} className="flex items-center gap-2">
@@ -355,7 +376,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                           <Clock className="h-4 w-4 text-muted-foreground" />
                           <div>
                             <div className="text-sm">
-                              {new Date(log.created_at).toLocaleDateString()}
+                              {formatDate(log.created_at)}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {new Date(log.created_at).toLocaleTimeString()}

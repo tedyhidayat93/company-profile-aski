@@ -11,6 +11,7 @@ import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
+import { formatDate } from '@/lib/utils';
 import { 
   Plus, 
   Edit, 
@@ -204,7 +205,7 @@ export default function CustomerIndex({ customers, filters }: Props) {
                       {getActiveBadge(customer.is_active)}
                     </TableCell>
                     <TableCell>
-                      {new Date(customer.created_at).toLocaleDateString()}
+                      {formatDate(customer.created_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

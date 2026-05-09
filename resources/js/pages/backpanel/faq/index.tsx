@@ -11,6 +11,7 @@ import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
+import { formatDate } from '@/lib/utils';
 import { 
   Plus, 
   Edit, 
@@ -240,7 +241,7 @@ export default function FaqIndex({ faqs, filters }: Props) {
                       </Button>
                     </TableCell>
                     <TableCell>
-                      {new Date(faq.created_at).toLocaleDateString()}
+                      {formatDate(faq.created_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

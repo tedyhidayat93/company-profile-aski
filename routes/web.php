@@ -44,7 +44,7 @@ Route::get('/testimonial/maps', [TestimonialFrontendController::class, 'maps'])-
 
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
 
-Route::post('/catalog/order', [CatalogController::class, 'order'])->name('catalog.order');
+Route::post('/catalog/order', [CatalogController::class, 'order'])->name('catalog.order')->middleware('throttle:product-order');
 
 Route::get('/catalog/{id}', [CatalogController::class, 'show'])
     ->name('catalog.show');

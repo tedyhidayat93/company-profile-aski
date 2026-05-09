@@ -11,6 +11,7 @@ import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
+import { formatDate } from '@/lib/utils';
 import { 
   Plus, 
   Edit, 
@@ -205,7 +206,7 @@ export default function CategoryIndex({ categories, filters }: Props) {
 
           {/* DATE */}
           <TableCell>
-            {new Date(category.created_at).toLocaleDateString()}
+            {formatDate(category.created_at)}
           </TableCell>
 
           {/* ACTION */}

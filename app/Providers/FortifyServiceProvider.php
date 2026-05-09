@@ -7,11 +7,16 @@ use App\Actions\Fortify\ResetUserPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
-use Inertia\Inertia;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use App\Models\User;
+use App\Helpers\Recaptcha;
+use Inertia\Inertia;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -28,11 +33,72 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        $this->configureAuthentication();
+     
     }
 
+    /**
+     * Configure authentication.
+     */
+    private function configureAuthentication(): void
+    {
+        Fortify::authenticateUsing(function (Request $request) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Validate Request
+            |--------------------------------------------------------------------------
+            */
+            $request->validate([
+                'email' => ['required', 'email'],
+                'password' => ['required'],
+                'recaptcha_token' => ['required'],
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Verify reCAPTCHA
+            |--------------------------------------------------------------------------
+            */
+            if (!Recaptcha::verify(
+                $request->recaptcha_token,
+                'login',
+                0.5
+            )) {
+
+                throw ValidationException::withMessages([
+                    'email' => 'Verifikasi keamanan gagal.',
+                ]);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Attempt Login
+            |--------------------------------------------------------------------------
+            */
+            if (!Auth::attempt(
+                $request->only('email', 'password'),
+                $request->boolean('remember')
+            )) {
+
+                throw ValidationException::withMessages([
+                    'email' => __('auth.failed'),
+                ]);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Return Authenticated User
+            |--------------------------------------------------------------------------
+            */
+            return Auth::user();
+        });
+    }
+    
     /**
      * Configure Fortify actions.
      */

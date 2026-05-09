@@ -101,7 +101,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 {/* Category */}
                 {product.category && (
                 <p className="text-[11px] text-slate-400">
-                    {product.category}
+                    {product.category?.name}
                 </p>
                 )}
 

@@ -11,6 +11,7 @@ import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
+import { formatDate } from '@/lib/utils';
 import { 
   Plus, 
   Edit, 
@@ -190,7 +191,7 @@ export default function TagIndex({ tags, filters }: Props) {
                       {getTypeBadge(tag.type)}
                     </TableCell>
                     <TableCell>
-                      {new Date(tag.created_at).toLocaleDateString()}
+                      {formatDate(tag.created_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

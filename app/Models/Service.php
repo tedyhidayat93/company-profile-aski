@@ -66,4 +66,18 @@ class Service extends Model
     {
         return $query->where('category_id', $categoryId);
     }
+
+    /**
+     * Get all services for footer
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getAllForFooter()
+    {
+        return self::where('is_active', true)
+            ->orderBy('is_featured', 'desc')
+            ->orderBy('sequence', 'asc')
+            // ->orderBy('name', 'asc')
+            ->get();
+    }
 }

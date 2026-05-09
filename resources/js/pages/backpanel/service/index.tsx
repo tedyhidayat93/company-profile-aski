@@ -11,6 +11,7 @@ import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
+import { formatDate } from '@/lib/utils';
 import { 
   Plus, 
   Edit, 
@@ -340,11 +341,7 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-gray-600">
-                        {new Date(service.created_at).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
+                        {formatDate(service.created_at)}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">

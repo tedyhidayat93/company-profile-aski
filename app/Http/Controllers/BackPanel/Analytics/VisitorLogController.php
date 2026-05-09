@@ -48,13 +48,14 @@ class VisitorLogController extends Controller
         $visitorStatistics = $this->getVisitorStatistics($baseQuery);
 
         // Get paginated results
+        $perPage = $request->get('per_page', 50);
         $visitorLogs = $baseQuery->orderBy('created_at', 'desc')
-            ->paginate(50)
+            ->paginate($perPage)
             ->withQueryString();
 
         return Inertia::render('backpanel/analytics/visitor-logs/index', [
             'visitorLogs' => $visitorLogs,
-            'filters' => $request->only(['search', 'device', 'action', 'date_from', 'date_to']),
+            'filters' => $request->only(['search', 'device', 'action', 'date_from', 'date_to', 'per_page']),
             'statistics' => $visitorStatistics,
         ]);
     }

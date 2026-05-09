@@ -83,9 +83,10 @@ export interface Product {
   position?: number;
   brand_id?: number;
   category_id?: number;
-  image?: string; // Processed image path with /storage/ prefix
-  image_path?: string; // Processed image path with /storage/ prefix
+  image?: string;
+  image_path?: string;
   stock: number;
+  views?:number;
   images: Array<{
     id: number;
     path: string;
@@ -108,7 +109,10 @@ export interface Product {
     id: number;
     name: string;
   };
-  category?: string;
+  category?: {
+    id: number;
+    name: string;
+  };
   tags: string[];
   specific_specs?: Array<{ label: string; value: string; note: string }>;
   meta_title?: string;

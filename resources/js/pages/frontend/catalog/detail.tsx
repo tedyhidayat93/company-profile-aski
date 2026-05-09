@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import SingleGalleryPreview from '@/components/single-gallery-preview';
 import { Product } from '@/types';
+import { generateRecaptcha } from '@/utils/google-recaptcha';
 
 type OrderFormData = {
   companyName: string;
@@ -120,6 +121,11 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
         setIsSubmitting(true);
         
         try {
+            
+            const recaptchaToken = await generateRecaptcha(
+                'product_order'
+            );
+
             const response = await axios.post('/catalog/order', {
                 company_name: formData.companyName || '',
                 pic_name: formData.picName || '',
@@ -128,6 +134,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                 notes: formData.notes || '',
                 product_id: product.id,
                 quantity: quantity,
+                recaptcha_token: recaptchaToken,
             }, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -306,9 +313,18 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                                        <Phone className="h-5 w-5" />
-                                        <span className="text-lg font-bold">Hubungi kami untuk penawaran</span>
+                                    <div className="flex flex-col gap-2 text-gray-600 dark:text-gray-300">
+                                        <div className="flex items-center gap-2">
+                                            <Phone className="h-5 w-5 text-primary" />
+                                            <span className="text-lg font-bold text-black">
+                                                Hubungi Tim Sales untuk Harga Terbaik
+                                            </span>
+                                        </div>
+
+                                        <p className="text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                                            Klik <span className="font-semibold text-primary">"Pesan Sekarang"</span> untuk mendapatkan 
+                                            penawaran harga, ketersediaan unit, dan konsultasi langsung dari tim kami.
+                                        </p>
                                     </div>
                                 )}
                             </div>
@@ -322,7 +338,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                         <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary/20">
                                             <button 
                                                 onClick={() => handleQuantityChange(-1)}
-                                                className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 transition-colors"
+                                                className="w-10 h-10 cursor-pointer bg-white hover:bg-gray-50 text-gray-600 transition-colors"
                                             >-</button>
                                             <input 
                                                 type="text" 
@@ -332,7 +348,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                             />
                                             <button 
                                                 onClick={() => handleQuantityChange(1)}
-                                                className="w-10 h-10 bg-white hover:bg-gray-50 text-gray-600 transition-colors"
+                                                className="w-10 h-10 cursor-pointer bg-white hover:bg-gray-50 text-gray-600 transition-colors"
                                             >+</button>
                                         </div>
                                     </div>
@@ -341,7 +357,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     <div className="flex-1 flex gap-3">
                                         <button
                                             onClick={() => setIsOrderModalOpen(true)}
-                                            className="flex-1 h-12 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                                            className="flex-1 h-12 cursor-pointer flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
                                         >
                                             <ShoppingCart className="h-5 w-5" />
                                             Pesan Sekarang
@@ -354,7 +370,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                             image: imageSrc || '/images/placeholder-product.svg', 
                                             slug: product.slug 
                                         })}
-                                            className="h-12 w-12 flex items-center justify-center rounded-lg border-2 border-gray-100 hover:bg-red-50 hover:border-red-100 transition-all group"
+                                            className="h-12 w-12 cursor-pointer flex items-center justify-center rounded-lg border-2 border-gray-100 hover:bg-red-50 hover:border-red-100 transition-all group"
                                         >
                                             <Heart
                                                 className={`h-6 w-6 transition-colors ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400 group-hover:text-red-400'}`}
@@ -396,7 +412,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                         <tr>
                                             <td className="px-4 py-3 text-gray-500">Kategori</td>
                                             <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
-                                                {product.category || '-'}
+                                                {product.category?.name || '-'}
                                             </td>
                                         </tr>
 
@@ -479,7 +495,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                         <h4 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">{product.name}</h4>
                                         {product.category && (
                                             <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded shadow-sm">
-                                                {product.category}
+                                                {product.category?.name}
                                             </span>
                                         )}
                                     </div>

@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { Facebook, Instagram, Linkedin, Twitter, Youtube, Music, SquarePlay } from 'lucide-react';
 import { NAV_LINKS, SOCIAL_LINKS, CONTACT_INFO, NavLink, SocialLink } from '@/constants/navigation';
 import { useConfig } from '@/utils/config';
+import { usePage } from '@inertiajs/react';
 
 const socialIcons = {
   Facebook: Facebook,
@@ -14,7 +15,14 @@ const socialIcons = {
 
 export default function Footer() {
   const { getConfig } = useConfig();
+  const { props } = usePage();
+  const { footerProducts, footerArticles, footerServices } = props as any;
   
+  // Handle cases where data might not be available yet
+  const products = footerProducts || [];
+  const articles = footerArticles || [];
+  const services = footerServices || [];
+
   return (
     <footer className="bg-gray-900 py-12 text-white">
       <div className="container mx-auto px-4">
@@ -29,7 +37,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="mb-4 font-semibold text-white">Pintasan</h4>
+            <h4 className="mb-4 font-semibold text-white">Navigasi</h4>
             <ul className="space-y-2">
               {NAV_LINKS.map((link: NavLink) => (
                 <li key={link.name} className='text-sm'>
@@ -44,8 +52,56 @@ export default function Footer() {
             </ul>
           </div>
 
+           <div>
+            <h4 className="mb-4 font-semibold text-white">Layanan</h4>
+            <ul className="space-y-2">
+              {services.map((service: any) => (
+                <li key={service.id} className='text-sm'>
+                  <Link
+                    href={`/layanan/${service.slug}`}
+                    className="text-gray-400 transition-colors hover:text-white"
+                  >
+                    {service.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+           <div>
+            <h4 className="mb-4 font-semibold text-white">Produk Unggulan</h4>
+            <ul className="space-y-2">
+              {products.map((product: any) => (
+                <li key={product.id} className='text-sm'>
+                  <Link
+                    href={`/katalog/${product.slug}`}
+                    className="text-gray-400 transition-colors hover:text-white"
+                  >
+                    {product.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+           <div>
+            <h4 className="mb-4 font-semibold text-white">Artikel Terbaru</h4>
+            <ul className="space-y-2">
+              {articles.map((article: any) => (
+                <li key={article.id} className='text-sm'>
+                  <Link
+                    href={`/artikel/${article.slug}`}
+                    className="text-gray-400 transition-colors hover:text-white"
+                  >
+                    {article.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <div>
-            <h4 className="mb-4 font-semibold text-white">Navigasi</h4>
+            <h4 className="mb-4 font-semibold text-white">Kontak Kami</h4>
             <ul className="space-y-2 text-gray-400 text-sm">
               <li>Alamat: {getConfig('address', CONTACT_INFO.address)}</li>
               <li>Email: {getConfig('contact_email', CONTACT_INFO.email)}</li>

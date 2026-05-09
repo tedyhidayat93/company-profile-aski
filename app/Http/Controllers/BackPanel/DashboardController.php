@@ -58,12 +58,12 @@ class DashboardController extends Controller
                 'color' => 'bg-purple-500 text-white'
             ],
             [
-                'name' => 'Total Seluruh Pesanan',
+                'name' => 'Total Semua Pesanan',
                 'value' => Order::count(),
                 'icon' => 'ShoppingCart',
                 'change' => '-2.1%',
                 'changeType' => 'decrease',
-                'color' => 'bg-orange-500 text-black'
+                'color' => 'bg-orange-500 text-white'
             ],
             [
                 'name' => 'Total Kunjungan Situs',

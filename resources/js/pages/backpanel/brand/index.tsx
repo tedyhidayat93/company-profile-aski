@@ -11,6 +11,7 @@ import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
+import { formatDate } from '@/lib/utils';
 import { 
   Plus, 
   Edit, 
@@ -235,7 +236,7 @@ export default function BrandIndex({ brands, filters }: Props) {
                       {getActiveBadge(brand.is_active)}
                     </TableCell>
                     <TableCell>
-                      {new Date(brand.created_at).toLocaleDateString()}
+                      {formatDate(brand.created_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

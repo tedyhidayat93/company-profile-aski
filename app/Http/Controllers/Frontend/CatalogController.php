@@ -6,12 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
+use App\Models\Customer;
+use App\Models\Order;
+use App\Models\Configuration;
 use App\Services\EmailService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Cache;
 use App\Traits\TracksVisitors;
+use App\Helpers\Recaptcha;
 
 class CatalogController extends Controller
 {
@@ -212,9 +218,7 @@ class CatalogController extends Controller
                 'slug' => $product->slug,
                 'type' => $product->type,
                 'quantity' => $product->quantity,
-                'category' => $product->category?->parent 
-                    ? ($product->category->parent->name . ' > ' . $product->category->name)
-                    : ($product->category?->name ?? 'Uncategorized'),
+                'category' => $product->category,
                 'price' => $product->price,
                 'compare_at_price' => $product->compare_at_price,
                 'stock' => $product->quantity ?? 0,
@@ -321,7 +325,7 @@ class CatalogController extends Controller
             'name' => $product->name,
             'slug' => $product->slug,
             'type' => $product->type,
-            'category' => $product->category ? $product->category->getHierarchy() : 'Uncategorized',
+            'category' => $product->category,
             'brand' => $product->brand,
             'price' => $product->price,
             'compare_at_price' => $product->compare_at_price,
@@ -376,86 +380,199 @@ class CatalogController extends Controller
     public function order(Request $request)
     {
         try {
+            /*
+            |--------------------------------------------------------------------------
+            | Validate Request
+            |--------------------------------------------------------------------------
+            */
             $validated = $request->validate([
-                'company_name' => 'required|string|max:255',
-                'pic_name' => 'required|string|max:255',
-                'phone' => 'required|string|max:20',
-                'email' => 'required|email|max:255',
-                'notes' => 'nullable|string',
-                'product_id' => 'required|integer',
-                'quantity' => 'required|integer|min:1',
+                'company_name' => ['required', 'string', 'max:255'],
+                'pic_name'      => ['required', 'string', 'max:255'],
+                'phone'         => [
+                    'required',
+                    'string',
+                    'max:20',
+                    'regex:/^[0-9+\-\s]+$/',
+                ],
+                'email'             => ['required', 'email:rfc,dns', 'max:255'],
+                'notes'             => ['nullable', 'string'],
+                'product_id'        => ['required', 'integer'],
+                'quantity'          => ['required', 'integer', 'min:1'],
+                'recaptcha_token'   => ['required'],
             ]);
 
-            // Get product data from database with cover image
-            $product = \App\Models\Product::with('coverImage')->findOrFail($validated['product_id']);
-            
-            // Get cover image or fallback to product image
-            $productImage = $product->coverImage?->image_path ?? $product->image;
-
-            // Check if customer exists (optional, for future use)
-            $customer = \App\Models\Customer::where('email', $validated['email'])->first();
-
-            // Create new customer if not found (optional, for future use)
-            if (!$customer) {
-                $customer = \App\Models\Customer::create([
-                    'name' => $validated['pic_name'],
-                    'phone' => $validated['phone'],
-                    'email' => $validated['email'],
-                    'address' => '',
-                    'is_active' => true,
-                ]);
+            /*
+            |--------------------------------------------------------------------------
+            | Verify Google reCAPTCHA v3
+            |--------------------------------------------------------------------------
+            */
+            if (!Recaptcha::verify(
+                $validated['recaptcha_token'],
+                'product_order',
+                0.5
+            )) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Mohon maaf terjadi kesalahan. Silakan coba lagi.',
+                ], 422);
             }
 
-            // Prepare order data using existing table structure
-            $orderData = [
-                'customer_id' => $customer->id, // Now available after migration
-                'order_number' => \App\Models\Order::generateOrderNumber(\App\Models\Configuration::getValue('prefix_product_order', 'ORD')),
-                'company_name' => $validated['company_name'],
-                'pic_name' => $validated['pic_name'],
-                'phone' => $validated['phone'],
-                'email' => $validated['email'],
-                'status' => 'pending',
-                'address' => '',
-                'province' => '',
-                'regency' => '',
-                'district' => '',
-                'village' => '',
-                'postal_code' => '',
-                'admin_notes' => '',
-                'product_id' => $product->id,
-                'product_name' => $product->name,
-                'product_category' => $product->category?->name ?? 'Uncategorized',
-                'product_image' => $productImage,
-                'product_price' => $product->price,
-                'quantity' => $validated['quantity'],
-                'total_price' => $product->price * $validated['quantity'],
-                'notes' => $validated['notes'] ?? '',
-            ];
+            /*
+            |--------------------------------------------------------------------------
+            | Get Product
+            |--------------------------------------------------------------------------
+            */
+            $product = Product::with([
+                'coverImage',
+                'category',
+            ])->findOrFail($validated['product_id']);
 
-            $order = \App\Models\Order::create($orderData);
+            $productImage = $product->coverImage?->image_path
+                ?? $product->image_path
+                ?? null;
 
-            // Send email notifications
-            $this->emailService->sendOrderNotifications($order);
+            /*
+            |--------------------------------------------------------------------------
+            | Database Transaction
+            |--------------------------------------------------------------------------
+            */
+            $order = DB::transaction(function () use (
+                $validated,
+                $product,
+                $productImage
+            ) {
 
+                /*
+                |--------------------------------------------------------------------------
+                | Find Or Create Customer
+                |--------------------------------------------------------------------------
+                */
+                $customer = Customer::firstOrCreate(
+                    [
+                        'email' => $validated['email'],
+                    ],
+                    [
+                        'name'      => $validated['pic_name'],
+                        'phone'     => $validated['phone'],
+                        'address'   => '',
+                        'is_active' => true,
+                    ]
+                );
+
+                /*
+                |--------------------------------------------------------------------------
+                | Generate Order
+                |--------------------------------------------------------------------------
+                */
+                $order = Order::create([
+                    'customer_id'      => $customer->id,
+                    'order_number'     => Order::generateOrderNumber(
+                        Configuration::getValue(
+                            'prefix_product_order',
+                            'ORD'
+                        )
+                    ),
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Customer Information
+                    |--------------------------------------------------------------------------
+                    */
+                    'company_name' => $validated['company_name'],
+                    'pic_name'     => $validated['pic_name'],
+                    'phone'        => $validated['phone'],
+                    'email'        => $validated['email'],
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Order Status
+                    |--------------------------------------------------------------------------
+                    */
+                    'status' => 'pending',
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Address Information
+                    |--------------------------------------------------------------------------
+                    */
+                    'address'       => '',
+                    'province'      => '',
+                    'regency'       => '',
+                    'district'      => '',
+                    'village'       => '',
+                    'postal_code'   => '',
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Product Information
+                    |--------------------------------------------------------------------------
+                    */
+                    'product_id'       => $product->id,
+                    'product_name'     => $product->name,
+                    'product_category' => $product->category?->name ?? 'Uncategorized',
+                    'product_image'    => $productImage,
+                    'product_price'    => $product->price,
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Order Details
+                    |--------------------------------------------------------------------------
+                    */
+                    'quantity'      => $validated['quantity'],
+                    'total_price'   => $product->price * $validated['quantity'],
+                    'notes'         => $validated['notes'] ?? '',
+                    'admin_notes'   => '',
+                ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Send Notification
+                |--------------------------------------------------------------------------
+                | Recommended:
+                | Use Queue Job instead of direct email sending
+                |--------------------------------------------------------------------------
+                */
+                $this->emailService->sendOrderNotifications($order);
+
+                return $order;
+            });
+
+            /*
+            |--------------------------------------------------------------------------
+            | Success Response
+            |--------------------------------------------------------------------------
+            */
             return response()->json([
                 'success' => true,
-                'message' => 'Pesanan Anda telah diterima. Kami akan segera menghubungi Anda untuk konfirmasi.',
-                'order' => $order
+                'message' => 'Pesanan Anda berhasil dikirim. Tim kami akan segera menghubungi Anda.',
+                'data' => [
+                    'order_number' => $order->order_number,
+                ],
             ]);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
+
             return response()->json([
                 'success' => false,
-                'message' => 'Validasi gagal. Silakan periksa kembali form Anda.',
-                'errors' => $e->errors()
+                'message' => 'Validasi gagal. Silakan periksa kembali data Anda.',
+                'errors'  => $e->errors(),
             ], 422);
-        } catch (\Exception $e) {
-            // Log error for debugging
-            \Log::error('Order submission error: ' . $e->getMessage());
-            
+
+        } catch (\Throwable $e) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Log Error
+            |--------------------------------------------------------------------------
+            */
+            \Log::error('Frontend Product Order Error', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat memproses pesanan. Silakan coba lagi atau hubungi kami langsung.'
+                'message' => 'Terjadi kesalahan saat memproses pesanan. Silakan coba beberapa saat lagi.',
             ], 500);
         }
     }

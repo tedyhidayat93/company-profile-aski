@@ -34,8 +34,8 @@ class BrandController extends Controller
                 $isActive = $request->boolean('active');
                 return $query->where('is_active', $isActive);
             })
+            ->orderBy('id')
             ->orderBy('position')
-            ->orderBy('name')
             ->paginate(10);
 
         return Inertia::render('backpanel/brand/index', [

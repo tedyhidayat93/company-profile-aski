@@ -1,6 +1,6 @@
 
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowRight, ArrowRightIcon, Loader, PhoneCall, RefreshCcwDot } from 'lucide-react';
+import { ArrowRight, ArrowRightIcon, Loader, PhoneCall, RefreshCcwDot, SearchIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import catalog from '@/routes/catalog';
 import FrontendLayout from '@/layouts/frontend-layout';
@@ -279,7 +279,7 @@ export default function Homepage({
                                   Mencari...
                               </div>
                           ) : (
-                            <span className="text-xs md:text-base">Cari Produk</span>
+                            <span className="text-xs md:text-base flex items-center gap-1"><SearchIcon className='w-4 h-4'/> Cari </span>
                           )}
                       </button>
                   </div>
@@ -368,7 +368,7 @@ export default function Homepage({
         </section>
 
         {/* products Section */}
-        <section id="products" className="bg-gray-50 py-20 dark:bg-gray-800">
+        <section id="products" className="bg-slate-50/80 py-20 dark:bg-gray-800">
           <div className="container mx-auto px-4">
             <div className="mb-12 flex flex-col items-center md:justify-between md:flex-row">
               <div className="mb-4 md:mb-0 text-center md:text-left">
@@ -483,7 +483,7 @@ export default function Homepage({
         </section>
 
         {/* FAQ Section */}
-        <section className="bg-gray-50 py-20 dark:bg-gray-800">
+        <section className="bg-slate-50/80 py-20 dark:bg-gray-800">
           {faqs.length > 0 && (
             <div className="container mx-auto px-4">
               

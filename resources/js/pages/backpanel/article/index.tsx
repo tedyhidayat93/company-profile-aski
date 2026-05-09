@@ -13,6 +13,7 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import FlashMessage from '@/components/flash-message';
 import { type BreadcrumbItem } from '@/types';
+import { formatDate } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import TreeSelect from '@/components/tree-select';
 import { 
@@ -69,12 +70,13 @@ interface PaginatedArticles {
   last_page: number;
   per_page: number;
   total: number;
-  links: {
-    first: string;
-    last: string;
-    prev: string | null;
-    next: string | null;
-  };
+  from: number;
+  to: number;
+  links: Array<{
+    url: string | null;
+    label: string;
+    active: boolean;
+  }>;
 }
 
 interface Props {
@@ -88,6 +90,7 @@ interface Props {
     headline?: string;
     category?: string;
     sort?: string;
+    per_page?: string;
   };
 }
 
@@ -109,6 +112,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
   const [headlineFilter, setHeadlineFilter] = useState(filters?.headline ?? 'all');
   const [categoryFilter, setCategoryFilter] = useState(filters?.category ?? 'all');
   const [sortFilter, setSortFilter] = useState('all');
+  const [perPageFilter, setPerPageFilter] = useState(filters?.per_page ?? '15');
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -153,6 +157,9 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
       case 'category':
         setCategoryFilter(value);
         break;
+      case 'per_page':
+        setPerPageFilter(value);
+        break;
     }
 
     // Build params with current state values
@@ -162,7 +169,8 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
       author: filterType === 'author' ? value : authorFilter,
       headline: filterType === 'headline' ? value : headlineFilter,
       category: filterType === 'category' ? value : categoryFilter,
-      sort: filterType === 'sort' ? value : sortFilter
+      sort: filterType === 'sort' ? value : sortFilter,
+      per_page: filterType === 'per_page' ? value : perPageFilter
     };
 
     // Remove undefined, null, empty string, and 'all' values
@@ -186,6 +194,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
     setHeadlineFilter('all');
     setCategoryFilter('all');
     setSortFilter('all');
+    setPerPageFilter('15');
     
     router.get('/cpanel/cms/article', {}, { preserveState: true });
   };
@@ -196,7 +205,8 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
     authorFilter !== 'all' || 
     headlineFilter !== 'all' || 
     categoryFilter !== 'all' ||
-    sortFilter !== 'all';
+    sortFilter !== 'all' ||
+    perPageFilter !== '15';
 
   const handleDelete = (id: number) => {
     if (confirm('Apakah Anda yakin ingin menghapus artikel ini?')) {
@@ -261,7 +271,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Status</Label>
                   <Select value={statusFilter} onValueChange={(value) => handleFilterChange('status', value)}>
-                    <SelectTrigger className="min-w-[240px]">
+                    <SelectTrigger className="min-w-[235px]">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -275,7 +285,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Penulis</Label>
                   <Select value={authorFilter} onValueChange={(value) => handleFilterChange('author', value)}>
-                    <SelectTrigger className="min-w-[240px]">
+                    <SelectTrigger className="min-w-[235px]">
                       <SelectValue placeholder="Penulis" />
                     </SelectTrigger>
                     <SelectContent>
@@ -299,7 +309,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Headline</Label>
                   <Select value={headlineFilter} onValueChange={(value) => handleFilterChange('headline', value)}>
-                    <SelectTrigger className="min-w-[240px]">
+                    <SelectTrigger className="min-w-[235px]">
                       <SelectValue placeholder="Headline" />
                     </SelectTrigger>
                     <SelectContent>
@@ -312,7 +322,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                 <div className="flex flex-col space-y-1">
                   <Label className="text-xs font-medium text-gray-600">Urutkan</Label>
                   <Select value={sortFilter} onValueChange={(value) => handleFilterChange('sort', value)}>
-                    <SelectTrigger className="min-w-[240px]">
+                    <SelectTrigger className="min-w-[235px]">
                       <SelectValue placeholder="Urutkan" />
                     </SelectTrigger>
                     <SelectContent>
@@ -321,6 +331,26 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                       <SelectItem value="oldest">Terlama</SelectItem>
                       <SelectItem value="most_read">Terbanyak Dibaca</SelectItem>
                       <SelectItem value="least_read">Tersedikit Dibaca</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-medium text-gray-600">Tampilkan</Label>
+                  <Select 
+                    value={perPageFilter} 
+                    onValueChange={(value) => handleFilterChange('per_page', value)}
+                  >
+                    <SelectTrigger className="min-w-[120px]">
+                      <SelectValue placeholder="Tampilkan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="15">15</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -432,7 +462,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                         <div className="flex items-center space-x-2">
                           <Calendar className="h-4 w-4 text-gray-400" />
                           <span className="text-sm">
-                            {new Date(article.published_at).toLocaleDateString()}
+                            {formatDate(article.published_at)}
                           </span>
                         </div>
                       ) : (
@@ -486,32 +516,30 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
               </div>
             )}
 
+            {/* Pagination */}
             {articles.last_page > 1 && (
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-sm text-gray-700">
-                  Menampilkan {((articles.current_page - 1) * articles.per_page) + 1} hingga{' '}
-                  {Math.min(articles.current_page * articles.per_page, articles.total)} dari{' '}
-                  {articles.total} hasil
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Menampilkan {articles.from} hingga {articles.to} dari {articles.total} hasil
                 </div>
-                <div className="flex space-x-2">
-                  {articles.links.prev && (
+                <div className="flex gap-1">
+                  {articles.links.map((link, index) => (
                     <Button
-                      variant="outline"
+                      key={index}
+                      variant={link.active ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => router.get(articles.links.prev || '')}
+                      disabled={!link.url}
+                      asChild={!!link.url}
                     >
-                      Sebelumnya
+                      {link.url ? (
+                        <Link href={link.url || '#'}>
+                          <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                        </Link>
+                      ) : (
+                        <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                      )}
                     </Button>
-                  )}
-                  {articles.links.next && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(articles.links.next || '')}
-                    >
-                      Selanjutnya
-                    </Button>
-                  )}
+                  ))}
                 </div>
               </div>
             )}

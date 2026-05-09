@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
-import { type BreadcrumbItem } from '@/types';
+import { Product, type BreadcrumbItem } from '@/types';
 import { formatPrice } from '@/utils/currency';
 import { 
   Plus, 
@@ -26,52 +26,8 @@ import {
   Sparkles
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { formatDate } from '@/lib/utils';
 
-interface Product {
-  id: number;
-  name: string;
-  slug: string;
-  type: 'physical' | 'digital';
-  description?: string;
-  short_description?: string;
-  sku?: string;
-  price: number;
-  compare_at_price?: number;
-  cost_per_item?: number;
-  track_quantity: boolean;
-  quantity?: number;
-  barcode?: string;
-  status: 'draft' | 'published';
-  is_featured: boolean;
-  is_bestseller: boolean;
-  is_new: boolean;
-  is_for_sell: boolean;
-  is_rent: boolean;
-  published_at?: string;
-  position?: number;
-  brand_id?: number;
-  category_id?: number;
-  meta_title?: string;
-  meta_description?: string;
-  tags: string[];
-  created_at: string;
-  updated_at: string;
-  image_path?: string;
-  brand?: {
-    id: number;
-    name: string;
-  };
-  category?: {
-    id: number;
-    name: string;
-  };
-  coverImage?: {
-    id: number;
-    image_path: string;
-    is_cover: boolean;
-    position: number;
-  };
-}
 
 interface PaginatedProducts {
   data: Product[];
@@ -99,21 +55,14 @@ interface Props {
     status?: string;
     featured?: string;
     bestseller?: string;
+    sort?: string;
+    per_page?: string;
   };
 }
 
 export default function ProductIndex({ products, brands, categories, filters }: Props) {
   const { props } = usePage();
   const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
-  
-  // Debug: Log first product data
-  React.useEffect(() => {
-    if (products.data.length > 0) {
-      console.log('First product data:', products.data[0]);
-      console.log('Cover image:', products.data[0].coverImage);
-      console.log('Category:', products.data[0].category);
-    }
-  }, [products]);
   
   React.useEffect(() => {
     if (flash.success) {
@@ -126,13 +75,15 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     }
   }, [flash]);
 
-  const [search, setSearch] = React.useState(filters.search || '');
-  const [typeFilter, setTypeFilter] = React.useState(filters.type_sell || 'all');
-  const [brandFilter, setBrandFilter] = React.useState(filters.brand || 'all');
-  const [categoryFilter, setCategoryFilter] = React.useState(filters.category || 'all');
-  const [statusFilter, setStatusFilter] = React.useState(filters.status || 'all');
-  const [featuredFilter, setFeaturedFilter] = React.useState(filters.featured || 'all');
-  const [bestsellerFilter, setBestsellerFilter] = React.useState(filters.bestseller || 'all');
+  const [search, setSearch] = React.useState(filters?.search ?? '');
+  const [typeFilter, setTypeFilter] = React.useState(filters?.type_sell ?? 'all');
+  const [brandFilter, setBrandFilter] = React.useState(filters?.brand ?? 'all');
+  const [categoryFilter, setCategoryFilter] = React.useState(filters?.category ?? 'all');
+  const [statusFilter, setStatusFilter] = React.useState(filters?.status ?? 'all');
+  const [featuredFilter, setFeaturedFilter] = React.useState(filters?.featured ?? 'all');
+  const [bestsellerFilter, setBestsellerFilter] = React.useState(filters?.bestseller ?? 'all');
+  const [sortFilter, setSortFilter] = React.useState(filters?.sort ?? 'newest');
+  const [perPageFilter, setPerPageFilter] = React.useState(filters?.per_page ?? '10');
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -143,7 +94,9 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       category?: string; 
       status?: string; 
       featured?: string; 
-      bestseller?: string; 
+      bestseller?: string;
+      sort?: string;
+      per_page?: string;
     } = { search: value };
     
     if (typeFilter !== 'all') params.type_sell = typeFilter;
@@ -152,6 +105,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     if (statusFilter !== 'all') params.status = statusFilter;
     if (featuredFilter !== 'all') params.featured = featuredFilter;
     if (bestsellerFilter !== 'all') params.bestseller = bestsellerFilter;
+    if (sortFilter !== 'newest') params.sort = sortFilter;
+    if (perPageFilter !== '10') params.per_page = perPageFilter;
     
     router.get('/cpanel/cms/product', params, { preserveState: true });
   };
@@ -165,7 +120,9 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       category?: string; 
       status?: string; 
       featured?: string; 
-      bestseller?: string; 
+      bestseller?: string;
+      sort?: string;
+      per_page?: string;
     } = { search: search };
     
     if (value !== 'all') params.type_sell = value;
@@ -174,6 +131,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     if (statusFilter !== 'all') params.status = statusFilter;
     if (featuredFilter !== 'all') params.featured = featuredFilter;
     if (bestsellerFilter !== 'all') params.bestseller = bestsellerFilter;
+    if (sortFilter !== 'newest') params.sort = sortFilter;
+    if (perPageFilter !== '10') params.per_page = perPageFilter;
     
     router.get('/cpanel/cms/product', params, { preserveState: true });
   };
@@ -187,7 +146,9 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       category?: string; 
       status?: string; 
       featured?: string; 
-      bestseller?: string; 
+      bestseller?: string;
+      sort?: string;
+      per_page?: string;
     } = { search: search };
     
     if (typeFilter !== 'all') params.type_sell = typeFilter;
@@ -196,6 +157,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     if (statusFilter !== 'all') params.status = statusFilter;
     if (featuredFilter !== 'all') params.featured = featuredFilter;
     if (bestsellerFilter !== 'all') params.bestseller = bestsellerFilter;
+    if (sortFilter !== 'newest') params.sort = sortFilter;
+    if (perPageFilter !== '10') params.per_page = perPageFilter;
     
     router.get('/cpanel/cms/product', params, { preserveState: true });
   };
@@ -209,7 +172,9 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       category?: string; 
       status?: string; 
       featured?: string; 
-      bestseller?: string; 
+      bestseller?: string;
+      sort?: string;
+      per_page?: string;
     } = { search: search };
     
     if (typeFilter !== 'all') params.type_sell = typeFilter;
@@ -218,6 +183,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     if (statusFilter !== 'all') params.status = statusFilter;
     if (featuredFilter !== 'all') params.featured = featuredFilter;
     if (bestsellerFilter !== 'all') params.bestseller = bestsellerFilter;
+    if (sortFilter !== 'newest') params.sort = sortFilter;
+    if (perPageFilter !== '10') params.per_page = perPageFilter;
     
     router.get('/cpanel/cms/product', params, { preserveState: true });
   };
@@ -231,7 +198,9 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       category?: string; 
       status?: string; 
       featured?: string; 
-      bestseller?: string; 
+      bestseller?: string;
+      sort?: string;
+      per_page?: string;
     } = { search: search };
     
     if (typeFilter !== 'all') params.type_sell = typeFilter;
@@ -240,6 +209,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     if (value !== 'all') params.status = value;
     if (featuredFilter !== 'all') params.featured = featuredFilter;
     if (bestsellerFilter !== 'all') params.bestseller = bestsellerFilter;
+    if (sortFilter !== 'newest') params.sort = sortFilter;
+    if (perPageFilter !== '10') params.per_page = perPageFilter;
     
     router.get('/cpanel/cms/product', params, { preserveState: true });
   };
@@ -253,7 +224,9 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       category?: string; 
       status?: string; 
       featured?: string; 
-      bestseller?: string; 
+      bestseller?: string;
+      sort?: string;
+      per_page?: string;
     } = { search: search };
     
     if (typeFilter !== 'all') params.type_sell = typeFilter;
@@ -262,12 +235,15 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     if (statusFilter !== 'all') params.status = statusFilter;
     if (value !== 'all') params.featured = value;
     if (bestsellerFilter !== 'all') params.bestseller = bestsellerFilter;
+    if (sortFilter !== 'newest') params.sort = sortFilter;
+    if (perPageFilter !== '10') params.per_page = perPageFilter;
     
     router.get('/cpanel/cms/product', params, { preserveState: true });
   };
 
   const handleBestsellerFilter = (value: string) => {
     setBestsellerFilter(value);
+    
     const params: { 
       search?: string; 
       type_sell?: string; 
@@ -275,15 +251,76 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       category?: string; 
       status?: string; 
       featured?: string; 
-      bestseller?: string; 
-    } = { search: search };
+      bestseller?: string;
+      sort?: string;
+      per_page?: string;
+    } = {
+      search: search || undefined,
+      type_sell: typeFilter !== 'all' ? typeFilter : undefined,
+      brand: brandFilter !== 'all' ? brandFilter : undefined,
+      category: categoryFilter !== 'all' ? categoryFilter : undefined,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      featured: featuredFilter !== 'all' ? featuredFilter : undefined,
+      bestseller: value !== 'all' ? value : undefined,
+      sort: sortFilter !== 'newest' ? sortFilter : undefined,
+      per_page: perPageFilter !== '10' ? perPageFilter : undefined
+    };
     
-    if (typeFilter !== 'all') params.type_sell = typeFilter;
-    if (brandFilter !== 'all') params.brand = brandFilter;
-    if (categoryFilter !== 'all') params.category = categoryFilter;
-    if (statusFilter !== 'all') params.status = statusFilter;
-    if (featuredFilter !== 'all') params.featured = featuredFilter;
-    if (value !== 'all') params.bestseller = value;
+    router.get('/cpanel/cms/product', params, { preserveState: true });
+  };
+
+  const handlePerPageFilter = (value: string) => {
+    setPerPageFilter(value);
+    
+    const params: { 
+      search?: string; 
+      type_sell?: string; 
+      brand?: string; 
+      category?: string; 
+      status?: string; 
+      featured?: string; 
+      bestseller?: string;
+      sort?: string;
+      per_page?: string;
+    } = {
+      search: search || undefined,
+      type_sell: typeFilter !== 'all' ? typeFilter : undefined,
+      brand: brandFilter !== 'all' ? brandFilter : undefined,
+      category: categoryFilter !== 'all' ? categoryFilter : undefined,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      featured: featuredFilter !== 'all' ? featuredFilter : undefined,
+      bestseller: bestsellerFilter !== 'all' ? bestsellerFilter : undefined,
+      sort: sortFilter !== 'newest' ? sortFilter : undefined,
+      per_page: value !== '10' ? value : undefined
+    };
+    
+    router.get('/cpanel/cms/product', params, { preserveState: true });
+  };
+
+  const handleSortFilter = (value: string) => {
+    setSortFilter(value);
+    
+    const params: { 
+      search?: string; 
+      type_sell?: string; 
+      brand?: string; 
+      category?: string; 
+      status?: string; 
+      featured?: string; 
+      bestseller?: string;
+      sort?: string;
+      per_page?: string;
+    } = {
+      search: search || undefined,
+      type_sell: typeFilter !== 'all' ? typeFilter : undefined,
+      brand: brandFilter !== 'all' ? brandFilter : undefined,
+      category: categoryFilter !== 'all' ? categoryFilter : undefined,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      featured: featuredFilter !== 'all' ? featuredFilter : undefined,
+      bestseller: bestsellerFilter !== 'all' ? bestsellerFilter : undefined,
+      sort: value !== 'newest' ? value : 'newest',
+      per_page: perPageFilter !== '10' ? perPageFilter : undefined
+    };
     
     router.get('/cpanel/cms/product', params, { preserveState: true });
   };
@@ -296,6 +333,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     setStatusFilter('all');
     setFeaturedFilter('all');
     setBestsellerFilter('all');
+    setSortFilter('newest');
+    setPerPageFilter('10');
     
     router.get('/cpanel/cms/product', {}, { preserveState: true });
   };
@@ -307,7 +346,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     categoryFilter !== 'all' || 
     statusFilter !== 'all' || 
     featuredFilter !== 'all' || 
-    bestsellerFilter !== 'all';
+    bestsellerFilter !== 'all' ||
+    sortFilter !== 'newest';
 
   const handleToggleStatus = (id: number) => {
     router.patch(`/cpanel/cms/product/${id}/toggle-status`);
@@ -458,6 +498,45 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                   </Select>
                 </div>
 
+                <div>
+                  <Label className="text-xs font-medium text-gray-600">Urutkan</Label>
+                  <Select 
+                    value={sortFilter} 
+                    onValueChange={handleSortFilter}
+                  >
+                    <SelectTrigger className="min-w-[190px]">
+                      <SelectValue placeholder="Urutkan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newest">Terbaru</SelectItem>
+                      <SelectItem value="oldest">Terlama</SelectItem>
+                      <SelectItem value="most_viewed">Paling Banyak Dilihat</SelectItem>
+                      <SelectItem value="least_viewed">Paling Sedikit Dilihat</SelectItem>
+                      <SelectItem value="name_asc">Nama (A-Z)</SelectItem>
+                      <SelectItem value="name_desc">Nama (Z-A)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-medium text-gray-600">Tampilkan</Label>
+                  <Select 
+                    value={perPageFilter} 
+                    onValueChange={handlePerPageFilter}
+                  >
+                    <SelectTrigger className="min-w-[120px]">
+                      <SelectValue placeholder="Tampilkan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {hasActiveFilters && (
                     <div className="flex flex-col space-y-1">
                       <Label className="text-xs font-medium text-gray-600">&nbsp;</Label>
@@ -482,6 +561,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                   <TableHead>Kategori</TableHead>
                   <TableHead>Harga</TableHead>
                   <TableHead>Stok</TableHead>
+                  <TableHead>Views</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Dibuat</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
@@ -508,31 +588,31 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                           <div className="text-xs text-gray-500">SKU: {product.sku}</div>
                           <div className="flex items-center space-x-2 mt-1">
                             {product.is_featured && (
-                              <Badge variant="secondary">
+                              <Badge variant="outline" className="text-[10px] bg-orange-200">
                                 <Star className="h-3 w-3 mr-1" />
                                 Unggulan
                               </Badge>
                             )}
                             {product.is_bestseller && (
-                              <Badge variant="secondary">
+                              <Badge variant="outline" className="text-[10px] bg-orange-200">
                                 <TrendingUp className="h-3 w-3 mr-1" />
                                 Terlaris
                               </Badge>
                             )}
                             {product.is_new && (
-                              <Badge variant="secondary">
+                              <Badge variant="outline" className="text-[10px] bg-orange-200">
                                 <Sparkles className="h-3 w-3 mr-1" />
                                 Baru
                               </Badge>
                             )}
                             {product.is_for_sell && (
-                              <Badge variant="secondary">
+                              <Badge variant="outline" className="text-[10px] bg-orange-200">
                                 <Package className="h-3 w-3 mr-1" />
                                 Dijual
                               </Badge>
                             )}
                             {product.is_rent && (
-                              <Badge variant="secondary">
+                              <Badge variant="outline" className="text-[10px] bg-orange-200">
                                 <RefreshCw className="h-3 w-3 mr-1" />
                                 Disewakan
                               </Badge>
@@ -566,6 +646,11 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                       )}
                     </TableCell>
                     <TableCell>
+                      <div>
+                        <div className="font-medium">{product.views}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -578,7 +663,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                       </Button>
                     </TableCell>
                     <TableCell>
-                      {new Date(product.created_at).toLocaleDateString()}
+                      {formatDate(product.created_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

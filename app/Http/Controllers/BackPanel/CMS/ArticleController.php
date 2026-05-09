@@ -67,10 +67,10 @@ class ArticleController extends Controller
                 }
             }, function ($query) {
                 // Default sorting if no sort is specified
-                return $query->orderBy('published_at', 'desc');
+                return $query->orderBy('created_at', 'desc');
             })
             ->with(['author', 'category'])
-            ->paginate(15);
+            ->paginate($request->per_page ?? 15);
 
         $authors = User::orderBy('name')->get();
         $blogCategories = Category::with('children')
@@ -84,7 +84,7 @@ class ArticleController extends Controller
             'articles' => $articles,
             'authors' => $authors,
             'blogCategories' => $blogCategories,
-            'filters' => $request->only(['search', 'status', 'author', 'headline', 'category', 'sort'])
+            'filters' => $request->only(['search', 'status', 'author', 'headline', 'category', 'sort', 'per_page', 'page'])
         ]);
     }
 

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
+import { formatDate } from '@/lib/utils';
 import { 
   Plus, 
   Edit, 
@@ -223,7 +224,7 @@ export default function RoleIndex({ roles, filters }: Props) {
                       </Button>
                     </TableCell>
                     <TableCell>
-                      {new Date(role.created_at).toLocaleDateString()}
+                      {formatDate(role.created_at)}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

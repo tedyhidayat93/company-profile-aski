@@ -64,8 +64,13 @@
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead
+
+        <script
+            src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY') }}"
+        ></script>
     </head>
     <body class="font-sans antialiased">
         @inertia
     </body>
+
 </html>

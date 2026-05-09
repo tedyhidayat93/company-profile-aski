@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, Star, Send, ArrowLeft, CheckCircle, Menu, X } from 'lucide-react';
 import { getConfig } from '@/hooks/use-configuration';
+import { handleImageError } from '@/utils/image';
 
 interface Props {
     maxRating: number;
@@ -93,6 +94,7 @@ export default function TestimonialSubmit({
                                         <img 
                                             src={`/storage/${siteLogo}`} 
                                             alt={siteName}
+                                            onError={handleImageError}
                                             className="h-8 w-auto max-h-8 object-contain"
                                         />
                                     ) : (

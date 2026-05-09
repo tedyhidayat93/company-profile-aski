@@ -215,4 +215,20 @@ class Product extends Model
     {
         return $query->where('type', $type);
     }
+
+    /**
+     * Get 5 bestseller products for footer
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getBestsellerForFooter()
+    {
+        return self::published()
+            ->bestseller()
+            ->with(['brand', 'category', 'coverImage'])
+            ->orderBy('position', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+    }
 }

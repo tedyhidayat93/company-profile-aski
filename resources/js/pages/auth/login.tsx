@@ -1,17 +1,22 @@
 import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { useConfig } from '@/utils/config';
 import AuthLayout from '@/layouts/auth-layout';
-import { register } from '@/routes';
 import { store } from '@/routes/login';
-import { request } from '@/routes/password';
-import { Form, Head } from '@inertiajs/react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Head, useForm } from '@inertiajs/react';
+import {
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+  ShieldCheck,
+} from 'lucide-react';
 import { useState } from 'react';
+import { generateRecaptcha } from '@/utils/google-recaptcha';
 
 interface LoginProps {
   status?: string;
@@ -19,100 +24,203 @@ interface LoginProps {
   canRegister: boolean;
 }
 
-export default function Login({ status, canResetPassword, canRegister }: LoginProps) {
+export default function Login({
+  status,
+}: LoginProps) {
+
   const [showPassword, setShowPassword] = useState(false);
-  
+
+  const { getConfig } = useConfig();
+
+  const form = useForm({
+    email: '',
+    password: '',
+    remember: false,
+    recaptcha_token: '',
+  });
+
+  const submit = async (e: React.FormEvent) => {
+
+    e.preventDefault();
+
+    try {
+
+      const token = await generateRecaptcha('login');
+
+      form.setData('recaptcha_token', token);
+
+      form.post(store.url(), {
+        preserveScroll: true,
+        onFinish: () => {
+          form.reset('password');
+        },
+      });
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+  };
+
   return (
-    <AuthLayout title="Login" description="Masukkan email dan password Anda untuk masuk">
+    <AuthLayout
+      title="Selamat Datang"
+      description="Masuk ke dashboard untuk mengelola data, pesanan, dan aktivitas bisnis Anda."
+    >
       <Head title="Log in" />
 
-      <Form {...store.form()} resetOnSuccess={['password']} className="flex flex-col gap-6">
-        {({ processing, errors }) => (
-          <>
-            <div className="grid gap-6">
-              <div className="grid gap-2">
-                <Label className="text-black dark:text-white" htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  name="email"
-                  required
-                  autoFocus
-                  tabIndex={1}
-                  autoComplete="email"
-                />
-                <InputError message={errors.email} />
-              </div>
+      <form
+        onSubmit={submit}
+        className="flex flex-col gap-6"
+      >
 
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label className="text-black dark:text-white" htmlFor="password">Kata Sandi</Label>
-                  {/* {canResetPassword && (
-                    <TextLink href={request()} className="ml-auto text-sm" tabIndex={5}>
-                      Lupa kata sandi?
-                    </TextLink>
-                  )} */}
-                </div>
+        {/* Status */}
+        {status && (
+          <div className="rounded-2xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm font-medium text-green-600">
+            {status}
+          </div>
+        )}
 
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    required
-                    tabIndex={2}
-                    autoComplete="current-password"
-                    placeholder="********"
-                    className="pr-10" // Add padding for the icon
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
-                    tabIndex={-1} // Prevent tab focus on the button
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-                <InputError message={errors.password} />
-              </div>
+        {/* Welcome Badge */}
+        <div className="flex items-center justify-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+            <ShieldCheck className="h-4 w-4" />
+            Secure Login Access
+          </div>
+        </div>
 
-              <div className="flex items-center space-x-3">
-                <Checkbox id="remember" name="remember" tabIndex={3} />
-                <Label className="text-black dark:text-white" htmlFor="remember">Tetap login</Label>
-              </div>
+        <div className="grid gap-5">
 
-              <Button
-                type="submit"
-                className="mt-4 w-full cursor-pointer"
-                tabIndex={4}
-                disabled={processing}
-                data-test="login-button"
-              >
-                {processing && <Spinner />}
-                Masuk
-              </Button>
+          {/* Email */}
+          <div className="grid gap-2">
+
+            <Label
+              className="text-sm font-medium text-gray-700"
+              htmlFor="email"
+            >
+              Email
+            </Label>
+
+            <div className="relative">
+
+              <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+
+              <Input
+                id="email"
+                type="email"
+                required
+                autoFocus
+                autoComplete="email"
+                placeholder="nama@email.com"
+                value={form.data.email}
+                onChange={(e) =>
+                  form.setData('email', e.target.value)
+                }
+                className="h-12 rounded-xl border-gray-200 bg-white pl-12 shadow-sm transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+
             </div>
 
-            {/* {canRegister && (
-              <div className="text-muted-foreground text-center text-sm">
-                Belum punya akun?{' '}
-                <TextLink href={register()} tabIndex={5}>
-                  Daftar
-                </TextLink>
-              </div>
-            )} */}
-          </>
-        )}
-      </Form>
+            <InputError message={form.errors.email} />
 
-      {status && (
-        <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>
-      )}
+          </div>
+
+          {/* Password */}
+          <div className="grid gap-2">
+
+            <Label
+              className="text-sm font-medium text-gray-700"
+              htmlFor="password"
+            >
+              Kata Sandi
+            </Label>
+
+            <div className="relative">
+
+              <LockKeyhole className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                autoComplete="current-password"
+                placeholder="Masukkan password"
+                value={form.data.password}
+                onChange={(e) =>
+                  form.setData('password', e.target.value)
+                }
+                className="h-12 rounded-xl border-gray-200 bg-white pl-12 pr-12 shadow-sm transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPassword(!showPassword)
+                }
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-700"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+
+            </div>
+
+            <InputError message={form.errors.password} />
+
+          </div>
+
+          {/* Remember */}
+          <div className="flex items-center space-x-3">
+
+            <Checkbox
+              id="remember"
+              checked={form.data.remember}
+              onCheckedChange={(checked) =>
+                form.setData('remember', !!checked)
+              }
+            />
+
+            <Label
+              className="cursor-pointer text-sm text-gray-600"
+              htmlFor="remember"
+            >
+              Tetap login
+            </Label>
+
+          </div>
+
+          {/* Submit */}
+          <Button
+            type="submit"
+            disabled={form.processing}
+            data-test="login-button"
+            className="h-12 w-full rounded-xl cursor-pointer bg-primary text-sm font-semibold shadow-lg shadow-primary/20 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-primary/30"
+          >
+            {form.processing ? (
+              <>
+                <Spinner />
+                Memproses...
+              </>
+            ) : (
+              'Masuk ke Dashboard'
+            )}
+          </Button>
+
+        </div>
+
+        <small className="w-full text-center text-slate-400">
+          &copy; {new Date().getFullYear()}{' '}
+          {getConfig(
+            'site_name',
+            'Alumoda Sinergi Kontainer Indonesia'
+          )}
+        </small>
+
+      </form>
     </AuthLayout>
   );
 }

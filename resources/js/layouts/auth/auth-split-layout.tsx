@@ -28,41 +28,88 @@ export default function AuthSplitLayout({
   const homepageLogo = getHomepageConfig('site_logo');
   const homepageLogoAlt = getHomepageConfig('homepage_logo_alt', 'Company Logo');
   const homepageBgImage = getHomepageConfig('homepage_bg_image');
+  const homepageTagline = getHomepageConfig('site_tagline', 'Solusi Terpercaya Untuk Kebutuhan Kontainer Anda');
 
   return (
-    <div className="relative bg-white grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
-      <div 
-        className={`relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r image-center bg-center [background-image:url(${homepageBgImage ? `/storage/${homepageBgImage}` : BgHero})]`}>
-        <div className="absolute inset-0 bg-zinc-900" />
-        <Link href={homepage()} className="relative z-20 flex items-center text-lg font-medium">
-          {name}
-        </Link>
-        {quote && (
-          <div className="relative z-20 mt-auto">
-            <blockquote className="space-y-2">
-              <p className="text-lg">&ldquo;{quote.message}&rdquo;</p>
-              <footer className="text-sm text-neutral-300">{quote.author}</footer>
-            </blockquote>
-          </div>
-        )}
-      </div>
-      <div className="w-full lg:p-8">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+    <div className="relative min-h-dvh overflow-hidden bg-black">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${
+            homepageBgImage
+              ? `/storage/${homepageBgImage}`
+              : BgHero
+          })`,
+        }}
+      />
+
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/30" />
+
+      {/* Content Wrapper */}
+      <div className="relative z-10 flex min-h-dvh">
+        {/* Left Caption */}
+        <div className="hidden lg:flex flex-1 flex-col p-12 text-white">
           <Link
             href={homepage()}
-            className="relative z-20 flex items-center justify-center"
+            className="flex items-center text-lg font-semibold tracking-wide"
           >
-            {homepageLogo ? (
-              <img src={`/storage/${homepageLogo}`} onError={handleImageError} className='size-20 object-contain' alt={homepageLogoAlt} />
-            ) : (
-              <img src={LogoMainSquare} onError={handleImageError} className='size-20 object-contain' alt="PT Alumoda Sinergi Kontainer Indonesia" />
-            )}
+            {name}
           </Link>
-          <div className="flex flex-col items-center gap-2 text-center!">
-            <h1 className="text-2xl font-bold leading-tight">{title}</h1>
-            <p className="text-muted-foreground text-xs leading-relaxed text-balance max-w-md text-center">{description}</p>
+          <small>{homepageTagline}</small>
+
+          {quote && (
+            <div className="mt-auto max-w-xl">
+              <blockquote className="space-y-4">
+                <p className="text-3xl font-semibold leading-relaxed text-white">
+                  &ldquo;{quote.message}&rdquo;
+                </p>
+
+                <footer className="text-sm text-white/80">
+                  {quote.author}
+                </footer>
+              </blockquote>
+            </div>
+          )}
+        </div>
+
+        {/* Right Login Card */}
+        <div className="flex w-full items-center justify-center p-6 lg:w-[520px] lg:justify-end lg:pr-16">
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white p-8 shadow-2xl backdrop-blur-md">
+            <Link
+              href={homepage()}
+              className="mb-4 flex items-center justify-center"
+            >
+              {homepageLogo ? (
+                <img
+                  src={`/storage/${homepageLogo}`}
+                  onError={handleImageError}
+                  className="size-20 object-contain"
+                  alt={homepageLogoAlt}
+                />
+              ) : (
+                <img
+                  src={LogoMainSquare}
+                  onError={handleImageError}
+                  className="size-20 object-contain"
+                  alt="PT Alumoda Sinergi Kontainer Indonesia"
+                />
+              )}
+            </Link>
+
+            <div className="mb-10 flex flex-col items-center gap-2 text-center">
+              <h1 className="text-2xl font-bold leading-tight text-gray-900">
+                {title}
+              </h1>
+
+              <p className="max-w-sm text-sm leading-relaxed text-gray-500">
+                {description}
+              </p>
+            </div>
+
+            {children}
           </div>
-          {children}
         </div>
       </div>
     </div>

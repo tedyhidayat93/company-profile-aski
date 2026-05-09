@@ -34,7 +34,8 @@
             "Database\\Seeders\\": "database/seeders/"
         },
         "files": [
-            "app/helpers/currency.php"
+            "app/Helpers/Recaptcha.php",
+            "app/Helpers/Currency.php"
         ]
     },
     "autoload-dev": {

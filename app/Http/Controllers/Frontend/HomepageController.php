@@ -28,7 +28,6 @@ class HomepageController extends Controller
             ->where('is_featured', true)
             ->with(['brand', 'category', 'coverImage'])
             ->orderBy('position')
-            ->orderBy('name')
             ->take(6)
             ->get()
             ->map(function ($product) {
@@ -52,9 +51,7 @@ class HomepageController extends Controller
                     'slug' => $product->slug,
                     'type' => $product->type,
                     'quantity' => $product->quantity,
-                    'category' => $product->category?->parent 
-                        ? ($product->category->parent->name . ' > ' . $product->category->name)
-                        : ($product->category?->name ?? 'Uncategorized'),
+                    'category' => $product->category,
                     'price' => $product->price,
                     'compare_at_price' => $product->compare_at_price,
                     'stock' => $product->quantity ?? 0,
@@ -72,7 +69,6 @@ class HomepageController extends Controller
         // Get services for homepage
         $services = Service::where('is_active', true)
             ->orderBy('sequence')
-            ->orderBy('name')
             ->get()
             ->map(function ($service) {
                 return [
@@ -86,7 +82,6 @@ class HomepageController extends Controller
         // Get clients for homepage
         $clients = Client::where('is_active', true)
             ->orderBy('sequence')
-            ->orderBy('name')
             ->get()
             ->map(function ($client) {
                 return [

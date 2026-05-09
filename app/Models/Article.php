@@ -139,4 +139,18 @@ class Article extends Model
     {
         return $query->whereJsonContains('tags', $tag);
     }
+
+    /**
+     * Get 5 most read articles for footer
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getMostReadForFooter()
+    {
+        return self::published()
+            ->orderBy('views_count', 'desc')
+            ->orderBy('published_at', 'desc')
+            ->take(5)
+            ->get();
+    }
 }
