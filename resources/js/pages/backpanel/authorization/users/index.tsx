@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination } from '@/components/ui/pagination-custom';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
@@ -126,22 +127,41 @@ export default function UserIndex({ users, roles, filters }: Props) {
 
         <Card>
           <CardContent className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input 
-                  placeholder="Cari user..." 
-                  value={search} 
-                  onChange={(e) => handleSearch(e.target.value)} 
-                  className="pl-10" 
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 items-end mb-4">
+
+              {/* Search */}
+              <div className="space-y-1 xl:col-span-2">
+                <label className="text-xs font-medium text-gray-600">
+                  Cari
+                </label>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+
+                  <Input
+                    placeholder="Cari user..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Select value={roleFilter} onValueChange={handleRoleFilter}>
-                  <SelectTrigger className="w-[140px]">
+
+              {/* Role */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Role
+                </label>
+
+                <Select
+                  value={roleFilter}
+                  onValueChange={handleRoleFilter}
+                >
+                  <SelectTrigger className="w-full">
                     <Filter className="mr-2 h-4 w-4" />
                     <SelectValue placeholder="Role" />
                   </SelectTrigger>
+
                   <SelectContent>
                     <SelectItem value="all">Semua Role</SelectItem>
                     {roles.map((role) => (
@@ -149,11 +169,23 @@ export default function UserIndex({ users, roles, filters }: Props) {
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                  <SelectTrigger className="w-[140px]">
+              </div>
+
+              {/* Status */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Status
+                </label>
+
+                <Select
+                  value={statusFilter}
+                  onValueChange={handleStatusFilter}
+                >
+                  <SelectTrigger className="w-full">
                     <Filter className="mr-2 h-4 w-4" />
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
+
                   <SelectContent>
                     <SelectItem value="all">Semua Status</SelectItem>
                     <SelectItem value="true">Aktif</SelectItem>
@@ -264,25 +296,17 @@ export default function UserIndex({ users, roles, filters }: Props) {
             )}
 
             {users.last_page > 1 && (
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-sm text-gray-700">
-                  Menampilkan {((users.current_page - 1) * users.per_page) + 1} hingga{' '}
-                  {Math.min(users.current_page * users.per_page, users.total)} dari{' '}
-                  {users.total} hasil
-                </div>
-                <div className="flex space-x-2">
-                  {users.links.prev && (
-                    <Button variant="outline" size="sm" onClick={() => router.get(users.links.prev || '')}>
-                      Sebelumnya
-                    </Button>
-                  )}
-                  {users.links.next && (
-                    <Button variant="outline" size="sm" onClick={() => router.get(users.links.next || '')}>
-                      Selanjutnya
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <Pagination
+                currentPage={users.current_page}
+                totalPages={users.last_page}
+                total={users.total}
+                perPage={users.per_page}
+                onPageChange={(page: number) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('page', page.toString());
+                  router.get(url.toString());
+                }}
+              />
             )}
           </CardContent>
         </Card>

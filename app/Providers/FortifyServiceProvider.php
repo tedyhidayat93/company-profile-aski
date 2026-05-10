@@ -34,10 +34,10 @@ class FortifyServiceProvider extends ServiceProvider
     public function boot(): void
     {
         
+        $this->configureAuthentication();
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
-        $this->configureAuthentication();
      
     }
 

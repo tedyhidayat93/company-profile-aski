@@ -55,6 +55,12 @@ class ArticleController extends Controller
             ->when($request->category, function ($query, $category) {
                 return $query->where('category_id', $category);
             })
+            ->when($request->date_from, function ($query, $dateFrom) {
+                return $query->whereDate('created_at', '>=', $dateFrom);
+            })
+            ->when($request->date_to, function ($query, $dateTo) {
+                return $query->whereDate('created_at', '<=', $dateTo);
+            })
             ->when($request->sort, function ($query, $sort) {
                 if ($sort === 'newest') {
                     return $query->orderBy('created_at', 'desc');

@@ -2,16 +2,18 @@ import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent} from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination } from '@/components/ui/pagination-custom';
+import DateRangePicker from '@/components/ui/date-range-picker';
 import OrderStatusInfoModal from '@/components/order-status-info-modal';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
+import { type DateRange } from 'react-day-picker';
 import { type BreadcrumbItem } from '@/types';
+import { setDateParam } from "@/utils/date";
 import { 
   Plus, 
   Edit, 
@@ -37,6 +39,7 @@ import { orderStatusColors, orderStatusLabels, getOrderStatusBadgeProps, OrderSt
 import { formatCurrencyDisplay } from '@/utils/currency';
 import { formatDate } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import { handleImageError } from '@/utils/image';
 
 interface Order {
   id: number;
@@ -110,11 +113,13 @@ interface Props {
 export default function OrderIndex({ orders, orderStatistics, filters }: Props) {
   const [search, setSearch] = React.useState(filters.search || '');
   const [statusFilter, setStatusFilter] = React.useState(filters.status || 'all');
-  const [dateFrom, setDateFrom] = React.useState(filters.date_from || '');
-  const [dateTo, setDateTo] = React.useState(filters.date_to || '');
+  const [dateRange, setDateRange] = React.useState<DateRange>({
+    from: filters.date_from ? new Date(filters.date_from) : undefined,
+    to: filters.date_to ? new Date(filters.date_to) : undefined,
+  });
   const [perPageFilter, setPerPageFilter] = React.useState(filters.per_page || '5');
 
-  const hasActiveFilters = search || statusFilter !== 'all' || dateFrom || dateTo;
+  const hasActiveFilters = search || statusFilter !== 'all' || dateRange.from || dateRange.to;
 
   // Map backend statistics to frontend format with icon components
   const orderStats = orderStatistics.map(stat => ({
@@ -145,8 +150,8 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
       params.delete('search');
     }
     if (statusFilter !== 'all') params.set('status', statusFilter);
-    if (dateFrom) params.set('date_from', dateFrom);
-    if (dateTo) params.set('date_to', dateTo);
+    setDateParam(params, 'date_from', dateRange.from);
+    setDateParam(params, 'date_to', dateRange.to);
     
     router.get(`/cpanel/crm/orders?${params.toString()}`, {}, { preserveState: true });
   };
@@ -160,45 +165,51 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
     } else {
       params.delete('status');
     }
-    if (dateFrom) params.set('date_from', dateFrom);
-    if (dateTo) params.set('date_to', dateTo);
+    setDateParam(params, 'date_from', dateRange.from);
+    setDateParam(params, 'date_to', dateRange.to);
     
     router.get(`/cpanel/crm/orders?${params.toString()}`, {}, { preserveState: true });
   };
 
-  const handleDateFilter = (type: 'from' | 'to', value: string) => {
-    if (type === 'from') {
-      setDateFrom(value);
-    } else {
-      setDateTo(value);
-    }
-    
-    const params = new URLSearchParams(window.location.search);
-    if (search) params.set('search', search);
-    if (statusFilter !== 'all') params.set('status', statusFilter);
-    if (dateFrom) params.set('date_from', dateFrom);
-    if (dateTo) params.set('date_to', dateTo);
-    
-    router.get(`/cpanel/crm/orders?${params.toString()}`, {}, { preserveState: true });
-  };
-
+  
   const handlePerPageFilter = (value: string) => {
     setPerPageFilter(value);
     const params = new URLSearchParams(window.location.search);
     if (search) params.set('search', search);
     if (statusFilter !== 'all') params.set('status', statusFilter);
-    if (dateFrom) params.set('date_from', dateFrom);
-    if (dateTo) params.set('date_to', dateTo);
+    setDateParam(params, 'date_from', dateRange.from);
+    setDateParam(params, 'date_to', dateRange.to);
     if (value !== '5') params.set('per_page', value);
     
     router.get(`/cpanel/crm/orders?${params.toString()}`, {}, { preserveState: true });
   };
 
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range || { from: undefined, to: undefined });
+
+    const params = new URLSearchParams(window.location.search);
+
+    if (search) params.set('search', search);
+
+    if (statusFilter !== 'all') {
+      params.set('status', statusFilter);
+    }
+
+    setDateParam(params, 'date_from', range?.from);
+    setDateParam(params, 'date_to', range?.to);
+
+    router.get(`/cpanel/crm/orders?${params.toString()}`, {}, {
+      preserveState: true,
+    });
+  };
+
   const handleReset = () => {
     setSearch('');
     setStatusFilter('all');
-    setDateFrom('');
-    setDateTo('');
+    setDateRange({
+      from: undefined,
+      to: undefined,
+    });
     setPerPageFilter('5');
     router.get('/cpanel/crm/orders', {}, { preserveState: true });
   };
@@ -317,24 +328,11 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Dari Tanggal</label>
-                      <Input
-                        type="date"
-                        placeholder="Dari tanggal (DD/MM/YYYY)"
-                        value={dateFrom}
-                        onChange={(e) => handleDateFilter('from', e.target.value)}
+                    <DateRangePicker
+                        value={dateRange}
+                        onChange={handleDateRangeChange}
+                        className="col-span-2"
                       />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Sampai Tanggal</label>
-                      <Input
-                        type="date"
-                        placeholder="Sampai tanggal (DD/MM/YYYY)"
-                        value={dateTo}
-                        onChange={(e) => handleDateFilter('to', e.target.value)}
-                      />
-                    </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Tampilkan per Halaman</label>
                       <Select value={perPageFilter} onValueChange={handlePerPageFilter}>
@@ -413,9 +411,7 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
                               src={`/storage/${order.product_image}`} 
                               alt={order.product_name}
                               className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                              onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                                e.currentTarget.src = '/placeholder-product.png';
-                              }}
+                              onError={handleImageError}
                             />
                           ) : (
                             <div className="w-16 h-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">

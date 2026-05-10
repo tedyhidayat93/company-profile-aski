@@ -241,33 +241,17 @@ export default function TagIndex({ tags, filters }: Props) {
             )}
 
             {tags.last_page > 1 && (
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-sm text-gray-700">
-                  Menampilkan {((tags.current_page - 1) * tags.per_page) + 1} hingga{' '}
-                  {Math.min(tags.current_page * tags.per_page, tags.total)} dari{' '}
-                  {tags.total} hasil
-                </div>
-                <div className="flex space-x-2">
-                  {tags.links.prev && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(tags.links.prev || '')}
-                    >
-                      Sebelumnya
-                    </Button>
-                  )}
-                  {tags.links.next && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(tags.links.next || '')}
-                    >
-                      Selanjutnya
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <Pagination
+                currentPage={tags.current_page}
+                totalPages={tags.last_page}
+                total={tags.total}
+                perPage={tags.per_page}
+                onPageChange={(page: number) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('page', page.toString());
+                  router.get(url.toString());
+                }}
+              />
             )}
           </CardContent>
         </Card>

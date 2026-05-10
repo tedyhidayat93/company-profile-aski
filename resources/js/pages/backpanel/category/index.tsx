@@ -268,28 +268,49 @@ export default function CategoryIndex({ categories, filters }: Props) {
 
         <Card>
           <CardContent>
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Cari kategori..."
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end mb-4">
+
+              {/* Search */}
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-xs font-medium text-gray-600">
+                  Cari
+                </label>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+
+                  <Input
+                    placeholder="Cari kategori..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-              <Select value={typeFilter} onValueChange={handleTypeFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filter berdasarkan tipe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Tipe</SelectItem>
-                  <SelectItem value="product">Produk</SelectItem>
-                  <SelectItem value="service">Layanan</SelectItem>
-                  <SelectItem value="blog">Blog</SelectItem>
-                </SelectContent>
-              </Select>
+
+              {/* Type Filter */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Tipe
+                </label>
+
+                <Select
+                  value={typeFilter}
+                  onValueChange={handleTypeFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Filter tipe" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">Semua Tipe</SelectItem>
+                    <SelectItem value="product">Produk</SelectItem>
+                    <SelectItem value="service">Layanan</SelectItem>
+                    <SelectItem value="blog">Blog</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Table>

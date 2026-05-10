@@ -154,27 +154,48 @@ export default function BrandIndex({ brands, filters }: Props) {
 
         <Card>
           <CardContent>
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Cari merek..."
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end mb-4">
+
+              {/* Search */}
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-xs font-medium text-gray-600">
+                  Cari
+                </label>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+
+                  <Input
+                    placeholder="Cari merek..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-              <Select value={activeFilter} onValueChange={handleActiveFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="true">Aktif</SelectItem>
-                  <SelectItem value="false">Tidak Aktif</SelectItem>
-                </SelectContent>
-              </Select>
+
+              {/* Status */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Status
+                </label>
+
+                <Select
+                  value={activeFilter}
+                  onValueChange={handleActiveFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="true">Aktif</SelectItem>
+                    <SelectItem value="false">Tidak Aktif</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Table>

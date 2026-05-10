@@ -228,7 +228,7 @@ class Product extends Model
             ->with(['brand', 'category', 'coverImage'])
             ->orderBy('position', 'asc')
             ->orderBy('created_at', 'desc')
-            ->take(5)
+            ->take(6)
             ->get();
     }
 }

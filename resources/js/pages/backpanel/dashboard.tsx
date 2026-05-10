@@ -23,6 +23,7 @@ import {
   Users,
   XCircle,
   TrendingUp,
+  MessageSquare,
   TrendingDown,
   Calendar,
   User,
@@ -31,8 +32,7 @@ import {
 } from 'lucide-react';
 import { OrderStatusBadge } from '@/utils/order-status';
 import { Button } from '@/components/ui/button';
-import TrafficDashboard from '@/components/traffic-dashboard';
-import TrafficPerCountryRegion, { CountryData, RegionData } from '@/components/traffic-per-country-region';
+import  { CountryData, RegionData } from '@/components/traffic-per-country-region';
 import { formatCurrencyDisplay } from '@/utils/currency';
 import { formatDate } from '@/lib/utils';
 import TrafficVisitorCharts from '@/components/traffic-visitor-charts';
@@ -60,6 +60,7 @@ interface Props {
     icon: string;
     change: string;
     color: string;
+    link?: string;
     changeType: 'increase' | 'decrease';
   }>;
   orderStats: Array<{
@@ -107,6 +108,7 @@ const iconMap: Record<string, any> = {
   XCircle,
   Eye,
   Calendar,
+  MessageSquare,
   TrendingUp,
   TrendingDown,
 };
@@ -129,7 +131,7 @@ export default function Dashboard({
     <AppLayout breadcrumbs={breadcrumbs} recentOrders={recentOrders}>
       <Head title="Dashboard" />
 
-      <div className="space-y-8 p-6 bg-slate-50/50 min-h-screen">
+      <div className="space-y-4 p-6 bg-slate-50/50 min-h-screen">
         {/* Header Section dengan Aksi Cepat */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <HeaderTitle
@@ -142,74 +144,121 @@ export default function Dashboard({
         </div>
 
         {/* Top Stats Overview - Lebih Bersih */}
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 xxl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {stats.map((stat) => {
             const Icon = iconMap[stat.icon] || Package;
+
             return (
-              <Card 
-                key={stat.name} 
-                className={`group relative overflow-hidden bg-white border-none shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
-              >
-                {/* Aksentuasi Warna: Garis Vertikal di Sisi Kiri saat Hover */}
-                <div className={`absolute left-0 top-0 bottom-0 w-1 ${stat.color} opacity-0 group-hover:opacity-100 transition-all duration-300`} />
-                
-                <CardContent className="px-6">
-                  <div className="relative z-10 flex flex-col">
-                    
-                    {/* Top Row: Icon & Badge Tren */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={`p-3 rounded-2xl ${stat.color.replace('bg-', 'bg-')}/10 text-white transition-transform duration-500 group-hover:rotate-[10deg]`}>
-                        <Icon className={`h-6 w-6 ${stat.color.replace('bg-', 'text-')}`} />
-                      </div>
-                      {/* Badge Persentase (Opsional/Statis) - Menambah kesan profesional */}
-                      <span className={`text-[10px] px-2 h-5 animate-pulse flex items-center justify-center font-bold rounded-full bg-red-50 text-red-600 ring-1 ring-red-100 ${stat.name === 'Total Seluruh Pesanan' ? '' : 'hidden'}`}>
+              <Link href={stat.link} key={stat.name}>
+                <Card
+                  className="group relative h-full overflow-hidden border-none bg-white shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                >
+                  {/* Accent */}
+                  <div
+                    className={`absolute left-0 top-0 bottom-0 w-1 ${stat.color} opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300`}
+                  />
+
+                  <CardContent className="relative z-10">
+                    <div className="flex flex-col h-full">
+
+                      {/* Header */}
+                      <div className="mb-3 flex items-start justify-between gap-2 md:mb-4">
+
+                        {/* Icon */}
+                        <div
+                          className={`
+                            flex items-center justify-center
+                            rounded-xl md:rounded-2xl
+                            ${stat.color}
+                            transition-transform duration-500
+                            group-hover:rotate-[10deg]
+                            h-8 w-8
+                            md:h-10 md:w-10
+                          `}
+                        >
+                          <Icon
+                            className={`
+                              ${stat.color.replace('bg-', 'text-')}
+                              h-4 w-4
+                              md:h-5 md:w-5
+                            `}
+                          />
+                        </div>
+
+                        {/* Badge */}
                         {stat.name === 'Total Seluruh Pesanan' && (
-                          <span> {newOrdersCount} Pesanan Baru</span>
+                          <span className="hidden sm:flex items-center justify-center rounded-full bg-red-50 px-2 py-1 text-[10px] font-bold text-red-600 ring-1 ring-red-100 whitespace-nowrap">
+                            {newOrdersCount} Baru
+                          </span>
                         )}
-                      </span>
-                    </div>
-
-                    {/* Main Content: Value & Label */}
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">
-                        {stat.name}
-                      </p>
-                      <div className="flex items-baseline">
-                        <h3 className="text-5xl font-black tracking-tighter text-slate-900 transition-all duration-300 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-slate-900 group-hover:to-slate-600">
-                          {stat.value.toLocaleString()}
-                        </h3>
                       </div>
-                    </div>
 
-                    {/* Footer: Visual Subtil */}
-                    <div className="mt-6 flex items-center gap-2">
-                      <div className="h-1 flex-1 bg-slate-100 rounded-full overflow-hidden">
-                        <div className={`h-full ${stat.color} w-2/3 opacity-30 group-hover:opacity-100 transition-all duration-700`} />
+                      {/* Content */}
+                      <div>
+                        <p className="line-clamp-2 min-h-[32px] text-[10px] font-bold uppercase leading-tight tracking-wide text-slate-400 md:tracking-widest">
+                          {stat.name}
+                        </p>
+
+                        <div className="flex items-end gap-1">
+                          <h3
+                            className="
+                              text-xl font-black tracking-tight text-slate-900
+                              sm:text-xl
+                              md:text-2xl
+                              xl:text-5xl
+
+                              transition-all duration-300
+                              group-hover:text-transparent
+                              group-hover:bg-clip-text
+                              group-hover:bg-gradient-to-r
+                              group-hover:from-slate-900
+                              group-hover:to-slate-600
+                            "
+                          >
+                            {stat.value.toLocaleString()}
+                          </h3>
+                        </div>
                       </div>
-                      <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
-                        Live Stats
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Background Decorative Number - Membuat tampilan sangat modern */}
-                  <div className="absolute -bottom-2 -right-2 text-8xl font-black text-slate-50 select-none pointer-events-none group-hover:text-slate-100/50 transition-colors duration-300">
-                    {stat.value.toString().slice(-1)}
-                  </div>
-                </CardContent>
-              </Card>
+                      {/* Footer */}
+                      {/* <div className="mt-4 flex items-center gap-2 md:mt-6">
+                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className={`h-full w-2/3 ${stat.color} opacity-40 transition-all duration-700 group-hover:opacity-100`}
+                          />
+                        </div>
+
+                        <span className="hidden sm:block whitespace-nowrap text-[10px] font-medium text-slate-400">
+                          Live
+                        </span>
+                      </div> */}
+                    </div>
+
+                    {/* Decorative Number */}
+                    <div
+                      className="
+                        pointer-events-none absolute z-10 select-none font-black text-slate-50 transition-colors duration-300 group-hover:text-slate-100/50
+                        -bottom-1 -right-1 text-5xl
+                        md:-bottom-2 md:-right-2 md:text-7xl
+                        xl:text-8xl
+                      "
+                    >
+                      {stat.value.toString().slice(-1)}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             );
           })}
         </div>
 
-
         {/* Main Content Grid */}
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-3 w-full">
           
           {/* Table Section (Lebih Lebar) */}
           <div className="lg:col-span-2 space-y-6">
             <Card className="border-none shadow-sm ring-1 ring-slate-200 min-h-[370px]">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardHeader className="flex flex-col md:flex-row items-center justify-between space-y-0">
                 <div>
                   <CardTitle className="text-lg font-bold">Daftar Pesanan</CardTitle>
                   <p className="text-sm text-muted-foreground">Pesanan terbaru yang menunggu diproses</p>
@@ -225,8 +274,8 @@ export default function Dashboard({
                 )}
               </div>
               </CardHeader>
-              <CardContent className="p-0">
-                <Table>
+              <CardContent className="p-0 overflow-x-auto w-[80vw] xl:w-full">
+                <Table className="w-full min-w-[1000px]">
                   <TableHeader className="bg-slate-50/50">
                     <TableRow>
                       <TableHead className="py-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>

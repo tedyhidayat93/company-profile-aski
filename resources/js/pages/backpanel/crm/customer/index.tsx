@@ -12,6 +12,9 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { formatDate } from '@/lib/utils';
+import DateRangePicker from '@/components/ui/date-range-picker';
+import { type DateRange } from 'react-day-picker';
+import { setDateParam } from '@/utils/date';
 import { 
   Plus, 
   Edit, 
@@ -57,6 +60,8 @@ interface Props {
   filters: {
     search?: string;
     active?: string;
+    date_from?: string;
+    date_to?: string;
   };
 }
 
@@ -74,29 +79,43 @@ export default function CustomerIndex({ customers, filters }: Props) {
 
   const [search, setSearch] = React.useState(filters.search || '');
   const [activeFilter, setActiveFilter] = React.useState(filters.active || '');
+  const [dateRange, setDateRange] = React.useState<DateRange>({
+    from: filters?.date_from ? new Date(filters.date_from) : undefined,
+    to: filters?.date_to ? new Date(filters.date_to) : undefined,
+  });
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    router.get(
-      '/cpanel/crm/customer',
-      { 
-        search: value, 
-        active: activeFilter
-      },
-      { preserveState: true, preserveScroll: true }
-    );
+    const params: Record<string, any> = {};
+    if (value) params.search = value;
+    if (activeFilter) params.active = activeFilter;
+    if (dateRange.from) params.date_from = dateRange.from.toISOString().split('T')[0];
+    if (dateRange.to) params.date_to = dateRange.to.toISOString().split('T')[0];
+    
+    router.get('/cpanel/crm/customer', params, { preserveState: true, preserveScroll: true });
+  };
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range || { from: undefined, to: undefined });
+    
+    const params: Record<string, any> = {};
+    if (search) params.search = search;
+    if (activeFilter) params.active = activeFilter;
+    if (range?.from) params.date_from = range.from.toISOString().split('T')[0];
+    if (range?.to) params.date_to = range.to.toISOString().split('T')[0];
+    
+    router.get('/cpanel/crm/customer', params, { preserveState: true, preserveScroll: true });
   };
 
   const handleActiveFilter = (value: string) => {
     setActiveFilter(value);
-    router.get(
-      '/cpanel/crm/customer',
-      { 
-        search: search, 
-        active: value
-      },
-      { preserveState: true, preserveScroll: true }
-    );
+    const params: Record<string, any> = {};
+    if (search) params.search = search;
+    if (value) params.active = value;
+    if (dateRange.from) params.date_from = dateRange.from.toISOString().split('T')[0];
+    if (dateRange.to) params.date_to = dateRange.to.toISOString().split('T')[0];
+    
+    router.get('/cpanel/crm/customer', params, { preserveState: true, preserveScroll: true });
   };
 
   const handleDelete = (id: number) => {
@@ -136,26 +155,58 @@ export default function CustomerIndex({ customers, filters }: Props) {
 
         <Card>
           <CardContent>
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Cari pelanggan..."
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="space-y-4 mb-4">
+
+
+              {/* Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                {/* Search */}
+                <div className="md:col-span-2">
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">
+                    Cari
+                  </label>
+
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+
+                    <Input
+                      placeholder="Cari pelanggan..."
+                      value={search}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                {/* Date Range */}
+                <div className="space-y-1">
+                  <DateRangePicker
+                    value={dateRange}
+                    onChange={handleDateRangeChange}
+                  />
+                </div>
+
+                {/* Status */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-gray-600">
+                    Status
+                  </label>
+
+                  <Select
+                    value={activeFilter}
+                    onValueChange={handleActiveFilter}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      <SelectItem value="all">Semua Status</SelectItem>
+                      <SelectItem value="true">Aktif</SelectItem>
+                      <SelectItem value="false">Tidak Aktif</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <Select value={activeFilter} onValueChange={handleActiveFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="true">Aktif</SelectItem>
-                  <SelectItem value="false">Tidak Aktif</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <Table>
@@ -266,33 +317,17 @@ export default function CustomerIndex({ customers, filters }: Props) {
             )}
 
             {customers.last_page > 1 && (
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-sm text-gray-700">
-                  Menampilkan {((customers.current_page - 1) * customers.per_page) + 1} hingga{' '}
-                  {Math.min(customers.current_page * customers.per_page, customers.total)} dari{' '}
-                  {customers.total} hasil
-                </div>
-                <div className="flex space-x-2">
-                  {customers.links.prev && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(customers.links.prev || '')}
-                    >
-                      Sebelumnya
-                    </Button>
-                  )}
-                  {customers.links.next && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(customers.links.next || '')}
-                    >
-                      Selanjutnya
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <Pagination
+                currentPage={customers.current_page}
+                totalPages={customers.last_page}
+                total={customers.total}
+                perPage={customers.per_page}
+                onPageChange={(page: number) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('page', page.toString());
+                  router.get(url.toString());
+                }}
+              />
             )}
           </CardContent>
         </Card>

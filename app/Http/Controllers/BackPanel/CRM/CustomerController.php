@@ -33,12 +33,18 @@ class CustomerController extends Controller
                 $isActive = $request->boolean('active');
                 return $query->where('is_active', $isActive);
             })
+            ->when($request->date_from, function ($query, $dateFrom) {
+                return $query->whereDate('created_at', '>=', $dateFrom);
+            })
+            ->when($request->date_to, function ($query, $dateTo) {
+                return $query->whereDate('created_at', '<=', $dateTo);
+            })
             ->orderBy('name')
             ->paginate(15);
 
         return Inertia::render('backpanel/crm/customer/index', [
             'customers' => $customers,
-            'filters' => $request->only(['search', 'active'])
+            'filters' => $request->only(['search', 'active', 'date_from', 'date_to'])
         ]);
     }
 

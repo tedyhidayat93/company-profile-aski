@@ -49,7 +49,7 @@ class OrderController extends Controller
         $orderStatistics = $this->getOrderStatistics($baseQuery);
 
         // Get paginated orders
-        $perPage = $request->get('per_page', 5);
+        $perPage = $request->get('per_page', 10);
         $orders = $baseQuery->orderBy('created_at', 'desc')->paginate($perPage);
 
         return Inertia::render('backpanel/orders/index', [

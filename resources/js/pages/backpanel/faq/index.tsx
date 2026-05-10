@@ -158,41 +158,74 @@ export default function FaqIndex({ faqs, filters }: Props) {
 
         <Card>
           <CardContent>
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Cari FAQ..."
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 items-end mb-4">
+
+              {/* Search */}
+              <div className="space-y-1 xl:col-span-2">
+                <label className="text-xs font-medium text-gray-600">
+                  Cari
+                </label>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+
+                  <Input
+                    placeholder="Cari FAQ..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-              <Select value={categoryFilter} onValueChange={handleCategoryFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Kategori" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Kategori</SelectItem>
-                  <SelectItem value="general">General</SelectItem>
-                  <SelectItem value="product">Product</SelectItem>
-                  <SelectItem value="service">Services</SelectItem>
-                  <SelectItem value="payment">Payment</SelectItem>
-                  <SelectItem value="shipping">Shipping</SelectItem>
-                  <SelectItem value="account">Account</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={activeFilter} onValueChange={handleActiveFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="true">Aktif</SelectItem>
-                  <SelectItem value="false">Tidak Aktif</SelectItem>
-                </SelectContent>
-              </Select>
+
+              {/* Category */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Kategori
+                </label>
+
+                <Select
+                  value={categoryFilter}
+                  onValueChange={handleCategoryFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Kategori" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">Semua Kategori</SelectItem>
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="product">Product</SelectItem>
+                    <SelectItem value="service">Services</SelectItem>
+                    <SelectItem value="payment">Payment</SelectItem>
+                    <SelectItem value="shipping">Shipping</SelectItem>
+                    <SelectItem value="account">Account</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Status */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Status
+                </label>
+
+                <Select
+                  value={activeFilter}
+                  onValueChange={handleActiveFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="true">Aktif</SelectItem>
+                    <SelectItem value="false">Tidak Aktif</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Table>
@@ -291,33 +324,17 @@ export default function FaqIndex({ faqs, filters }: Props) {
             )}
 
             {faqs.last_page > 1 && (
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-sm text-gray-700">
-                  Menampilkan {((faqs.current_page - 1) * faqs.per_page) + 1} hingga{' '}
-                  {Math.min(faqs.current_page * faqs.per_page, faqs.total)} dari{' '}
-                  {faqs.total} hasil
-                </div>
-                <div className="flex space-x-2">
-                  {faqs.links.prev && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(faqs.links.prev || '')}
-                    >
-                      Sebelumnya
-                    </Button>
-                  )}
-                  {faqs.links.next && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(faqs.links.next || '')}
-                    >
-                      Selanjutnya
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <Pagination
+                currentPage={faqs.current_page}
+                totalPages={faqs.last_page}
+                total={faqs.total}
+                perPage={faqs.per_page}
+                onPageChange={(page: number) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('page', page.toString());
+                  router.get(url.toString());
+                }}
+              />
             )}
           </CardContent>
         </Card>

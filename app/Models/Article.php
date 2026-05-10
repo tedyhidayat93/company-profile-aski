@@ -150,7 +150,7 @@ class Article extends Model
         return self::published()
             ->orderBy('views_count', 'desc')
             ->orderBy('published_at', 'desc')
-            ->take(5)
+            ->take(6)
             ->get();
     }
 }

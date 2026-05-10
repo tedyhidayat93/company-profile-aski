@@ -16,6 +16,9 @@ import { type BreadcrumbItem } from '@/types';
 import { formatDate } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import TreeSelect from '@/components/tree-select';
+import DateRangePicker from '@/components/ui/date-range-picker';
+import { type DateRange } from 'react-day-picker';
+import { setDateParam } from '@/utils/date';
 import { 
   Plus, 
   Edit, 
@@ -87,6 +90,8 @@ interface Props {
     search?: string;
     status?: string;
     author?: string;
+    date_from?: string;
+    date_to?: string;
     headline?: string;
     category?: string;
     sort?: string;
@@ -112,29 +117,54 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
   const [headlineFilter, setHeadlineFilter] = useState(filters?.headline ?? 'all');
   const [categoryFilter, setCategoryFilter] = useState(filters?.category ?? 'all');
   const [sortFilter, setSortFilter] = useState('all');
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: filters?.date_from ? new Date(filters.date_from) : undefined,
+    to: filters?.date_to ? new Date(filters.date_to) : undefined,
+  });
   const [perPageFilter, setPerPageFilter] = useState(filters?.per_page ?? '15');
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range || { from: undefined, to: undefined });
+    
+    const params = new URLSearchParams(window.location.search);
+    if (search) params.set('search', search);
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    if (authorFilter !== 'all') params.set('author', authorFilter);
+    if (headlineFilter !== 'all') params.set('headline', headlineFilter);
+    if (categoryFilter !== 'all') params.set('category', categoryFilter);
+    if (sortFilter !== 'all') params.set('sort', sortFilter);
+    if (perPageFilter !== '15') params.set('per_page', perPageFilter);
+    
+    setDateParam(params, 'date_from', range?.from);
+    setDateParam(params, 'date_to', range?.to);
+    
+    router.get(
+      `/cpanel/cms/article?${params.toString()}`,
+      {},
+      { preserveState: true, preserveScroll: true }
+    );
+  };
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    const params: Record<string, any> = {
-      search: value, 
-      status: statusFilter,
-      author: authorFilter,
-      headline: headlineFilter,
-      category: categoryFilter,
-      sort: sortFilter
-    };
-    
-    // Remove undefined, null, empty string, and 'all' values
-    Object.keys(params).forEach(key => {
-      if (params[key] === undefined || params[key] === null || params[key] === '' || params[key] === 'all') {
-        delete params[key];
-      }
-    });
+    const params = new URLSearchParams(window.location.search);
+    if (value) {
+      params.set('search', value);
+    } else {
+      params.delete('search');
+    }
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    if (authorFilter !== 'all') params.set('author', authorFilter);
+    if (headlineFilter !== 'all') params.set('headline', headlineFilter);
+    if (categoryFilter !== 'all') params.set('category', categoryFilter);
+    if (sortFilter !== 'all') params.set('sort', sortFilter);
+    setDateParam(params, 'date_from', dateRange.from);
+    setDateParam(params, 'date_to', dateRange.to);
+    if (perPageFilter !== '15') params.set('per_page', perPageFilter);
     
     router.get(
-      '/cpanel/cms/article',
-      params,
+      `/cpanel/cms/article?${params.toString()}`,
+      {},
       { preserveState: true, preserveScroll: true }
     );
   };
@@ -162,27 +192,20 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
         break;
     }
 
-    // Build params with current state values
-    const newFilters: Record<string, any> = {
-      search, 
-      status: filterType === 'status' ? value : statusFilter,
-      author: filterType === 'author' ? value : authorFilter,
-      headline: filterType === 'headline' ? value : headlineFilter,
-      category: filterType === 'category' ? value : categoryFilter,
-      sort: filterType === 'sort' ? value : sortFilter,
-      per_page: filterType === 'per_page' ? value : perPageFilter
-    };
-
-    // Remove undefined, null, empty string, and 'all' values
-    Object.keys(newFilters).forEach(key => {
-      if (newFilters[key] === undefined || newFilters[key] === null || newFilters[key] === '' || newFilters[key] === 'all') {
-        delete newFilters[key];
-      }
-    });
+    const params = new URLSearchParams(window.location.search);
+    if (search) params.set('search', search);
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    if (authorFilter !== 'all') params.set('author', authorFilter);
+    if (headlineFilter !== 'all') params.set('headline', headlineFilter);
+    if (categoryFilter !== 'all') params.set('category', categoryFilter);
+    if (sortFilter !== 'all') params.set('sort', sortFilter);
+    if (perPageFilter !== '15') params.set('per_page', perPageFilter);
+    setDateParam(params, 'date_from', dateRange.from);
+    setDateParam(params, 'date_to', dateRange.to);
 
     router.get(
-      '/cpanel/cms/article',
-      newFilters,
+      `/cpanel/cms/article?${params.toString()}`,
+      {},
       { preserveState: true, preserveScroll: true }
     );
   };
@@ -194,6 +217,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
     setHeadlineFilter('all');
     setCategoryFilter('all');
     setSortFilter('all');
+    setDateRange({ from: undefined, to: undefined });
     setPerPageFilter('15');
     
     router.get('/cpanel/cms/article', {}, { preserveState: true });
@@ -206,6 +230,8 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
     headlineFilter !== 'all' || 
     categoryFilter !== 'all' ||
     sortFilter !== 'all' ||
+    dateRange.from ||
+    dateRange.to ||
     perPageFilter !== '15';
 
   const handleDelete = (id: number) => {
@@ -251,29 +277,49 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
 
         <Card>
           <CardContent className='space-y-3'>
-            <div className="flex flex-col gap-2 mb-3">
-              <div className="flex gap-2">
-                <div className="flex flex-1 flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Cari Artikel</Label>
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input
-                      placeholder="Cari artikel..."
-                      value={search}
-                      onChange={(e) => handleSearch(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+
+            <div className="space-y-4 mb-4">
+              {/* Search */}
+              <div>
+                <Label className="text-xs font-medium text-gray-600 mb-1 block">
+                  Cari Artikel
+                </Label>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+
+                  <Input
+                    placeholder="Cari artikel..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
               </div>
-              
-              <div className="flex flex-wrap w-full gap-2 items-center">
-                <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Status</Label>
-                  <Select value={statusFilter} onValueChange={(value) => handleFilterChange('status', value)}>
-                    <SelectTrigger className="min-w-[235px]">
+
+              {/* Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+
+                <div className="space-y-1">
+                  <DateRangePicker
+                    value={dateRange}
+                    onChange={handleDateRangeChange}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Status
+                  </Label>
+
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(value) => handleFilterChange('status', value)}
+                  >
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
                       <SelectItem value="published">Diterbitkan</SelectItem>
@@ -282,36 +328,62 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Penulis</Label>
-                  <Select value={authorFilter} onValueChange={(value) => handleFilterChange('author', value)}>
-                    <SelectTrigger className="min-w-[235px]">
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Penulis
+                  </Label>
+
+                  <Select
+                    value={authorFilter}
+                    onValueChange={(value) => handleFilterChange('author', value)}
+                  >
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Penulis" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="all">Semua Penulis</SelectItem>
+
                       {authors.map((author) => (
-                        <SelectItem key={author.id} value={author.id.toString()}>
+                        <SelectItem
+                          key={author.id}
+                          value={author.id.toString()}
+                        >
                           {author.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Kategori</Label>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Kategori
+                  </Label>
+
                   <TreeSelect
                     data={blogCategories}
                     value={categoryFilter?.toString() || null}
-                    onChange={(val) => handleFilterChange('category', val || 'all')}
+                    onChange={(val) =>
+                      handleFilterChange('category', val || 'all')
+                    }
                   />
                 </div>
-                <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Headline</Label>
-                  <Select value={headlineFilter} onValueChange={(value) => handleFilterChange('headline', value)}>
-                    <SelectTrigger className="min-w-[235px]">
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Headline
+                  </Label>
+
+                  <Select
+                    value={headlineFilter}
+                    onValueChange={(value) => handleFilterChange('headline', value)}
+                  >
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Headline" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
                       <SelectItem value="true">Headline</SelectItem>
@@ -319,12 +391,20 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Urutkan</Label>
-                  <Select value={sortFilter} onValueChange={(value) => handleFilterChange('sort', value)}>
-                    <SelectTrigger className="min-w-[235px]">
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Urutkan
+                  </Label>
+
+                  <Select
+                    value={sortFilter}
+                    onValueChange={(value) => handleFilterChange('sort', value)}
+                  >
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Urutkan" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
                       <SelectItem value="newest">Terbaru</SelectItem>
@@ -335,15 +415,21 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                   </Select>
                 </div>
 
-                <div>
-                  <Label className="text-xs font-medium text-gray-600">Tampilkan</Label>
-                  <Select 
-                    value={perPageFilter} 
-                    onValueChange={(value) => handleFilterChange('per_page', value)}
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Tampilkan
+                  </Label>
+
+                  <Select
+                    value={perPageFilter}
+                    onValueChange={(value) =>
+                      handleFilterChange('per_page', value)
+                    }
                   >
-                    <SelectTrigger className="min-w-[120px]">
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Tampilkan" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="5">5</SelectItem>
                       <SelectItem value="10">10</SelectItem>
@@ -356,22 +442,20 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
                 </div>
 
                 {hasActiveFilters && (
-                    <div className="flex flex-col space-y-1">
-                      <Label className="text-xs font-medium text-gray-600">&nbsp;</Label>
-                      <Button 
-                        type="button" 
-                        size="sm"
-                        variant="destructive" 
-                        onClick={handleResetFilters}
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                        Reset
-                      </Button>
-                    </div>
+                  <div className="flex items-end">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="w-full"
+                      onClick={handleResetFilters}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Reset
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
-
             <Table>
               <TableHeader>
                 <TableRow>
@@ -516,32 +600,18 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
               </div>
             )}
 
-            {/* Pagination */}
             {articles.last_page > 1 && (
-              <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Menampilkan {articles.from} hingga {articles.to} dari {articles.total} hasil
-                </div>
-                <div className="flex gap-1">
-                  {articles.links.map((link, index) => (
-                    <Button
-                      key={index}
-                      variant={link.active ? 'default' : 'outline'}
-                      size="sm"
-                      disabled={!link.url}
-                      asChild={!!link.url}
-                    >
-                      {link.url ? (
-                        <Link href={link.url || '#'}>
-                          <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                        </Link>
-                      ) : (
-                        <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+              <Pagination
+                currentPage={articles.current_page}
+                totalPages={articles.last_page}
+                total={articles.total}
+                perPage={articles.per_page}
+                onPageChange={(page) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('page', page.toString());
+                  router.get(url.toString());
+                }}
+              />
             )}
           </CardContent>
         </Card>

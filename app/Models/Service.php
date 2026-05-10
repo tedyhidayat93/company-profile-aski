@@ -75,7 +75,6 @@ class Service extends Model
     public static function getAllForFooter()
     {
         return self::where('is_active', true)
-            ->orderBy('is_featured', 'desc')
             ->orderBy('sequence', 'asc')
             // ->orderBy('name', 'asc')
             ->get();

@@ -12,6 +12,9 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { formatDate } from '@/lib/utils';
+import DateRangePicker from '@/components/ui/date-range-picker';
+import { type DateRange } from 'react-day-picker';
+import { setDateParam } from '@/utils/date';
 import { 
   Plus, 
   Edit, 
@@ -22,7 +25,8 @@ import {
   ToggleLeft,
   ToggleRight,
   Star,
-  User
+  User,
+  MessageSquare
 } from 'lucide-react';
 
 interface Testimonial {
@@ -53,16 +57,29 @@ interface PaginatedTestimonials {
   };
 }
 
+interface Metrics {
+  total: number;
+  star_5: number;
+  star_4: number;
+  star_3: number;
+  star_2: number;
+  star_1: number;
+}
+
 interface Props {
   testimonials: PaginatedTestimonials;
+  metrics: Metrics;
   filters: {
     search?: string;
     public?: string;
     rating?: string;
+    date_from?: string;
+    date_to?: string;
+    sort?: string;
   };
 }
 
-export default function TestimonialIndex({ testimonials, filters }: Props) {
+export default function TestimonialIndex({ testimonials, metrics, filters }: Props) {
   const { props } = usePage();
   const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
   
@@ -81,29 +98,76 @@ export default function TestimonialIndex({ testimonials, filters }: Props) {
   const [search, setSearch] = React.useState(filters.search || '');
   const [publicFilter, setPublicFilter] = React.useState(filters.public || 'all');
   const [ratingFilter, setRatingFilter] = React.useState(filters.rating || 'all');
+  const [sortFilter, setSortFilter] = React.useState(filters.sort || 'sequence');
+  const [dateRange, setDateRange] = React.useState<DateRange>({
+    from: filters?.date_from ? new Date(filters.date_from) : undefined,
+    to: filters?.date_to ? new Date(filters.date_to) : undefined,
+  });
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    const params: { search?: string; public?: string; rating?: string } = { search: value };
-    if (publicFilter !== 'all') params.public = publicFilter;
-    if (ratingFilter !== 'all') params.rating = ratingFilter;
-    router.get('/cpanel/cms/testimonial', params, { preserveState: true });
+    const params = new URLSearchParams();
+    if (value) params.set('search', value);
+    if (publicFilter !== 'all') params.set('public', publicFilter);
+    if (ratingFilter !== 'all') params.set('rating', ratingFilter);
+    if (sortFilter !== 'sequence') params.set('sort', sortFilter);
+    setDateParam(params, 'date_from', dateRange.from);
+    setDateParam(params, 'date_to', dateRange.to);
+    
+    router.get('/cpanel/cms/testimonial', Object.fromEntries(params.entries()), { preserveState: true });
+  };
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range || { from: undefined, to: undefined });
+    
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (publicFilter !== 'all') params.set('public', publicFilter);
+    if (ratingFilter !== 'all') params.set('rating', ratingFilter);
+    if (sortFilter !== 'sequence') params.set('sort', sortFilter);
+    setDateParam(params, 'date_from', range?.from);
+    setDateParam(params, 'date_to', range?.to);
+    
+    router.get('/cpanel/cms/testimonial', Object.fromEntries(params.entries()), { preserveState: true });
   };
 
   const handlePublicFilter = (value: string) => {
     setPublicFilter(value);
-    const params: { search?: string; public?: string; rating?: string } = { search: search };
-    if (value !== 'all') params.public = value;
-    if (ratingFilter !== 'all') params.rating = ratingFilter;
-    router.get('/cpanel/cms/testimonial', params, { preserveState: true });
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (value !== 'all') params.set('public', value);
+    if (ratingFilter !== 'all') params.set('rating', ratingFilter);
+    if (sortFilter !== 'sequence') params.set('sort', sortFilter);
+    setDateParam(params, 'date_from', dateRange.from);
+    setDateParam(params, 'date_to', dateRange.to);
+    
+    router.get('/cpanel/cms/testimonial', Object.fromEntries(params.entries()), { preserveState: true });
   };
 
   const handleRatingFilter = (value: string) => {
     setRatingFilter(value);
-    const params: { search?: string; public?: string; rating?: string } = { search: search };
-    if (publicFilter !== 'all') params.public = publicFilter;
-    if (value !== 'all') params.rating = value;
-    router.get('/cpanel/cms/testimonial', params, { preserveState: true });
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (publicFilter !== 'all') params.set('public', publicFilter);
+    if (value !== 'all') params.set('rating', value);
+    if (sortFilter !== 'sequence') params.set('sort', sortFilter);
+    setDateParam(params, 'date_from', dateRange.from);
+    setDateParam(params, 'date_to', dateRange.to);
+    
+    router.get('/cpanel/cms/testimonial', Object.fromEntries(params.entries()), { preserveState: true });
+  };
+
+  const handleSortFilter = (value: string) => {
+    setSortFilter(value);
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (publicFilter !== 'all') params.set('public', publicFilter);
+    if (ratingFilter !== 'all') params.set('rating', ratingFilter);
+    if (value !== 'sequence') params.set('sort', value);
+    setDateParam(params, 'date_from', dateRange.from);
+    setDateParam(params, 'date_to', dateRange.to);
+    
+    router.get('/cpanel/cms/testimonial', Object.fromEntries(params.entries()), { preserveState: true });
   };
 
   const handleToggleStatus = (id: number) => {
@@ -152,44 +216,215 @@ export default function TestimonialIndex({ testimonials, filters }: Props) {
             </Button>
           </Link>
         </HeaderTitle>
+      
+        {/* metric testimonial */}
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+          {/* Total */}
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-slate-500 to-slate-800">
+            <CardContent>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-medium text-slate-100 uppercase tracking-wide">
+                    Total
+                  </p>
+
+                  <h3 className="text-3xl font-black text-slate-50 mt-1">
+                    {metrics.total}
+                  </h3>
+
+                  <p className="text-xs text-slate-100 mt-1">
+                    Total Testimonial
+                  </p>
+                </div>
+
+                <div className="h-11 w-11 rounded-2xl bg-slate-500/10 flex items-center justify-center">
+                  <MessageSquare className="h-5 w-5 text-slate-50" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {[
+            {
+              label: "5 Bintang",
+              value: metrics.star_5,
+              stars: 5,
+              bg: "from-orange-200 to-orange-100",
+              text: "text-orange-800",
+              icon: "text-orange-600",
+            },
+            {
+              label: "4 Bintang",
+              value: metrics.star_4,
+              stars: 4,
+              bg: "from-amber-200 to-amber-100",
+              text: "text-amber-800",
+              icon: "text-amber-500",
+            },
+            {
+              label: "3 Bintang",
+              value: metrics.star_3,
+              stars: 3,
+              bg: "from-yellow-200 to-yellow-100",
+              text: "text-yellow-800",
+              icon: "text-yellow-500",
+            },
+            {
+              label: "2 Bintang",
+              value: metrics.star_2,
+              stars: 2,
+              bg: "from-yellow-200 to-yellow-100",
+              text: "text-yellow-800",
+              icon: "text-yellow-500",
+            },
+            {
+              label: "1 Bintang",
+              value: metrics.star_1,
+              stars: 1,
+              bg: "from-gray-200 to-gray-100",
+              text: "text-gray-700",
+              icon: "text-gray-500",
+            },
+          ].map((item) => (
+            <Card
+              key={item.label}
+              className={`border-0 shadow-sm bg-gradient-to-br ${item.bg}`}
+            >
+              <CardContent>
+                <div className="flex items-start justify-between">
+
+                  <div>
+                    <div className="flex gap-0.5 mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-3.5 w-3.5 ${
+                            i < item.stars
+                              ? `${item.icon} fill-current`
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+
+                    <h3 className={`text-3xl font-black ${item.text}`}>
+                      {item.value}
+                    </h3>
+
+                    <p className={`text-xs mt-1 ${item.text}`}>
+                      {item.label}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`h-10 w-10 rounded-2xl bg-white/60 flex items-center justify-center`}
+                  >
+                    <Star className={`h-4 w-4 ${item.icon} fill-current`} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
         <Card>
           <CardContent>
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Cari testimonial..."
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 items-end mb-4">
+              {/* Search */}
+              <div className="space-y-1 xl:col-span-5">
+                <label className="text-xs font-medium text-gray-600">
+                  Cari Testimonial
+                </label>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+
+                  <Input
+                    placeholder="Cari testimonial..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Status
+                </label>
+
+                <Select
+                  value={publicFilter}
+                  onValueChange={handlePublicFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filter Status" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="true">Ditampilkan</SelectItem>
+                    <SelectItem value="false">Disembunyikan</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Rating */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Rating
+                </label>
+
+                <Select
+                  value={ratingFilter}
+                  onValueChange={handleRatingFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filter Rating" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">Semua Rating</SelectItem>
+                    <SelectItem value="5">5 Bintang</SelectItem>
+                    <SelectItem value="4">4 Bintang</SelectItem>
+                    <SelectItem value="3">3 Bintang</SelectItem>
+                    <SelectItem value="2">2 Bintang</SelectItem>
+                    <SelectItem value="1">1 Bintang</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Sort */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Urutkan
+                </label>
+
+                <Select
+                  value={sortFilter}
+                  onValueChange={handleSortFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Urutkan" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="sequence">Urutan Default</SelectItem>
+                    <SelectItem value="newest">Terbaru</SelectItem>
+                    <SelectItem value="oldest">Terlama</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Date Range */}
+              <div className="space-y-1 md:col-span-2 xl:col-span-2">
+                <DateRangePicker
+                  value={dateRange}
+                  onChange={handleDateRangeChange}
+                  className="w-full"
                 />
               </div>
-              
-              <Select value={publicFilter} onValueChange={handlePublicFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="true">Ditampilkan</SelectItem>
-                  <SelectItem value="false">Disembunyikan</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={ratingFilter} onValueChange={handleRatingFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter Rating" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Rating</SelectItem>
-                  <SelectItem value="5">5 Bintang</SelectItem>
-                  <SelectItem value="4">4 Bintang</SelectItem>
-                  <SelectItem value="3">3 Bintang</SelectItem>
-                  <SelectItem value="2">2 Bintang</SelectItem>
-                  <SelectItem value="1">1 Bintang</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <Table>
@@ -312,33 +547,17 @@ export default function TestimonialIndex({ testimonials, filters }: Props) {
             )}
 
             {testimonials.last_page > 1 && (
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="text-sm text-gray-700">
-                  Showing {((testimonials.current_page - 1) * testimonials.per_page) + 1} to{' '}
-                  {Math.min(testimonials.current_page * testimonials.per_page, testimonials.total)} of{' '}
-                  {testimonials.total} results
-                </div>
-                <div className="flex space-x-2">
-                  {testimonials.links.prev && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(testimonials.links.prev || '')}
-                    >
-                      Previous
-                    </Button>
-                  )}
-                  {testimonials.links.next && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.get(testimonials.links.next || '')}
-                    >
-                      Next
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <Pagination
+                currentPage={testimonials.current_page}
+                totalPages={testimonials.last_page}
+                total={testimonials.total}
+                perPage={testimonials.per_page}
+                onPageChange={(page: number) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('page', page.toString());
+                  router.get(url.toString());
+                }}
+              />
             )}
           </CardContent>
         </Card>

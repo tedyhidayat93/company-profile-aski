@@ -26,13 +26,53 @@ class TestimonialController extends Controller
             ->when($request->rating, function ($query, $rating) {
                 return $query->where('rate_star', $rating);
             })
-            ->orderBy('sequence', 'asc')
-            ->orderBy('created_at', 'desc')
+            ->when($request->date_from, function ($query, $dateFrom) {
+                return $query->whereDate('created_at', '>=', $dateFrom);
+            })
+            ->when($request->date_to, function ($query, $dateTo) {
+                return $query->whereDate('created_at', '<=', $dateTo);
+            })
+            ->when($request->sort, function ($query, $sort) {
+                switch ($sort) {
+                    case 'newest':
+                        return $query->orderBy('created_at', 'desc');
+                    case 'oldest':
+                        return $query->orderBy('created_at', 'asc');
+                    default:
+                        return $query->orderBy('created_at', 'desc');
+                }
+            }, function ($query) {
+                // Default sorting if no sort is specified
+                return $query->orderBy('sequence', 'asc')->orderBy('created_at', 'desc');
+            })
             ->paginate(10);
+
+        // Get metrics
+        $totalTestimonials = Testimonial::count();
+        $starRatings = Testimonial::selectRaw('rate_star, COUNT(*) as count')
+            ->groupBy('rate_star')
+            ->orderBy('rate_star', 'desc')
+            ->pluck('count', 'rate_star')
+            ->toArray();
 
         return Inertia::render('backpanel/testimonial/index', [
             'testimonials' => $testimonials,
-            'filters' => $request->only(['search', 'public', 'rating'])
+            'metrics' => [
+                'total' => $totalTestimonials,
+                'star_5' => $starRatings[5] ?? 0,
+                'star_4' => $starRatings[4] ?? 0,
+                'star_3' => $starRatings[3] ?? 0,
+                'star_2' => $starRatings[2] ?? 0,
+                'star_1' => $starRatings[1] ?? 0,
+            ],
+            'filters' => [
+                'search' => $request->search ?? '',
+                'public' => $request->public ?? 'all',
+                'rating' => $request->rating ?? 'all',
+                'date_from' => $request->date_from ?? '',
+                'date_to' => $request->date_to ?? '',
+                'sort' => $request->sort ?? 'sequence'
+            ]
         ]);
     }
 

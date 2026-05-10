@@ -209,52 +209,103 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
 
         <Card>
           <CardContent>
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search services..."
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 items-end mb-4">
+
+              {/* Search */}
+              <div className="space-y-1 xl:col-span-2">
+                <label className="text-xs font-medium text-gray-600">
+                  Cari
+                </label>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+
+                  <Input
+                    placeholder="Cari layanan..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-              <Select value={activeFilter} onValueChange={handleActiveFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="true">Aktif</SelectItem>
-                  <SelectItem value="false">Tidak Aktif</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={featuredFilter} onValueChange={handleFeaturedFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <Star className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Featured" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="true">Unggulan</SelectItem>
-                  <SelectItem value="false">Bukan Unggulan</SelectItem>
-                </SelectContent>
-              </Select>
-              {/* <Select value={categoryFilter} onValueChange={handleCategoryFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <Package className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id.toString()}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select> */}
+
+              {/* Status */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Status
+                </label>
+
+                <Select
+                  value={activeFilter}
+                  onValueChange={handleActiveFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="true">Aktif</SelectItem>
+                    <SelectItem value="false">Tidak Aktif</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Featured */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Unggulan
+                </label>
+
+                <Select
+                  value={featuredFilter}
+                  onValueChange={handleFeaturedFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <Star className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Unggulan" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">Semua</SelectItem>
+                    <SelectItem value="true">Unggulan</SelectItem>
+                    <SelectItem value="false">Bukan Unggulan</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Category */}
+              {/* 
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-gray-600">
+                  Kategori
+                </label>
+
+                <Select
+                  value={categoryFilter}
+                  onValueChange={handleCategoryFilter}
+                >
+                  <SelectTrigger className="w-full">
+                    <Package className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Kategori" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="all">Semua Kategori</SelectItem>
+
+                    {categories.map((category) => (
+                      <SelectItem
+                        key={category.id}
+                        value={category.id.toString()}
+                      >
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              */}
             </div>
 
             <Table>

@@ -68,6 +68,12 @@ class ProductController extends Controller
             ->when($request->filled('bestseller'), function ($query) use ($request) {
                 return $query->where('is_bestseller', $request->bestseller === 'true');
             })
+            ->when($request->date_from, function ($query, $dateFrom) {
+                return $query->whereDate('created_at', '>=', $dateFrom);
+            })
+            ->when($request->date_to, function ($query, $dateTo) {
+                return $query->whereDate('created_at', '<=', $dateTo);
+            })
             ->when($request->sort, function ($query, $sort) {
                 switch ($sort) {
                     case 'newest':

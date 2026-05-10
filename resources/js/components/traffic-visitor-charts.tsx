@@ -65,10 +65,10 @@ export default function TrafficVisitorCharts({
         <div className="absolute -top-20 -right-20 w-60 h-60 bg-blue-500/10 blur-3xl rounded-full" />
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 relative z-10">
+        <div className="flex flex-col md:flex-row gap-2 items-center justify-between mb-6 relative z-10">
           <div>
             <h2 className="text-xl font-bold text-slate-800">
-              Traffic Visitors
+              Trafik Kunjungan Situs
             </h2>
             <p className="text-xs text-slate-400">
               Monitoring pengunjung secara realtime

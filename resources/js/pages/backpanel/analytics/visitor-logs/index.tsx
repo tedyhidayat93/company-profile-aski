@@ -8,11 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Pagination } from '@/components/ui/pagination-custom';
 import HeadingSmall from '@/components/heading-small';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { formatDate } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
+import DateRangePicker from '@/components/ui/date-range-picker';
+import { type DateRange } from 'react-day-picker';
+import { setDateParam } from '@/utils/date';
 import { 
   Search, 
   Filter, 
@@ -127,6 +131,11 @@ const getActionColor = (action: string) => {
 };
 
 export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Props) {
+  const [dateRange, setDateRange] = React.useState<DateRange>({
+    from: filters.date_from ? new Date(filters.date_from) : undefined,
+    to: filters.date_to ? new Date(filters.date_to) : undefined,
+  });
+
   const { data, setData, processing } = useForm({
     search: filters.search || '',
     device: filters.device || '',
@@ -138,7 +147,16 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
 
   const handleFilter = (e: React.FormEvent) => {
     e.preventDefault();
-    router.get('/cpanel/analytics/visitor-logs', data, {
+    
+    const params = new URLSearchParams();
+    if (data.search) params.set('search', data.search);
+    if (data.device && data.device !== 'all') params.set('device', data.device);
+    if (data.action && data.action !== 'all') params.set('action', data.action);
+    setDateParam(params, 'date_from', dateRange.from);
+    setDateParam(params, 'date_to', dateRange.to);
+    if (data.per_page && data.per_page !== '50') params.set('per_page', data.per_page);
+    
+    router.get(`/cpanel/analytics/visitor-logs?${params.toString()}`, {}, {
       preserveState: true,
       preserveScroll: true,
     });
@@ -153,6 +171,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
       date_to: '',
       per_page: '50',
     });
+    setDateRange({ from: undefined, to: undefined });
     router.get('/cpanel/analytics/visitor-logs', {}, {
       preserveState: true,
       preserveScroll: true,
@@ -301,27 +320,15 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                       </Select>
                     </div>
 
-                    <div>
-                      <Label htmlFor="date_from">Tanggal Dari</Label>
-                      <Input
-                        id="date_from"
-                        type="date"
-                        value={data.date_from}
-                        onChange={(e) => setData('date_from', e.target.value)}
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="date_to">Tanggal Sampai</Label>
-                      <Input
-                        id="date_to"
-                        type="date"
-                        value={data.date_to}
-                        onChange={(e) => setData('date_to', e.target.value)}
-                        className="mt-1"
-                      />
-                    </div>
+                    <DateRangePicker
+                      value={dateRange}
+                      onChange={(range) => {
+                        setDateRange(range || { from: undefined, to: undefined });
+                        setData('date_from', range?.from ? range.from.toISOString().split('T')[0] : '');
+                        setData('date_to', range?.to ? range.to.toISOString().split('T')[0] : '');
+                      }}
+                      className="col-span-2"
+                    />
                     <div>
                       <Label htmlFor="per_page">Per Halaman</Label>
                       <Select value={data.per_page} onValueChange={(value) => setData('per_page', value)}>
@@ -431,32 +438,18 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
               </Table>
             </div>
 
-            {/* Pagination */}
             {visitorLogs.last_page > 1 && (
-              <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Menampilkan {visitorLogs.from} hingga {visitorLogs.to} dari {visitorLogs.total} hasil
-                </div>
-                <div className="flex gap-1">
-                  {visitorLogs.links.map((link, index) => (
-                    <Button
-                      key={index}
-                      variant={link.active ? 'default' : 'outline'}
-                      size="sm"
-                      disabled={!link.url}
-                      asChild={!!link.url}
-                    >
-                      {link.url ? (
-                        <Link href={link.url || '#'}>
-                          <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                        </Link>
-                      ) : (
-                        <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+              <Pagination
+                currentPage={visitorLogs.current_page}
+                totalPages={visitorLogs.last_page}
+                total={visitorLogs.total}
+                perPage={visitorLogs.per_page}
+                onPageChange={(page: number) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('page', page.toString());
+                  router.get(url.toString());
+                }}
+              />
             )}
           </CardContent>
         </Card>

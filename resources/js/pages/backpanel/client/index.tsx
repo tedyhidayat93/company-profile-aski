@@ -143,168 +143,188 @@ export default function ClientIndex({ clients, filters }: Props) {
 
             <Card>
                 <CardContent>
-                <div className="flex items-center space-x-4 mb-4">
-                    <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input
-                        placeholder="Search clients..."
-                        value={search}
-                        onChange={(e) => handleSearch(e.target.value)}
-                        className="pl-10"
-                    />
-                    </div>
-                    <Select value={activeFilter} onValueChange={handleActiveFilter}>
-                    <SelectTrigger className="w-[140px]">
-                        <Filter className="mr-2 h-4 w-4" />
-                        <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Semua Status</SelectItem>
-                        <SelectItem value="true">Aktif</SelectItem>
-                        <SelectItem value="false">Tidak Aktif</SelectItem>
-                    </SelectContent>
-                    </Select>
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end mb-4">
+                        {/* Search */}
+                        <div className="space-y-1 md:col-span-2">
+                            <label className="text-xs font-medium text-gray-600">
+                            Cari
+                            </label>
 
-                <Table>
-                    <TableHeader>
-                    <TableRow>
-                        <TableHead className="w-[80px]">Gambar</TableHead>
-                        <TableHead>Nama</TableHead>
-                        <TableHead>Kontak</TableHead>
-                        <TableHead>PIC</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Dibuat</TableHead>
-                        <TableHead className="text-right">Aksi</TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {clients.data.map((client) => (
-                        <TableRow key={client.id}>
-                        <TableCell>
-                            {client.image ? (
-                            <img
-                                src={`/storage/clients/${client.image}`}
-                                alt={client.name}
-                                onError={handleImageError}
-                                className="h-12 w-12 object-cover rounded-md"
+                            <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+
+                            <Input
+                                placeholder="Cari client..."
+                                value={search}
+                                onChange={(e) => handleSearch(e.target.value)}
+                                className="pl-10"
                             />
-                            ) : (
-                            <div className="h-12 w-12 bg-gray-100 rounded-md flex items-center justify-center">
-                                <ImageIcon className="h-6 w-6 text-gray-400" />
                             </div>
-                            )}
-                        </TableCell>
-                        <TableCell>
-                            <div>
-                            <div className="font-medium">
-                                <Link 
-                                    href={`/cpanel/cms/client/${client.id}`}
-                                    className="hover:text-blue-600"
-                                >
-                                    {client.name}
-                                </Link>
-                            </div>
-                            {client.website && (
-                                <div className="text-sm text-gray-500 flex items-center">
-                                <Globe className="h-3 w-3 mr-1" />
-                                <a 
-                                    href={client.website} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="hover:text-blue-600"
-                                >
-                                    {client.website}
-                                </a>
-                                </div>
-                            )}
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <div className="space-y-1">
-                            {client.email && (
-                                <div className="text-sm text-gray-600 flex items-center">
-                                <Mail className="h-3 w-3 mr-1" />
-                                {client.email}
-                                </div>
-                            )}
-                            {client.phone && (
-                                <div className="text-sm text-gray-600 flex items-center">
-                                <Phone className="h-3 w-3 mr-1" />
-                                {client.phone}
-                                </div>
-                            )}
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <div className="text-sm text-gray-600">
-                            {client.pic || '-'}
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            {client.is_active ? (
-                            <Badge variant="default" className="bg-green-100 text-green-800">Aktif</Badge>
-                            ) : (
-                            <Badge variant="secondary">Tidak Aktif</Badge>
-                            )}
-                        </TableCell>
-                        <TableCell>
-                            <div className="text-sm text-gray-600">
-                            {formatDate(client.created_at)}
-                            </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                <Link href={`/cpanel/cms/client/${client.id}`}>
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    View
-                                </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                <Link href={`/cpanel/cms/client/edit/${client.id}`}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Edit
-                                </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                onClick={() => handleDelete(client.id)}
-                                className="text-red-600"
-                                >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Hapus
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                        </TableRow>
-                    ))}
-                    </TableBody>
-                </Table>
+                        </div>
 
-                {clients.data.length === 0 && (
-                    <div className="text-center py-8">
-                        <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-semibold text-gray-900">Tidak ada klien</h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                            Mulai dengan membuat klien baru.
-                        </p>
-                        <div className="mt-6">
-                            <Link href="/cpanel/cms/client/create">
-                                <Button>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Tambah Klien
-                                </Button>
-                            </Link>
+                        {/* Status */}
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium text-gray-600">
+                            Status
+                            </label>
+
+                            <Select
+                            value={activeFilter}
+                            onValueChange={handleActiveFilter}
+                            >
+                            <SelectTrigger className="w-full">
+                                <Filter className="mr-2 h-4 w-4" />
+                                <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                <SelectItem value="all">Semua Status</SelectItem>
+                                <SelectItem value="true">Aktif</SelectItem>
+                                <SelectItem value="false">Tidak Aktif</SelectItem>
+                            </SelectContent>
+                            </Select>
                         </div>
                     </div>
-                )}
+
+                    <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[80px]">Gambar</TableHead>
+                            <TableHead>Nama</TableHead>
+                            <TableHead>Kontak</TableHead>
+                            <TableHead>PIC</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Dibuat</TableHead>
+                            <TableHead className="text-right">Aksi</TableHead>
+                        </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        {clients.data.map((client) => (
+                            <TableRow key={client.id}>
+                            <TableCell>
+                                {client.image ? (
+                                <img
+                                    src={`/storage/clients/${client.image}`}
+                                    alt={client.name}
+                                    onError={handleImageError}
+                                    className="h-12 w-12 object-cover rounded-md"
+                                />
+                                ) : (
+                                <div className="h-12 w-12 bg-gray-100 rounded-md flex items-center justify-center">
+                                    <ImageIcon className="h-6 w-6 text-gray-400" />
+                                </div>
+                                )}
+                            </TableCell>
+                            <TableCell>
+                                <div>
+                                <div className="font-medium">
+                                    <Link 
+                                        href={`/cpanel/cms/client/${client.id}`}
+                                        className="hover:text-blue-600"
+                                    >
+                                        {client.name}
+                                    </Link>
+                                </div>
+                                {client.website && (
+                                    <div className="text-sm text-gray-500 flex items-center">
+                                    <Globe className="h-3 w-3 mr-1" />
+                                    <a 
+                                        href={client.website} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="hover:text-blue-600"
+                                    >
+                                        {client.website}
+                                    </a>
+                                    </div>
+                                )}
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="space-y-1">
+                                {client.email && (
+                                    <div className="text-sm text-gray-600 flex items-center">
+                                    <Mail className="h-3 w-3 mr-1" />
+                                    {client.email}
+                                    </div>
+                                )}
+                                {client.phone && (
+                                    <div className="text-sm text-gray-600 flex items-center">
+                                    <Phone className="h-3 w-3 mr-1" />
+                                    {client.phone}
+                                    </div>
+                                )}
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="text-sm text-gray-600">
+                                {client.pic || '-'}
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                {client.is_active ? (
+                                <Badge variant="default" className="bg-green-100 text-green-800">Aktif</Badge>
+                                ) : (
+                                <Badge variant="secondary">Tidak Aktif</Badge>
+                                )}
+                            </TableCell>
+                            <TableCell>
+                                <div className="text-sm text-gray-600">
+                                {formatDate(client.created_at)}
+                                </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem asChild>
+                                    <Link href={`/cpanel/cms/client/${client.id}`}>
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        View
+                                    </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                    <Link href={`/cpanel/cms/client/edit/${client.id}`}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        Edit
+                                    </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                    onClick={() => handleDelete(client.id)}
+                                    className="text-red-600"
+                                    >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Hapus
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
+                            </TableRow>
+                        ))}
+                        </TableBody>
+                    </Table>
+
+                    {clients.data.length === 0 && (
+                        <div className="text-center py-8">
+                            <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                            <h3 className="mt-2 text-sm font-semibold text-gray-900">Tidak ada klien</h3>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Mulai dengan membuat klien baru.
+                            </p>
+                            <div className="mt-6">
+                                <Link href="/cpanel/cms/client/create">
+                                    <Button>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Tambah Klien
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

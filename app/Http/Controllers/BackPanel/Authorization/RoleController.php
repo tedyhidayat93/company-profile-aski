@@ -172,7 +172,7 @@ class RoleController extends Controller
         
         $role = Role::findOrFail($id);
         $role->load('permissions');
-        $permissions = Permission::orderBy('name')->get()->groupBy(function ($permission) {
+        $permissions = Permission::get()->groupBy(function ($permission) {
             $parts = explode('-', $permission->name);
             return ucfirst($parts[0] ?? 'General');
         });

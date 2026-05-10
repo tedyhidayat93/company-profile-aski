@@ -12,6 +12,9 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { Product, type BreadcrumbItem } from '@/types';
 import { formatPrice } from '@/utils/currency';
+import DateRangePicker from '@/components/ui/date-range-picker';
+import { type DateRange } from 'react-day-picker';
+import { setDateParam } from '@/utils/date';
 import { 
   Plus, 
   Edit, 
@@ -57,6 +60,8 @@ interface Props {
     bestseller?: string;
     sort?: string;
     per_page?: string;
+    date_from?: string;
+    date_to?: string;
   };
 }
 
@@ -83,22 +88,16 @@ export default function ProductIndex({ products, brands, categories, filters }: 
   const [featuredFilter, setFeaturedFilter] = React.useState(filters?.featured ?? 'all');
   const [bestsellerFilter, setBestsellerFilter] = React.useState(filters?.bestseller ?? 'all');
   const [sortFilter, setSortFilter] = React.useState(filters?.sort ?? 'newest');
+  const [dateRange, setDateRange] = React.useState<DateRange>({
+    from: filters?.date_from ? new Date(filters.date_from) : undefined,
+    to: filters?.date_to ? new Date(filters.date_to) : undefined,
+  });
   const [perPageFilter, setPerPageFilter] = React.useState(filters?.per_page ?? '10');
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    const params: { 
-      search?: string; 
-      type_sell?: string; 
-      brand?: string; 
-      category?: string; 
-      status?: string; 
-      featured?: string; 
-      bestseller?: string;
-      sort?: string;
-      per_page?: string;
-    } = { search: value };
-    
+    const params: Record<string, any> = {};
+    if (value) params.search = value;
     if (typeFilter !== 'all') params.type_sell = typeFilter;
     if (brandFilter !== 'all') params.brand = brandFilter;
     if (categoryFilter !== 'all') params.category = categoryFilter;
@@ -106,6 +105,27 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     if (featuredFilter !== 'all') params.featured = featuredFilter;
     if (bestsellerFilter !== 'all') params.bestseller = bestsellerFilter;
     if (sortFilter !== 'newest') params.sort = sortFilter;
+    if (dateRange.from) params.date_from = dateRange.from.toISOString().split('T')[0];
+    if (dateRange.to) params.date_to = dateRange.to.toISOString().split('T')[0];
+    if (perPageFilter !== '10') params.per_page = perPageFilter;
+    
+    router.get('/cpanel/cms/product', params, { preserveState: true });
+  };
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range || { from: undefined, to: undefined });
+    
+    const params: Record<string, any> = {};
+    if (search) params.search = search;
+    if (typeFilter !== 'all') params.type_sell = typeFilter;
+    if (brandFilter !== 'all') params.brand = brandFilter;
+    if (categoryFilter !== 'all') params.category = categoryFilter;
+    if (statusFilter !== 'all') params.status = statusFilter;
+    if (featuredFilter !== 'all') params.featured = featuredFilter;
+    if (bestsellerFilter !== 'all') params.bestseller = bestsellerFilter;
+    if (sortFilter !== 'newest') params.sort = sortFilter;
+    if (range?.from) params.date_from = range.from.toISOString().split('T')[0];
+    if (range?.to) params.date_to = range.to.toISOString().split('T')[0];
     if (perPageFilter !== '10') params.per_page = perPageFilter;
     
     router.get('/cpanel/cms/product', params, { preserveState: true });
@@ -113,18 +133,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
 
   const handleTypeFilter = (value: string) => {
     setTypeFilter(value);
-    const params: { 
-      search?: string; 
-      type_sell?: string; 
-      brand?: string; 
-      category?: string; 
-      status?: string; 
-      featured?: string; 
-      bestseller?: string;
-      sort?: string;
-      per_page?: string;
-    } = { search: search };
-    
+    const params: Record<string, any> = {};
+    if (search) params.search = search;
     if (value !== 'all') params.type_sell = value;
     if (brandFilter !== 'all') params.brand = brandFilter;
     if (categoryFilter !== 'all') params.category = categoryFilter;
@@ -132,6 +142,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     if (featuredFilter !== 'all') params.featured = featuredFilter;
     if (bestsellerFilter !== 'all') params.bestseller = bestsellerFilter;
     if (sortFilter !== 'newest') params.sort = sortFilter;
+    if (dateRange.from) params.date_from = dateRange.from.toISOString().split('T')[0];
+    if (dateRange.to) params.date_to = dateRange.to.toISOString().split('T')[0];
     if (perPageFilter !== '10') params.per_page = perPageFilter;
     
     router.get('/cpanel/cms/product', params, { preserveState: true });
@@ -334,6 +346,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     setFeaturedFilter('all');
     setBestsellerFilter('all');
     setSortFilter('newest');
+    setDateRange({ from: undefined, to: undefined });
     setPerPageFilter('10');
     
     router.get('/cpanel/cms/product', {}, { preserveState: true });
@@ -347,7 +360,9 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     statusFilter !== 'all' || 
     featuredFilter !== 'all' || 
     bestsellerFilter !== 'all' ||
-    sortFilter !== 'newest';
+    sortFilter !== 'newest' ||
+    dateRange.from ||
+    dateRange.to;
 
   const handleToggleStatus = (id: number) => {
     router.patch(`/cpanel/cms/product/${id}/toggle-status`);
@@ -390,29 +405,48 @@ export default function ProductIndex({ products, brands, categories, filters }: 
         <Card>
           <CardContent>
 
-            <div className="flex flex-col gap-2 mb-3">
-              <div className="flex gap-2">
-                <div className="flex flex-1 flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Cari Produk</Label>
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input
-                      placeholder="Cari produk..."
-                      value={search}
-                      onChange={(e) => handleSearch(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+            <div className="space-y-4 mb-4">
+
+              {/* Search */}
+              <div>
+                <Label className="text-xs font-medium text-gray-600 mb-1 block">
+                  Cari Produk
+                </Label>
+
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+
+                  <Input
+                    placeholder="Cari produk..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
               </div>
-              
-              <div className="flex flex-wrap gap-2 items-center">
-                <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Tipe Jual</Label>
+
+              {/* Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+
+                {/* Date Range */}
+                <div className="space-y-1 xl:col-span-2">
+                  <DateRangePicker
+                    value={dateRange}
+                    onChange={handleDateRangeChange}
+                  />
+                </div>
+
+                {/* Tipe Jual */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Tipe Jual
+                  </Label>
+
                   <Select value={typeFilter} onValueChange={handleTypeFilter}>
-                    <SelectTrigger className="min-w-[190px]">
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Tipe" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
                       <SelectItem value="sell">Hanya Jual</SelectItem>
@@ -422,16 +456,25 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                   </Select>
                 </div>
 
-                <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Merek</Label>
+                {/* Merek */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Merek
+                  </Label>
+
                   <Select value={brandFilter} onValueChange={handleBrandFilter}>
-                    <SelectTrigger className="min-w-[190px]">
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Merek" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
+
                       {brands.map((brand) => (
-                        <SelectItem key={brand.id} value={brand.id.toString()}>
+                        <SelectItem
+                          key={brand.id}
+                          value={brand.id.toString()}
+                        >
                           {brand.name}
                         </SelectItem>
                       ))}
@@ -439,16 +482,28 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                   </Select>
                 </div>
 
-                <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Kategori</Label>
-                  <Select value={categoryFilter} onValueChange={handleCategoryFilter}>
-                    <SelectTrigger className="min-w-[190px]">
+                {/* Kategori */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Kategori
+                  </Label>
+
+                  <Select
+                    value={categoryFilter}
+                    onValueChange={handleCategoryFilter}
+                  >
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Kategori" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
+
                       {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
+                        <SelectItem
+                          key={category.id}
+                          value={category.id.toString()}
+                        >
                           {category.name}
                         </SelectItem>
                       ))}
@@ -456,12 +511,17 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                   </Select>
                 </div>
 
-                <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Status</Label>
+                {/* Status */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Status
+                  </Label>
+
                   <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                    <SelectTrigger className="min-w-[190px]">
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
                       <SelectItem value="published">Diterbitkan</SelectItem>
@@ -470,12 +530,20 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                   </Select>
                 </div>
 
-                <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Unggulan</Label>
-                  <Select value={featuredFilter} onValueChange={handleFeaturedFilter}>
-                    <SelectTrigger className="min-w-[190px]">
+                {/* Unggulan */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Unggulan
+                  </Label>
+
+                  <Select
+                    value={featuredFilter}
+                    onValueChange={handleFeaturedFilter}
+                  >
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Unggulan" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
                       <SelectItem value="true">Unggulan</SelectItem>
@@ -484,12 +552,20 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                   </Select>
                 </div>
 
-                <div className="flex flex-col space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">Terlaris</Label>
-                  <Select value={bestsellerFilter} onValueChange={handleBestsellerFilter}>
-                    <SelectTrigger className="min-w-[190px]">
+                {/* Terlaris */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Terlaris
+                  </Label>
+
+                  <Select
+                    value={bestsellerFilter}
+                    onValueChange={handleBestsellerFilter}
+                  >
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Terlaris" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
                       <SelectItem value="true">Terlaris</SelectItem>
@@ -498,35 +574,49 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                   </Select>
                 </div>
 
-                <div>
-                  <Label className="text-xs font-medium text-gray-600">Urutkan</Label>
-                  <Select 
-                    value={sortFilter} 
+                {/* Sort */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Urutkan
+                  </Label>
+
+                  <Select
+                    value={sortFilter}
                     onValueChange={handleSortFilter}
                   >
-                    <SelectTrigger className="min-w-[190px]">
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Urutkan" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="newest">Terbaru</SelectItem>
                       <SelectItem value="oldest">Terlama</SelectItem>
-                      <SelectItem value="most_viewed">Paling Banyak Dilihat</SelectItem>
-                      <SelectItem value="least_viewed">Paling Sedikit Dilihat</SelectItem>
+                      <SelectItem value="most_viewed">
+                        Paling Banyak Dilihat
+                      </SelectItem>
+                      <SelectItem value="least_viewed">
+                        Paling Sedikit Dilihat
+                      </SelectItem>
                       <SelectItem value="name_asc">Nama (A-Z)</SelectItem>
                       <SelectItem value="name_desc">Nama (Z-A)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div>
-                  <Label className="text-xs font-medium text-gray-600">Tampilkan</Label>
-                  <Select 
-                    value={perPageFilter} 
+                {/* Per Page */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-gray-600">
+                    Tampilkan
+                  </Label>
+
+                  <Select
+                    value={perPageFilter}
                     onValueChange={handlePerPageFilter}
                   >
-                    <SelectTrigger className="min-w-[120px]">
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Tampilkan" />
                     </SelectTrigger>
+
                     <SelectContent>
                       <SelectItem value="5">5</SelectItem>
                       <SelectItem value="10">10</SelectItem>
@@ -537,19 +627,19 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                   </Select>
                 </div>
 
+                {/* Reset */}
                 {hasActiveFilters && (
-                    <div className="flex flex-col space-y-1">
-                      <Label className="text-xs font-medium text-gray-600">&nbsp;</Label>
-                      <Button 
-                        type="button" 
-                        size="sm"
-                        variant="destructive" 
-                        onClick={handleResetFilters}
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                        Reset
-                      </Button>
-                    </div>
+                  <div className="flex items-end">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="w-full"
+                      onClick={handleResetFilters}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Reset
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>

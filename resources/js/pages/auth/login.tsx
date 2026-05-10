@@ -40,26 +40,36 @@ export default function Login({
   });
 
   const submit = async (e: React.FormEvent) => {
-
     e.preventDefault();
 
-    try {
+    if (form.processing) {
+      return;
+    }
 
+    try {
       const token = await generateRecaptcha('login');
 
-      form.setData('recaptcha_token', token);
+      form.transform((data) => ({
+        ...data,
+        recaptcha_token: token,
+      }));
 
       form.post(store.url(), {
         preserveScroll: true,
+
         onFinish: () => {
           form.reset('password');
+        },
+
+        onError: () => {
+          form.setData('recaptcha_token', '');
         },
       });
 
     } catch (error) {
+      console.error('reCAPTCHA error:', error);
 
-      console.error(error);
-
+      form.setData('recaptcha_token', '');
     }
   };
 

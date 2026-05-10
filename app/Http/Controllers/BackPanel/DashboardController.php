@@ -8,6 +8,7 @@ use App\Models\Service;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Article;
+use App\Models\Testimonial;
 use App\Models\LogVisitor;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -39,7 +40,8 @@ class DashboardController extends Controller
                 'icon' => 'Package',
                 'change' => '+12%',
                 'changeType' => 'increase',
-                'color' => 'bg-blue-500 text-white'
+                'color' => 'bg-blue-500 text-white',
+                'link' => '/cpanel/cms/product'
             ],
             [
                 'name' => 'Total Artikel',
@@ -47,7 +49,8 @@ class DashboardController extends Controller
                 'icon' => 'FileText',
                 'change' => '+5%',
                 'changeType' => 'increase',
-                'color' => 'bg-green-500 text-white'
+                'color' => 'bg-green-500 text-white',
+                'link' => '/cpanel/cms/article'
             ],
             [
                 'name' => 'Total Pelanggan',
@@ -55,7 +58,8 @@ class DashboardController extends Controller
                 'icon' => 'Users',
                 'change' => '+8.2%',
                 'changeType' => 'increase',
-                'color' => 'bg-purple-500 text-white'
+                'color' => 'bg-purple-500 text-white',
+                'link' => '/cpanel/crm/customer'
             ],
             [
                 'name' => 'Total Semua Pesanan',
@@ -63,7 +67,17 @@ class DashboardController extends Controller
                 'icon' => 'ShoppingCart',
                 'change' => '-2.1%',
                 'changeType' => 'decrease',
-                'color' => 'bg-orange-500 text-white'
+                'color' => 'bg-orange-500 text-white',
+                'link' => '/cpanel/crm/orders'
+            ],
+            [
+                'name' => 'Total Testimonial',
+                'value' => Testimonial::count(),
+                'icon' => 'MessageSquare',
+                'change' => '+3.5%',
+                'changeType' => 'increase',
+                'color' => 'bg-indigo-500 text-white',
+                'link' => '/cpanel/cms/testimonial'
             ],
             [
                 'name' => 'Total Kunjungan Situs',
@@ -71,7 +85,8 @@ class DashboardController extends Controller
                 'icon' => 'Eye',
                 'change' => '+15%',
                 'changeType' => 'increase',
-                'color' => 'bg-cyan-500 text-white'
+                'color' => 'bg-cyan-500 text-white',
+                'link' => '/cpanel/analytics/visitor-logs'
             ],
         ];
     }
