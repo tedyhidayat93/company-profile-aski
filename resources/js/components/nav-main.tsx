@@ -65,7 +65,7 @@ export function NavMain({ items, groupTitle, newOrdersCount }: NavMainProps) {
         onOpenChange={() => toggleItem(item.href.toString())}
         className={cn(
           'transition-colors duration-200',
-          isItemActive && 'bg-accent/50',
+          isItemActive && '',
           level > 0 && 'border-border/20 ml-4 border-l-2'
         )}
       >
@@ -76,8 +76,8 @@ export function NavMain({ items, groupTitle, newOrdersCount }: NavMainProps) {
               className={cn(
                 'w-full',
                 isItemActive
-                  ? 'bg-primary dark:bg-accent-foreground font-semibold text-white! dark:text-black!'
-                  : 'text-foreground hover:bg-orange-300/20!'
+                  ? 'bg-primary dark:bg-accent-foreground font-semibold dark:text-black!'
+                  : 'text-foreground hover:bg-white/10!'
               )}
             >
               <div className="flex w-full items-center justify-between">
@@ -85,7 +85,8 @@ export function NavMain({ items, groupTitle, newOrdersCount }: NavMainProps) {
                   href={item.href}
                   className={cn(
                     'flex flex-1 items-center gap-2 text-sm',
-                    'hover:text-foreground font-medium transition-colors duration-200',
+                    'transition-colors duration-200',
+                    isItemActive ? 'text-slate-800 font-bold' : 'text-accent/70',
                     level > 0 && 'text-xs'
                   )}
                 >

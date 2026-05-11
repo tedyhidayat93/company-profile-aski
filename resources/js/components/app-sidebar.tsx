@@ -179,8 +179,8 @@ export function AppSidebar({ recentOrders = [] }: AppSidebarProps) {
   }));
 
   return (
-    <Sidebar collapsible="icon" variant="inset">
-      <SidebarHeader>
+    <Sidebar collapsible="icon" variant="inset" className="bg-slate-900">
+      <SidebarHeader className="bg-slate-900">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
@@ -192,13 +192,13 @@ export function AppSidebar({ recentOrders = [] }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className="-space-y-2!">
+      <SidebarContent className="-space-y-2! bg-slate-900">
         {filteredNavGroups.map(({ group }, index) => (
           <NavMain key={index} items={group.items} groupTitle={group.title} newOrdersCount={newOrdersCount} />
         ))}
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className='bg-slate-900'>
         {/* <NavFooter items={footerNavItems} className="mt-auto" /> */}
         <NavUser />
       </SidebarFooter>

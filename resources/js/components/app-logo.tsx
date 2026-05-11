@@ -11,7 +11,7 @@ export default function AppLogo() {
 
   return (
     <>
-      <div className="text-sidebar-primary-foreground flex aspect-square size-9 items-center justify-center rounded-md bg-white">
+      <div className="text-sidebar-primary-foreground flex aspect-square size-9 items-center justify-center rounded-md bg-white/10">
         <img 
           src={logoSrc} 
           className="size-9 fill-current text-white dark:text-black" 
@@ -19,8 +19,8 @@ export default function AppLogo() {
         />
       </div>
       <div className="ml-1 grid flex-1 text-left text-sm">
-        <span className="mb-0.5 truncate leading-tight font-semibold">Admin Panel</span>
-        <span className="text-muted-foreground truncate text-xs">
+        <span className="mb-0.5 truncate leading-tight font-semibold text-orange-400">Admin Panel</span>
+        <span className="text-muted truncate text-xs">
           {siteName}
         </span>
       </div>

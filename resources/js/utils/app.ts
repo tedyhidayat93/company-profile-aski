@@ -31,3 +31,4 @@ export function generateCatalogUrl(slug: string, baseUrl?: string): string {
   const base = baseUrl || (usePage().props as any).appUrl || '';
   return `${base}/catalog/${slug}`;
 }
+
