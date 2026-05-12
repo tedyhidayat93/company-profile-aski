@@ -20,8 +20,8 @@ export default function HeaderTitle({
   return (
     <div className="flex justify-between items-center">
       <div className="">
-        <h1 className="text-xl font-bold">{title}</h1>
-        <p className="text-muted-foreground text-xs">{description}</p>
+        <h1 className="text-3xl font-black">{title}</h1>
+        <p className="text-muted-foreground text-sm">{description}</p>
       </div>
       {children ? (
         children

@@ -93,7 +93,7 @@ class OrderController extends Controller
         // Build statistics array
         $statistics = [
             [
-                'name' => 'Total Semua Pesanan',
+                'name' => 'Semua Pesanan',
                 'value' => $totalOrders,
                 'icon' => 'shopping-cart',
                 'color' => 'bg-blue-100 text-blue-800'

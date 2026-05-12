@@ -183,7 +183,7 @@ export function AppSidebar({ recentOrders = [] }: AppSidebarProps) {
       <SidebarHeader className="bg-slate-900">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
+            <SidebarMenuButton className="hover:bg-slate-900" size="lg" asChild>
               <Link href={dashboard()} prefetch>
                 <AppLogo />
               </Link>

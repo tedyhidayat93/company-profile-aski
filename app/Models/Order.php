@@ -121,6 +121,19 @@ class Order extends Model
         };
     }
 
+    public static function getWaitingToCheckRecentOrders()
+    {
+        return self::query()
+            ->where('status', 'pending')
+            ->whereBetween('created_at', [
+                now()->subHours(24),
+                now(),
+            ])
+            ->latest()
+            ->take(100)
+            ->get();
+    }
+
     public function getStatusColorAttribute(): string
     {
         return match($this->status) {

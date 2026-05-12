@@ -123,7 +123,7 @@ export default function Homepage({
 
   return (
     <FrontendLayout title="Beranda">
-      <Head title={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')} - ${getConfig('site_tagline', 'Jual & Sewa Kontainer Berkualitas')}`}>
+      <Head title={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')}`}>
         {/* Basic Meta Tags */}
         <meta name="description" content={getConfig('meta_description', 'PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer dengan kualitas terbaik dan harga kompetitif. Menyediakan berbagai jenis kontainer untuk kebutuhan bisnis Anda.')} />
         <meta name="keywords" content={getConfig('meta_keywords', 'jual kontainer, sewa kontainer, kontainer bekas, kontainer modifikasi, PT. Alumoda Sinergi Kontainer Indonesia, kontainer office, kontainer gudang')} />

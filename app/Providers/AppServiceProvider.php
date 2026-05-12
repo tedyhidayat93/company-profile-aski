@@ -8,8 +8,10 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use App\Models\Product;
 use App\Models\Article;
+use App\Models\Order;
 use App\Models\Service;
 use Inertia\Inertia;
+use App\Models\Configuration;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -47,9 +49,28 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Inertia::share([
+            'recentOrders' => fn () => Order::getWaitingToCheckRecentOrders(),
             'footerProducts' => fn () => Product::getBestsellerForFooter(),
             'footerArticles' => fn () => Article::getMostReadForFooter(),
             'footerServices' => fn () => Service::getAllForFooter(),
         ]);
+
+        // Share siteconfig with all views (including error pages)
+        View::share('siteconfig', function() {
+            return Configuration::orderBy('group')
+                ->orderBy('label')
+                ->get()
+                ->map(function ($config) {
+                    return [
+                        'id' => $config->id,
+                        'key' => $config->key,
+                        'value' => $config->value,
+                        'type' => $config->type,
+                        'label' => $config->label,
+                        'description' => $config->description,
+                        'group' => $config->group,
+                    ];
+                });
+        });
     }
 }

@@ -119,12 +119,12 @@ export default function ProductShow({ product }: Props) {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <Link href={`/catalog/${product.slug}`} target="_blank">
+                <a href={`/catalog/${product.slug}`} target="_blank">
                   <Button size="sm" variant="outline">
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Lihat di Katalog 
                   </Button>
-                </Link>
+                </a>
                 <Link href={`/cpanel/cms/product/edit/${product.id}`}>
                   <Button size="sm">
                     <Edit className="mr-2 h-4 w-4" />
@@ -178,7 +178,12 @@ export default function ProductShow({ product }: Props) {
           {/* ================= DESCRIPTION ================= */}
           <div className="border rounded-xl p-4 space-y-2">
             <h3 className="text-lg font-bold text-slate-700">Deskripsi</h3>
-            <p className="text-sm text-gray-700">{product.description || '-'}</p>
+            <div
+              className="text-sm text-gray-700 prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{
+                __html: product.description || '-',
+              }}
+            />
 
           </div>
 

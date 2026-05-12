@@ -121,8 +121,8 @@ export default function PermissionIndex({ permissions, groups, filters }: Props)
       
       <div className="space-y-6 p-6">
         <HeaderTitle
-          title="Manajemen Permissions"
-          description="Kelola permissions dan hak akses sistem"
+          title="Manajemen Hak Akses"
+          description="Kelola hak akses sistem"
         >
           <Link href="/cpanel/authorization/permissions/create">
             <Button>
@@ -146,7 +146,7 @@ export default function PermissionIndex({ permissions, groups, filters }: Props)
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
 
                   <Input
-                    placeholder="Cari permission..."
+                    placeholder="Cari Hak Akses..."
                     value={search}
                     onChange={(e) => handleSearch(e.target.value)}
                     className="pl-10"
@@ -157,7 +157,7 @@ export default function PermissionIndex({ permissions, groups, filters }: Props)
               {/* Group */}
               <div className="space-y-1">
                 <label className="text-xs font-medium text-gray-600">
-                  Group
+                  Grup
                 </label>
 
                 <Select
@@ -166,11 +166,11 @@ export default function PermissionIndex({ permissions, groups, filters }: Props)
                 >
                   <SelectTrigger className="w-full">
                     <Filter className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Group" />
+                    <SelectValue placeholder="Semua Grup" />
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="all">Semua Group</SelectItem>
+                    <SelectItem value="all">Semua Grup</SelectItem>
                     {groups.map((group) => (
                       <SelectItem key={group} value={group}>
                         {group}
@@ -184,11 +184,11 @@ export default function PermissionIndex({ permissions, groups, filters }: Props)
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nama Permission</TableHead>
+                  <TableHead>Nama Hak Akses</TableHead>
                   <TableHead>Guard</TableHead>
-                  <TableHead>Group</TableHead>
+                  <TableHead>Grup</TableHead>
                   <TableHead>Deskripsi</TableHead>
-                  <TableHead>Roles</TableHead>
+                  <TableHead>Link Peran</TableHead>
                   <TableHead>Dibuat</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>

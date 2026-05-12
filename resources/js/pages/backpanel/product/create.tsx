@@ -227,8 +227,8 @@ export default function ProductCreate({ brands, categories }: Props) {
       
       // Validate file count
       const totalImages = data.images.length + newFiles.length;
-      if (totalImages > 5) {
-        errors.push('Maksimal 5 gambar yang diperbolehkan');
+      if (totalImages > 10) {
+        errors.push('Maksimal 10 gambar yang diperbolehkan');
         setImageErrors(errors);
         e.target.value = '';
         return;
@@ -387,6 +387,9 @@ export default function ProductCreate({ brands, categories }: Props) {
       href: '/cpanel/cms/product/create',
     },
   ];
+
+  const totalImages = imagePreviews.length;
+
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -794,7 +797,7 @@ export default function ProductCreate({ brands, categories }: Props) {
                     Gambar Produk
                   </Label>
                   <span className="text-xs text-slate-400">
-                    Maksimal 5 gambar
+                    Maksimal 10 gambar
                   </span>
                 </div>
 
@@ -862,12 +865,16 @@ export default function ProductCreate({ brands, categories }: Props) {
                         ))}
 
                         {/* ADD BUTTON */}
-                        <label
-                          htmlFor="images-hidden"
-                          className="flex items-center justify-center aspect-square border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition text-sm text-slate-500"
-                        >
-                          + Tambah
-                        </label>
+                        {
+                          totalImages < 10 && (
+                            <label
+                              htmlFor="images-hidden"
+                              className="flex items-center justify-center aspect-square border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition text-sm text-slate-500"
+                            >
+                              + Tambah
+                            </label>
+                          )
+                        }
 
                       </div>
 

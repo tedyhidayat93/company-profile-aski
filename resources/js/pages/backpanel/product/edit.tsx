@@ -264,8 +264,8 @@ export default function ProductEdit({ product, brands, categories }: Props) {
       
       // Validate file count
       const totalImages = activeImages.length + imagePreviews.length + newFiles.length;
-      if (totalImages > 5) {
-        errors.push('Maksimal 5 gambar yang diperbolehkan');
+      if (totalImages > 10) {
+        errors.push('Maksimal 10 gambar yang diperbolehkan');
         setImageErrors(errors);
         e.target.value = '';
       }
@@ -896,7 +896,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                     Gambar Produk
                   </Label>
                   <span className="text-xs text-slate-400">
-                    Maksimal 5 gambar
+                    Maksimal 10 gambar
                   </span>
                 </div>
 
@@ -1000,7 +1000,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                         ))}
 
                         {/* ADD BUTTON */}
-                        {totalImages < 5 && (
+                        {totalImages < 10 && (
                           <label
                             htmlFor="images-hidden"
                             className="flex items-center justify-center aspect-square border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition text-sm text-slate-500"

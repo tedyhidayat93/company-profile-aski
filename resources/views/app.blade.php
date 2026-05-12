@@ -37,7 +37,7 @@
                 @endphp
                 {{ $siteName }}
             @else
-                {{ config('app.name', 'Laravel') }}
+                <!-- {{ config('app.name', 'Laravel') }} -->
             @endif
         </title>
 

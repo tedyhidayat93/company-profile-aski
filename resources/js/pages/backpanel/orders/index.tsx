@@ -246,7 +246,7 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
         </HeaderTitle>
 
         {/* Statistic */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 rounded-2xl bg-gradient-to-r from-slate-100 to-slate-800 p-4">
           {orderStats.map((stat, index) => {
             const Icon = stat.icon;
             const isTotal = index === 0;
@@ -254,46 +254,91 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
             return (
               <Card
                 key={stat.name}
-                className={`shrink-0 relative overflow-hidden transition-all duration-300 border-none shadow-none ring-1 border-0
-                ${
-                  isTotal
-                    ? 'bg-slate-800 text-white ring-slate-800 col-span-2'
-                    : `hover:shadow-md ring-slate-200 bg-opacity-10 ${stat.color.split(' ')[0]}`
-                }`}
+                className={`
+                  group relative overflow-hidden border-0
+                  rounded-2xl shadow-sm
+                  transition-all duration-300
+                  hover:-translate-y-1 hover:shadow-xl
+                  ${
+                    isTotal
+                      ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white'
+                      : 'bg-white/95 backdrop-blur'
+                  }
+                `}
               >
-                <CardContent className="pb-0">
-                  <div className="flex gap-3 items-center">
-                    
-                    {/* Icon */}
-                    <div
-                      className={`flex items-center justify-center rounded-2xl h-10 w-10 shrink-0 
-                      ${stat.color.split(' ')[0]} bg-opacity-10 ${stat.color.split(' ')[1]}`}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
+                {/* Glow */}
+                <div
+                  className={`
+                    absolute inset-0 opacity-[0.06]
+                    ${!isTotal ? stat.color.split(' ')[0] : 'bg-white'}
+                  `}
+                />
 
-                    {/* Text */}
-                    <div className="space-y-0.5">
-                      <p
-                        className={`text-[10px] font-bold uppercase tracking-widest 
-                        ${isTotal ? 'text-slate-400' : 'text-slate-500'}`}
-                      >
-                        {stat.name}
-                      </p>
-                      <h3
-                        className={`font-black tracking-tight 
-                        ${isTotal ? 'text-2xl md:text-3xl text-white' : 'text-xl md:text-2xl text-slate-900'}`}
-                      >
-                        {stat.value}
-                      </h3>
-                    </div>
+                {/* Blur Accent */}
+                <div
+                  className={`
+                    absolute -right-10 -top-10 h-24 w-24 rounded-full blur-3xl opacity-20
+                    ${!isTotal ? stat.color.split(' ')[0] : 'bg-white'}
+                  `}
+                />
+                {/* Icon */}
+                <div
+                  className={`
+                    flex h-7 w-7 shrink-0 items-center justify-center
+                    rounded-2xl
+                    absolute
+                    top-2 right-3
+                    transition-all duration-300
+                    group-hover:scale-110
+                    ${
+                      isTotal
+                        ? 'bg-white/10 text-white'
+                        : `${stat.color.split(' ')[0]} bg-opacity-10 ${stat.color.split(' ')[1]}`
+                    }
+                  `}
+                >
+                  <Icon className="h-3 w-3" />
+                </div>
+
+                <CardContent className="relative">
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 space-y-2">
+
+                    {/* Value */}
+                    <h3
+                      className={`
+                        font-black tracking-tight leading-none
+                        truncate
+                        ${
+                          isTotal
+                            ? 'text-white text-3xl'
+                            : 'text-slate-900 text-3xl'
+                        }
+                      `}
+                    >
+                      {stat.value}
+                    </h3>
+
+                    {/* Label */}
+                    <p
+                      className={`
+                        text-[10px] font-bold uppercase tracking-[0.2em]
+                        truncate
+                        ${
+                          isTotal
+                            ? 'text-slate-400'
+                            : 'text-slate-500'
+                        }
+                      `}
+                    >
+                      {stat.name}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
-
 
         {/* Orders Table */}
         <Card className="shadow-card">

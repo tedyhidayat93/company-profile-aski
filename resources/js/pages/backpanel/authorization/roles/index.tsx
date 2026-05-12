@@ -126,13 +126,13 @@ export default function RoleIndex({ roles, filters }: Props) {
       
       <div className="space-y-6 p-6">
         <HeaderTitle
-          title="Manajemen Role"
-          description="Kelola role dan hak akses sistem"
+          title="Manajemen Peran"
+          description="Kelola peran dan atur hak akses tiap peran"
         >
           <Link href="/cpanel/authorization/roles/create">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Tambah Role
+              Tambah Peran
             </Button>
           </Link>
         </HeaderTitle>
@@ -151,7 +151,7 @@ export default function RoleIndex({ roles, filters }: Props) {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
 
                   <Input
-                    placeholder="Cari role..."
+                    placeholder="Cari peran..."
                     value={search}
                     onChange={(e) => handleSearch(e.target.value)}
                     className="pl-10"
@@ -189,7 +189,7 @@ export default function RoleIndex({ roles, filters }: Props) {
                   <TableHead>Nama Role</TableHead>
                   <TableHead>Guard</TableHead>
                   <TableHead>Deskripsi</TableHead>
-                  <TableHead>Permissions</TableHead>
+                  <TableHead>Hak Akses</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Dibuat</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>

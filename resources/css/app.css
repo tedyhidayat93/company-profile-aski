@@ -253,7 +253,16 @@
   }
 
   thead {
-    @apply bg-orange-100;
+    @apply bg-slate-950 text-white!;
+  }
+  thead tr th {
+    @apply text-white!;
+  }
+  thead tr th:last-child{
+    @apply overflow-hidden rounded-r-lg;
+  }
+  thead tr th:first-child{
+    @apply overflow-hidden rounded-l-lg;
   }
 }
 

@@ -1,0 +1,577 @@
+<?php
+
+namespace App\Http\Controllers\BackPanel\CMS;
+
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\ProductImage;
+use App\Models\Tag;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+
+class ProductController extends Controller
+{
+    public function __construct()
+    {
+        // Apply permission middleware to all methods
+        $this->middleware('permission:product-list')->only(['index', 'show']);
+        $this->middleware('permission:product-create')->only(['create', 'store']);
+        $this->middleware('permission:product-edit')->only(['edit', 'update', 'toggleStatus', 'toggleFeatured', 'toggleBestseller', 'updatePosition']);
+        $this->middleware('permission:product-delete')->only(['destroy']);
+    }
+    
+    public function index(Request $request)
+    {
+        Gate::authorize('product-list');
+        $products = Product::when($request->search, function ($query, $search) {
+                return $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%");
+            })
+            ->when($request->type_sell, function ($query, $type) {
+                if($type === 'sell') {
+                    return $query->where('is_for_sell', true)->where('is_rent', false);
+                }elseif ($type === 'rent') {
+                    return $query->where(function ($q) {
+                        $q->where('is_rent', true)
+                        ->where('is_for_sell', false);
+                    });
+                } elseif($type === 'rent-and-sell') {
+                    return $query->where('is_for_sell', true)->where('is_rent', true);
+                }
+            })
+            ->when($request->brand, function ($query, $brand) {
+                return $query->where('brand_id', $brand);
+            })
+            ->when($request->type, function ($query, $type) {
+                return $query->where('type', $type);
+            })
+            ->when($request->category, function ($query, $category) {
+                return $query->where('category_id', $category);
+            })
+            ->when($request->status, function ($query, $status) {
+                if ($status === 'published') {
+                    return $query->where('status', 'published');
+                } elseif ($status === 'draft') {
+                    return $query->where('status', 'draft');
+                }
+            })
+            ->when($request->filled('featured'), function ($query) use ($request) {
+                return $query->where('is_featured', $request->featured === 'true');
+            })
+            ->when($request->filled('bestseller'), function ($query) use ($request) {
+                return $query->where('is_bestseller', $request->bestseller === 'true');
+            })
+            ->when($request->date_from, function ($query, $dateFrom) {
+                return $query->whereDate('created_at', '>=', $dateFrom);
+            })
+            ->when($request->date_to, function ($query, $dateTo) {
+                return $query->whereDate('created_at', '<=', $dateTo);
+            })
+            ->when($request->sort, function ($query, $sort) {
+                switch ($sort) {
+                    case 'newest':
+                        return $query->orderBy('created_at', 'desc');
+                    case 'oldest':
+                        return $query->orderBy('created_at', 'asc');
+                    case 'most_viewed':
+                        return $query->orderBy('views', 'desc');
+                    case 'least_viewed':
+                        return $query->orderBy('views', 'asc');
+                    case 'name_asc':
+                        return $query->orderBy('name', 'asc');
+                    case 'name_desc':
+                        return $query->orderBy('name', 'desc');
+                    default:
+                        return $query->orderBy('id', 'desc');
+                }
+            })
+            ->with(['brand', 'category', 'coverImage'])
+            ->paginate($request->per_page ?? 10)
+            ->withQueryString();
+
+        // Transform products to include proper image paths
+        $transformedProducts = $products->getCollection()->map(function ($product) {
+            // Get cover image with proper path validation
+            $coverImagePath = $product->coverImage?->image_path;
+            if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
+                $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
+            } elseif (!$coverImagePath) {
+                $coverImagePath = '/images/placeholder.png';
+            }
+            
+            // Check if the image file actually exists
+            $fullPath = public_path($coverImagePath);
+            if (!file_exists($fullPath)) {
+                $coverImagePath = '/images/placeholder.png';
+            }
+            
+            // Add the image path to the product
+            $product->image_path = $coverImagePath;
+            return $product;
+        });
+
+        // Replace the collection in the paginator
+        $products->setCollection($transformedProducts);
+        $brands = Brand::orderBy('name')->get();
+        $categories = Category::ofType('product')->orderBy('name')->get();
+
+        return Inertia::render('backpanel/product/index', [
+            'products' => $products ?? [],
+            'brands' => $brands,
+            'categories' => $categories,
+            'filters' => [
+                'search' => $request->search ?? '',
+                'type_sell' => $request->type_sell ?? 'all',
+                'brand' => $request->brand ?? 'all',
+                'category' => $request->category ?? 'all',
+                'status' => $request->status ?? 'all',
+                'featured' => $request->featured ?? 'all',
+                'bestseller' => $request->bestseller ?? 'all',
+                'sort' => $request->sort ?? 'newest',
+                'per_page' => $request->per_page ?? '10',
+            ]
+        ]);
+    }
+
+    public function create()
+    {
+        Gate::authorize('product-create');
+        
+        $brands = Brand::orderBy('name')->get();
+        $parentCategories = Category::with('children')
+            ->ofType('product')
+            ->root()
+            ->active()
+            ->orderBy('lft')
+            ->get();
+
+        return Inertia::render('backpanel/product/create', [
+            'brands' => $brands,
+            'categories' => $parentCategories,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        Gate::authorize('product-create');
+        
+        // Normalize currency inputs
+        $request->merge([
+            'price' => normalize_currency($request->price),
+            'compare_at_price' => normalize_currency($request->compare_at_price),
+            'cost_per_item' => normalize_currency($request->cost_per_item),
+        ]);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:products,slug',
+            'type' => 'required|string|in:physical,digital',
+            'description' => 'nullable|string',
+            'short_description' => 'nullable|string|max:500',
+            'sku' => 'nullable|string|max:100|unique:products,sku',
+            'price' => 'required|numeric|min:0',
+            'compare_at_price' => 'nullable|numeric|min:0',
+            'cost_per_item' => 'nullable|numeric|min:0',
+            'track_quantity' => 'boolean',
+            'quantity' => 'nullable|integer|min:0',
+            'barcode' => 'nullable|string|max:100',
+            'status' => 'required|string|in:draft,published',
+            'is_featured' => 'boolean',
+            'is_bestseller' => 'boolean',
+            'is_new' => 'boolean',
+            'is_for_sell' => 'boolean',
+            'is_rent' => 'boolean',
+            'show_price' => 'boolean',
+            'show_stock' => 'boolean',
+            'position' => 'nullable|integer|min:0',
+            'brand_id' => 'nullable|integer|exists:brands,id',
+            'category_id' => 'nullable|integer|exists:categories,id',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+            'tags' => 'nullable|array',
+            'tags.*' => 'nullable|string|max:50',
+            'specific_specs' => 'nullable|array',
+            'specific_specs.*.label' => 'required|string|max:255',
+            'specific_specs.*.value' => 'required|string|max:255',
+            'specific_specs.*.note' => 'nullable|string|max:500',
+            'images' => 'nullable|array|max:5',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'cover_image' => 'nullable|integer|min:0',
+        ]);
+
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['name']);
+        }
+
+        if (isset($validated['tags'])) {
+            $validated['tags'] = array_filter($validated['tags']);
+            $this->insertNewTags($validated['tags'], 'product');
+        }
+
+        $validated['is_featured'] = $validated['is_featured'] ?? false;
+        $validated['is_bestseller'] = $validated['is_bestseller'] ?? false;
+        $validated['is_new'] = $validated['is_new'] ?? false;
+        $validated['is_for_sell'] = $validated['is_for_sell'] ?? false;
+        $validated['is_rent'] = $validated['is_rent'] ?? false;
+        $validated['show_price'] = $validated['show_price'] ?? true;
+        $validated['track_quantity'] = $validated['track_quantity'] ?? true;
+        $validated['position'] = $validated['position'] ?? 0;
+        
+        // Handle "none" values for brand_id and category_id
+        if ($validated['brand_id'] === 'none') {
+            $validated['brand_id'] = null;
+        }
+        if ($validated['category_id'] === 'none') {
+            $validated['category_id'] = null;
+        }
+
+        $product = Product::create($validated);
+
+        // Handle image uploads
+        $this->handleProductImages([
+            'request' => $request,
+            'product' => $product,
+            'validated' => $validated,
+        ]);
+
+        return redirect()->route('cms.product.index')
+            ->with('success', 'Produk berhasil dibuat');
+    }
+
+    public function show($id)
+    {
+        Gate::authorize('product-list');
+        
+        $product = Product::with(['brand', 'category', 'images' => function($query) {
+            $query->orderBy('position');
+        }])->findOrFail($id);
+
+        $product->setAttribute('full_category', $product->category->getHierarchy());
+
+        return Inertia::render('backpanel/product/show', [
+            'product' => $product
+        ]);
+    }
+
+    public function edit($id)
+    {
+        Gate::authorize('product-edit');
+        
+        $product = Product::with(['brand', 'category', 'images' => function($query) {
+            $query->orderBy('position');
+        }])->findOrFail($id);
+        $brands = Brand::orderBy('name')->get();
+        // $categories = Category::orderBy('name')->get();
+        $parentCategories = Category::with('children')
+            ->ofType('product')
+            ->root()
+            ->active()
+            ->orderBy('lft')
+            ->get();
+
+
+        return Inertia::render('backpanel/product/edit', [
+            'product' => $product,
+            'brands' => $brands,
+            'categories' => $parentCategories,
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        Gate::authorize('product-edit');
+        
+        $product = Product::findOrFail($id);
+
+        // Normalize currency inputs
+        $request->merge([
+            'price' => normalize_currency($request->price),
+            'compare_at_price' => normalize_currency($request->compare_at_price),
+            'cost_per_item' => normalize_currency($request->cost_per_item),
+        ]);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('products')->ignore($product->id),
+            ],
+            'type' => 'required|string|in:physical,digital',
+            'description' => 'nullable|string',
+            'short_description' => 'nullable|string|max:500',
+            'sku' => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('products')->ignore($product->id),
+            ],
+            'price' => 'required|numeric|min:0',
+            'compare_at_price' => 'nullable|numeric|min:0',
+            'cost_per_item' => 'nullable|numeric|min:0',
+            'track_quantity' => 'boolean',
+            'quantity' => 'nullable|integer|min:0',
+            'barcode' => 'nullable|string|max:100',
+            'status' => 'required|string|in:draft,published',
+            'is_featured' => 'boolean',
+            'is_bestseller' => 'boolean',
+            'is_new' => 'boolean',
+            'is_for_sell' => 'boolean',
+            'is_rent' => 'boolean',
+            'show_price' => 'boolean',
+            'show_stock' => 'boolean',
+            'position' => 'nullable|integer|min:0',
+            'brand_id' => 'nullable|integer|exists:brands,id',
+            'category_id' => 'nullable|integer|exists:categories,id',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+            'specific_specs' => 'nullable|array',
+            'specific_specs.*.label' => 'required|string|max:255',
+            'specific_specs.*.value' => 'required|string|max:255',
+            'specific_specs.*.note' => 'nullable|string|max:500',
+            'cover_image' => 'nullable|string',
+        ]);
+
+        if ($validated['category_id'] === 'none') {
+            $validated['category_id'] = null;
+        }
+
+        $product->update($validated);
+
+        $this->handleProductImages([
+            'request' => $request,
+            'product' => $product,
+            'validated' => $validated,
+            'is_update' => true,
+        ]);
+
+        return redirect()->route('cms.product.index')
+            ->with('success', 'Produk berhasil diperbarui');
+    }
+
+    public function destroy($id)
+    {
+        Gate::authorize('product-delete');
+        
+        $product = Product::with('images')->findOrFail($id);
+
+        // Delete all product images from storage
+        foreach ($product->images as $image) {
+            Storage::disk('public')->delete($image->image_path);
+            $image->delete();
+        }
+
+        $product->delete();
+
+        return redirect()->route('cms.product.index')
+            ->with('success', 'Produk berhasil dihapus');
+    }
+
+    public function toggleStatus($id)
+    {
+        Gate::authorize('product-edit');
+        
+        $product = Product::findOrFail($id);
+        $product->status = $product->status === 'published' ? 'draft' : 'published';
+        $product->save();
+
+        return redirect()->route('cms.product.index')
+            ->with('success', 'Status produk berhasil diperbarui');
+    }
+
+    public function toggleFeatured($id)
+    {
+        Gate::authorize('product-edit');
+        
+        $product = Product::findOrFail($id);
+        $product->is_featured = !$product->is_featured;
+        $product->save();
+
+        return redirect()->route('cms.product.index')
+            ->with('success', 'Status unggulan produk berhasil diperbarui');
+    }
+
+    public function toggleBestseller($id)
+    {
+        Gate::authorize('product-edit');
+        
+        $product = Product::findOrFail($id);
+        $product->is_bestseller = !$product->is_bestseller;
+        $product->save();
+
+        return redirect()->route('cms.product.index')
+            ->with('success', 'Status terlaris produk berhasil diperbarui');
+    }
+
+    public function updatePosition(Request $request)
+    {
+        Gate::authorize('product-edit');
+        
+        $validated = $request->validate([
+            'products' => 'required|array',
+            'products.*.id' => 'required|integer|exists:products,id',
+            'products.*.position' => 'required|integer|min:0',
+        ]);
+
+        foreach ($validated['products'] as $productData) {
+            Product::where('id', $productData['id'])
+                ->update(['position' => $productData['position']]);
+        }
+
+        return redirect()->route('cms.product.index')
+            ->with('success', 'Posisi produk berhasil diperbarui');
+    }
+
+    /**
+     * Insert new tags into the tags table
+     *
+     * @param array $tags
+     * @param string $type
+     * @return void
+     */
+    private function insertNewTags(array $tags, string $type)
+    {
+        foreach ($tags as $tagName) {
+            $tagName = trim($tagName);
+            if (!empty($tagName)) {
+                $slug = Str::slug($tagName);
+                
+                // Check if tag already exists
+                $existingTag = Tag::where('slug', $slug)
+                    ->orWhere('name', $tagName)
+                    ->first();
+                
+                // Insert only if tag doesn't exist
+                if (!$existingTag) {
+                    Tag::create([
+                        'name' => $tagName,
+                        'slug' => $slug,
+                        'type' => $type,
+                    ]);
+                }
+            }
+        }
+    }
+
+    // handle upload images
+    private function handleProductImages(array $data): void
+    {
+        $request = $data['request'];
+        $product = $data['product'];
+        $validated = $data['validated'];
+        $isUpdate = $data['is_update'] ?? false;
+
+        // Handle image removals (update only)
+        if (
+            $isUpdate &&
+            isset($validated['remove_images']) &&
+            is_array($validated['remove_images'])
+        ) {
+            foreach ($validated['remove_images'] as $imageId) {
+                $image = ProductImage::find($imageId);
+
+                if ($image && $image->product_id === $product->id) {
+                    Storage::disk('public')->delete($image->image_path);
+                    $image->delete();
+                }
+            }
+        }
+
+        $newImageIds = [];
+
+        // Handle image uploads
+        if ($request->hasFile('images')) {
+            $images = $request->file('images');
+
+            $maxPosition = $product->images()->max('position') ?? 0;
+
+            foreach ($images as $index => $image) {
+                $path = $image->store('products', 'public');
+
+                $productImage = ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $path,
+                    'is_cover' => false,
+                    'position' => $maxPosition + $index + 1,
+                ]);
+
+                $newImageIds[] = $productImage->id;
+            }
+        }
+
+        // Handle cover image
+        if (
+            isset($validated['cover_image']) &&
+            $validated['cover_image'] !== ''
+        ) {
+            // Reset all covers
+            $product->images()->update([
+                'is_cover' => false
+            ]);
+
+            $coverImageValue = $validated['cover_image'];
+
+            // STORE
+            if (
+                !$isUpdate &&
+                is_numeric($coverImageValue)
+            ) {
+                $coverImage = $product->images()
+                    ->orderBy('position')
+                    ->skip((int) $coverImageValue)
+                    ->first();
+
+                if ($coverImage) {
+                    $coverImage->update([
+                        'is_cover' => true
+                    ]);
+                }
+            }
+
+            // UPDATE
+            if ($isUpdate) {
+
+                // New uploaded image
+                if (str_starts_with($coverImageValue, 'new_')) {
+
+                    $newImageIndex = (int) str_replace(
+                        'new_',
+                        '',
+                        $coverImageValue
+                    );
+
+                    if (isset($newImageIds[$newImageIndex])) {
+                        ProductImage::where(
+                            'id',
+                            $newImageIds[$newImageIndex]
+                        )->update([
+                            'is_cover' => true
+                        ]);
+                    }
+                }
+
+                // Existing image
+                elseif (is_numeric($coverImageValue)) {
+
+                    $coverImage = $product->images()
+                        ->where('id', $coverImageValue)
+                        ->first();
+
+                    if ($coverImage) {
+                        $coverImage->update([
+                            'is_cover' => true
+                        ]);
+                    }
+                }
+            }
+        }
+    }
+}

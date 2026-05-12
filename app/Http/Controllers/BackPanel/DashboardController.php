@@ -142,10 +142,7 @@ class DashboardController extends Controller
     // ================= ORDERS =================
     private function getRecentOrders()
     {
-        return Order::with('customer')
-            ->latest()
-            ->take(5)
-            ->get();
+        return Order::getWaitingToCheckRecentOrders();
     }
 
     // ================= COUNTRY & REGION =================

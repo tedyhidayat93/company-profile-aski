@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { formatDate } from '@/lib/utils';
+import { getProductTypeText } from '@/utils/product';
 
 
 interface PaginatedProducts {
@@ -524,7 +525,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
 
                     <SelectContent>
                       <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="published">Diterbitkan</SelectItem>
+                      <SelectItem value="published">Tayang di Katalog</SelectItem>
                       <SelectItem value="draft">Draft</SelectItem>
                     </SelectContent>
                   </Select>
@@ -648,113 +649,136 @@ export default function ProductIndex({ products, brands, categories, filters }: 
               <TableHeader>
                 <TableRow>
                   <TableHead>Produk</TableHead>
-                  <TableHead>Kategori</TableHead>
-                  <TableHead>Harga</TableHead>
-                  <TableHead>Stok</TableHead>
-                  <TableHead>Views</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Dibuat</TableHead>
+                  <TableHead>Informasi</TableHead>
+                  <TableHead> 
+                    Tanggal Dibuat</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {products.data.map((product) => (
                   <TableRow key={product.id}>
+                    {/* PRODUK */}
                     <TableCell>
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-start gap-3">
                         {product.image_path ? (
-                          <img 
-                            src={product.image_path} 
+                          <img
+                            src={product.image_path}
                             alt={product.name}
-                            className="h-12 w-12 rounded object-cover"
+                            className="h-14 w-14 rounded-xl object-cover border"
                           />
                         ) : (
-                          <div className="h-12 w-12 bg-gray-100 rounded flex items-center justify-center">
-                            <Package className="h-6 w-6 text-gray-400" />
+                          <div className="h-14 w-14 rounded-xl bg-muted flex items-center justify-center">
+                            <Package className="h-6 w-6 text-muted-foreground" />
                           </div>
                         )}
-                        <div className="flex-1">
-                          <div className="font-medium">{product.name}</div>
-                          <div className="text-xs text-gray-500">SKU: {product.sku}</div>
-                          <div className="flex items-center space-x-2 mt-1">
+
+                        <div className="space-y-2 flex-1">
+                          <div>
+                            <div className="font-semibold line-clamp-1">
+                              {product.name}
+                            </div>
+
+                            <div className="text-xs text-muted-foreground">
+                              SKU: {product.sku}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1">
                             {product.is_featured && (
-                              <Badge variant="outline" className="text-[10px] bg-orange-200">
-                                <Star className="h-3 w-3 mr-1" />
+                              <Badge className="text-[10px]">
                                 Unggulan
                               </Badge>
                             )}
+
                             {product.is_bestseller && (
-                              <Badge variant="outline" className="text-[10px] bg-orange-200">
-                                <TrendingUp className="h-3 w-3 mr-1" />
+                              <Badge className="text-[10px]">
                                 Terlaris
                               </Badge>
                             )}
+
                             {product.is_new && (
-                              <Badge variant="outline" className="text-[10px] bg-orange-200">
-                                <Sparkles className="h-3 w-3 mr-1" />
+                              <Badge className="text-[10px]">
                                 Baru
                               </Badge>
                             )}
-                            {product.is_for_sell && (
-                              <Badge variant="outline" className="text-[10px] bg-orange-200">
-                                <Package className="h-3 w-3 mr-1" />
-                                Dijual
-                              </Badge>
-                            )}
-                            {product.is_rent && (
-                              <Badge variant="outline" className="text-[10px] bg-orange-200">
-                                <RefreshCw className="h-3 w-3 mr-1" />
-                                Disewakan
-                              </Badge>
-                            )}
                           </div>
                         </div>
                       </div>
                     </TableCell>
+
+                    {/* INFO */}
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{product.category?.name}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{formatPrice(product.price)}</div>
-                        {product.compare_at_price && product.compare_at_price > product.price && (
-                          <div className="text-sm text-gray-500 line-through">
-                            {formatPrice(product.compare_at_price)}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {product.track_quantity ? (
-                        <div>
-                          <div className="font-medium">{product.quantity || 0}</div>
+                      <div className="space-y-1 divide-y text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">Kategori</span>
+                          :
+                          <span className="font-medium">
+                            {product.category?.name}
+                          </span>
                         </div>
-                      ) : (
-                        <div className="text-sm text-gray-500">-</div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{product.views}</div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">Harga</span>
+                          :
+                          <span className="font-semibold text-orange-500">
+                            {formatPrice(product.price)} 
+                          </span>
+                          (
+                            {product.show_price ? (
+                              <>Harga Ditampilkan</>
+                            ):(
+                              <>Harga Disembunyikan</>
+                            )}
+                          )
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">Stok</span>
+                          :
+                          <span>{product.quantity || 0}</span>
+                          (
+                            {product.show_stock ? (
+                              <>Stok Ditampilkan</>
+                            ):(
+                              <>Stok Disembunyikan</>
+                            )}
+                          )
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">Tipe Transaksi</span>
+                          :
+                          <span>
+                            {getProductTypeText({
+                                is_for_sell: product.is_for_sell || false,
+                                is_rent: product.is_rent || false
+                            })}
+                          </span>
+                        </div>
+
+                        <div className="pt-1 gap-2 flex items-center">
+                          Status :
+                          <Badge
+                            variant={
+                              product.status === "published"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {product.status === "published"
+                              ? "Tayang di Katalog"
+                              : "Draft"}
+                          </Badge>
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleStatus(product.id)}
-                        className="p-1 cursor-pointer"
-                      >
-                        <Badge variant={product.status === 'published' ? 'default' : 'secondary'}>
-                          {product.status === 'published' ? 'Diterbitkan' : 'Draft'}
-                        </Badge>
-                      </Button>
-                    </TableCell>
-                    <TableCell>
+
+                    {/* TANGGAL */}
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                       {formatDate(product.created_at)}
                     </TableCell>
+
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

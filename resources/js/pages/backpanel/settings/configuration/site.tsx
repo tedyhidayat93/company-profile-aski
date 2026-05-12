@@ -38,7 +38,7 @@ interface Props {
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: 'Konfigurasi Situs',
+    title: 'Pengaturan',
     href: '/cpanel/settings/configuration/site',
   },
 ];
@@ -47,7 +47,7 @@ const getGroupInfo = (group: string) => {
   switch (group) {
     case 'site':
       return {
-        title: 'Konfigurasi Situs',
+        title: 'Konfigurasi Umum',
         description: 'Kelola pengaturan konfigurasi situs website anda. Atur informasi dasar seperti nama situs, deskripsi, kontak, dan pengaturan penting lainnya.'
       };
     case 'email':
@@ -72,7 +72,7 @@ const getGroupInfo = (group: string) => {
       };
     case 'view_homepage':
       return {
-        title: 'Konfigurasi Tampilan',
+        title: 'Konfigurasi Tampilan Landing Page',
         description: 'Kelola konten dan tampilan halaman depan website termasuk teks, judul, dan deskripsi.'
       };
     default:

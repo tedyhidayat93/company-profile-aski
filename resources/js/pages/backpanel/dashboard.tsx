@@ -12,7 +12,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
   CheckCircle,
   Clock,
@@ -36,6 +36,7 @@ import  { CountryData, RegionData } from '@/components/traffic-per-country-regio
 import { formatCurrencyDisplay } from '@/utils/currency';
 import { formatDate } from '@/lib/utils';
 import TrafficVisitorCharts from '@/components/traffic-visitor-charts';
+import { useEffect } from 'react';
 
 // Type definitions
 interface TrafficData {
@@ -118,17 +119,30 @@ export default function Dashboard({
   orderStats,
   topSearchedProducts,
   latestProducts,
-  recentOrders,
+  // recentOrders,
   websiteTrafficData,
   countryStats,
   regionStats,
 }: Props) {
 
-  // Count new orders (pending status)
-  const newOrdersCount = recentOrders.filter(order => order.status === 'pending').length;
+  const { props } = usePage();
+  const { recentOrders: recentOrdersFromProps } = props as any;
+  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
+  
+  useEffect(() => {
+    if (flash.success) {
+      console.log('Success:', flash.success);
+      alert(flash.success);
+    }
+    if (flash.error) {
+      console.log('Error:', flash.error);
+      alert(flash.error);
+    }
+  }, [flash]);
+
 
   return (
-    <AppLayout breadcrumbs={breadcrumbs} recentOrders={recentOrders}>
+    <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Dashboard" />
 
       <div className="space-y-4 p-6 bg-slate-50/50 min-h-screen">
@@ -162,7 +176,7 @@ export default function Dashboard({
                     <div className="flex flex-col h-full">
 
                       {/* Header */}
-                      <div className="mb-3 flex items-start justify-between gap-2 md:mb-4">
+                      <div className="mb-3 flex items-start justify-between gap-1 md:mb-4">
 
                         {/* Icon */}
                         <div
@@ -184,13 +198,6 @@ export default function Dashboard({
                             `}
                           />
                         </div>
-
-                        {/* Badge */}
-                        {stat.name === 'Total Seluruh Pesanan' && (
-                          <span className="hidden sm:flex items-center justify-center rounded-full bg-red-50 px-2 py-1 text-[10px] font-bold text-red-600 ring-1 ring-red-100 whitespace-nowrap">
-                            {newOrdersCount} Baru
-                          </span>
-                        )}
                       </div>
 
                       {/* Content */}
@@ -237,7 +244,7 @@ export default function Dashboard({
                     {/* Decorative Number */}
                     <div
                       className="
-                        pointer-events-none absolute z-10 select-none font-black text-slate-50 transition-colors duration-300 group-hover:text-slate-100/50
+                        pointer-events-none absolute z-10 select-none font-black text-slate-100 transition-colors duration-300 group-hover:text-slate-300/30
                         -bottom-1 -right-1 text-5xl
                         md:-bottom-2 md:-right-2 md:text-7xl
                         xl:text-8xl
@@ -260,23 +267,23 @@ export default function Dashboard({
             <Card className="border-none shadow-sm ring-1 ring-slate-200 min-h-[370px]">
               <CardHeader className="flex flex-col md:flex-row items-center justify-between space-y-0">
                 <div>
-                  <CardTitle className="text-lg font-bold">Daftar Pesanan</CardTitle>
-                  <p className="text-sm text-muted-foreground">Pesanan terbaru yang menunggu diproses</p>
+                  <CardTitle className="text-lg font-bold">Daftar Pesanan Terbaru</CardTitle>
+                  <p className="text-sm text-muted-foreground">Pesanan terbaru yang menunggu diproses dalam kuartal 24 jam</p>
                 </div>
                 <div className="relative">
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/cpanel/crm/orders">Lihat Semua</Link>
                 </Button>
-                {newOrdersCount > 0 && (
+                {recentOrdersFromProps.length > 0 && (
                   <Badge className="absolute animate-pulse -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-600">
-                    {newOrdersCount}
+                    {recentOrdersFromProps.length}
                   </Badge>
                 )}
               </div>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto w-[80vw] xl:w-full">
-                <Table className="w-full min-w-[1000px]">
-                  <TableHeader className="bg-slate-50/50">
+                <Table className="w-full min-w-[1000px] md:min-w-96">
+                  <TableHeader>
                     <TableRow>
                       <TableHead className="py-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>
                       <TableHead className="text-xs uppercase tracking-wider font-semibold">Pelanggan</TableHead>
@@ -287,8 +294,8 @@ export default function Dashboard({
                   </TableHeader>
                   
                   <TableBody>
-                    {recentOrders.length > 0 ? (
-                      recentOrders.map((order) => (
+                    {recentOrdersFromProps.length > 0 ? (
+                      recentOrdersFromProps.map((order: any) => (
                         <TableRow 
                           key={order.id} 
                           onClick={() => window.location.href = `/cpanel/crm/orders/${order.id}`} 
@@ -328,7 +335,7 @@ export default function Dashboard({
                               </span>
                               
                               {order.notes && (
-                                <div className="mt-2 p-1 bg-amber-50/50 border-l-2 border-amber-200 rounded text-[11px] text-amber-800 leading-relaxed italic">
+                                <div className="mt-2 text-wrap p-1 bg-amber-50/50 border-l-2 border-amber-200 rounded text-[11px] text-amber-800 leading-relaxed italic">
                                   &ldquo;{order.notes}&rdquo;
                                 </div>
                               )}

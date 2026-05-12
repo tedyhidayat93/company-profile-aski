@@ -17,7 +17,7 @@ export function UserInfo({ user, showEmail = false }: { user: User; showEmail?: 
         </AvatarFallback>
       </Avatar>
       <div className="grid flex-1 text-left text-sm leading-tight">
-        <span className="truncate font-medium text-white hover:text-black">{user.name}</span>
+        <span className="truncate font-medium text-orange-400">{user.name}</span>
         <span className="text-muted-foreground truncate text-xs">{user.email}</span>
       </div>
     </>
