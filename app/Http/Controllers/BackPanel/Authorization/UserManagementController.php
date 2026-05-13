@@ -28,7 +28,8 @@ class UserManagementController extends Controller
     {
         Gate::authorize('user-list');
         
-        $users = User::with('roles', 'permissions')
+        $users = User::withTrashed()
+            ->with('roles', 'permissions')
             ->when($request->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%");
@@ -117,7 +118,7 @@ class UserManagementController extends Controller
     {
         Gate::authorize('user-list');
         
-        $user = User::with('roles.permissions')->findOrFail($id);
+        $user = User::withTrashed()->with('roles.permissions')->findOrFail($id);
 
         return Inertia::render('backpanel/authorization/users/show', [
             'user' => $user,
@@ -128,7 +129,7 @@ class UserManagementController extends Controller
     {
         Gate::authorize('user-edit');
         
-        $user = User::findOrFail($id);
+        $user = User::withTrashed()->findOrFail($id);
         $user->load('roles');
         $roles = Role::orderBy('name')->get();
 
@@ -142,7 +143,7 @@ class UserManagementController extends Controller
     {
         Gate::authorize('user-edit');
         
-        $user = User::findOrFail($id);
+        $user = User::withTrashed()->findOrFail($id);
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => [
@@ -191,6 +192,7 @@ class UserManagementController extends Controller
             'email' => $request->email,
             'is_active' => $request->is_active ?? true,
             'avatar' => $avatarPath,
+            'deleted_at' => null,
         ]);
 
         if ($request->password) {
@@ -243,6 +245,7 @@ class UserManagementController extends Controller
 
         $user->update([
             'is_active' => !$user->is_active,
+            'deleted_at' => null,
         ]);
 
         return back()->with('success', 'Status user berhasil diperbarui.');

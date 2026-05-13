@@ -13,16 +13,28 @@ class UserSeeder extends Seeder
     {
         $users = [
             [
-                'name' => 'Super Admin',
+                'name' => 'System Super Admin',
                 'email' => 's4dmin@alumodasinergi.com',
                 'password' => 'passwordsuperadmin',
                 'role' => 'Super Admin',
             ],
             [
-                'name' => 'Admin',
+                'name' => 'System Admin',
                 'email' => 'admin@alumodasinergi.com',
                 'password' => 'passwordadmin',
                 'role' => 'Admin',
+            ],
+            [
+                'name' => 'Fika',
+                'email' => 'fika@alumodasinergi.com',
+                'password' => 'passwordfika',
+                'role' => 'Admin',
+            ],
+            [
+                'name' => 'Sidiq',
+                'email' => 'sidiq@alumodasinergi.com',
+                'password' => 'passwordowner',
+                'role' => 'Owner',
             ],
             [
                 'name' => 'Halo ASKI',
@@ -30,18 +42,18 @@ class UserSeeder extends Seeder
                 'password' => 'passwordhaloaski',
                 'role' => 'Admin',
             ],
-            [
-                'name' => 'Editor',
-                'email' => 'editor@alumodasinergi.com',
-                'password' => 'passwordeditor',
-                'role' => 'Editor',
-            ],
-            [
-                'name' => 'User',
-                'email' => 'user@alumodasinergi.com',
-                'password' => 'passworduser',
-                'role' => 'User',
-            ],
+            // [
+            //     'name' => 'Editor',
+            //     'email' => 'editor@alumodasinergi.com',
+            //     'password' => 'passwordeditor',
+            //     'role' => 'Editor',
+            // ],
+            // [
+            //     'name' => 'User',
+            //     'email' => 'user@alumodasinergi.com',
+            //     'password' => 'passworduser',
+            //     'role' => 'User',
+            // ],
         ];
 
         foreach ($users as $userData) {

@@ -65,20 +65,7 @@ interface Props {
 
 export default function CategoryIndex({ categories, filters }: Props) {
   const { props } = usePage();
-  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
   const [expanded, setExpanded] = React.useState<Record<number, boolean>>({});
-
-  // Tampilkan flash messages
-  React.useEffect(() => {
-    if (flash.success) {
-      console.log('Success:', flash.success);
-      alert(flash.success);
-    }
-    if (flash.error) {
-      console.log('Error:', flash.error);
-      alert(flash.error);
-    }
-  }, [flash]);
 
   const breadcrumbs: BreadcrumbItem[] = [
     {

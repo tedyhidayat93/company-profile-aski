@@ -30,6 +30,7 @@ import {
   Shield,
   ShieldEllipsis,
   ShoppingCart,
+  StarIcon,
   Tag,
   Users,
   UsersIcon,
@@ -109,7 +110,7 @@ const mainNavGroups: NavGroupItem[] = [
         {
           title: 'Testimonial',
           href: '/cpanel/cms/testimonial',
-          icon: MessageSquare,
+          icon: StarIcon,
           permission: 'testimonial-list',
         },
         {

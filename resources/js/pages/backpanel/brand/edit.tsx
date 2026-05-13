@@ -31,21 +31,6 @@ interface Props {
 }
 
 export default function BrandEdit({ brand }: Props) {
-  const { props } = usePage();
-  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
-  
-  // Tampilkan flash messages
-  React.useEffect(() => {
-    if (flash.success) {
-      console.log('Success:', flash.success);
-      alert(flash.success);
-    }
-    if (flash.error) {
-      console.log('Error:', flash.error);
-      alert(flash.error);
-    }
-  }, [flash]);
-
   const { data, setData, post, processing, errors, reset } = useForm({
     name: brand.name,
     slug: brand.slug,

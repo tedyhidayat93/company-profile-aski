@@ -29,34 +29,34 @@ export interface ContainerSpec {
 
 export const getContainerSpecs = (templateType: string): ContainerSpec[] => {
   const baseSpecs: ContainerSpec[] = [
-    { label: 'height', value: '', note: 'Height (cm)' },
-    { label: 'width', value: '', note: 'Width (cm)' },
-    { label: 'length', value: '', note: 'Length (cm)' },
-    { label: 'color', value: '', note: 'Color' }
+    { label: 'Height (cm)', value: '', note: '' },
+    { label: 'Width (cm)', value: '', note: '' },
+    { label: 'Length (cm)', value: '', note: '' },
+    { label: 'Color', value: '', note: '' }
   ];
-  
+
   const standardSpecs: ContainerSpec[] = [
     ...baseSpecs,
-    { label: 'cube', value: '', note: 'Cube Capacity' },
-    { label: 'max_gross_weight', value: '', note: 'Max Gross Weight (kg)' },
-    { label: 'tare_weight', value: '', note: 'Tare Weight (kg)' },
-    { label: 'maximum_payload', value: '', note: 'Maximum Payload (kg)' },
-    { label: 'inside_cubic_capacity', value: '', note: 'Inside Cubic Capacity' },
-    { label: 'racking_test_load', value: '', note: 'Racking Test Load' }
+    { label: 'Cube Capacity', value: '', note: '' },
+    { label: 'Max Gross Weight (kg)', value: '', note: '' },
+    { label: 'Tare Weight (kg)', value: '', note: '' },
+    { label: 'Maximum Payload (kg)', value: '', note: '' },
+    { label: 'Inside Cubic Capacity', value: '', note: '' },
+    { label: 'Racking Test Load', value: '', note: '' }
   ];
-  
+
   const reeferSpecs: ContainerSpec[] = [
     ...baseSpecs,
-    { label: 'capacity', value: '', note: 'Capacity' },
-    { label: 'max_gross_weight', value: '', note: 'Max Gross Weight (kg)' },
-    { label: 'tare_weight', value: '', note: 'Tare Weight (kg)' }
+    { label: 'Capacity', value: '', note: '' },
+    { label: 'Max Gross Weight (kg)', value: '', note: '' },
+    { label: 'Tare Weight (kg)', value: '', note: '' }
   ];
-  
+
   const tankSpecs: ContainerSpec[] = [
     ...baseSpecs,
-    { label: 'capacity', value: '', note: 'Capacity' },
-    { label: 'max_gross_weight', value: '', note: 'Max Gross Weight (kg)' },
-    { label: 'tare_weight', value: '', note: 'Tare Weight (kg)' }
+    { label: 'Capacity', value: '', note: '' },
+    { label: 'Max Gross Weight (kg)', value: '', note: '' },
+    { label: 'Tare Weight (kg)', value: '', note: '' }
   ];
   
   switch (templateType) {

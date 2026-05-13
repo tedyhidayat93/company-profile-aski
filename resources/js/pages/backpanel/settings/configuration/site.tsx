@@ -84,20 +84,6 @@ const getGroupInfo = (group: string) => {
 };
 
 export default function SiteConfiguration({ configurations, currentGroup }: Props) {
-  const { props } = usePage();
-  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
-  
-  // Tampilkan flash messages
-  React.useEffect(() => {
-    if (flash.success) {
-      console.log('Success:', flash.success);
-      alert(flash.success);
-    }
-    if (flash.error) {
-      console.log('Error:', flash.error);
-      alert(flash.error);
-    }
-  }, [flash]);
 
   const [search, setSearch] = React.useState('');
   const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);

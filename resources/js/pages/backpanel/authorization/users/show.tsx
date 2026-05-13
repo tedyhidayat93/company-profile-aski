@@ -8,6 +8,7 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Edit, Users, Shield, Key, Calendar, Hash, Mail, ToggleLeft, ToggleRight } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 interface Role {
   id: number;
@@ -34,6 +35,7 @@ interface User {
   email_verified_at: string | null;
   created_at: string;
   updated_at: string;
+  deleted_at: string | null;
   avatar?: string;
   roles: Role[];
 }
@@ -143,7 +145,7 @@ export default function UserShow({ user }: Props) {
                 </Button>
               </Link>
 
-              <Link href={`/cpanel/authorization/user-management/edit/${user.id}`}>
+              <Link href={`/cpanel/authorization/user-management/${user.id}/edit`}>
                 <Button size="sm">
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
@@ -162,7 +164,7 @@ export default function UserShow({ user }: Props) {
 
             <Card>
               <CardHeader>
-                <CardTitle>Informasi</CardTitle>
+                <CardTitle>Informasi Profil</CardTitle>
                 <CardDescription>Detail akun user</CardDescription>
               </CardHeader>
 
@@ -190,13 +192,25 @@ export default function UserShow({ user }: Props) {
 
                 <div className="flex justify-between border-b pb-2">
                   <span className="text-gray-500">Dibuat</span>
-                  <span>{new Date(user.created_at).toLocaleString('id-ID')}</span>
+                  <span>{formatDate(user.created_at)}</span>
                 </div>
 
                 <div className="flex justify-between">
                   <span className="text-gray-500">Diperbarui</span>
-                  <span>{new Date(user.updated_at).toLocaleString('id-ID')}</span>
+                  <span>{formatDate(user.updated_at)}</span>
                 </div>
+                {user.deleted_at && (
+                  <div className="flex justify-between text-red-400">
+                    <span className="text-gray-500">Dihapus/Dinonaktifkan</span>
+                    <span className="text-end">
+                      {user.deleted_at ? formatDate(user.deleted_at) : '-'}
+                      <br />
+                      <small className="text-slate-400"> 
+                        *User menonaktifkan akunnya
+                      </small>
+                    </span>
+                  </div>
+                )}
 
               </CardContent>
             </Card>
@@ -209,7 +223,7 @@ export default function UserShow({ user }: Props) {
             {/* ROLES */}
             <Card>
               <CardHeader>
-                <CardTitle>Roles</CardTitle>
+                <CardTitle>Berperan Sebagai</CardTitle>
               </CardHeader>
 
               <CardContent className="space-y-2">
@@ -250,9 +264,9 @@ export default function UserShow({ user }: Props) {
         {/* Permissions */}
             <Card>
               <CardHeader>
-                <CardTitle>Permissions</CardTitle>
+                <CardTitle>Daftar Hak Akses</CardTitle>
                 <CardDescription>
-                  {totalPermissions} permission dari roles
+                  {totalPermissions} hak akses dari peran yang melekat pada akun ini
                 </CardDescription>
               </CardHeader>
 

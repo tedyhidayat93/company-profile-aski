@@ -35,7 +35,7 @@ class RoleController extends Controller
                     $query->where('is_active', $status === 'true');
                 }
             })
-            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'asc')
             ->paginate(10);
 
         return Inertia::render('backpanel/authorization/roles/index', [

@@ -67,20 +67,7 @@ interface Props {
 }
 
 export default function ProductIndex({ products, brands, categories, filters }: Props) {
-  const { props } = usePage();
-  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
-  
-  React.useEffect(() => {
-    if (flash.success) {
-      console.log('Success:', flash.success);
-      alert(flash.success);
-    }
-    if (flash.error) {
-      console.log('Error:', flash.error);
-      alert(flash.error);
-    }
-  }, [flash]);
-
+ 
   const [search, setSearch] = React.useState(filters?.search ?? '');
   const [typeFilter, setTypeFilter] = React.useState(filters?.type_sell ?? 'all');
   const [brandFilter, setBrandFilter] = React.useState(filters?.brand ?? 'all');

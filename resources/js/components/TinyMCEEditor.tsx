@@ -1,5 +1,7 @@
 import React from 'react';
 import { Editor } from '@tinymce/tinymce-react';
+import { usePage } from '@inertiajs/react';
+import { useConfig } from '@/utils/config';
 
 // Get API key from environment
 const TINYMCE_API_KEY = import.meta.env.VITE_JWT_TINYMCE || 'no-api-key';
@@ -20,9 +22,14 @@ const TinyMCEEditor: React.FC<TinyMCEEditorProps> = ({
   plugins = 'advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
   toolbar = 'undo redo | formatselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code | fullscreen | help'
 }) => {
+
+  const { getConfig } = useConfig();
+
+  const apikey = getConfig('tinymce_token', import.meta.env.VITE_JWT_TINYMCE);
+
   return (
     <Editor
-      apiKey={TINYMCE_API_KEY}
+      apiKey={apikey}
       value={value}
       onEditorChange={(content) => onChange(content)}
       init={{

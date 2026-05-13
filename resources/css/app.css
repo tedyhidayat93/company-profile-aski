@@ -253,13 +253,14 @@
   }
 
   thead {
-    @apply bg-slate-950 text-white!;
+    @apply bg-gradient-to-r from-slate-900 to-slate-700 bg-slate-900/90 text-white!;
   }
+  
   thead tr th {
     @apply text-white!;
   }
   thead tr th:last-child{
-    @apply overflow-hidden rounded-r-lg;
+    @apply overflow-hidden rounded-r-lg; 
   }
   thead tr th:first-child{
     @apply overflow-hidden rounded-l-lg;

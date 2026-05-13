@@ -22,6 +22,7 @@ interface User {
   created_at: string;
   updated_at: string;
   avatar?: string;
+  deleted_at?: string;
   roles: Array<{
     id: number;
     name: string;
@@ -200,7 +201,7 @@ export default function UserIndex({ users, roles, filters }: Props) {
                 <TableRow>
                   <TableHead>Nama</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Roles</TableHead>
+                  <TableHead>Peran</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Dibuat</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
@@ -245,7 +246,13 @@ export default function UserIndex({ users, roles, filters }: Props) {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{getActiveBadge(user.is_active)}</TableCell>
+                    <TableCell>
+                      {getActiveBadge(user.is_active)}
+                      <br />
+                      <small className='text-red-800'>
+                        {user.deleted_at ? 'User menonaktifkan akunnya pada: ' + formatDate(user.deleted_at) : ''}
+                      </small>
+                    </TableCell>
                     <TableCell>{formatDate(user.created_at)}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

@@ -19,19 +19,7 @@ interface Props {
 }
 
 export default function ProductShow({ product }: Props) {
-  const { props } = usePage();
-  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
   
-  React.useEffect(() => {
-    if (flash.success) {
-      console.log('Success:', flash.success);
-      alert(flash.success);
-    }
-    if (flash.error) {
-      console.log('Error:', flash.error);
-      alert(flash.error);
-    }
-  }, [flash]);
   const productImages = (product.images as any[])?.map((img: any) => ({
     original: img.image_path?.startsWith('/storage/') ? img.image_path : `/storage/${img.image_path}`,
     thumbnail: img.image_path?.startsWith('/storage/') ? img.image_path : `/storage/${img.image_path}`,

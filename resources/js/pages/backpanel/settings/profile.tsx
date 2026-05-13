@@ -150,12 +150,13 @@ export default function Profile({
                   <Input
                     id="email"
                     type="email"
-                    className="mt-1 block w-full"
+                    className={`mt-1 block w-full bg-slate-200`}
                     defaultValue={auth.user.email}
                     name="email"
                     required
                     autoComplete="username"
                     placeholder="Alamat Email"
+                    readOnly
                   />
 
                   <InputError className="mt-2" message={errors.email} />

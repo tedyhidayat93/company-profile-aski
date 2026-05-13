@@ -127,19 +127,6 @@ export default function Dashboard({
 
   const { props } = usePage();
   const { recentOrders: recentOrdersFromProps } = props as any;
-  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
-  
-  useEffect(() => {
-    if (flash.success) {
-      console.log('Success:', flash.success);
-      alert(flash.success);
-    }
-    if (flash.error) {
-      console.log('Error:', flash.error);
-      alert(flash.error);
-    }
-  }, [flash]);
-
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -165,7 +152,7 @@ export default function Dashboard({
             return (
               <Link href={stat.link} key={stat.name}>
                 <Card
-                  className="group relative h-full overflow-hidden border-none bg-white shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  className="group relative h-full overflow-hidden border-none bg-gradient-to-br from-slate-400 to-slate-900 shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                 >
                   {/* Accent */}
                   <div
@@ -202,20 +189,19 @@ export default function Dashboard({
 
                       {/* Content */}
                       <div>
-                        <p className="line-clamp-2 min-h-[32px] text-[10px] font-bold uppercase leading-tight tracking-wide text-slate-400 md:tracking-widest">
+                        <p className="line-clamp-2 min-h-[32px] text-[10px] font-bold uppercase leading-tight tracking-wide text-slate-200 md:tracking-widest">
                           {stat.name}
                         </p>
 
                         <div className="flex items-end gap-1">
                           <h3
                             className="
-                              text-xl font-black tracking-tight text-slate-900
+                              text-xl font-black tracking-tight text-slate-50
                               sm:text-xl
                               md:text-2xl
                               xl:text-5xl
 
                               transition-all duration-300
-                              group-hover:text-transparent
                               group-hover:bg-clip-text
                               group-hover:bg-gradient-to-r
                               group-hover:from-slate-900
@@ -244,7 +230,7 @@ export default function Dashboard({
                     {/* Decorative Number */}
                     <div
                       className="
-                        pointer-events-none absolute z-10 select-none font-black text-slate-100 transition-colors duration-300 group-hover:text-slate-300/30
+                        pointer-events-none absolute z-10 select-none font-black text-slate-800/20 transition-colors duration-300 group-hover:text-slate-900/30
                         -bottom-1 -right-1 text-5xl
                         md:-bottom-2 md:-right-2 md:text-7xl
                         xl:text-8xl
@@ -268,7 +254,7 @@ export default function Dashboard({
               <CardHeader className="flex flex-col md:flex-row items-center justify-between space-y-0">
                 <div>
                   <CardTitle className="text-lg font-bold">Daftar Pesanan Terbaru</CardTitle>
-                  <p className="text-sm text-muted-foreground">Pesanan terbaru yang menunggu diproses dalam kuartal 24 jam</p>
+                  <p className="text-sm text-muted-foreground">Pesanan terbaru yang menunggu diproses dalam kuartal 24 jam terakhir</p>
                 </div>
                 <div className="relative">
                 <Button variant="outline" size="sm" asChild>

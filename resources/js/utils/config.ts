@@ -10,7 +10,7 @@ export function useConfig() {
   const getConfig = (key: string, defaultValue: string = '') => {
     if (Array.isArray(siteconfig)) {
       const config = siteconfig.find((c: any) => c.key === key);
-      return config ? config.value : defaultValue;
+      return config && config.value !== '' ? config.value : defaultValue;
     }
     return defaultValue;
   };

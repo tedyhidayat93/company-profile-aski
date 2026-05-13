@@ -528,6 +528,14 @@ class ConfigurationSeeder extends Seeder
                 'value' => 'ORD',
                 'type' => 'text',
             ],
+            [
+                'label' => 'TinyMCE WYSWYG Token',
+                'description' => 'Token untuk editor TinyMce WYSWYG',
+                'group' => 'other',
+                'key' => 'tinymce_token',
+                'value' => '',
+                'type' => 'text',
+            ],
         ];
 
         foreach ($otherConfigs as $config) {

@@ -13,7 +13,7 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { formatPrice, parseCurrencyInput, formatCurrencyInput } from '@/utils/currency';
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon, Plus, Trash2, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon, Plus, Trash2, ChevronDown, FormInput } from 'lucide-react';
 import TreeSelect from '@/components/tree-select';
 import TinyMCEEditor from '@/components/TinyMCEEditor';
 
@@ -47,18 +47,6 @@ interface Props {
 export default function ProductCreate({ brands, categories }: Props) {
   const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
   const { props } = usePage();
-  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
-  
-  React.useEffect(() => {
-    if (flash.success) {
-      console.log('Success:', flash.success);
-      alert(flash.success);
-    }
-    if (flash.error) {
-      console.log('Error:', flash.error);
-      alert(flash.error);
-    }
-  }, [flash]);
 
   const [imagePreviews, setImagePreviews] = useState<Array<{ file: File; preview: string }>>([]);
   const [coverImageIndex, setCoverImageIndex] = useState<number>(0);
@@ -606,10 +594,10 @@ export default function ProductCreate({ brands, categories }: Props) {
                       variant="outline"
                       size="sm"
                       onClick={addSpecRow}
-                      className="shadow-sm"
+                      className="shadow-sm bg-lime-300"
                     >
                       <Plus className="mr-2 h-4 w-4" />
-                      Tambah
+                      Tambah Baris
                     </Button>
                     
                     <div className="relative">
@@ -620,7 +608,7 @@ export default function ProductCreate({ brands, categories }: Props) {
                         onClick={() => setIsTemplateDropdownOpen(!isTemplateDropdownOpen)}
                         className="shadow-sm"
                       >
-                        <Plus className="mr-2 h-4 w-4" />
+                        <FormInput className="mr-2 h-4 w-4" />
                         Template
                         <ChevronDown className="ml-2 h-4 w-4" />
                       </Button>
@@ -711,7 +699,7 @@ export default function ProductCreate({ brands, categories }: Props) {
                             name={`specific_specs[${index}][label]`}
                             value={spec.label || ''}
                             onChange={handleInputChange}
-                            placeholder="Contoh: Warna"
+                            placeholder="Masukkan data spek..."
                             className="focus-visible:ring-primary"
                           />
                         </div>
@@ -724,7 +712,7 @@ export default function ProductCreate({ brands, categories }: Props) {
                             name={`specific_specs[${index}][value]`}
                             value={spec.value || ''}
                             onChange={handleInputChange}
-                            placeholder="Contoh: Merah"
+                            placeholder="Masukkan data spek..."
                             className="focus-visible:ring-primary"
                           />
                         </div>

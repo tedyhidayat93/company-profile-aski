@@ -23,6 +23,7 @@ interface User {
   is_active: boolean;
   created_at: string;
   avatar?: string;
+  deleted_at?: string | null;
   roles: Array<{
     id: number;
     name: string;
@@ -261,9 +262,14 @@ export default function UserEdit({ user, roles }: Props) {
                 {errors.roles && <p className="text-sm text-red-600">{errors.roles}</p>}
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Checkbox id="is_active" name="is_active" checked={data.is_active} onCheckedChange={(checked) => setData('is_active', checked as boolean)} />
-                <Label htmlFor="is_active">User Aktif</Label>
+              <div className="flex items-center justify-between border-b border-t py-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="is_active" name="is_active" checked={data.is_active} onCheckedChange={(checked) => setData('is_active', checked as boolean)} />
+                  <Label htmlFor="is_active" className="m-0">Status Aktif</Label>
+                </div>
+                <div className="text-sm text-gray-500">
+                  *User yang dinonaktifkan tidak dapat login
+                </div>
               </div>
 
               <div className="flex justify-end space-x-2">

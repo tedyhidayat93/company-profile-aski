@@ -60,21 +60,7 @@ interface Props {
 }
 
 export default function FaqIndex({ faqs, filters }: Props) {
-  const { props } = usePage();
-  const flash = props.flash as { success?: string; error?: string } || { success: '', error: '' };
-  
-  // Tampilkan flash messages
-  React.useEffect(() => {
-    if (flash.success) {
-      console.log('Success:', flash.success);
-      alert(flash.success);
-    }
-    if (flash.error) {
-      console.log('Error:', flash.error);
-      alert(flash.error);
-    }
-  }, [flash]);
-
+ 
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'CMS',

@@ -67,9 +67,10 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
-
+        
         Auth::logout();
-
+        
+        $user->update(['is_active' => false]);
         $user->delete();
 
         $request->session()->invalidate();

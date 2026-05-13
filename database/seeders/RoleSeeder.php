@@ -30,6 +30,12 @@ class RoleSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'name' => 'Owner',
+                'guard_name' => 'web',
+                'description' => 'Owner Pemilik Perusahaan',
+                'is_active' => true,
+            ],
+            [
                 'name' => 'Editor',
                 'guard_name' => 'web',
                 'description' => 'Editor untuk konten dan artikel',
