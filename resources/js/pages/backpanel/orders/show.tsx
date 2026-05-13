@@ -26,6 +26,7 @@ import {
 import OrderStatusInfoModal from '@/components/order-status-info-modal';
 import { getOrderStatusBadgeProps, OrderStatusBadge } from '@/utils/order-status';
 import { formatCurrencyDisplay } from '@/utils/currency';
+import { handleImageError } from '@/utils/image';
 
 interface Order {
   id: number;
@@ -223,7 +224,7 @@ export default function OrderShow({ order }: Props) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5" />
-                  Informasi produk yang dipesanan
+                  Detail Produk yang dipesanan oleh pelanggan
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -232,6 +233,7 @@ export default function OrderShow({ order }: Props) {
                     <img 
                       src={order.product_image ? `/storage/${order.product_image}` : order.product?.coverImage?.image_path || '/images/placeholder.png'} 
                       alt={order.product_name}
+                      onError={handleImageError}
                       className="h-24 w-24 object-cover rounded-md border"
                     />
                   </div>
@@ -259,7 +261,7 @@ export default function OrderShow({ order }: Props) {
                         </div>
                       </div>
                       <div>
-                        <div className="text-gray-500">Jumlah</div>
+                        <div className="text-gray-500">Jumlah yang dipesan</div>
                         <div className="font-medium">{order.quantity}</div>
                       </div>
                       <div>
@@ -275,7 +277,7 @@ export default function OrderShow({ order }: Props) {
             </Card>
 
             {/* Status Update */}
-            <Card>
+            <Card className="border-2 border-orange-100">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />

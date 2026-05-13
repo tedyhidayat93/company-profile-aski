@@ -197,8 +197,8 @@ export default function Dashboard({
                           <h3
                             className="
                               text-xl font-black tracking-tight text-slate-50
-                              sm:text-xl
-                              md:text-2xl
+                              sm:text-2xl
+                              md:text-3xl
                               xl:text-5xl
 
                               transition-all duration-300
@@ -249,7 +249,7 @@ export default function Dashboard({
         <div className="grid gap-4 xl:grid-cols-3">
           
           {/* Table Section (Lebih Lebar) */}
-          <div className="xl:col-span-2 space-y-6">
+          <div className="xl:col-span-2 min-w-0">
             <Card className="border-none shadow-sm ring-1 ring-slate-200 min-h-[370px]">
               <CardHeader className="flex flex-col md:flex-row items-center justify-between space-y-0">
                 <div>
@@ -267,17 +267,9 @@ export default function Dashboard({
                 )}
               </div>
               </CardHeader>
-              <CardContent className="p-0 overflow-x-auto">
-                <div className="w-[80vw]
-                  min-w-0
-                  overflow-x-auto
-                  max-w-[100vw]
-                  md:max-w-[59vw]
-                  lg:max-w-[70vw]
-                  xl:max-w-[52vw]
-                  2xl:max-w-[53vw]"
-                >
-                  <Table className="w-full min-w-full">
+              <CardContent className="p-0">
+                <div className="w-full overflow-x-auto">
+                  <Table className="w-full min-w-[200px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="py-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>

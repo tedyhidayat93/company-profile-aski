@@ -108,7 +108,7 @@ const mainNavGroups: NavGroupItem[] = [
           permission: 'faq-list',
         },
         {
-          title: 'Testimonial',
+          title: 'Ulasan',
           href: '/cpanel/cms/testimonial',
           icon: StarIcon,
           permission: 'testimonial-list',

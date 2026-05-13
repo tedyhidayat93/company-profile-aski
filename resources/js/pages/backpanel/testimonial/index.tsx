@@ -192,13 +192,13 @@ export default function TestimonialIndex({ testimonials, metrics, filters }: Pro
       
       <div className="space-y-6 p-6">
         <HeaderTitle
-          title="Data Testimonial"
-          description="Data testimonial yang ada di website"
+          title="Data Ulasan"
+          description="Data testimoni/ulasan dari pelanggan"
         >
           <Link href="/cpanel/cms/testimonial/create">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Tambah Testimonial
+              Buat Ulasan
             </Button>
           </Link>
         </HeaderTitle>

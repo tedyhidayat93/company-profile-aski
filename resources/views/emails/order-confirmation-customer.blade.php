@@ -186,12 +186,6 @@
                 <span>Jumlah</span>
                 <span>{{ $quantity }} unit</span>
             </div>
-            @if($productCondition)
-            <div class="row">
-                <span>Kondisi</span>
-                <span>{{ $productCondition }}</span>
-            </div>
-            @endif
             @if($notes)
             <div class="row">
                 <span>Catatan</span>

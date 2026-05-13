@@ -717,7 +717,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     Terima kasih atas pesanan Anda 🙏 Kami akan segera menghubungi Anda melalui WhatsApp, telepon, atau email untuk memberikan informasi lebih lanjut.
                                 </p>
 
-                                <p className="text-sm text-gray-500 mt-2">
+                                <p className="text-base text-gray-500 mt-2">
                                     Kami juga ingin mendengar pengalaman Anda berbelanja di Alumoda. 
                                     Bagikan cerita Anda{' '}
                                     <a 

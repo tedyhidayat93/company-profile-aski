@@ -246,7 +246,7 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
         </HeaderTitle>
 
         {/* Statistic */}
-        <div className="grid grid-cols-2 md:grid-cols-5 2xl:grid-cols-7 gap-4 rounded-2xl bg-gradient-to-r from-slate-100 to-slate-800 p-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 rounded-2xl bg-gradient-to-r from-slate-100 to-slate-800 p-4">
           {orderStats.map((stat, index) => {
             const Icon = stat.icon;
             const isTotal = index === 0;
@@ -356,7 +356,7 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
                       />
                     </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                    <div className="col-span-2">
+                    <div className="lg:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                       <Select value={statusFilter} onValueChange={handleStatusFilter}>
                         <SelectTrigger>
@@ -376,9 +376,9 @@ export default function OrderIndex({ orders, orderStatistics, filters }: Props) 
                     <DateRangePicker
                         value={dateRange}
                         onChange={handleDateRangeChange}
-                        className="col-span-2"
+                        className="lg:col-span-2"
                       />
-                    <div>
+                    <div className='lg:col-span-2'>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Tampilkan per Halaman</label>
                       <Select value={perPageFilter} onValueChange={handlePerPageFilter}>
                         <SelectTrigger>
