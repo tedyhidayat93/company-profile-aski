@@ -231,8 +231,8 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Jenis enkripsi SMTP',
                 'group' => 'email',
                 'key' => 'smtp_encryption',
-                'value' => 'tls',
-                'type' => 'select',
+                'value' => 'SSL',
+                'type' => 'text',
             ],
             [
                 'label' => 'Email From Address',

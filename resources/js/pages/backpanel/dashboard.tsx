@@ -246,10 +246,10 @@ export default function Dashboard({
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid gap-4 lg:grid-cols-3 w-full">
+        <div className="grid gap-4 xl:grid-cols-3">
           
           {/* Table Section (Lebih Lebar) */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="xl:col-span-2 space-y-6">
             <Card className="border-none shadow-sm ring-1 ring-slate-200 min-h-[370px]">
               <CardHeader className="flex flex-col md:flex-row items-center justify-between space-y-0">
                 <div>
@@ -267,100 +267,110 @@ export default function Dashboard({
                 )}
               </div>
               </CardHeader>
-              <CardContent className="p-0 overflow-x-auto w-[80vw] xl:w-full">
-                <Table className="w-full min-w-[1000px] md:min-w-96">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="py-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>
-                      <TableHead className="text-xs uppercase tracking-wider font-semibold">Pelanggan</TableHead>
-                      <TableHead className="text-xs uppercase tracking-wider font-semibold">Detail Produk</TableHead>
-                      <TableHead className="text-xs uppercase tracking-wider font-semibold">Status</TableHead>
-                      <TableHead className="text-right pr-6 text-xs uppercase tracking-wider font-semibold">Total Nilai</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  
-                  <TableBody>
-                    {recentOrdersFromProps.length > 0 ? (
-                      recentOrdersFromProps.map((order: any) => (
-                        <TableRow 
-                          key={order.id} 
-                          onClick={() => window.location.href = `/cpanel/crm/orders/${order.id}`} 
-                          className="group hover:bg-slate-50/80 transition-all cursor-pointer border-b"
-                        >
-                          {/* ID Pesanan */}
-                          <TableCell className="pl-6 space-y-2">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700">
-                              #{order.order_number}
-                            </span>
-                            <span className="text-xs pl-1 text-slate-400 flex items-center gap-1">
-                              <Calendar1 className="h-3 w-3 ml-1" /> {formatDate(order.created_at)}
-                            </span>
-                          </TableCell>
+              <CardContent className="p-0 overflow-x-auto">
+                <div className="w-[80vw]
+                  min-w-0
+                  overflow-x-auto
+                  max-w-[100vw]
+                  md:max-w-[59vw]
+                  lg:max-w-[70vw]
+                  xl:max-w-[52vw]
+                  2xl:max-w-[53vw]"
+                >
+                  <Table className="w-full min-w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="py-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider font-semibold">Pelanggan</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider font-semibold">Detail Produk</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider font-semibold">Status</TableHead>
+                        <TableHead className="text-right pr-6 text-xs uppercase tracking-wider font-semibold">Total Nilai</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    
+                    <TableBody>
+                      {recentOrdersFromProps.length > 0 ? (
+                        recentOrdersFromProps.map((order: any) => (
+                          <TableRow 
+                            key={order.id} 
+                            onClick={() => window.location.href = `/cpanel/crm/orders/${order.id}`} 
+                            className="group hover:bg-slate-50/80 transition-all cursor-pointer border-b"
+                          >
+                            {/* ID Pesanan */}
+                            <TableCell className="pl-6 space-y-2">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700">
+                                #{order.order_number}
+                              </span>
+                              <span className="text-xs pl-1 text-slate-400 flex items-center gap-1">
+                                <Calendar1 className="h-3 w-3 ml-1" /> {formatDate(order.created_at)}
+                              </span>
+                            </TableCell>
 
-                          {/* Pelanggan */}
-                          <TableCell>
-                            <div className="flex items-start gap-3">
-                              <div className="flex flex-col">
-                                <span className="font-semibold text-slate-900 leading-none mb-1">{order.company_name}</span>
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="text-xs text-slate-500 flex items-center gap-1">
-                                    <User className="h-3 w-3" /> {order.pic_name}
-                                  </span>
-                                  <span className="text-[11px] text-slate-400 italic font-light">{order.phone}</span>
+                            {/* Pelanggan */}
+                            <TableCell>
+                              <div className="flex items-start gap-3">
+                                <div className="flex flex-col">
+                                  <span className="font-semibold text-slate-900 leading-none mb-1">{order.company_name}</span>
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="text-xs text-slate-500 flex items-center gap-1">
+                                      <User className="h-3 w-3" /> {order.pic_name}
+                                    </span>
+                                    <span className="text-[11px] text-slate-400 italic font-light">{order.phone}</span>
+                                  </div>
                                 </div>
+                              </div>
+                            </TableCell>
+
+                            {/* Produk & Catatan */}
+                            <TableCell className="max-w-[250px]">
+                              <div className="flex flex-col">
+                                <span className="font-medium text-slate-800">{order.product_name}</span>
+                                <span className="text-xs text-slate-500">
+                                  {order.quantity} Unit &times; {formatCurrencyDisplay(order.product_price)}
+                                </span>
+                                
+                                {order.notes && (
+                                  <div className="mt-2 text-wrap p-1 bg-amber-50/50 border-l-2 border-amber-200 rounded text-[11px] text-amber-800 leading-relaxed italic">
+                                    &ldquo;{order.notes}&rdquo;
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+
+                            {/* Status */}
+                            <TableCell>
+                              <OrderStatusBadge status={order.status} />
+                            </TableCell>
+
+                            {/* Total Harga */}
+                            <TableCell className="text-right pr-6">
+                              <div className="flex flex-col items-end">
+                                <span className="font-bold text-slate-900 text-base">
+                                  {formatCurrencyDisplay(order.total_price)}
+                                </span>
+                                {/* <span className="text-[10px] text-slate-400 uppercase font-medium">Pembayaran Selesai</span> */}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="h-64 text-center">
+                            <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
+                              <div className="p-4 rounded-full bg-slate-50">
+                                <ShoppingBag className="h-8 w-8 text-slate-300" />
+                              </div>
+                              <div>
+                                <p className="text-base font-semibold text-slate-900">Belum Ada Pesanan</p>
+                                <p className="text-sm text-slate-500">Daftar transaksi pelanggan akan tampil di sini.</p>
                               </div>
                             </div>
                           </TableCell>
-
-                          {/* Produk & Catatan */}
-                          <TableCell className="max-w-[250px]">
-                            <div className="flex flex-col">
-                              <span className="font-medium text-slate-800">{order.product_name}</span>
-                              <span className="text-xs text-slate-500">
-                                {order.quantity} Unit &times; {formatCurrencyDisplay(order.product_price)}
-                              </span>
-                              
-                              {order.notes && (
-                                <div className="mt-2 text-wrap p-1 bg-amber-50/50 border-l-2 border-amber-200 rounded text-[11px] text-amber-800 leading-relaxed italic">
-                                  &ldquo;{order.notes}&rdquo;
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-
-                          {/* Status */}
-                          <TableCell>
-                            <OrderStatusBadge status={order.status} />
-                          </TableCell>
-
-                          {/* Total Harga */}
-                          <TableCell className="text-right pr-6">
-                            <div className="flex flex-col items-end">
-                              <span className="font-bold text-slate-900 text-base">
-                                {formatCurrencyDisplay(order.total_price)}
-                              </span>
-                              {/* <span className="text-[10px] text-slate-400 uppercase font-medium">Pembayaran Selesai</span> */}
-                            </div>
-                          </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={5} className="h-64 text-center">
-                          <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
-                            <div className="p-4 rounded-full bg-slate-50">
-                              <ShoppingBag className="h-8 w-8 text-slate-300" />
-                            </div>
-                            <div>
-                              <p className="text-base font-semibold text-slate-900">Belum Ada Pesanan</p>
-                              <p className="text-sm text-slate-500">Daftar transaksi pelanggan akan tampil di sini.</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </div>
