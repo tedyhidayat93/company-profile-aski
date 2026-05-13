@@ -186,24 +186,17 @@
                 <span>Jumlah</span>
                 <span>{{ $quantity }} unit</span>
             </div>
-            @if($notes)
+            @if($orderNote)
             <div class="row">
                 <span>Catatan</span>
-                <span>{{ $notes }}</span>
+                <span>{{ $orderNote }}</span>
             </div>
             @endif
         </div>
 
-        @if($showPrice)
-        <div class="total">
-            Total Estimasi
-            <strong>Rp {{ $totalPrice }}</strong>
-        </div>
-        @else
         <div class="total">
             <strong>Estimasi akan dikirim via WhatsApp</strong>
         </div>
-        @endif
 
         <div class="section contact">
             <p><strong>Butuh bantuan?</strong></p>
