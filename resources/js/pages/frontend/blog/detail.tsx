@@ -82,7 +82,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                         Beranda
                     </Link>
                     <span className="text-gray-400">/</span>
-                    <Link href="/articles" className="hover:text-gray-700 transition-colors">
+                    <Link href="/articles" className="hover:text-gray-700 text-nowrap transition-colors">
                         Artikel
                     </Link>
                     {post.category && (
@@ -90,14 +90,14 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                             <span className="text-gray-400">/</span>
                             <Link 
                                 href={`/articles?category=${post.category.id}`} 
-                                className="hover:text-gray-700 transition-colors"
+                                className="hover:text-gray-700 text-nowrap transition-colors"
                             >
                                 {post.category.name}
                             </Link>
                         </>
                     )}
                     <span className="text-gray-400">/</span>
-                    <span className="text-gray-700 font-medium truncate max-w-xs">
+                    <span className="text-gray-700 font-medium text-nowrap max-w-xs">
                         {post.title}
                     </span>
                 </nav>
@@ -105,7 +105,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
 
                 {/* 🔥 HEADER */}
                 <div className="mb-6">
-                    <h1 className="text-3xl md:text-4xl font-bold leading-tight text-gray-900">
+                    <h1 className="text-3xl md:text-4xl font-bold leading-tight text-gray-900 dark:text-white">
                         {post.title}
                     </h1>
 
@@ -183,7 +183,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                             {post.tags.map((tag, i) => (
                                 <span
                                     key={i}
-                                    className="text-xs bg-gray-100 px-2 py-1 rounded"
+                                    className="text-xs bg-gray-100 dark:bg-orange-300 dark:text-slate-900 px-2 py-1 rounded"
                                 >
                                     #{tag}
                                 </span>
@@ -265,6 +265,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                         <Button
                             size="sm"
                             variant="outline"
+                            className="bg-orange-400 text-black"
                             onClick={() => {
                                 navigator.clipboard.writeText(shareUrl);
                                 alert('Link berhasil disalin!');

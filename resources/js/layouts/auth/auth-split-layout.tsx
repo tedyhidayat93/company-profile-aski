@@ -76,7 +76,7 @@ export default function AuthSplitLayout({
 
         {/* Right Login Card */}
         <div className="flex w-full items-center justify-center p-6 lg:w-[520px] lg:justify-end lg:pr-16">
-          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white p-8 shadow-2xl backdrop-blur-md">
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white p-4 md:p-8 shadow-2xl backdrop-blur-md">
             <Link
               href={homepage()}
               className="mb-4 flex items-center justify-center"

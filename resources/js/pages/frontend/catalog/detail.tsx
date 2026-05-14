@@ -291,7 +291,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                             </div>
 
                             {/* Pricing Card */}
-                            <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
+                            <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-900/90 rounded-xl">
                                 {product.show_price ? (
                                     <div className="flex flex-col">
                                         <span className="text-xs font-bold text-gray-900 mb-1">Harga Terbaik</span>
@@ -305,7 +305,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="mt-4 flex items-start gap-2 text-gray-500 dark:text-gray-400">
+                                        <div className="mt-4 flex items-start gap-2 text-gray-500 dark:text-gray-300">
                                             <InfoIcon className="h-4 w-4 mt-0.5 shrink-0" />
                                             <p className="text-xs leading-normal">
                                                 Harga tidak mengikat. Dapatkan estimasi biaya resmi dan jadwal ketersediaan dengan mengeklik <span className="text-primary font-semibold italic">"Pesan Sekarang"</span>.
@@ -315,13 +315,12 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                 ) : (
                                     <div className="flex flex-col gap-2 text-gray-600 dark:text-gray-300">
                                         <div className="flex items-center gap-2">
-                                            <Phone className="h-5 w-5 text-primary" />
-                                            <span className="text-lg font-bold text-black">
+                                            <span className="text-lg font-bold text-black dark:text-white">
                                                 Hubungi Tim Sales untuk Harga Terbaik
                                             </span>
                                         </div>
 
-                                        <p className="text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                                        <p className="text-sm leading-relaxed text-gray-500 dark:text-gray-200">
                                             Klik <span className="font-semibold text-primary">"Pesan Sekarang"</span> untuk mendapatkan 
                                             penawaran harga, ketersediaan unit, dan konsultasi langsung dari tim kami.
                                         </p>
@@ -335,7 +334,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     {/* Quantity */}
                                     <div className="w-32">
                                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Jumlah</label>
-                                        <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary/20">
+                                        <div className="flex bg-white items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary/20">
                                             <button 
                                                 onClick={() => handleQuantityChange(-1)}
                                                 className="w-10 h-10 cursor-pointer bg-white hover:bg-gray-50 text-gray-600 transition-colors"

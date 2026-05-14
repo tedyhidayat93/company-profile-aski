@@ -239,7 +239,7 @@ export default function Homepage({
           
           <div className="container drop-shadow-md relative z-40 mx-auto px-4 py-20 text-center text-white">
             <div className="animate-fade-in-up">
-              <h1 className="mb-6 font-black leading-[0.95] tracking-tighter text-3xl sm:text-5xl md:text-7xl lg:text-8xl text-slate-900 dark:text-orange-400">
+              <h1 className="mb-6 font-black leading-[0.95] tracking-tighter text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-slate-900 dark:text-slate-950">
                 <span dangerouslySetInnerHTML={{ 
                   __html: getConfig('hero_title', 
                   'Solusi Terpercaya <br /> Untuk ' + 
@@ -250,7 +250,7 @@ export default function Homepage({
                 }} />
               </h1>
               
-              <p className="mx-auto mb-10 max-w-2xl font-bold text-sm md:text-xl dark:text-orange-200 text-slate-900 leading-7 lg:text-xl">
+              <p className="mx-auto mb-10 max-w-2xl font-bold text-sm md:text-xl dark:text-slate-800 text-slate-900 leading-7 lg:text-xl">
                 {getConfig('hero_description', 'Kami menyediakan berbagai pilihan kontainer untuk disewa atau dibeli. Mulai dari Kontainer standar hingga Kontainer Custom sesuai kebutuhan Anda.')}
               </p>
 
@@ -320,7 +320,7 @@ export default function Homepage({
           <div className="container mx-auto px-4">
             <div className="mb-16 text-center">
               <h2 className="mb-4 dark:text-orange-400">{getConfig('services_title', 'Layanan Kami')}</h2>
-              <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-xl">
+              <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
                 {getConfig('services_description', 'Berbagai layanan profesional yang kami tawarkan untuk memenuhi kebutuhan kontainer Anda')}
               </p>
             </div>
@@ -407,13 +407,13 @@ export default function Homepage({
               <h2 className="mb-4">
                 {getConfig('clients_title', 'Klien Kami')}
               </h2>
-              <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-xl">
+              <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
                 {getConfig('clients_description', 'Kami telah melayani berbagai perusahaan dan organisasi di berbagai sektor')}
               </p>
             </div>
             
             <div className="relative rounded-xl ">
-              <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              <div className="grid grid-cols-2 gap-2 md:gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {clients.map((client, index) => (
                   <div key={client.id || index} className={`flex h-32 items-center justify-center rounded-lg bg-white p-4 transition-all hover:border hover:border-orange-400 dark:bg-gray-700 ${client.logo && 'border border-gray-200 bg-slate-400 dark:border-gray-600'}`}>
                     {client.logo ? (
@@ -585,7 +585,7 @@ export default function Homepage({
               <div className="container mx-auto px-4 py-20">
                 <div className="mb-12 text-center">
                   <h2 className="mb-4 dark:text-orange-400">{getConfig('articles_title', 'Artikel Terbaru')}</h2>
-                  <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-xl">
+                  <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
                     {getConfig('articles_description', 'Temukan informasi terbaru seputar kontainer dan solusi logistik')}
                   </p>
                 </div>
@@ -664,7 +664,7 @@ export default function Homepage({
         {/* CTA Section */}
         <section id="contact" className="bg-orange-200 dark:bg-orange-300 py-20 text-white">
           <div className="container mx-auto px-4 text-center flex flex-col justify-center items-center">
-            <h2 className="mb-6 text-5xl font-[800]! text-black">{getConfig('cta_title', 'Butuh Kontainer untuk Bisnis Anda?')}</h2>
+            <h2 className="mb-6 text-3xl md:text-5xl font-[800]! text-black">{getConfig('cta_title', 'Butuh Kontainer untuk Bisnis Anda?')}</h2>
             <p className="mx-auto mb-8 text-slate-800 max-w-2xl">
               {getConfig('cta_description', 'Dapatkan penawaran terbaik untuk sewa atau beli kontainer berkualitas. Cocok untuk berbagai kebutuhan usaha mulai dari gudang, kantor, hingga ruang komersial.')}
             </p>

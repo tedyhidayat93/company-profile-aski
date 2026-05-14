@@ -311,7 +311,7 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
     
             {/* Product Grid */}
             <div className="flex-1">
-                <div className="mb-6 flex items-center justify-between">
+                <div className="mb-6 flex flex-col md:flex-row gap-2 items-center justify-between">
                     <p className="text-gray-600 dark:text-gray-200 text-xs md:text-sm">
                         Menampilkan {products.length} dari {pagination.total} produk
                     </p>
