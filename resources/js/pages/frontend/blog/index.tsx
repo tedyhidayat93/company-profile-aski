@@ -220,7 +220,7 @@ export default function BlogIndex({
                         {(data.search || data.category || data.tag) && (
                             <Button
                                 type="button"
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 onClick={() => {
                                     setData({
@@ -291,7 +291,7 @@ export default function BlogIndex({
 
                                 <option
                                     key={category.id}
-                                    value={category.id}
+                                    value={category.slug}
                                 >
                                     {category.name}
                                 </option>

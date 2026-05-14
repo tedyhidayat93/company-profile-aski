@@ -19,7 +19,7 @@ class BlogController extends Controller
         
         // Get filters
         $search = $request->get('search');
-        $categoryId = $request->get('category');
+        $categorySlug = $request->get('category');
         $tag = $request->get('tag');
         
         // Get blog categories
@@ -65,8 +65,10 @@ class BlogController extends Controller
         }
         
         // Apply category filter
-        if ($categoryId) {
-            $baseQuery->where('category_id', $categoryId);
+        if ($categorySlug) {
+            $baseQuery->whereHas('category', function($query) use ($categorySlug) {
+                $query->where('slug', $categorySlug);
+            });
         }
         
         // Apply tag filter
@@ -110,7 +112,7 @@ class BlogController extends Controller
             'popular_tags' => $popularTags,
             'filters' => [
                 'search' => $search,
-                'category' => $categoryId,
+                'category' => $categorySlug,
                 'tag' => $tag,
             ],
         ]);
@@ -133,7 +135,7 @@ class BlogController extends Controller
             ->where('id', '!=', $post->id)
             ->orderBy('published_at', 'desc')
             ->limit(3)
-            ->get(['id', 'title', 'slug', 'featured_image', 'published_at']);
+            ->get(['id', 'title', 'slug', 'featured_image', 'excerpt', 'published_at']);
 
         return Inertia::render('frontend/blog/detail', [
             'post' => $post,

@@ -76,31 +76,111 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
 
             <div className="max-w-4xl mx-auto px-4 py-10">
 
-                {/* 🧭 BREADCRUMB */}
-                <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-6">
-                    <Link href="/" className="hover:text-gray-700 transition-colors">
-                        Beranda
-                    </Link>
-                    <span className="text-gray-400">/</span>
-                    <Link href="/articles" className="hover:text-gray-700 text-nowrap transition-colors">
-                        Artikel
-                    </Link>
-                    {post.category && (
-                        <>
-                            <span className="text-gray-400">/</span>
-                            <Link 
-                                href={`/articles?category=${post.category.id}`} 
-                                className="hover:text-gray-700 text-nowrap transition-colors"
+                {/* Breadcrumb */}
+                <nav
+                    className="mb-6 flex max-w-full overflow-x-auto"
+                    aria-label="Breadcrumb"
+                >
+
+                    <ol className="
+                        inline-flex min-w-max items-center
+                        space-x-1 md:space-x-2
+                        text-sm text-nowrap
+                    ">
+
+                        {/* HOME */}
+                        <li className="inline-flex items-center">
+
+                            <Link
+                                href="/"
+                                className="
+                                    text-muted-foreground
+                                    transition-colors
+                                    hover:text-primary
+                                "
                             >
-                                {post.category.name}
+                                Beranda
                             </Link>
-                        </>
-                    )}
-                    <span className="text-gray-400">/</span>
-                    <span className="text-gray-700 font-medium text-nowrap max-w-xs">
-                        {post.title}
-                    </span>
+
+                        </li>
+
+                        {/* ARTICLES */}
+                        <li>
+
+                            <div className="flex items-center">
+
+                                <span className="mx-2 text-muted-foreground/60">
+                                    /
+                                </span>
+
+                                <Link
+                                    href="/articles"
+                                    className="
+                                        text-muted-foreground
+                                        transition-colors
+                                        hover:text-primary
+                                    "
+                                >
+                                    Artikel
+                                </Link>
+
+                            </div>
+
+                        </li>
+
+                        {/* CATEGORY */}
+                        {post.category && (
+
+                            <li>
+
+                                <div className="flex items-center">
+
+                                    <span className="mx-2 text-muted-foreground/60">
+                                        /
+                                    </span>
+
+                                    <Link
+                                        href={`/articles?category=${post.category.id}`}
+                                        className="
+                                            text-muted-foreground
+                                            transition-colors
+                                            hover:text-primary
+                                        "
+                                    >
+                                        {post.category.name}
+                                    </Link>
+
+                                </div>
+
+                            </li>
+
+                        )}
+
+                        {/* TITLE */}
+                        <li aria-current="page">
+
+                            <div className="flex items-center">
+
+                                <span className="mx-2 text-muted-foreground/60">
+                                    /
+                                </span>
+
+                                <span className="
+                                    max-w-[180px]
+                                    font-medium text-foreground
+                                    sm:max-w-xs md:max-w-md
+                                ">
+                                    {post.title}
+                                </span>
+
+                            </div>
+
+                        </li>
+
+                    </ol>
+
                 </nav>
+
 
 
                 {/* 🔥 HEADER */}
@@ -110,9 +190,9 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                     </h1>
 
                     {/* META */}
-                    <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
+                    <div className="mt-4 flex flex-wrap gap-2 md:gap-4 text-sm text-gray-500 dark:text-slate-300">
                         <span>
-                            Disusun Oleh <strong>{post.author.name}</strong>
+                            Oleh <strong>{post.author.name}</strong>
                         </span>
 
                         <span>•</span>
@@ -265,7 +345,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                         <Button
                             size="sm"
                             variant="outline"
-                            className="bg-orange-400 text-black"
+                            className="bg-orange-400 text-black dark:bg-white/30 dark:text-slate-200"
                             onClick={() => {
                                 navigator.clipboard.writeText(shareUrl);
                                 alert('Link berhasil disalin!');
@@ -280,7 +360,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                 {/* 🔥 RELATED */}
                 {related_posts.length > 0 && (
                     <div className="mt-12 pt-8 border-t">
-                        <h3 className="text-xl font-bold mb-6">
+                        <h3 className="text-xl font-bold mb-6 dark:text-orange-400">
                             Artikel Terkait
                         </h3>
 
@@ -300,10 +380,10 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                                         />
 
                                         <div>
-                                            <h4 className="font-semibold group-hover:text-blue-600 line-clamp-2">
+                                            <h4 className="font-semibold text-sm group-hover:text-blue-600">
                                                 {item.title}
                                             </h4>
-                                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
                                                 {item.excerpt}
                                             </p>
                                         </div>
