@@ -400,6 +400,12 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     <tbody className="divide-y">
 
                                         {/* BASIC INFO */}
+                                        <tr>
+                                            <td className="px-4 py-3 text-gray-500">Kategori</td>
+                                            <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
+                                                {product.category?.name || '-'}
+                                            </td>
+                                        </tr>
                                         {product.brand && (
                                             <tr>
                                                 <td className="px-4 py-3 text-gray-500">Brand</td>
@@ -409,12 +415,6 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                             </tr>
                                         )}
 
-                                        <tr>
-                                            <td className="px-4 py-3 text-gray-500">Kategori</td>
-                                            <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
-                                                {product.category?.name || '-'}
-                                            </td>
-                                        </tr>
 
                                         {/* SPECIFICATIONS */}
                                         {product?.specific_specs?.map((spec, index) => (
@@ -711,9 +711,9 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                             <Check className="h-6 w-6 text-green-600" aria-hidden="true" />
                         </div>
                         <div className="mt-3">
-                            <DialogTitle className="text-lg font-medium text-gray-900 dark:text-white">Pesanan Berhasil Dikirim!</DialogTitle>
+                            <DialogTitle className="text-xl font-medium text-gray-900 dark:text-white">Pesanan Berhasil Dikirim!</DialogTitle>
                             <div className="mt-2">
-                                <p className="text-sm text-gray-500">
+                                <p className="text-base text-gray-500">
                                     Terima kasih atas pesanan Anda 🙏 Kami akan segera menghubungi Anda melalui WhatsApp, telepon, atau email untuk memberikan informasi lebih lanjut.
                                 </p>
 

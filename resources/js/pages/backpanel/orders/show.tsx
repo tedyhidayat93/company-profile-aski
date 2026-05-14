@@ -27,6 +27,7 @@ import OrderStatusInfoModal from '@/components/order-status-info-modal';
 import { getOrderStatusBadgeProps, OrderStatusBadge } from '@/utils/order-status';
 import { formatCurrencyDisplay } from '@/utils/currency';
 import { handleImageError } from '@/utils/image';
+import ResendOrderEmailDialog from '@/components/resend-email';
 
 interface Order {
   id: number;
@@ -123,6 +124,7 @@ export default function OrderShow({ order }: Props) {
             />
           </div>
           <div className="flex gap-2">
+            <ResendOrderEmailDialog orderId={order.id} />
             <OrderStatusInfoModal />
             <Link href={`/cpanel/crm/orders/edit/${order.id}`}>
               <Button variant="outline">

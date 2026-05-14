@@ -201,6 +201,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::put('{id}', [OrderController::class, 'update'])->name('update');
                 Route::delete('{id}', [OrderController::class, 'destroy'])->name('destroy');
                 Route::patch('{id}/status', [OrderController::class, 'updateStatus'])->name('updateStatus');
+                Route::post('{id}/resend-email', [OrderController::class, 'resendEmail']) ->name('resendEmail');
             });
             
             // Customers

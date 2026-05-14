@@ -3,22 +3,27 @@
 namespace App\Http\Controllers\BackPanel\CRM;
 
 use App\Http\Controllers\Controller;
+use Inertia\Inertia;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Inertia\Inertia;
+use App\Services\EmailService;
 use Illuminate\Support\Facades\Gate;
 
 class OrderController extends Controller
 {
-    public function __construct()
+    protected $emailService;
+
+    public function __construct(EmailService $emailService)
     {
+        $this->emailService = $emailService;
         // Apply permission middleware to all methods
         $this->middleware('permission:order-list')->only(['index', 'show']);
         $this->middleware('permission:order-create')->only(['create', 'store']);
         $this->middleware('permission:order-edit')->only(['edit', 'update', 'updateStatus']);
         $this->middleware('permission:order-delete')->only(['destroy']);
     }
+
     public function index(Request $request)
     {
         Gate::authorize('order-list');
@@ -303,4 +308,79 @@ class OrderController extends Controller
         return redirect()->back()
             ->with('success', 'Status pesanan berhasil diperbarui.');
     }
+    
+    /**
+     * Resend Order Email Notification
+     */
+    public function resendEmail(int $id)
+    {
+        try {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Find Order
+            |--------------------------------------------------------------------------
+            */
+            $order = Order::findOrFail($id);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Send Notifications
+            |--------------------------------------------------------------------------
+            */
+            $result = $this->emailService->sendOrderNotifications($order);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Check Result
+            |--------------------------------------------------------------------------
+            */
+            if (
+                !$result['owner_sent']
+                && !$result['customer_sent']
+            ) {
+
+                return redirect()
+                    ->route('orders.index')
+                    ->with(
+                        'error',
+                        'Pengiriman ulang email gagal. Silakan periksa konfigurasi SMTP.'
+                    );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Success Response
+            |--------------------------------------------------------------------------
+            */
+            return redirect()
+                ->back()
+                ->with(
+                    'success',
+                    'Pengiriman ulang email berhasil dilakukan.'
+                );
+
+        } catch (\Throwable $e) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Log Error
+            |--------------------------------------------------------------------------
+            */
+            \Log::error('Resend Order Email Error', [
+                'order_id' => $id,
+                'message'  => $e->getMessage(),
+                'trace'    => $e->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->back()
+                ->with(
+                    'error',
+                    'Terjadi kesalahan saat mengirim ulang email.'
+                );
+        }
+    }
+
+
 }

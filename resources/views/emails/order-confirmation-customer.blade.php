@@ -2,229 +2,208 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Confirmation</title>
-    <style>
-        body {
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-            background: #f3f4f6;
-            margin: 0;
-            padding: 20px;
-            color: #111827;
-        }
-
-        .container {
-            max-width: 560px;
-            margin: auto;
-            background: #ffffff;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid #e5e7eb;
-        }
-
-        .header {
-            padding: 24px;
-            text-align: center;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .header img {
-            max-height: 50px;
-            margin-bottom: 10px;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 20px;
-        }
-
-        .header p {
-            margin: 4px 0 0;
-            color: #6b7280;
-            font-size: 14px;
-        }
-
-        .content {
-            padding: 24px;
-        }
-
-        .badge-success {
-            background: #ecfdf5;
-            color: #065f46;
-            padding: 12px;
-            border-radius: 6px;
-            text-align: center;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .section {
-            margin-bottom: 20px;
-        }
-
-        .section h3 {
-            font-size: 14px;
-            margin-bottom: 10px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .row {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            font-size: 14px;
-        }
-
-        .row span:first-child {
-            color: #6b7280;
-        }
-
-        .total {
-            text-align: center;
-            padding: 16px;
-            border-radius: 8px;
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            margin-top: 20px;
-        }
-
-        .total strong {
-            display: block;
-            font-size: 22px;
-            margin-top: 6px;
-        }
-
-        .contact {
-            font-size: 14px;
-            color: #374151;
-            line-height: 1.5;
-        }
-
-        .steps {
-            font-size: 14px;
-            color: #374151;
-            padding-left: 18px;
-        }
-
-        .btn {
-            display: block;
-            text-align: center;
-            background: #111827;
-            color: white;
-            padding: 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            margin-top: 20px;
-            font-size: 14px;
-        }
-
-        .footer {
-            text-align: center;
-            font-size: 12px;
-            color: #9ca3af;
-            padding: 16px;
-            border-top: 1px solid #e5e7eb;
-        }
-    </style>
+    <title>Konfirmasi Pesanan</title>
 </head>
-<body>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#111827;">
 
-<div class="container">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f4f6;padding:20px 0;">
+    <tr>
+        <td align="center">
 
-    <div class="header">
-        @if(\App\Models\Configuration::getValue('site_logo'))
-            <img src="{{ asset('/storage/' . \App\Models\Configuration::getValue('site_logo')) }}" alt="Logo">
-        @endif
-        <h1>Konfirmasi Pesanan</h1>
-        <p>Pesanan Anda telah kami terima</p>
-    </div>
+            <table width="600" cellpadding="0" cellspacing="0" border="0"
+                   style="background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
 
-    <div class="content">
+                <!-- HEADER -->
+                <tr>
+                    <td align="center" style="padding:30px 20px;border-bottom:1px solid #e5e7eb;">
 
-        <div class="badge-success">
-            Pesanan berhasil dibuat
-        </div>
+                        @if(\App\Models\Configuration::getValue('site_logo'))
+                            <img src="{{ asset('/storage/' . \App\Models\Configuration::getValue('site_logo')) }}"
+                                 alt="Logo"
+                                 style="max-height:50px;margin-bottom:10px;">
+                        @endif
 
-        <div class="section">
-            <div class="row">
-                <span>No. Pesanan</span>
-                <span>#{{ $orderNumber }}</span>
-            </div>
-            <div class="row">
-                <span>Tanggal</span>
-                <span>{{ $createdAt }}</span>
-            </div>
-        </div>
+                        <h2 style="margin:0;font-size:22px;color:#111827;">
+                            Konfirmasi Pesanan
+                        </h2>
 
-        <div class="section">
-            <h3>Pelanggan</h3>
-            <div class="row">
-                <span>Perusahaan</span>
-                <span>{{ $companyName }}</span>
-            </div>
-            <div class="row">
-                <span>PIC</span>
-                <span>{{ $customerName }}</span>
-            </div>
-        </div>
+                        <p style="margin:8px 0 0;color:#6b7280;font-size:14px;">
+                            Pesanan Anda telah kami terima
+                        </p>
+                    </td>
+                </tr>
 
-        <div class="section">
-            <h3>Produk</h3>
-            <div class="row">
-                <span>Nama</span>
-                <span>
-                    @if($productSlug)
-                        <a href="{{ url('/catalog/' . $productSlug) }}" style="color: #111827; text-decoration: none;">{{ $productName }}</a>
-                    @else
-                        {{ $productName }}
-                    @endif
-                </span>
-            </div>
-            <div class="row">
-                <span>Jumlah</span>
-                <span>{{ $quantity }} unit</span>
-            </div>
-            @if($orderNote)
-            <div class="row">
-                <span>Catatan</span>
-                <span>{{ $orderNote }}</span>
-            </div>
-            @endif
-        </div>
+                <!-- CONTENT -->
+                <tr>
+                    <td style="padding:24px;">
 
-        <div class="total">
-            <strong>Estimasi akan dikirim via WhatsApp</strong>
-        </div>
+                        <!-- SUCCESS -->
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                               style="margin-bottom:20px;">
+                            <tr>
+                                <td align="center"
+                                    style="background:#ecfdf5;color:#065f46;padding:14px;border-radius:6px;font-weight:bold;">
+                                    Pesanan berhasil dibuat
+                                </td>
+                            </tr>
+                        </table>
 
-        <div class="section contact">
-            <p><strong>Butuh bantuan?</strong></p>
-            <p>Email: {{ $contactEmail }}</p>
-            <p>Telp: {{ $contactPhone }}</p>
-        </div>
+                        <!-- DETAIL PESANAN -->
+                        <table width="100%" cellpadding="8" cellspacing="0" border="0"
+                               style="border-collapse:collapse;margin-bottom:20px;">
 
-        <div class="section">
-            <h3>Langkah Berikutnya</h3>
-            <ol class="steps">
-                <li>Pesanan Anda akan kami verifikasi dalam waktu maksimal 1x24 jam</li>
-                <li>Tim kami akan menghubungi Anda untuk konfirmasi detail</li>
-                <li>Informasi pembayaran dan pengiriman akan kami sampaikan selanjutnya</li>
-            </ol>
-        </div>
+                            <tr>
+                                <td colspan="2"
+                                    style="font-size:13px;font-weight:bold;color:#6b7280;padding-bottom:10px;">
+                                    DETAIL PESANAN
+                                </td>
+                            </tr>
 
-        <a href="https://wa.me/{{ \App\Models\Configuration::getValue('contact_whatsapp') }}" class="btn">
-            Hubungi via WhatsApp
-        </a>
+                            <tr>
+                                <td width="40%" style="color:#6b7280;border-top:1px solid #f3f4f6;">
+                                    No. Pesanan
+                                </td>
+                                <td style="border-top:1px solid #f3f4f6;">
+                                    #{{ $orderNumber }}
+                                </td>
+                            </tr>
 
-    </div>
+                            <tr>
+                                <td style="color:#6b7280;border-top:1px solid #f3f4f6;">
+                                    Tanggal
+                                </td>
+                                <td style="border-top:1px solid #f3f4f6;">
+                                    {{ $createdAt }}
+                                </td>
+                            </tr>
 
-    <div class="footer">
-        © {{ date('Y') }} {{ \App\Models\Configuration::getValue('site_name', 'Company') }}  
-        <br>Email otomatis, mohon tidak dibalas
-    </div>
+                            <tr>
+                                <td style="color:#6b7280;border-top:1px solid #f3f4f6;">
+                                    Perusahaan
+                                </td>
+                                <td style="border-top:1px solid #f3f4f6;">
+                                    {{ $companyName }}
+                                </td>
+                            </tr>
 
-</div>
+                            <tr>
+                                <td style="color:#6b7280;border-top:1px solid #f3f4f6;">
+                                    PIC
+                                </td>
+                                <td style="border-top:1px solid #f3f4f6;">
+                                    {{ $customerName }}
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="color:#6b7280;border-top:1px solid #f3f4f6;">
+                                    Produk
+                                </td>
+                                <td style="border-top:1px solid #f3f4f6;">
+
+                                    @if($productSlug)
+                                        <a href="{{ url('/catalog/' . $productSlug) }}"
+                                           style="color:#111827;text-decoration:none;">
+                                            {{ $productName }}
+                                        </a>
+                                    @else
+                                        {{ $productName }}
+                                    @endif
+
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="color:#6b7280;border-top:1px solid #f3f4f6;">
+                                    Jumlah
+                                </td>
+                                <td style="border-top:1px solid #f3f4f6;">
+                                    {{ $quantity }} unit
+                                </td>
+                            </tr>
+
+                            @if($orderNote)
+                            <tr>
+                                <td style="color:#6b7280;border-top:1px solid #f3f4f6;">
+                                    Catatan
+                                </td>
+                                <td style="border-top:1px solid #f3f4f6;">
+                                    {{ $orderNote }}
+                                </td>
+                            </tr>
+                            @endif
+
+                        </table>
+
+                        <!-- ESTIMASI -->
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                               style="margin-bottom:20px;">
+                            <tr>
+                                <td align="center"
+                                    style="padding:18px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-size:15px;font-weight:bold;">
+                                    Pesanan Anda sedang ditinjau oleh tim kami
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- LANGKAH -->
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                               style="margin-bottom:20px;">
+                            <tr>
+                                <td style="font-size:13px;font-weight:bold;color:#6b7280;padding-bottom:10px;">
+                                    LANGKAH BERIKUTNYA
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="font-size:14px;color:#374151;line-height:24px;">
+                                    1. Pesanan diverifikasi maksimal 1x24 jam<br>
+                                    2. Tim kami akan menghubungi Anda melalui email/telepon/whtasapp <br>
+                                    3. Lalu kami akan mengirimkan informasi terkait quotation & proses pengerjaannya
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- BUTTON -->
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td align="center">
+
+                                    <a href="https://wa.me/{{ \App\Models\Configuration::getValue('contact_whatsapp') }}"
+                                       style="display:inline-block;background:#111827;color:#ffffff;
+                                              text-decoration:none;padding:12px 24px;
+                                              border-radius:6px;font-size:14px;font-weight:bold;">
+                                        Hubungi via WhatsApp
+                                    </a>
+
+                                </td>
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+
+                <!-- FOOTER -->
+                <tr>
+                    <td align="center"
+                        style="padding:20px;border-top:1px solid #e5e7eb;
+                               font-size:12px;color:#9ca3af;line-height:20px;">
+
+                        © {{ date('Y') }}
+                        {{ \App\Models\Configuration::getValue('site_name', 'Company') }}
+
+                        <br>
+
+                        Email otomatis, mohon tidak dibalas
+
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
 
 </body>
 </html>
