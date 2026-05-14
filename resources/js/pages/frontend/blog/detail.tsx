@@ -6,6 +6,7 @@ import { ArrowLeft, Calendar, Clock, User, Share2, Facebook, Twitter, Linkedin, 
 import { useConfig } from '@/utils/config';
 import { generateBlogUrl } from '@/utils/app';
 import { handleImageError } from '@/utils/image';
+import SeoHead from '@/components/seo-head';
 
 interface Article {
     id: number;
@@ -15,6 +16,8 @@ interface Article {
     excerpt: string;
     featured_image?: string;
     published_at: string;
+    meta_description?: string;
+    meta_keywords?: string;
     author: {
         name: string;
     };
@@ -49,30 +52,18 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
 
     return (
         <FrontendLayout>
-            <Head title={`${post.title} - ${getConfig('site_name', 'Alumoda Sinergi Kontainer')}`}>
-                {/* 1. Meta Tag Dasar */}
-                <meta name="description" content={post.excerpt || getConfig('meta_description', 'Jual & Sewa Kontainer kualitas terbaik di PT. Alumoda Sinergi Kontainer Indonesia.')} />
-                <meta name="keywords" content={`${post.title}, berita kontainer, artikel kontainer, ${getConfig('meta_keywords')}`} />
-                <meta name="author" content={getConfig('site_name', 'Alumoda Sinergi Kontainer')} />
-                
-                {/* 2. Canonical (Sangat Penting agar tidak dianggap konten duplikat) */}
-                <link rel="canonical" href={generateBlogUrl(post.slug)} />
-
-                {/* 3. Open Graph / Facebook (Agar tampil bagus saat di-share di WA/FB) */}
-                <meta property="og:type" content="article" />
-                <meta property="og:title" content={`${post.title} - Alumoda Sinergi Kontainer`} />
-                <meta property="og:description" content={post.excerpt || "Baca artikel terbaru tentang kontainer di Alumoda Sinergi Kontainer."} />
-                <meta property="og:image" content={post.featured_image || '/default-share-image.jpg'} />
-                <meta property="og:url" content={generateBlogUrl(post.slug)} />
-
-                {/* 4. Twitter Card */}
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={post.title} />
-                <meta name="twitter:image" content={post.featured_image} />
-
-                {/* 5. Robots Tag */}
-                <meta name="robots" content="index, follow" />
-            </Head>
+            <SeoHead
+                title={post.title}
+                description={
+                    post.meta_description
+                    || post.excerpt
+                }
+                image={
+                    post.featured_image
+                        ? `${window.location.origin}/storage/${post.featured_image}`
+                        : `${window.location.origin}/images/placeholder.png`
+                }
+            />
 
             <div className="max-w-4xl mx-auto px-4 py-10">
 

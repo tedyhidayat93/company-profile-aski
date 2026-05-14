@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import SingleGalleryPreview from '@/components/single-gallery-preview';
 import { Product } from '@/types';
 import { generateRecaptcha } from '@/utils/google-recaptcha';
+import SeoHead from '@/components/seo-head';
 
 type OrderFormData = {
   companyName: string;
@@ -197,31 +198,19 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
     return (
         <FrontendLayout title={product.name}>
 
-            <Head title={`${product.name} - ${getConfig('site_name', 'Alumoda Sinergi Kontainer')}`}>
-                {/* 1. Meta Tag Dasar */}
-                <meta name="description" content={product.description || getConfig('meta_description', 'Jual & Sewa Kontainer kualitas terbaik di PT. Alumoda Sinergi Kontainer Indonesia.')} />
-                <meta name="keywords" content={`${product.name}, jual kontainer, sewa kontainer, ${getConfig('meta_keywords')}`} />
-                <meta name="author" content={getConfig('site_name', 'Alumoda Sinergi Kontainer')} />
-                
-                {/* 2. Canonical (Sangat Penting agar tidak dianggap konten duplikat) */}
-                <link rel="canonical" href={generateCatalogUrl(product.slug)} />
+            <SeoHead
+                title={product.name || product.meta_title}
+                description={
+                    product.description
+                    || product.meta_description
+                }
+                image={
+                    product.image
+                        ? `${window.location.origin}/${product.image}`
+                        : `${window.location.origin}/images/placeholder.png`
+                }
+            />
 
-                {/* 3. Open Graph / Facebook (Agar tampil bagus saat di-share di WA/FB) */}
-                <meta property="og:type" content="product" />
-                <meta property="og:title" content={`${product.name} - Alumoda Sinergi Kontainer`} />
-                <meta property="og:description" content={product.short_description || "Dapatkan penawaran harga terbaik untuk unit kontainer ini."} />
-                <meta property="og:image" content={imageSrc || '/default-share-image.jpg'} />
-                <meta property="og:url" content={generateCatalogUrl(product.slug)} />
-
-                {/* 4. Twitter Card */}
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={product.name} />
-                <meta name="twitter:image" content={imageSrc} />
-
-                {/* 5. Robots Tag */}
-                <meta name="robots" content="index, follow" />
-            </Head>
-            
             <div className='dark:bg-gray-800'>
                 <div className="container mx-auto px-4 py-8">
                     {/* Breadcrumb */}

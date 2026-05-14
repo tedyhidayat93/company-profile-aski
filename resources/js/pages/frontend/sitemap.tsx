@@ -3,6 +3,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { useConfig } from '@/utils/config';
 import {  Package, FileText, Home, Phone, Mail, MapPin } from 'lucide-react';
+import SeoHead from '@/components/seo-head';
 
 interface SitemapProps {
     articles?: Array<{
@@ -29,11 +30,11 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
     
     return (
         <FrontendLayout title="Sitemap">
-            <Head title="Sitemap">
-                <meta name="description" content={`Sitemap lengkap untuk ${getConfig('site_name', 'Your site name')}. Temukan semua halaman, produk, dan artikel kami.`} />
-                <meta name="keywords" content={`sitemap, peta situs, navigasi, ${getConfig('site_name', 'Your site name')}`} />
-                <meta name="robots" content="index, follow" />
-            </Head>
+            <SeoHead 
+                title={'Sitemap - ' + getConfig('site_name', 'Your site name')} 
+                description={`Sitemap lengkap untuk ${getConfig('site_name', 'Your site name')}. Temukan semua halaman, produk, dan artikel kami.`}
+            />
+            
 
             <div className="min-h-screen bg-gray-50 py-12">
                 <div className="container mx-auto px-4">

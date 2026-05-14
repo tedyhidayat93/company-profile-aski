@@ -6,6 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import CategoryFilter from '@/components/CategoryFilter';
 import { useConfig } from '@/utils/config';
 import type { Product } from '@/types';
+import SeoHead from '@/components/seo-head';
 
 interface CategoryOption {
     label: string;
@@ -434,10 +435,7 @@ export default function CatalogPage({ products, categories, types, filters }: Ca
     const { getConfig } = useConfig();
     return (
         <FrontendLayout title="Katalog Produk">
-            <Head title={`Katalog Kami - ${getConfig('site_name', 'Your site name')}`}>
-                <meta name="description" content={getConfig('meta_description', '-')} />
-                <meta name="keywords" content={getConfig('meta_keywords', '-')} />
-            </Head>
+            <SeoHead title={'Katalog Produk - ' + getConfig('site_name', 'Your site name')} />
 
             <Catalog products={products} categories={categories} types={types} filters={filters} />
         </FrontendLayout>

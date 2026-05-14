@@ -8,6 +8,7 @@ import ProductCard from '@/components/ProductCard';
 import TestimonialCard from '@/components/TestimonialCard';
 import { handleImageError } from '@/utils/image';
 import { useConfig } from '@/utils/config';
+import SeoHead from '@/components/seo-head';
 
 
 export default function Homepage({ 
@@ -123,95 +124,7 @@ export default function Homepage({
 
   return (
     <FrontendLayout title="Beranda">
-      <Head title={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')}`}>
-        {/* Basic Meta Tags */}
-        <meta name="description" content={getConfig('meta_description', 'PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer dengan kualitas terbaik dan harga kompetitif. Menyediakan berbagai jenis kontainer untuk kebutuhan bisnis Anda.')} />
-        <meta name="keywords" content={getConfig('meta_keywords', 'jual kontainer, sewa kontainer, kontainer bekas, kontainer modifikasi, PT. Alumoda Sinergi Kontainer Indonesia, kontainer office, kontainer gudang')} />
-        <meta name="author" content={getConfig('site_name', 'PT. Alumoda Sinergi Kontainer Indonesia')} />
-        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-        <meta name="language" content="id" />
-        <meta name="geo.region" content="ID" />
-        <meta name="geo.placename" content="Indonesia" />
-        
-        {/* Canonical URL */}
-        <link rel="canonical" href={typeof window !== 'undefined' ? window.location.href : 'https://alumodasinergi.com'} />
-        
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')} - ${getConfig('site_tagline', 'Jual & Sewa Kontainer Berkualitas')}`} />
-        <meta property="og:description" content={getConfig('meta_description', 'PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer dengan kualitas terbaik dan harga kompetitif. Menyediakan berbagai jenis kontainer untuk kebutuhan bisnis Anda.')} />
-        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : 'https://alumodasinergi.com'} />
-        <meta property="og:site_name" content={getConfig('site_name', 'Alumoda Sinergi Kontainer')} />
-        <meta property="og:image" content="/images/og-image.jpg" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')} - Jual & Sewa Kontainer`} />
-        <meta property="og:locale" content="id_ID" />
-        
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')} - ${getConfig('site_tagline', 'Jual & Sewa Kontainer Berkualitas')}`} />
-        <meta name="twitter:description" content={getConfig('meta_description', 'PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer dengan kualitas terbaik dan harga kompetitif.')} />
-        <meta name="twitter:image" content="/images/og-image.jpg" />
-        <meta name="twitter:image:alt" content={`${getConfig('site_name', 'Alumoda Sinergi Kontainer')} - Jual & Sewa Kontainer`} />
-        <meta name="twitter:site" content="@alumoda_id" />
-        <meta name="twitter:creator" content="@alumoda_id" />
-        
-        {/* Additional SEO Meta */}
-        <meta name="theme-color" content="#f59e0b" />
-        <meta name="msapplication-TileColor" content="#f59e0b" />
-        <meta name="application-name" content={getConfig('site_name', 'Alumoda Sinergi Kontainer')} />
-        <meta name="apple-mobile-web-app-title" content={getConfig('site_name', 'Alumoda')} />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        
-        {/* Favicon and App Icons */}
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/site.webmanifest" />
-        
-        {/* Structured Data for Business */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              "name": getConfig('site_name', 'PT. Alumoda Sinergi Kontainer Indonesia'),
-              "url": "https://alumodasinergi.com",
-              "logo": "/images/logo-main.png",
-              "description": getConfig('meta_description', 'PT. Alumoda Sinergi Kontainer Indonesia - Jual & Sewa Kontainer dengan kualitas terbaik dan harga kompetitif.'),
-              "address": {
-                "@type": "PostalAddress",
-                "addressCountry": "ID",
-                "addressRegion": "Indonesia"
-              },
-              "contactPoint": {
-                "@type": "ContactPoint",
-                "telephone": "+62-812-3456-7890",
-                "contactType": "customer service",
-                "availableLanguage": ["Indonesian", "English"]
-              },
-              "sameAs": [
-                "https://www.facebook.com/alumodakontainer",
-                "https://www.instagram.com/alumodakontainer",
-                "https://www.linkedin.com/company/alumoda-sinergi-kontainer"
-              ]
-            })
-          }}
-        />
-        
-        <style
-          jsx
-          global
-        >{`
-          html {
-            scroll-behavior: smooth;
-          }
-        `}</style>
-      </Head>
+      <SeoHead />
 
       <main>
         {/* Hero Section */}

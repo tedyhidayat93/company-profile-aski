@@ -1,10 +1,8 @@
 import React from 'react';
 import { Editor } from '@tinymce/tinymce-react';
-import { usePage } from '@inertiajs/react';
 import { useConfig } from '@/utils/config';
 
 // Get API key from environment
-const TINYMCE_API_KEY = import.meta.env.VITE_JWT_TINYMCE || 'no-api-key';
 interface TinyMCEEditorProps {
   value: string;
   onChange: (content: string) => void;

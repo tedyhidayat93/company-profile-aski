@@ -4,6 +4,8 @@ import { Calendar, Eye, User, Search, Filter, Tag, TagIcon, Folder, Hash, Search
 import { handleImageError } from '@/utils/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import SeoHead from '@/components/seo-head';
+import { useConfig } from '@/utils/config';
 
 type BlogPost = {
     id: number;
@@ -49,6 +51,7 @@ export default function BlogIndex({
     popular_tags,
     filters = {} 
 }: Props) {
+    const { getConfig } = useConfig();
     const { data, setData, get } = useForm({
         search: filters.search || '',
         category: filters.category || '',
@@ -188,7 +191,7 @@ export default function BlogIndex({
 
     return (
         <FrontendLayout>
-            <Head title="Berita" />
+            <SeoHead title={'Katalog Produk - ' + getConfig('site_name', 'Your site name')} />
 
             <div className="max-w-6xl mx-auto px-4 py-8 space-y-7">
 
