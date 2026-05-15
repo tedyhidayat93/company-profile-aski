@@ -191,7 +191,7 @@ export default function BlogIndex({
 
     return (
         <FrontendLayout>
-            <SeoHead title={'Katalog Produk - ' + getConfig('site_name', 'Your site name')} />
+            <SeoHead title={'Artikel'} />
 
             <div className="max-w-6xl mx-auto px-4 py-8 space-y-7">
 

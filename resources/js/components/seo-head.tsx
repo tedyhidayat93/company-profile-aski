@@ -22,9 +22,9 @@ export default function SeoHead({
     | CONFIG
     |--------------------------------------------------------------------------
     */
-   const { getConfig } = useConfig();
 
-   
+    const { getConfig } = useConfig();
+
     /*
     |--------------------------------------------------------------------------
     | BASIC CONFIG
@@ -33,26 +33,26 @@ export default function SeoHead({
 
     const siteName = getConfig(
         'site_name',
-        import.meta.env.VITE_APP_NAME || 'Your site name'
+        import.meta.env.VITE_APP_NAME || 'Your Site'
     );
 
     const siteTagline = getConfig(
         'site_tagline',
-        import.meta.env.VITE_APP_NAME || 'Your site tagline'
+        'Your Site Tagline'
     );
 
     const metaDescription =
-        description
-        || getConfig(
+        description ||
+        getConfig(
             'meta_description',
-            import.meta.env.VITE_APP_NAME || 'Your site name'
+            `${siteName} | ${siteTagline}`
         );
 
     const metaKeywords =
-        keywords
-        || getConfig(
+        keywords ||
+        getConfig(
             'meta_keywords',
-            import.meta.env.VITE_APP_NAME || 'Your site name'
+            siteName
         );
 
     /*
@@ -61,15 +61,79 @@ export default function SeoHead({
     |--------------------------------------------------------------------------
     */
 
-    const siteLogo = getConfig(
-        'site_logo',
-        ''
-    );
+    const siteLogo = getConfig('site_logo', '');
+    const siteFavicon = getConfig('site_favicon', '');
 
-    const siteFavicon = getConfig(
-        'site_favicon',
-        ''
-    );
+    /*
+    |--------------------------------------------------------------------------
+    | URL
+    |--------------------------------------------------------------------------
+    */
+
+    const baseUrl =
+        typeof window !== 'undefined'
+            ? window.location.origin
+            : import.meta.env.VITE_APP_URL || 'http://localhost';
+
+    const currentUrl =
+        url ||
+        (
+            typeof window !== 'undefined'
+                ? window.location.href
+                : baseUrl
+        );
+
+    /*
+    |--------------------------------------------------------------------------
+    | FILE URL HELPER
+    |--------------------------------------------------------------------------
+    */
+
+    const getFileUrl = (
+        path?: string,
+        fallback = '/favicon.png'
+    ) => {
+
+        if (!path) {
+            return `${baseUrl}${fallback}`;
+        }
+
+        if (
+            path.startsWith('http://') ||
+            path.startsWith('https://')
+        ) {
+            return path;
+        }
+
+        return path.startsWith('configurations/')
+            ? `${baseUrl}/storage/${path}`
+            : `${baseUrl}/${path}`;
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | IMAGE
+    |--------------------------------------------------------------------------
+    */
+
+    const defaultLogo =
+        getFileUrl(siteLogo);
+
+    const faviconUrl =
+        getFileUrl(siteFavicon);
+
+    const imageUrl =
+        image || defaultLogo;
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEO TITLE
+    |--------------------------------------------------------------------------
+    */
+
+    const fullTitle = title
+        ? `${title} | ${siteName}`
+        : `${siteName} | ${siteTagline}`;
 
     /*
     |--------------------------------------------------------------------------
@@ -86,52 +150,6 @@ export default function SeoHead({
         getConfig('social_tiktok', ''),
 
     ].filter(Boolean);
-
-    /*
-    |--------------------------------------------------------------------------
-    | URL
-    |--------------------------------------------------------------------------
-    */
-
-    const baseUrl =
-        typeof window !== 'undefined'
-            ? window.location.origin
-            : import.meta.env.VITE_APP_URL || 'http://localhost';
-
-    const currentUrl =
-        url
-        || (
-            typeof window !== 'undefined'
-                ? window.location.href
-                : baseUrl
-        );
-
-    /*
-    |--------------------------------------------------------------------------
-    | IMAGE
-    |--------------------------------------------------------------------------
-    */
-
-    const defaultLogo = siteLogo
-        ? `${baseUrl}/storage/${siteLogo}`
-        : `${baseUrl}/favicon.png`;
-
-    const faviconUrl = siteFavicon
-        ? `${baseUrl}/storage/${siteFavicon}`
-        : `${baseUrl}/favicon.png`;
-
-    const imageUrl =
-        image || defaultLogo;
-
-    /*
-    |--------------------------------------------------------------------------
-    | TITLE
-    |--------------------------------------------------------------------------
-    */
-
-    const fullTitle = title
-        ? `${title} | ${siteName}`
-        : `${siteName} - ${siteTagline}`;
 
     return (
 
@@ -165,10 +183,7 @@ export default function SeoHead({
             />
 
             {/* OPEN GRAPH */}
-            <meta
-                property="og:type"
-                content="website"
-            />
+            <meta property="og:type" content="website" />
 
             <meta
                 property="og:site_name"
@@ -269,24 +284,24 @@ export default function SeoHead({
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
                     __html: JSON.stringify({
-                        "@context": "https://schema.org",
+                        '@context': 'https://schema.org',
 
-                        "@type": "Organization",
+                        '@type': 'Organization',
 
-                        "name": siteName,
+                        name: siteName,
 
-                        "url": baseUrl,
+                        url: baseUrl,
 
-                        "logo": imageUrl,
+                        logo: imageUrl,
 
-                        "image": imageUrl,
+                        image: imageUrl,
 
-                        "description": metaDescription,
+                        description: metaDescription,
 
-                        "keywords": metaKeywords,
+                        keywords: metaKeywords,
 
-                        "sameAs": socialLinks
-                    })
+                        sameAs: socialLinks,
+                    }),
                 }}
             />
 

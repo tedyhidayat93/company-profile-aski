@@ -2,7 +2,7 @@
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
     @class([
-        'dark' => ($appearance ?? 'light') == 'dark'
+        'dark' => ($appearance ?? 'light') === 'dark',
     ])
 >
 
@@ -19,58 +19,117 @@
     {{-- APP URL --}}
     @php
         $appUrl = config('app.url');
-    @endphp
 
-    {{-- SITE CONFIG --}}
-    @php
+        /*
+        |--------------------------------------------------------------------------
+        | DEFAULT CONFIG
+        |--------------------------------------------------------------------------
+        */
 
-        $siteName = config('app.name', 'Laravel');
+        $defaults = [
+            'site_name'        => config('app.name', 'Laravel'),
+            'site_tagline'     => 'Jual Beli & Sewa Kontainer Berkualitas',
+            'meta_description' => null,
+            'site_logo'        => null,
+            'site_favicon'     => '/favicon.ico',
+        ];
 
-        $siteDescription =
-            'Jual & Sewa Kontainer Berkualitas';
+        /*
+        |--------------------------------------------------------------------------
+        | SITE CONFIG
+        |--------------------------------------------------------------------------
+        */
 
-        $siteImage =
-            asset('images/og-image.jpg');
+        $configs = collect($siteconfig ?? [])
+            ->pluck('value', 'key');
 
-        $currentUrl =
-            url()->current();
+        $siteName = $configs->get(
+            'site_name',
+            $defaults['site_name']
+        );
 
-        if (isset($siteconfig)) {
+        $siteTagline = $configs->get(
+            'site_tagline',
+            $defaults['site_tagline']
+        );
 
-            $siteName =
-                collect($siteconfig)
-                    ->where('key', 'site_name')
-                    ->first()['value']
-                    ?? $siteName;
+        $siteDescription = $configs->get(
+            'meta_description',
+            "{$siteName} - {$siteTagline}"
+        );
 
-            $siteDescription =
-                collect($siteconfig)
-                    ->where('key', 'meta_description')
-                    ->first()['value']
-                    ?? $siteDescription;
+        /*
+        |--------------------------------------------------------------------------
+        | TITLE
+        |--------------------------------------------------------------------------
+        */
+
+        $siteTitle = "{$siteName} | {$siteTagline}";
+
+        /*
+        |--------------------------------------------------------------------------
+        | URL
+        |--------------------------------------------------------------------------
+        */
+
+        $currentUrl = url()->current();
+
+        /*
+        |--------------------------------------------------------------------------
+        | SITE LOGO / OG IMAGE
+        |--------------------------------------------------------------------------
+        */
+
+        $siteLogo = $configs->get('site_logo');
+
+        $siteImage = asset('images/logo-main.png');
+
+        if ($siteLogo) {
+            $siteImage = str_starts_with($siteLogo, 'configurations/')
+                ? asset("storage/{$siteLogo}")
+                : asset($siteLogo);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FAVICON
+        |--------------------------------------------------------------------------
+        */
+
+        $siteFavicon = $configs->get(
+            'site_favicon',
+            $defaults['site_favicon']
+        );
+
+        $faviconPath = str_starts_with(
+            $siteFavicon,
+            'configurations/'
+        )
+            ? asset("storage/{$siteFavicon}")
+            : asset($siteFavicon);
 
     @endphp
 
     {{-- DARK MODE --}}
     <script>
-        (function () {
+        (() => {
 
             const appearance =
                 '{{ $appearance ?? "system" }}';
 
-            if (appearance === 'system') {
+            if (appearance !== 'system') {
+                return;
+            }
 
-                const prefersDark =
-                    window.matchMedia(
-                        '(prefers-color-scheme: dark)'
-                    ).matches;
+            const prefersDark =
+                window.matchMedia(
+                    '(prefers-color-scheme: dark)'
+                ).matches;
 
-                if (prefersDark) {
-                    document.documentElement
-                        .classList
-                        .add('dark');
-                }
+            if (prefersDark) {
+                document.documentElement
+                    .classList
+                    .add('dark');
             }
 
         })();
@@ -89,7 +148,7 @@
 
     {{-- TITLE --}}
     <title inertia>
-        {{ $siteName }}
+        {{ $siteTitle }}
     </title>
 
     {{-- SEO --}}
@@ -115,60 +174,17 @@
     >
 
     {{-- OPEN GRAPH --}}
-    <meta
-        property="og:type"
-        content="website"
-    >
-
-    <meta
-        property="og:site_name"
-        content="{{ $siteName }}"
-    >
-
-    <meta
-        property="og:title"
-        content="{{ $siteName }}"
-    >
-
-    <meta
-        property="og:description"
-        content="{{ $siteDescription }}"
-    >
-
-    <meta
-        property="og:url"
-        content="{{ $currentUrl }}"
-    >
-
-    <meta
-        property="og:image"
-        content="{{ $siteImage }}"
-    >
-
-    <meta
-        property="og:image:secure_url"
-        content="{{ $siteImage }}"
-    >
-
-    <meta
-        property="og:image:type"
-        content="image/jpeg"
-    >
-
-    <meta
-        property="og:image:width"
-        content="1200"
-    >
-
-    <meta
-        property="og:image:height"
-        content="630"
-    >
-
-    <meta
-        property="og:locale"
-        content="id_ID"
-    >
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ $siteName }}">
+    <meta property="og:title" content="{{ $siteTitle }}">
+    <meta property="og:description" content="{{ $siteDescription }}">
+    <meta property="og:url" content="{{ $currentUrl }}">
+    <meta property="og:image" content="{{ $siteImage }}">
+    <meta property="og:image:secure_url" content="{{ $siteImage }}">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="id_ID">
 
     {{-- TWITTER --}}
     <meta
@@ -178,7 +194,7 @@
 
     <meta
         name="twitter:title"
-        content="{{ $siteName }}"
+        content="{{ $siteTitle }}"
     >
 
     <meta
@@ -203,50 +219,16 @@
     >
 
     {{-- FAVICON --}}
-    @if(isset($siteconfig))
+    <link
+        rel="icon"
+        href="{{ $faviconPath }}"
+        sizes="any"
+    >
 
-        @php
-
-            $siteFavicon =
-                collect($siteconfig)
-                    ->where('key', 'site_favicon')
-                    ->first()['value']
-                    ?? '/favicon.ico';
-
-            $faviconPath =
-                str_starts_with(
-                    $siteFavicon,
-                    'configurations/'
-                )
-                    ? '/storage/' . $siteFavicon
-                    : $siteFavicon;
-
-        @endphp
-
-        <link
-            rel="icon"
-            href="{{ asset($faviconPath) }}"
-            sizes="any"
-        >
-
-        <link
-            rel="apple-touch-icon"
-            href="{{ asset($faviconPath) }}"
-        >
-
-    @else
-
-        <link
-            rel="icon"
-            href="{{ asset('favicon.ico') }}"
-        >
-
-        <link
-            rel="apple-touch-icon"
-            href="{{ asset('apple-touch-icon.png') }}"
-        >
-
-    @endif
+    <link
+        rel="apple-touch-icon"
+        href="{{ $faviconPath }}"
+    >
 
     {{-- FONTS --}}
     <link
@@ -257,7 +239,7 @@
     <link
         href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600"
         rel="stylesheet"
-    />
+    >
 
     {{-- CSRF --}}
     @csrf

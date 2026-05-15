@@ -53,7 +53,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Upload logo utama website',
                 'group' => 'site',
                 'key' => 'site_logo',
-                'value' => '/assets/images/logo-main.png',
+                'value' => '/images/logo-main.png',
                 'type' => 'image',
             ],
             [
@@ -61,7 +61,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Upload favicon website',
                 'group' => 'site',
                 'key' => 'site_favicon',
-                'value' => '/assets/images/logo-main-square.png',
+                'value' => '/images/logo-main-square.png',
                 'type' => 'image',
             ],
             
@@ -272,7 +272,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Upload gambar hero section',
                 'group' => 'view_homepage',
                 'key' => 'hero_image',
-                'value' => '/assets/images/bg-hero.png',
+                'value' => '/images/bg-hero.png',
                 'type' => 'image',
             ],
             [
@@ -469,7 +469,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Logo untuk halaman login dan registrasi',
                 'group' => 'view_homepage',
                 'key' => 'auth_logo',
-                'value' => '/assets/images/logo-main.png',
+                'value' => '/images/logo-main.png',
                 'type' => 'image',
             ],
             [
@@ -477,7 +477,7 @@ class ConfigurationSeeder extends Seeder
                 'description' => 'Gambar latar belakang untuk halaman login',
                 'group' => 'view_homepage',
                 'key' => 'auth_bg_image',
-                'value' => '/assets/images/bg-hero.png',
+                'value' => '/images/bg-hero.png',
                 'type' => 'image',
             ],
         ];

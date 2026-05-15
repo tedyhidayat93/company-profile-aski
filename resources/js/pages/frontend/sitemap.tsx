@@ -31,7 +31,7 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
     return (
         <FrontendLayout title="Sitemap">
             <SeoHead 
-                title={'Sitemap - ' + getConfig('site_name', 'Your site name')} 
+                title={'Sitemap'} 
                 description={`Sitemap lengkap untuk ${getConfig('site_name', 'Your site name')}. Temukan semua halaman, produk, dan artikel kami.`}
             />
             

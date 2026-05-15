@@ -10,7 +10,7 @@ import { WishlistProvider } from './contexts/WishlistContext';
 const appName = import.meta.env.VITE_APP_NAME || 'Alumoda Sinergi Kontainer Indonesia';
 
 createInertiaApp({
-  title: (title) => (title ? `${title} - ${appName}` : appName),
+  title: (title) => (title ? `${title}` : appName),
   resolve: (name) =>
     resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
   setup({ el, App, props }: { el: Element; App: any; props: any & { csrfToken?: string } }) {

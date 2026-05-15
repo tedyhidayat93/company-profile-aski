@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -55,22 +56,15 @@ class AppServiceProvider extends ServiceProvider
             'footerServices' => fn () => Service::getAllForFooter(),
         ]);
 
-        // Share siteconfig with all views (including error pages)
-        View::share('siteconfig', function() {
-            return Configuration::orderBy('group')
-                ->orderBy('label')
-                ->get()
-                ->map(function ($config) {
-                    return [
-                        'id' => $config->id,
-                        'key' => $config->key,
-                        'value' => $config->value,
-                        'type' => $config->type,
-                        'label' => $config->label,
-                        'description' => $config->description,
-                        'group' => $config->group,
-                    ];
-                });
-        });
+        View::share('siteconfig',
+            Cache::rememberForever('siteconfig.public', function () {
+                return Configuration::orderBy('group')
+                    ->orderBy('label')
+                    ->get()
+                    ->mapWithKeys(fn ($config) => [
+                        $config->key => $config->value
+                    ]);
+            })
+        );
     }
 }

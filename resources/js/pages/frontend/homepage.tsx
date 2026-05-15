@@ -123,7 +123,7 @@ export default function Homepage({
  
 
   return (
-    <FrontendLayout title="Beranda">
+    <FrontendLayout>
       <SeoHead />
 
       <main>

@@ -434,8 +434,8 @@ function Catalog({ products: initialProducts, categories, types, filters: initia
 export default function CatalogPage({ products, categories, types, filters }: CatalogProps) {
     const { getConfig } = useConfig();
     return (
-        <FrontendLayout title="Katalog Produk">
-            <SeoHead title={'Katalog Produk - ' + getConfig('site_name', 'Your site name')} />
+        <FrontendLayout>
+            <SeoHead title={'Katalog Produk'} />
 
             <Catalog products={products} categories={categories} types={types} filters={filters} />
         </FrontendLayout>

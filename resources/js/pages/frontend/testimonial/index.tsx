@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { getConfig } from '@/hooks/use-configuration';
 import TestimonialCard from '@/components/TestimonialCard';
+import SeoHead from '@/components/seo-head';
 
 export default function TestimonialIndex({ 
     testimonials = [], 
@@ -15,10 +16,7 @@ export default function TestimonialIndex({
    
     return (
         <FrontendLayout>
-            <Head title="Testimoni">
-                <meta name="description" content={getConfig('meta_description', '-')} />
-                <meta name="keywords" content={getConfig('meta_keywords', '-')} />
-            </Head>
+            <SeoHead title={'Ulasan'} />
 
             {/* All Testimonials Grid */}
             <div className="py-16 dark:bg-gray-800">

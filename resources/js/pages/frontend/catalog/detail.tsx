@@ -196,7 +196,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
     };
 
     return (
-        <FrontendLayout title={product.name}>
+        <FrontendLayout>
 
             <SeoHead
                 title={product.name || product.meta_title}
