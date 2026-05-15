@@ -157,27 +157,36 @@ export default function SeoHead({
 
             {/* BASIC SEO */}
             <meta
+                head-key="description"
                 name="description"
                 content={metaDescription}
             />
 
             <meta
-                name="keywords"
-                content={metaKeywords}
+                head-key="title"
+                content={fullTitle}
             />
 
             <meta
-                name="author"
-                content={siteName}
+                head-key="og:description"
+                property="og:description"
+                content={metaDescription}
             />
 
             <meta
-                name="robots"
-                content="index, follow"
+                head-key="og:image"
+                property="og:image"
+                content={imageUrl}
             />
 
-            {/* CANONICAL */}
+            <meta
+                head-key="twitter:image"
+                name="twitter:image"
+                content={imageUrl}
+            />
+
             <link
+                head-key="canonical"
                 rel="canonical"
                 href={currentUrl}
             />

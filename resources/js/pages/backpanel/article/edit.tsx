@@ -150,92 +150,342 @@ export default function ArticleEdit({ article, authors, blogCategories }: Props)
     setData('tags', newTags);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
     
-    // Sync tags with form data before submission
-    setData('tags', tags);
+  //   // Sync tags with form data before submission
+  //   setData('tags', tags);
     
-    // Get original article data for comparison
-    const originalData = {
-      title: article.title,
-      slug: article.slug,
-      content: article.content,
-      excerpt: article.excerpt || '',
-      status: article.status,
-      published_at: article.published_at ? new Date(article.published_at).toISOString().slice(0, 16) : '',
-      author_id: article.author_id.toString(),
-      meta_title: article.meta_title || '',
-      meta_description: article.meta_description || '',
-      meta_keywords: article.meta_keywords || '',
-      tags: Array.isArray(article.tags) ? article.tags : [],
-      position: article.position || 0,
-      is_headline: article.is_headline || false,
-    };
+  //   // Get original article data for comparison
+  //   const originalData = {
+  //     title: article.title,
+  //     slug: article.slug,
+  //     content: article.content,
+  //     excerpt: article.excerpt || '',
+  //     status: article.status,
+  //     published_at: article.published_at ? new Date(article.published_at).toISOString().slice(0, 16) : '',
+  //     author_id: article.author_id.toString(),
+  //     meta_title: article.meta_title || '',
+  //     meta_description: article.meta_description || '',
+  //     meta_keywords: article.meta_keywords || '',
+  //     tags: Array.isArray(article.tags) ? article.tags : [],
+  //     position: article.position || 0,
+  //     is_headline: article.is_headline || false,
+  //   };
     
-    // Only send changed fields
-    const changedData: any = {};
-    Object.keys(data).forEach(key => {
-      const currentValue = data[key as keyof typeof data];
-      const originalValue = originalData[key as keyof typeof originalData];
+  //   // Only send changed fields
+  //   const changedData: any = {};
+  //   Object.keys(data).forEach(key => {
+  //     const currentValue = data[key as keyof typeof data];
+  //     const originalValue = originalData[key as keyof typeof originalData];
       
-      // Special handling for tags comparison
-      if (key === 'tags') {
-        const currentTagsSorted = [...tags].sort();
-        const originalTagsSorted = [...(originalValue as string[])].sort();
-        if (JSON.stringify(currentTagsSorted) !== JSON.stringify(originalTagsSorted)) {
-          changedData[key] = tags;
-        }
-      } else if (currentValue !== originalValue) {
-        changedData[key] = currentValue;
-      }
-    });
+  //     // Special handling for tags comparison
+  //     if (key === 'tags') {
+  //       const currentTagsSorted = [...tags].sort();
+  //       const originalTagsSorted = [...(originalValue as string[])].sort();
+  //       if (JSON.stringify(currentTagsSorted) !== JSON.stringify(originalTagsSorted)) {
+  //         changedData[key] = tags;
+  //       }
+  //     } else if (currentValue !== originalValue) {
+  //       changedData[key] = currentValue;
+  //     }
+  //   });
     
-    // Check if featured image file is selected
-    if (data.featured_image && data.featured_image instanceof File) {
-      changedData.featured_image = data.featured_image;
-    }
+  //   // Check if featured image file is selected
+  //   if (data.featured_image && data.featured_image instanceof File) {
+  //     changedData.featured_image = data.featured_image;
+  //   }
     
-    // Add image removal flag if checked
-    if (removeFeaturedImage) {
-      changedData.remove_featured_image = true;
-    }
+  //   // Add image removal flag if checked
+  //   if (removeFeaturedImage) {
+  //     changedData.remove_featured_image = true;
+  //   }
     
-    // If nothing changed, still submit to show success message
-    if (Object.keys(changedData).length === 0) {
-      // Just redirect back with success message
-      router.visit('/cpanel/cms/article', {
-        method: 'get',
-        preserveState: false,
-        onSuccess: () => {
-          // Show success message via flash session or similar
-        }
-      });
-      return;
-    }
+  //   // If nothing changed, still submit to show success message
+  //   if (Object.keys(changedData).length === 0) {
+  //     // Just redirect back with success message
+  //     router.visit('/cpanel/cms/article', {
+  //       method: 'get',
+  //       preserveState: false,
+  //       onSuccess: () => {
+  //         // Show success message via flash session or similar
+  //       }
+  //     });
+  //     return;
+  //   }
     
-    const formData = new FormData();
-    Object.entries(changedData).forEach(([key, value]) => {
-      if (key === 'featured_image' && value instanceof File) {
-        formData.append('featured_image', value);
-      } else if (key === 'tags') {
-        formData.append(key, JSON.stringify(value));
-      } else if (key === 'is_headline') {
-        formData.append(key, value ? '1' : '0');
-      } else if (key === 'position') {
-        formData.append(key, value?.toString() || '0');
-      } else if (key !== 'featured_image') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
+  //   const formData = new FormData();
+  //   Object.entries(changedData).forEach(([key, value]) => {
+  //     if (key === 'featured_image' && value instanceof File) {
+  //       formData.append('featured_image', value);
+  //     } else if (key === 'tags') {
+  //       formData.append(key, JSON.stringify(value));
+  //     } else if (key === 'is_headline') {
+  //       formData.append(key, value ? '1' : '0');
+  //     } else if (key === 'position') {
+  //       formData.append(key, value?.toString() || '0');
+  //     } else if (key !== 'featured_image') {
+  //       formData.append(key, value?.toString() || '');
+  //     }
+  //   });
 
-    put(`/cpanel/cms/article/${article.id}`, formData as any);
+  //   put(`/cpanel/cms/article/${article.id}`, formData as any);formData.append('_method', 'PUT');
+  // };
+
+  // const handleSubmit = (
+  //     e: React.FormEvent
+  // ) => {
+
+  //     e.preventDefault();
+
+  //     const originalData = {
+
+  //         title: article.title,
+  //         slug: article.slug,
+  //         content: article.content,
+  //         excerpt: article.excerpt || '',
+  //         status: article.status,
+
+  //         published_at:
+  //             article.published_at
+  //                 ? new Date(
+  //                     article.published_at
+  //                 )
+  //                     .toISOString()
+  //                     .slice(0, 16)
+  //                 : '',
+
+  //         author_id:
+  //             article.author_id.toString(),
+
+  //         meta_title:
+  //             article.meta_title || '',
+
+  //         meta_description:
+  //             article.meta_description || '',
+
+  //         meta_keywords:
+  //             article.meta_keywords || '',
+
+  //         tags:
+  //             Array.isArray(article.tags)
+  //                 ? article.tags
+  //                 : [],
+
+  //         is_headline:
+  //             article.is_headline || false,
+
+  //         category_id:
+  //             article.category_id?.toString() || '',
+  //     };
+
+  //     const changedData: Record<
+  //         string,
+  //         any
+  //     > = {};
+
+  //     Object.keys(data).forEach((key) => {
+
+  //         const currentValue =
+  //             data[key as keyof typeof data];
+
+  //         const originalValue =
+  //             originalData[
+  //                 key as keyof typeof originalData
+  //             ];
+
+  //         /*
+  //         |--------------------------------------------------------------------------
+  //         | TAGS
+  //         |--------------------------------------------------------------------------
+  //         */
+
+  //         if (key === 'tags') {
+
+  //             const currentTags =
+  //                 [...tags].sort();
+
+  //             const originalTags =
+  //                 [...(originalValue as string[])]
+  //                     .sort();
+
+  //             if (
+  //                 JSON.stringify(currentTags)
+  //                 !==
+  //                 JSON.stringify(originalTags)
+  //             ) {
+  //                 changedData.tags = tags;
+  //             }
+
+  //             return;
+  //         }
+
+  //         /*
+  //         |--------------------------------------------------------------------------
+  //         | NORMAL COMPARE
+  //         |--------------------------------------------------------------------------
+  //         */
+
+  //         if (currentValue !== originalValue) {
+  //             changedData[key] = currentValue;
+  //         }
+  //     });
+
+  //     /*
+  //     |--------------------------------------------------------------------------
+  //     | FEATURED IMAGE
+  //     |--------------------------------------------------------------------------
+  //     */
+
+  //     if (
+  //         data.featured_image instanceof File
+  //     ) {
+  //         changedData.featured_image =
+  //             data.featured_image;
+  //     }
+
+  //     /*
+  //     |--------------------------------------------------------------------------
+  //     | REMOVE IMAGE
+  //     |--------------------------------------------------------------------------
+  //     */
+
+  //     if (removeFeaturedImage) {
+  //         changedData.remove_featured_image = true;
+  //     }
+
+  //     /*
+  //     |--------------------------------------------------------------------------
+  //     | NO CHANGES
+  //     |--------------------------------------------------------------------------
+  //     */
+
+  //     if (
+  //         Object.keys(changedData).length === 0
+  //     ) {
+
+  //         router.visit(
+  //             '/cpanel/cms/article'
+  //         );
+
+  //         return;
+  //     }
+
+  //     /*
+  //     |--------------------------------------------------------------------------
+  //     | FORMDATA
+  //     |--------------------------------------------------------------------------
+  //     */
+
+  //     const formData = new FormData();
+
+  //     Object.entries(changedData)
+  //         .forEach(([key, value]) => {
+
+  //             if (
+  //                 key === 'featured_image' &&
+  //                 value instanceof File
+  //             ) {
+
+  //                 formData.append(
+  //                     key,
+  //                     value
+  //                 );
+
+  //                 return;
+  //             }
+
+  //             if (key === 'tags') {
+
+  //                 formData.append(
+  //                     key,
+  //                     JSON.stringify(value)
+  //                 );
+
+  //                 return;
+  //             }
+
+  //             if (typeof value === 'boolean') {
+
+  //                 formData.append(
+  //                     key,
+  //                     value ? '1' : '0'
+  //                 );
+
+  //                 return;
+  //             }
+
+  //             if (
+  //                 value !== null &&
+  //                 value !== undefined
+  //             ) {
+
+  //                 formData.append(
+  //                     key,
+  //                     value.toString()
+  //                 );
+  //             }
+  //         });
+
+  //     /*
+  //     |--------------------------------------------------------------------------
+  //     | METHOD SPOOFING
+  //     |--------------------------------------------------------------------------
+  //     */
+
+  //     formData.append('_method', 'PUT');
+
+  //     /*
+  //     |--------------------------------------------------------------------------
+  //     | SUBMIT
+  //     |--------------------------------------------------------------------------
+  //     */
+
+  //     router.post(
+  //         `/cpanel/cms/article/${article.id}`,
+  //         formData,
+  //         {
+  //             forceFormData: true,
+
+  //           onError: (errors) => {
+  //               console.log(errors);
+  //           },
+
+  //           onSuccess: () => {
+  //               console.log('success');
+  //           },
+  //         }
+  //     );
+  // };
+
+  const handleSubmit = (
+      e: React.FormEvent
+  ) => {
+
+      e.preventDefault();
+
+      router.post(
+          `/cpanel/cms/article/${article.id}`,
+          {
+              _method: 'PUT',
+
+              ...data,
+
+              tags,
+
+              remove_featured_image:
+                  removeFeaturedImage,
+          },
+          {
+              forceFormData: true,
+          }
+      );
   };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Edit Artikel" />
-      <FlashMessage />
+      {/* <FlashMessage /> */}
       
       <div className="space-y-6 p-6">
         <div className="flex items-center space-x-4">

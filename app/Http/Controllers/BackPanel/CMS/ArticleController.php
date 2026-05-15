@@ -229,113 +229,250 @@ class ArticleController extends Controller
     public function update(Request $request, $id)
     {
         Gate::authorize('article-edit');
-        
+
         $article = Article::findOrFail($id);
 
-        // Handle tags and is_headline before validation
+        /*
+        |--------------------------------------------------------------------------
+        | PREPARE REQUEST
+        |--------------------------------------------------------------------------
+        */
+
         $requestData = $request->all();
-        
-        // Convert tags to array if it's a string
-        if (isset($requestData['tags']) && is_string($requestData['tags'])) {
-            $decodedTags = json_decode($requestData['tags'], true);
-            $requestData['tags'] = is_array($decodedTags) ? array_filter($decodedTags) : [];
-        }
-        
-        // Convert is_headline to boolean
-        if (isset($requestData['is_headline'])) {
-            $requestData['is_headline'] = filter_var($requestData['is_headline'], FILTER_VALIDATE_BOOLEAN);
-        }
 
-        // Build validation rules only for fields that are present in the request
-        $fieldRules = [
-            'title' => 'required|string|max:255',
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('articles')->ignore($article->id)],
-            'content' => 'required|string',
-            'excerpt' => 'nullable|string|max:500',
-            'status' => 'required|string|in:draft,published,archived',
-            'published_at' => 'nullable|date',
-            'author_id' => 'required|integer|exists:users,id',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_description' => 'nullable|string|max:500',
-            'meta_keywords' => 'nullable|string|max:255',
-            'tags' => 'nullable|array',
-            'tags.*' => 'nullable|string|max:50',
-            'position' => 'nullable|integer|min:0',
-            'is_headline' => 'nullable|boolean',
-            'category_id' => 'nullable|integer|exists:categories,id',
-        ];
-
-        $validationRules = array_intersect_key($fieldRules, $requestData);
-
-        // Add file validation separately
-        if ($request->hasFile('featured_image')) {
-            $validationRules['featured_image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:15048';
+        // Normalize tags
+        if (
+            $request->filled('tags') &&
+            is_string($request->tags)
+        ) {
+            $request->merge([
+                'tags' => json_decode(
+                    $request->tags,
+                    true
+                ) ?? [],
+            ]);
         }
 
-        // If no validation rules and no file upload, return early
-        if (empty($validationRules) && !$request->hasFile('featured_image')) {
-            return redirect()->route('cms.article.index')
-                ->with('success', 'Tidak ada perubahan pada artikel');
+        // Normalize boolean
+        $request->merge([
+            'is_headline' => $request->boolean('is_headline'),
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATION
+        |--------------------------------------------------------------------------
+        */
+
+        $validated = validator(
+            $requestData,
+            [
+                'title' => [
+                    'required',
+                    'string',
+                    'max:255',
+                ],
+
+                'slug' => [
+                    'nullable',
+                    'string',
+                    'max:255',
+                    // Rule::unique('articles')
+                    //     ->ignore($article->id),
+                ],
+
+                'content' => [
+                    'required',
+                    'string',
+                ],
+
+                'excerpt' => [
+                    'nullable',
+                    'string',
+                    'max:500',
+                ],
+
+                'status' => [
+                    'required',
+                    'in:draft,published,archived',
+                ],
+
+                'published_at' => [
+                    'nullable',
+                    'date',
+                ],
+
+                'author_id' => [
+                    'required',
+                    'exists:users,id',
+                ],
+
+                'meta_title' => [
+                    'nullable',
+                    'string',
+                    'max:255',
+                ],
+
+                'meta_description' => [
+                    'nullable',
+                    'string',
+                    'max:500',
+                ],
+
+                'meta_keywords' => [
+                    'nullable',
+                    'string',
+                    'max:255',
+                ],
+
+                'tags' => [
+                    'nullable',
+                    'array',
+                ],
+
+                'tags.*' => [
+                    'string',
+                    'max:50',
+                ],
+
+                'position' => [
+                    'nullable',
+                    'integer',
+                    'min:0',
+                ],
+
+                'is_headline' => [
+                    'boolean',
+                ],
+
+                'category_id' => [
+                    'nullable',
+                    'exists:categories,id',
+                ],
+
+                'featured_image' => [
+                    'nullable',
+                    'image',
+                    'mimes:jpg,jpeg,png,gif',
+                    'max:15048',
+                ],
+
+                'remove_featured_image' => [
+                    'nullable',
+                    'boolean',
+                ],
+            ],
+            [
+                'tags.array' =>
+                    'Tags harus berupa array.',
+
+                'is_headline.boolean' =>
+                    'Is headline harus berupa boolean.',
+            ]
+        )->validate();
+
+        // dd($validated);
+
+        /*
+        |--------------------------------------------------------------------------
+        | SLUG
+        |--------------------------------------------------------------------------
+        */
+
+        $validated['slug'] = filled($validated['slug'] ?? null)
+            ? $validated['slug']
+            : Str::slug($validated['title']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | TAGS
+        |--------------------------------------------------------------------------
+        */
+
+        $validated['tags'] = collect(
+            $validated['tags'] ?? []
+        )
+            ->filter()
+            ->values()
+            ->toArray();
+
+        if (!empty($validated['tags'])) {
+            $this->insertNewTags(
+                $validated['tags'],
+                'article'
+            );
         }
 
-        $validated = validator()->make($requestData, $validationRules, [
-            'tags.array' => 'The tags field must be an array.',
-            'is_headline.boolean' => 'The is headline field must be true or false.',
-        ])->validate();
+        /*
+        |--------------------------------------------------------------------------
+        | PUBLISHED AT
+        |--------------------------------------------------------------------------
+        */
 
-        // Add file data to validated data if present
-        if ($request->hasFile('featured_image')) {
-            $validated['featured_image'] = $request->file('featured_image');
-        }
-
-        if (empty($validated['slug'])) {
-            $validated['slug'] = Str::slug($validated['title']);
-        }
-
-        if (isset($validated['tags'])) {
-            // If tags come as JSON string from frontend, decode it first
-            if (is_string($validated['tags'])) {
-                $decodedTags = json_decode($validated['tags'], true);
-                $validated['tags'] = is_array($decodedTags) ? array_filter($decodedTags) : [];
-            } else {
-                // If tags come as array, filter empty values
-                $validated['tags'] = array_filter($validated['tags']);
-            }
-            $this->insertNewTags($validated['tags'], 'article');
-        }
-
-        // Set default values
-        $validated['is_headline'] = $validated['is_headline'] ?? false;
-        // Keep existing category_id if not being updated
-        if (!isset($validated['category_id']) || empty($validated['category_id'])) {
-            unset($validated['category_id']);
-        }
-
-        if ($validated['status'] === 'published' && !isset($validated['published_at'])) {
+        if (
+            $validated['status'] === 'published' &&
+            empty($validated['published_at'])
+        ) {
             $validated['published_at'] = now();
         }
 
-        // Handle featured image upload
-        if ($request->hasFile('featured_image')) {
-            // Delete old image if exists
-            if ($article->featured_image) {
-                Storage::disk('public')->delete($article->featured_image);
-            }
-            $image = $request->file('featured_image');
-            $path = $image->store('articles', 'public');
-            $validated['featured_image'] = $path;
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | FEATURED IMAGE REMOVE
+        |--------------------------------------------------------------------------
+        */
 
-        // Handle image removal
-        if ($request->input('remove_featured_image') && $article->featured_image) {
-            Storage::disk('public')->delete($article->featured_image);
+        if (
+            $request->boolean('remove_featured_image') &&
+            $article->featured_image
+        ) {
+            Storage::disk('public')
+                ->delete($article->featured_image);
+
             $validated['featured_image'] = null;
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | FEATURED IMAGE UPLOAD
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->hasFile('featured_image')) {
+
+            // Delete old image
+            if ($article->featured_image) {
+                Storage::disk('public')
+                    ->delete($article->featured_image);
+            }
+
+            $validated['featured_image'] =
+                $request
+                    ->file('featured_image')
+                    ->store('articles', 'public');
+        }
+        
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE ARTICLE
+        |--------------------------------------------------------------------------
+        */
+
         $article->update($validated);
 
-        return redirect()->route('cms.article.index')
-            ->with('success', 'Artikel berhasil diperbarui');
+        /*
+        |--------------------------------------------------------------------------
+        | RESPONSE
+        |--------------------------------------------------------------------------
+        */
+
+        return redirect()
+            ->route('cms.article.index')
+            ->with(
+                'success',
+                'Artikel berhasil diperbarui'
+            );
     }
 
     public function destroy($id)
