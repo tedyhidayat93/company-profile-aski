@@ -16,6 +16,7 @@ interface Article {
     excerpt: string;
     featured_image?: string;
     published_at: string;
+    meta_title?: string;
     meta_description?: string;
     meta_keywords?: string;
     author: {
@@ -53,7 +54,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
     return (
         <FrontendLayout>
             <SeoHead
-                title={post.title}
+                title={post.meta_title || post.title}
                 description={
                     post.meta_description
                     || post.excerpt
@@ -63,6 +64,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                         ? `${window.location.origin}/storage/${post.featured_image}`
                         : `${window.location.origin}/images/placeholder.png`
                 }
+                keywords={post.meta_keywords || post.tags?.join(', ') || ''}
             />
 
             <div className="max-w-4xl mx-auto px-4 py-10">

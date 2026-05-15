@@ -199,16 +199,16 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
         <FrontendLayout>
 
             <SeoHead
-                title={product.name || product.meta_title}
+                title={product.meta_title || product.name}
                 description={
-                    product.description
-                    || product.meta_description
+                    product.meta_description || product.description || ''
                 }
                 image={
                     product.image
                         ? `${window.location.origin}/${product.image}`
                         : `${window.location.origin}/images/placeholder.png`
                 }
+                keywords={product.tags?.join(', ') || ''}
             />
 
             <div className='dark:bg-gray-800'>

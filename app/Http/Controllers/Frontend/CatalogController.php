@@ -341,6 +341,13 @@ class CatalogController extends Controller
             'show_price' => $product->show_price,
             'show_stock' => $product->show_stock,
             'is_rent' => $product->is_rent,
+            'meta_title' => $product->meta_title,
+            'meta_description' => $product->meta_description,
+            'image' => $product->coverImage?->image_path
+                ? (str_starts_with($product->coverImage->image_path, '/storage/')
+                    ? asset($product->coverImage->image_path)
+                    : asset('storage/' . ltrim($product->coverImage->image_path, '/')))
+                : asset('/images/placeholder.png'),
             'images' => $product->images->isNotEmpty() ? $product->images->map(function ($image) {
                 // Use the same path as backpanel - just prepend /storage/ if not already present
                 $imagePath = $image->image_path;
