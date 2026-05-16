@@ -73,7 +73,24 @@ class TestimonialController extends Controller
                 'total_testimonials' => $testimonials->count(),
                 'average_rating' => $testimonials->avg('rating'),
                 'companies_served' => $testimonials->pluck('company')->filter()->unique()->count(),
-            ]
+            ],
+            'seo' => [
+
+                'title' =>
+                    'Testimoni Pelanggan',
+
+                'description' =>
+                    'Lihat testimonial dan pengalaman pelanggan Alumoda Sinergi Kontainer Indonesia dalam layanan jual beli, modifikasi, dan sewa container berkualitas.',
+
+                'keywords' =>
+                    'testimoni container, review container, pelanggan container, jasa container',
+
+                'image' => asset(
+                    'images/logo-main.png'
+                ),
+
+                'type' => 'website',
+            ],
         ]);
     }
 

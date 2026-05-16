@@ -255,11 +255,61 @@ class CatalogController extends Controller
             ]
         ];
 
+        // SEO
+        $seoTitle = 'Katalog Kami';
+
+        if ($request->category) {
+
+            $category = Category::where(
+                'slug',
+                $request->category
+            )->first();
+
+            if ($category) {
+                $seoTitle =
+                    $category->name .
+                    ' | Katalog Container';
+            }
+        }
+
+        if ($request->search) {
+
+            $seoTitle =
+                'Pencarian "' .
+                $request->search .
+                '" | Katalog Container';
+        }
+
+        $seoDescription =
+            'Temukan berbagai pilihan container baru dan bekas untuk kebutuhan industri, proyek, office container, reefer, gudang, dan logistik.';
+
+        $seoKeywords =
+            'jual container, sewa container, katalog container, office container, reefer container';
+
+        $seoImage =
+            asset('images/logo-main.png');
+
         return Inertia::render('frontend/catalog/index', [
             'products' => $productsData,
             'categories' => $categories,
             'types' => $types,
-            'filters' => $request->only(['search', 'type', 'category', 'minPrice', 'maxPrice', 'sort', 'perPage'])
+            'filters' => $request->only(['search', 'type', 'category', 'minPrice', 'maxPrice', 'sort', 'perPage']),
+            'seo' => [
+                'title' =>
+                    $seoTitle .
+                    ' | Alumoda Sinergi Kontainer Indonesia',
+
+                'description' =>
+                    $seoDescription,
+
+                'keywords' =>
+                    $seoKeywords,
+
+                'image' =>
+                    $seoImage,
+
+                'type' => 'website',
+            ],
         ]);
     }
 
@@ -379,7 +429,66 @@ class CatalogController extends Controller
 
         return Inertia::render('frontend/catalog/detail', [
             'product' => $productData,
-            'relatedProducts' => $relatedProducts
+            'relatedProducts' => $relatedProducts,
+            'seo' => [
+
+                'title' =>
+
+                    $product->meta_title
+                    ?:
+                    $product->name,
+
+                'description' =>
+
+                    $product->meta_description
+                    ?:
+                    (
+                        $product->short_description
+                        ?:
+                        str($product->description)
+                            ->stripTags()
+                            ->limit(160)
+                    ),
+
+                'keywords' =>
+
+                    is_array($product->tags)
+                        ? implode(
+                            ', ',
+                            $product->tags
+                        )
+                        : '',
+
+                'image' =>
+
+                    $product->coverImage?->image_path
+
+                        ? (
+
+                            str_starts_with(
+                                $product->coverImage->image_path,
+                                '/storage/'
+                            )
+
+                                ? asset(
+                                    $product->coverImage->image_path
+                                )
+
+                                : asset(
+                                    'storage/' .
+                                    ltrim(
+                                        $product->coverImage->image_path,
+                                        '/'
+                                    )
+                                )
+                        )
+
+                        : asset(
+                            'images/placeholder.png'
+                        ),
+
+                'type' => 'product',
+            ],
         ]);
     }
 

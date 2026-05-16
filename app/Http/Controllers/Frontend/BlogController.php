@@ -103,6 +103,62 @@ class BlogController extends Controller
             ->orderBy('published_at', 'desc')
             ->paginate(12);
 
+
+        // SEO
+        $seoTitle = 'Blog & Artikel';
+
+        $seoDescription =
+            'Artikel terbaru seputar container, office container, reefer, logistik, modifikasi container, dan tips industri dari Alumoda Sinergi Kontainer Indonesia.';
+
+        $seoKeywords =
+            'blog container, artikel container, office container, reefer container, modifikasi container';
+
+        if ($categorySlug) {
+
+            $category = Category::where(
+                'slug',
+                $categorySlug
+            )->first();
+
+            if ($category) {
+
+                $seoTitle =
+                    $category->name .
+                    ' | Artikel';
+
+                $seoDescription =
+                    'Artikel dan informasi terbaru tentang ' .
+                    $category->name .
+                    ' dari Alumoda Sinergi Kontainer Indonesia.';
+            }
+        }
+
+        if ($search) {
+
+            $seoTitle =
+                'Pencarian "' .
+                $search .
+                '" | Artikel';
+
+            $seoDescription =
+                'Hasil pencarian artikel untuk "' .
+                $search .
+                '" di blog Alumoda Sinergi Kontainer Indonesia.';
+        }
+
+        if ($tag) {
+
+            $seoTitle =
+                'Tag "' .
+                $tag .
+                '" | Artikel';
+
+            $seoDescription =
+                'Artikel dengan tag "' .
+                $tag .
+                '" di blog Alumoda Sinergi Kontainer Indonesia.';
+        }
+
         return Inertia::render('frontend/blog/index', [
             'headline_posts' => $headlinePosts,
             'most_read_posts' => $mostReadPosts,
@@ -114,6 +170,23 @@ class BlogController extends Controller
                 'search' => $search,
                 'category' => $categorySlug,
                 'tag' => $tag,
+            ],
+            'seo' => [
+                'title' =>
+                    $seoTitle .
+                    ' | Alumoda Sinergi',
+
+                'description' =>
+                    $seoDescription,
+
+                'keywords' =>
+                    $seoKeywords,
+
+                'image' => asset(
+                    'images/logo-main.png'
+                ),
+
+                'type' => 'website',
             ],
         ]);
     }
@@ -140,6 +213,56 @@ class BlogController extends Controller
         return Inertia::render('frontend/blog/detail', [
             'post' => $post,
             'related_posts' => $relatedPosts,
+            'seo' => [
+                'title' =>
+
+                    $post->meta_title
+                    ?:
+                    $post->title,
+
+                'description' =>
+
+                    $post->meta_description
+                    ?:
+                    (
+                        $post->excerpt
+                        ?:
+                        str($post->content)
+                            ->stripTags()
+                            ->limit(160)
+                    ),
+
+                'image' =>
+
+                    $post->featured_image
+
+                        ? asset(
+                            'storage/' .
+                            ltrim(
+                                $post->featured_image,
+                                '/'
+                            )
+                        )
+
+                        : asset(
+                            'images/placeholder.png'
+                        ),
+
+                'keywords' =>
+
+                    $post->meta_keywords
+                    ?:
+                    (
+                        is_array($post->tags)
+                            ? implode(
+                                ', ',
+                                $post->tags
+                            )
+                            : ''
+                    ),
+
+                'type' => 'article',
+            ],
         ]);
     }
 

@@ -45,11 +45,11 @@ class SitemapController extends Controller
             'articles' => $articles ?? [],
             'products' => $products ?? [],
             'navigation' => $navigation ?? [],
-            'debug' => [
-                'siteconfig_from_middleware' => config('app.url'),
-                'siteconfig_shared' => Inertia::getShared('siteconfig'),
-                'all_shared' => Inertia::getShared(),
-            ],
+            // 'debug' => [
+            //     'siteconfig_from_middleware' => config('app.url'),
+            //     'siteconfig_shared' => Inertia::getShared('siteconfig'),
+            //     'all_shared' => Inertia::getShared(),
+            // ],
         ]);
     }
 
