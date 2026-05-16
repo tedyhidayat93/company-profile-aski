@@ -173,8 +173,7 @@ class BlogController extends Controller
             ],
             'seo' => [
                 'title' =>
-                    $seoTitle .
-                    ' | Alumoda Sinergi',
+                    $seoTitle,
 
                 'description' =>
                     $seoDescription,
