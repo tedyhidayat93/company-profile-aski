@@ -332,7 +332,7 @@ class HomepageController extends Controller
     {
 
         $configs = Configuration::query()
-            ->whereIn('code', [
+            ->whereIn('key', [
                 'homepage_meta_title',
                 'homepage_meta_description',
                 'homepage_meta_keywords',
@@ -343,7 +343,7 @@ class HomepageController extends Controller
                 'meta_description',
                 'meta_keywords'
             ])
-            ->pluck('value', 'code');
+            ->pluck('value', 'key');
 
         return [
 
@@ -361,7 +361,7 @@ class HomepageController extends Controller
                 $configs['homepage_meta_keywords']
                 ?? $configs['meta_keywords']
                 ?? 'container, office container, reefer container, jual container, sewa container',
-                
+
             'image' => match (true) {
 
                 !empty($configs['homepage_meta_image']) => asset(
