@@ -25,10 +25,12 @@ import {
   TrendingUp,
   MessageSquare,
   TrendingDown,
+  StarIcon,
   Calendar,
   User,
   ShoppingBag,
   Calendar1,
+  ArrowRight,
 } from 'lucide-react';
 import { OrderStatusBadge } from '@/utils/order-status';
 import { Button } from '@/components/ui/button';
@@ -108,6 +110,7 @@ const iconMap: Record<string, any> = {
   CheckCircle,
   XCircle,
   Eye,
+  StarIcon,
   Calendar,
   MessageSquare,
   TrendingUp,
@@ -132,7 +135,7 @@ export default function Dashboard({
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Dashboard" />
 
-      <div className="space-y-4 p-6 bg-slate-50/50 min-h-screen">
+      <div className="space-y-4 p-6 min-h-screen">
         {/* Header Section dengan Aksi Cepat */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <HeaderTitle
@@ -152,91 +155,148 @@ export default function Dashboard({
             return (
               <Link href={stat.link} key={stat.name}>
                 <Card
-                  className="group relative h-full overflow-hidden border-none bg-gradient-to-br from-slate-400 to-slate-900 shadow-sm ring-1 ring-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  className="
+                    group relative h-full overflow-hidden
+                    border border-slate-200/80
+                    bg-white
+                    shadow-sm
+                    transition-all duration-300
+                    hover:-translate-y-1
+                    hover:shadow-xl
+                  "
                 >
-                  {/* Accent */}
+                  {/* Accent Line */}
                   <div
-                    className={`absolute left-0 top-0 bottom-0 w-1 ${stat.color} opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300`}
+                    className={`
+                      absolute left-0 top-0 bottom-0 w-1
+                      ${stat.color}
+                      opacity-80
+                    `}
                   />
 
-                  <CardContent className="relative z-10">
-                    <div className="flex flex-col h-full">
+                  {/* Bubble Accent Layers */}
+                  <div className="pointer-events-none absolute inset-0 overflow-hidden">
 
-                      {/* Header */}
-                      <div className="mb-3 flex items-start justify-between gap-1 md:mb-4">
+                    {/* Big Bubble */}
+                    <div
+                      className={`
+                        absolute -right-10 -top-10
+                        h-42 w-42 rounded-full
+                        ${stat.color}
+                        opacity-[0.08]
+                        blur-xl
+                        transition-all duration-700 ease-out
+                        group-hover:scale-150
+                        group-hover:-translate-y-2
+                        group-hover:translate-x-2
+                      `}
+                    />
 
-                        {/* Icon */}
-                        <div
-                          className={`
-                            flex items-center justify-center
-                            rounded-xl md:rounded-2xl
-                            ${stat.color}
-                            transition-transform duration-500
-                            group-hover:rotate-[10deg]
-                            h-8 w-8
-                            md:h-10 md:w-10
-                          `}
-                        >
-                          <Icon
-                            className={`
-                              ${stat.color.replace('bg-', 'text-')}
-                              h-4 w-4
-                              md:h-5 md:w-5
-                            `}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div>
-                        <p className="line-clamp-2 min-h-[32px] text-[10px] font-bold uppercase leading-tight tracking-wide text-slate-200 md:tracking-widest">
-                          {stat.name}
-                        </p>
-
-                        <div className="flex items-end gap-1">
-                          <h3
-                            className="
-                              text-xl font-black tracking-tight text-slate-50
-                              sm:text-2xl
-                              md:text-3xl
-                              xl:text-5xl
-
-                              transition-all duration-300
-                              group-hover:bg-clip-text
-                              group-hover:bg-gradient-to-r
-                              group-hover:from-slate-900
-                              group-hover:to-slate-600
-                            "
-                          >
-                            {stat.value.toLocaleString()}
-                          </h3>
-                        </div>
-                      </div>
-
-                      {/* Footer */}
-                      {/* <div className="mt-4 flex items-center gap-2 md:mt-6">
-                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-slate-100">
-                          <div
-                            className={`h-full w-2/3 ${stat.color} opacity-40 transition-all duration-700 group-hover:opacity-100`}
-                          />
-                        </div>
-
-                        <span className="hidden sm:block whitespace-nowrap text-[10px] font-medium text-slate-400">
-                          Live
-                        </span>
-                      </div> */}
+                    {/* Icon Bubble */}
+                    <div
+                      className={`
+                        flex items-center justify-center
+                        absolute top-4 right-4
+                        rounded-2xl
+                        h-8 w-8
+                        ${stat.color} bg-opacity-10
+                        transition-all duration-500 ease-out
+                        group-hover:rotate-[12deg]
+                        group-hover:scale-125
+                      `}
+                    >
+                      <Icon
+                        className={`
+                          h-4 w-4
+                          ${stat.color.replace('bg-', 'text-')}
+                        `}
+                      />
                     </div>
 
-                    {/* Decorative Number */}
+                    {/* Medium Bubble */}
                     <div
-                      className="
-                        pointer-events-none absolute z-10 select-none font-black text-slate-800/20 transition-colors duration-300 group-hover:text-slate-900/30
-                        -bottom-1 -right-1 text-5xl
-                        md:-bottom-2 md:-right-2 md:text-7xl
-                        xl:text-8xl
-                      "
-                    >
-                      {stat.value.toString().slice(-1)}
+                      className={`
+                        absolute right-6 bottom-4
+                        h-20 w-20 rounded-full
+                        ${stat.color}
+                        opacity-[0.06]
+                        blur-xl
+                        transition-all duration-700 ease-out
+                        group-hover:scale-150
+                        group-hover:translate-y-3
+                        group-hover:-translate-x-2
+                      `}
+                    />
+
+                    {/* Small Bubble */}
+                    <div
+                      className={`
+                        absolute top-1 right-1
+                        h-24 w-24 rounded-full
+                        ${stat.color}
+                        opacity-[0.1]
+                        blur-md
+                        transition-all duration-700 ease-out
+                        group-hover:scale-125
+                        group-hover:translate-x-1
+                      `}
+                    />
+
+                    {/* Tiny Bubble */}
+                    <div
+                      className={`
+                        absolute -top-5 -right-8
+                        h-24 w-24 rounded-full
+                        ${stat.color}
+                        opacity-[0.09]
+                        transition-all duration-700 ease-out
+                        group-hover:scale-140
+                        group-hover:-translate-y-2
+                      `}
+                    />
+
+                    {/* Extra Bubble */}
+                    <div
+                      className={`
+                        absolute top-4 -right-8
+                        h-32 w-32 rounded-full
+                        ${stat.color}
+                        opacity-[0.07]
+                        transition-all duration-700 ease-out
+                        group-hover:scale-125
+                        group-hover:translate-x-2
+                      `}
+                    />
+
+                  </div>
+
+                  <CardContent className="relative z-10">
+                    {/* Content */}
+                    <div className="space-y-1">
+                      <p
+                        className="
+                          line-clamp-2 min-h-[34px]
+                          text-[10px] font-bold uppercase
+                          tracking-[0.2em]
+                          text-slate-500
+                        "
+                      >
+                        {stat.name}
+                      </p>
+
+                      <h3
+                        className="
+                          text-2xl font-black
+                          text-slate-900
+                          sm:text-3xl
+                          xl:text-5xl
+
+                          transition-all duration-300
+                          group-hover:tracking-tighter
+                        "
+                      >
+                        {stat.value.toLocaleString()}
+                      </h3>
                     </div>
                   </CardContent>
                 </Card>
@@ -250,15 +310,15 @@ export default function Dashboard({
           
           {/* Table Section (Lebih Lebar) */}
           <div className="xl:col-span-2 min-w-0">
-            <Card className="border-none shadow-sm ring-1 ring-slate-200 min-h-[370px]">
-              <CardHeader className="flex flex-col md:flex-row items-center justify-between space-y-0">
+            <Card className="border-none gap-0 shadow-sm ring-1 ring-slate-200 min-h-[370px] p-0 overflow-hidden">
+              <CardHeader className="flex flex-col bg-slate-800 md:flex-row items-center justify-between space-y-0 py-4">
                 <div>
-                  <CardTitle className="text-lg font-bold">Daftar Pesanan Terbaru</CardTitle>
-                  <p className="text-sm text-muted-foreground">Pesanan terbaru yang menunggu diproses dalam kuartal 24 jam terakhir</p>
+                  <CardTitle className="text-lg font-bold text-orange-300">Daftar Pesanan Terbaru</CardTitle>
+                  <p className="text-sm text-slate-300">Pesanan terbaru 24 jam terakhir</p>
                 </div>
                 <div className="relative">
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/cpanel/crm/orders">Lihat Semua</Link>
+                  <Link href="/cpanel/crm/orders">Lihat Semua <ArrowRight className="h-4 w-4 ml-1 inline-block" /></Link>
                 </Button>
                 {recentOrdersFromProps.length > 0 && (
                   <Badge className="absolute animate-pulse -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-600">
@@ -269,14 +329,14 @@ export default function Dashboard({
               </CardHeader>
               <CardContent className="p-0">
                 <div className="w-full overflow-x-auto">
-                  <Table className="w-full min-w-[200px]">
+                  <Table className="w-full min-w-[200px] -mt-2">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="py-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wider font-semibold">Pelanggan</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wider font-semibold">Detail Produk</TableHead>
-                        <TableHead className="text-xs uppercase tracking-wider font-semibold">Status</TableHead>
-                        <TableHead className="text-right pr-6 text-xs uppercase tracking-wider font-semibold">Total Nilai</TableHead>
+                        <TableHead className="pt-7 pb-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>
+                        <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Pelanggan</TableHead>
+                        <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Detail Produk</TableHead>
+                        <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Status</TableHead>
+                        <TableHead className="pt-7 pb-4 text-right pr-6 text-xs uppercase tracking-wider font-semibold">Total Nilai</TableHead>
                       </TableRow>
                     </TableHeader>
                     
@@ -371,7 +431,7 @@ export default function Dashboard({
           <div className="space-y-6">
             <Card className="border-none shadow-sm ring-1 ring-slate-200">
               <CardHeader>
-                <CardTitle className="text-base font-bold">Produk Paling Banyak Dicari</CardTitle>
+                <CardTitle className="text-base font-bold">Produk Paling Banyak Dilihat</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 min-h-67">
                 {topSearchedProducts.length > 0 ? (

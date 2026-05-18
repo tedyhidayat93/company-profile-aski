@@ -86,7 +86,7 @@ export function NavMain({ items, groupTitle, newOrdersCount }: NavMainProps) {
                   className={cn(
                     'flex flex-1 items-center gap-2 text-sm',
                     'transition-colors duration-200',
-                    isItemActive ? 'text-slate-800 font-bold' : 'text-accent/70',
+                    isItemActive ? 'text-slate-800 font-bold' : 'text-accent/70 dark:text-white/70',
                     level > 0 && 'text-xs'
                   )}
                 >

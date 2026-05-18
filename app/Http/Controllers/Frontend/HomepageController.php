@@ -3,152 +3,383 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Article;
+use App\Models\Client;
+use App\Models\Configuration;
+use App\Models\Faq;
 use App\Models\Product;
 use App\Models\Service;
-use App\Models\Configuration;
-use App\Models\Client;
-use App\Models\Faq;
-use App\Models\Article;
 use App\Models\Testimonial;
+use App\Traits\TracksVisitors;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Traits\TracksVisitors;
 
 class HomepageController extends Controller
 {
     use TracksVisitors;
-    public function index(Request $request): Response
-    {
-        // Track visitor
-        $this->trackPageVisit($request, 'Homepage');
-        
-        // Get featured products for homepage
-        $products = Product::where('status', 'published')
-            ->where('is_featured', true)
-            ->with(['brand', 'category', 'coverImage'])
-            ->orderBy('position')
-            ->take(6)
-            ->get()
-            ->map(function ($product) {
-                // Get cover image with proper path validation like backpanel
-                $coverImagePath = $product->coverImage?->image_path;
-                if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
-                    $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
-                } elseif (!$coverImagePath) {
-                    $coverImagePath = '/images/placeholder.png';
-                }
-                
-                // Check if the image file actually exists
-                $fullPath = public_path($coverImagePath);
-                if (!file_exists($fullPath)) {
-                    $coverImagePath = '/images/placeholder.png';
-                }
-                
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'slug' => $product->slug,
-                    'type' => $product->type,
-                    'quantity' => $product->quantity,
-                    'category' => $product->category,
-                    'price' => $product->price,
-                    'compare_at_price' => $product->compare_at_price,
-                    'stock' => $product->quantity ?? 0,
-                    'image' => $coverImagePath,
-                    'description' => $product->short_description ?? $product->description ?? '',
-                    'is_bestseller' => $product->is_bestseller ?? false,
-                    'show_price' => $product->show_price,
-                    'show_stock' => $product->show_stock,
-                    'is_new' => $product->is_new ?? false,
-                    'is_for_sell' => $product->is_for_sell ?? false,
-                    'is_rent' => $product->is_rent ?? false
-                ];
-            });
 
-        // Get services for homepage
-        $services = Service::where('is_active', true)
-            ->orderBy('sequence')
+    /*
+    |--------------------------------------------------------------------------
+    | Homepage
+    |--------------------------------------------------------------------------
+    */
+
+    public function index(
+        Request $request
+    ): Response {
+
+        $this->trackPageVisit(
+            $request,
+            'Homepage'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Featured Products
+        |--------------------------------------------------------------------------
+        */
+        $products = Product::query()
+            ->published()
+            ->where('is_featured', true)
+            ->with([
+                'brand:id,name',
+                'category:id,name,slug',
+                'coverImage',
+            ])
+            ->orderBy('position')
+            ->limit(6)
             ->get()
+            ->map(fn($product) => $this->transformProduct($product));
+
+        /*
+        |--------------------------------------------------------------------------
+        | Services
+        |--------------------------------------------------------------------------
+        */
+        $services = Service::query()
+            ->where('is_active', true)
+            ->orderBy('sequence')
+            ->get([
+                'id',
+                'name',
+                'description',
+                'image',
+            ])
             ->map(function ($service) {
+
                 return [
                     'id' => $service->id,
+
                     'title' => $service->name,
-                    'description' => $service->description ?? '',
-                    'image' => $service->image ?? '/images/placeholder.png'
+
+                    'description' =>
+                        $service->description ?? '',
+
+                    'image' =>
+                        $service->image
+                            ?: '/images/placeholder.png',
                 ];
             });
 
-        // Get clients for homepage
-        $clients = Client::where('is_active', true)
+        /*
+        |--------------------------------------------------------------------------
+        | Clients
+        |--------------------------------------------------------------------------
+        */
+        $clients = Client::query()
+            ->where('is_active', true)
             ->orderBy('sequence')
-            ->get()
+            ->get([
+                'id',
+                'name',
+                'image',
+            ])
             ->map(function ($client) {
+
                 return [
                     'id' => $client->id,
+
                     'name' => $client->name,
-                    'logo' => $client->image ? '/storage/clients/' . $client->image : '/images/placeholder.png'
+
+                    'logo' => $client->image
+                        ? '/storage/clients/' . $client->image
+                        : '/images/placeholder.png',
                 ];
             });
 
-        // Get FAQs for homepage
-        $faqs = Faq::where('is_active', true)
+        /*
+        |--------------------------------------------------------------------------
+        | FAQs
+        |--------------------------------------------------------------------------
+        */
+        $faqs = Faq::query()
+            ->where('is_active', true)
             ->orderBy('position')
             ->orderBy('question')
-            ->get()
-            ->map(function ($faq) {
-                return [
-                    'id' => $faq->id,
-                    'question' => $faq->question,
-                    'answer' => $faq->answer
-                ];
-            });
+            ->get([
+                'id',
+                'question',
+                'answer',
+            ]);
 
-        // Get latest articles for homepage
-        $articles = Article::where('status', 'published')
-            ->where('is_headline', true)
-            ->with(['author', 'category'])
-            ->orderBy('published_at', 'desc')
-            ->take(3)
+        /*
+        |--------------------------------------------------------------------------
+        | Articles
+        |--------------------------------------------------------------------------
+        */
+        $articles = Article::query()
+            ->published()
+            ->headline()
+            ->with([
+                'author:id,name',
+                'category:id,name',
+            ])
+            ->latest('published_at')
+            ->limit(3)
             ->get()
             ->map(function ($article) {
+
                 return [
                     'id' => $article->id,
+
                     'title' => $article->title,
-                    'excerpt' => $article->excerpt ?? '',
-                    'image' => $article->featured_image ?? '/images/placeholder.png',
-                    'category' => $article->category ? $article->category->name : 'Artikel',
-                    'date' => $article->published_at?->format('d M Y') ?? '',
-                    'slug' => $article->slug
+
+                    'excerpt' =>
+                        $article->excerpt ?? '',
+
+                    'image' =>
+                        $article->featured_image
+                            ?: '/images/placeholder.png',
+
+                    'category' =>
+                        $article->category?->name
+                            ?? 'Artikel',
+
+                    'date' =>
+                        $article->published_at?->format('d M Y')
+                            ?? '',
+
+                    'slug' => $article->slug,
                 ];
             });
 
-        // Get testimonials for homepage (limit to 4 for display)
-        $testimonials = Testimonial::public()
+        /*
+        |--------------------------------------------------------------------------
+        | Testimonials
+        |--------------------------------------------------------------------------
+        */
+        $testimonials = Testimonial::query()
+            ->public()
             ->ordered()
-            ->take(4)
-            ->get()
+            ->limit(4)
+            ->get([
+                'id',
+                'nama',
+                'keterangan',
+                'perusahaan',
+                'testimoni',
+                'foto_avatar',
+                'rate_star',
+            ])
             ->map(function ($testimonial) {
+
                 return [
                     'id' => $testimonial->id,
+
                     'name' => $testimonial->nama,
+
                     'role' => $testimonial->keterangan,
+
                     'company' => $testimonial->perusahaan,
+
                     'content' => $testimonial->testimoni,
-                    'avatar' => $testimonial->foto_avatar ?? '/images/avatar-placeholder.png',
-                    'rating' => $testimonial->rate_star
+
+                    'avatar' =>
+                        $testimonial->foto_avatar
+                            ?: '/images/avatar-placeholder.png',
+
+                    'rating' => $testimonial->rate_star,
                 ];
             });
 
-        return Inertia::render('frontend/homepage', [
-            'canRegister' => false,
-            'canForgotPassword' => false,
-            'products' => $products,
-            'services' => $services,
-            'clients' => $clients,
-            'faqs' => $faqs,
-            'articles' => $articles,
-            'testimonials' => $testimonials,
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | SEO
+        |--------------------------------------------------------------------------
+        */
+        $seo = $this->buildSeo();
+
+        return Inertia::render(
+            'frontend/homepage',
+            [
+                'canRegister' => false,
+
+                'canForgotPassword' => false,
+
+                'products' => $products,
+
+                'services' => $services,
+
+                'clients' => $clients,
+
+                'faqs' => $faqs,
+
+                'articles' => $articles,
+
+                'testimonials' => $testimonials,
+
+                'seo' => $seo,
+            ]
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Product Transformer
+    |--------------------------------------------------------------------------
+    */
+
+    private function transformProduct(
+        Product $product
+    ): array {
+
+        return [
+            'id' => $product->id,
+
+            'name' => $product->name,
+
+            'slug' => $product->slug,
+
+            'type' => $product->type,
+
+            'quantity' => $product->quantity,
+
+            'category' => $product->category,
+
+            'price' => $product->price,
+
+            'compare_at_price' =>
+                $product->compare_at_price,
+
+            'stock' =>
+                $product->quantity ?? 0,
+
+            'image' => $this->resolveImagePath(
+                $product->coverImage?->image_path
+            ),
+
+            'description' =>
+                $product->short_description
+                ?? $product->description
+                ?? '',
+
+            'is_bestseller' =>
+                $product->is_bestseller ?? false,
+
+            'show_price' =>
+                $product->show_price,
+
+            'show_stock' =>
+                $product->show_stock,
+
+            'is_new' =>
+                $product->is_new ?? false,
+
+            'is_for_sell' =>
+                $product->is_for_sell ?? false,
+
+            'is_rent' =>
+                $product->is_rent ?? false,
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Resolve Image
+    |--------------------------------------------------------------------------
+    */
+
+    private function resolveImagePath(
+        ?string $path
+    ): string {
+
+        if (!$path) {
+            return '/images/placeholder.png';
+        }
+
+        $path = str_starts_with(
+            $path,
+            '/storage/'
+        )
+            ? $path
+            : '/storage/' . ltrim($path, '/');
+
+        return file_exists(
+            public_path($path)
+        )
+            ? $path
+            : '/images/placeholder.png';
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEO Builder
+    |--------------------------------------------------------------------------
+    */
+
+    private function buildSeo(): array
+    {
+
+        $configs = Configuration::query()
+            ->whereIn('code', [
+                'homepage_meta_title',
+                'homepage_meta_description',
+                'homepage_meta_keywords',
+                'homepage_meta_image',
+                'site_name',
+                'site_tagline',
+                'site_logo',
+                'meta_description',
+                'meta_keywords'
+            ])
+            ->pluck('value', 'code');
+
+        return [
+
+            'title' =>
+                $configs['homepage_meta_title']
+                ?? $configs['site_name']
+                ?? 'Alumoda Sinergi Kontainer Indonesia',
+
+            'description' =>
+                $configs['homepage_meta_description']
+                ?? $configs['meta_description']
+                ?? 'Solusi container terpercaya untuk kebutuhan industri, proyek, office container, reefer, dan logistik.',
+
+            'keywords' =>
+                $configs['homepage_meta_keywords']
+                ?? $configs['meta_keywords']
+                ?? 'container, office container, reefer container, jual container, sewa container',
+                
+            'image' => match (true) {
+
+                !empty($configs['homepage_meta_image']) => asset(
+                    'storage/' . $configs['homepage_meta_image']
+                ),
+
+                !empty($configs['site_logo']) => asset(
+                    str_starts_with(
+                        $configs['site_logo'],
+                        'configurations/'
+                    )
+                        ? 'storage/' . $configs['site_logo']
+                        : $configs['site_logo']
+                ),
+
+                default => asset('images/logo-main.png'),
+            },
+            'type' => 'website',
+        ];
     }
 }

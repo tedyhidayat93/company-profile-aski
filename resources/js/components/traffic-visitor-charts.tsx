@@ -59,7 +59,7 @@ export default function TrafficVisitorCharts({
     <div className="space-y-6">
 
       {/* ================= TRAFFIC MAIN ================= */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-xl shadow-sm p-6">
+      <div className="relative overflow-hidden rounded-2xl border backdrop-blur-xl shadow-sm p-6">
 
         {/* Glow effect */}
         <div className="absolute -top-20 -right-20 w-60 h-60 bg-blue-500/10 blur-3xl rounded-full" />
@@ -83,7 +83,7 @@ export default function TrafficVisitorCharts({
               </Link>
             </Button>
             <select
-              className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm shadow-sm focus:ring-2 focus:ring-blue-500"
+              className="bg-white border rounded-lg px-3 py-1.5 text-sm shadow-sm focus:ring-2 focus:ring-blue-500"
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
             >
@@ -164,7 +164,7 @@ export default function TrafficVisitorCharts({
       <div className="grid md:grid-cols-2 gap-6">
 
         {/* COUNTRY */}
-        <div className="rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-xl p-5 shadow-sm">
+        <div className="rounded-2xl border backdrop-blur-xl p-5 shadow-sm">
           <h3 className="text-xl font-semibold text-slate-700 mb-4">
             Per Negara
           </h3>
@@ -192,7 +192,7 @@ export default function TrafficVisitorCharts({
         </div>
 
         {/* REGION */}
-        <div className="rounded-2xl border border-slate-200 bg-white/70 backdrop-blur-xl p-5 shadow-sm">
+        <div className="rounded-2xl border backdrop-blur-xl p-5 shadow-sm">
           <h3 className="text-xl font-semibold text-slate-700 mb-4">
             Per Wilayah
           </h3>

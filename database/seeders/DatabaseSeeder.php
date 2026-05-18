@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             ConfigurationSeeder::class,
+            MetaSeoConfigurationSeeder::class,
             PermissionSeeder::class,
             RoleSeeder::class,
             RolePermissionSeeder::class,

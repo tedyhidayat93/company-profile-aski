@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-    @class([
-        'dark' => ($appearance ?? 'light') === 'dark',
-    ])
 >
+<!-- @class([
+    'dark' => ($appearance ?? 'light') === 'dark',
+]) -->
 
 <head>
 

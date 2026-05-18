@@ -2,531 +2,362 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Helpers\Recaptcha;
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\Category;
-use App\Models\Brand;
+use App\Models\Configuration;
 use App\Models\Customer;
 use App\Models\Order;
-use App\Models\Configuration;
+use App\Models\Product;
 use App\Services\EmailService;
+use App\Traits\TracksVisitors;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
-use Inertia\Response;
-use Illuminate\Support\Facades\Cache;
-use App\Traits\TracksVisitors;
-use App\Helpers\Recaptcha;
 
 class CatalogController extends Controller
 {
     use TracksVisitors;
 
-    protected $emailService;
+    protected EmailService $emailService;
 
-    public function __construct(EmailService $emailService)
-    {
+    public function __construct(
+        EmailService $emailService
+    ) {
         $this->emailService = $emailService;
     }
 
-    /**
-     * Increment product view count with rate limiting
-     * Prevents duplicate counts from same IP within 1 hour
-     *
-     * @param Product $product
-     * @param string $ipAddress
-     * @return void
-     */
-    private function incrementProductView(Product $product, string $ipAddress): void
-    {
-        try {
-            // Create cache key for rate limiting (IP + Product ID)
-            $cacheKey = 'product_view_' . $product->id . '_' . md5($ipAddress);
-            
-            // Check if this IP has viewed this product recently (within 1 hour)
-            if (!Cache::has($cacheKey)) {
-                // Increment the view count
-                $product->increment('views');
-                
-                // Set cache to prevent duplicate counting for 1 hour
-                Cache::put($cacheKey, true, 3600);
-                
-                // Log the view increment for debugging
-                \Log::info('Product view incremented', [
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'ip_address' => $ipAddress,
-                    'total_views' => $product->fresh()->views,
-                ]);
-            } else {
-                \Log::info('Product view skipped (rate limited)', [
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'ip_address' => $ipAddress,
-                ]);
-            }
-        } catch (\Exception $e) {
-            // Log error but don't break the user experience
-            \Log::error('Failed to increment product view', [
-                'product_id' => $product->id,
-                'ip_address' => $ipAddress,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | INDEX
+    |--------------------------------------------------------------------------
+    */
 
     public function index(Request $request)
     {
-        // Track visitor
-        $this->trackPageVisit($request, 'Product Catalog');
-        
-        // Get categories and types from database with hierarchical structure
-        $categories = $this->getHierarchicalCategories();
-        
-        $types = ['sell', 'rent', 'rent-and-sell'];
+        $this->trackPageVisit(
+            $request,
+            'Product Catalog'
+        );
 
-        // Build query with filters
-        $query = Product::published()
-            ->with(['category', 'brand', 'coverImage'])
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'LIKE', '%' . $search . '%')
-                        ->orWhere('description', 'LIKE', '%' . $search . '%');
-                        // ->orWhere('meta_title', 'LIKE', '%' . $search . '%')
-                        // ->orWhere('meta_description', 'LIKE', '%' . $search . '%')
-                        // ->orWhere('tags', 'LIKE', '%' . $search . '%')
-                        // ->orWhere('short_description', 'LIKE', '%' . $search . '%')
-                        // ->orWhere('sku', 'LIKE', '%' . $search . '%');
-                });
-            })
-            ->when($request->type, function ($query, $type) {
-                if($type === 'sell') {
-                    return $query->where('is_for_sell', true)->where('is_rent', false);
-                } elseif($type === 'rent') {
-                    return $query->where('is_rent', true)->where('is_for_sell', false)->orWhere(function($q) {
-                        return $q->where('is_rent', false)->where('is_for_sell', false);
-                    });
-                } elseif($type === 'rent-and-sell') {
-                    return $query->where('is_for_sell', true)->where('is_rent', true);
-                }
-            })
-            ->when($request->category, function ($query, $category) {
-                $categoryIds = $this->getCategoryAndDescendants($category);
-                $query->whereHas('category', function ($q) use ($categoryIds) {
-                    $q->whereIn('id', $categoryIds);
-                });
-            })
-            ->when($request->minPrice, function ($query, $minPrice) {
-                $query->where('price', '>=', $minPrice);
-            })
-            ->when($request->maxPrice, function ($query, $maxPrice) {
-                $query->where('price', '<=', $maxPrice);
-            });
-
-        // Sorting
-        switch ($request->sort) {
-            case 'price-desc':
-                $query->orderBy('price', 'desc');
-                break;
-            case 'name-asc':
-                $query->orderBy('name', 'asc');
-                break;
-            case 'name-desc':
-                $query->orderBy('name', 'desc');
-                break;
-            case 'price-asc':
-            default:
-                $query->orderBy('price', 'asc');
-                break;
-        }
-
-        // Pagination
-        $perPage = (int) $request->input('perPage', 12);
-        $products = $query->paginate($perPage, ['*'], 'page', $request->input('page', 1));
-
-        // If search returns no results, show latest products
-        if ($request->search && $products->isEmpty()) {
-            $query = Product::published()
-                ->with(['category', 'brand', 'coverImage'])
-                ->orderBy('created_at', 'desc');
-            
-            // Apply other filters (except search) to latest products
-            $query->when($request->type, function ($query, $type) {
-                if($type === 'sell') {
-                    return $query->where('is_for_sell', true);
-                } elseif($type === 'rent') {
-                    return $query->where('is_rent', true);
-                } elseif($type === 'rent-and-sell') {
-                    return $query->where('is_for_sell', true)->where('is_rent', true);
-                }
-            })
-            ->when($request->category, function ($query, $category) {
-                $query->whereHas('category', function ($q) use ($category) {
-                    $q->where('name', $category)
-                      ->orWhereHas('parent', function ($parentQuery) use ($category) {
-                          $parentQuery->where('name', $category);
-                      });
-                });
-            })
-            ->when($request->minPrice, function ($query, $minPrice) {
-                $query->where('price', '>=', $minPrice);
-            })
-            ->when($request->maxPrice, function ($query, $maxPrice) {
-                $query->where('price', '<=', $maxPrice);
-            });
-
-            // Apply sorting to latest products
-            switch ($request->sort) {
-                case 'price-desc':
-                    $query->orderBy('price', 'desc');
-                    break;
-                case 'name-asc':
-                    $query->orderBy('name', 'asc');
-                    break;
-                case 'name-desc':
-                    $query->orderBy('name', 'desc');
-                    break;
-                case 'price-asc':
-                default:
-                    $query->orderBy('price', 'asc');
-                    break;
-            }
-
-            $products = $query->paginate($perPage, ['*'], 'page', $request->input('page', 1));
-        }
-
-        // Transform products for frontend
-        $transformedProducts = $products->getCollection()->map(function ($product) {
-            // Get cover image with proper path validation like backpanel
-            $coverImagePath = $product->coverImage?->image_path;
-            if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
-                $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
-            } elseif (!$coverImagePath) {
-                $coverImagePath = '/images/placeholder.png';
-            }
-            
-            // Check if the image file actually exists
-            $fullPath = public_path($coverImagePath);
-            if (!file_exists($fullPath)) {
-                $coverImagePath = '/images/placeholder.png';
-            }
-            
-            return [
-                'id' => $product->id,
-                'name' => $product->name,
-                'slug' => $product->slug,
-                'type' => $product->type,
-                'quantity' => $product->quantity,
-                'category' => $product->category,
-                'price' => $product->price,
-                'compare_at_price' => $product->compare_at_price,
-                'stock' => $product->quantity ?? 0,
-                'image' => $coverImagePath,
-                'description' => $product->short_description ?? $product->description ?? '',
-                'is_bestseller' => $product->is_bestseller ?? false,
-                'show_price' => $product->show_price,
-                'show_stock' => $product->show_stock,
-                'is_new' => $product->is_new ?? false,
-                'is_for_sell' => $product->is_for_sell ?? false,
-                'is_rent' => $product->is_rent ?? false
-            ];
-        });
-
-        $productsData = [
-            'status' => 'success',
-            'data' => $transformedProducts,
-            'pagination' => [
-                'current_page' => $products->currentPage(),
-                'per_page' => $products->perPage(),
-                'total' => $products->total(),
-                'last_page' => $products->lastPage(),
-                'from' => $products->firstItem(),
-                'to' => $products->lastItem(),
-            ],
-            'load_info' => [
-                'request_time' => $request->server('REQUEST_TIME'),
-                'timestamp' => time(),
-                'formatted' => date('Y-m-d H:i:s'),
-                'timezone' => date_default_timezone_get(),
-                'microtime' => microtime(true),
-                'load_time' => round(microtime(true) - LARAVEL_START, 4),
-                'memory_usage' => round(memory_get_usage() / 1024 / 1024, 2) . ' MB',
-            ]
+        $filters = [
+            'search' => $request->string('search')->toString(),
+            'type' => $request->string('type')->toString(),
+            'category' => $request->string('category')->toString(),
+            'minPrice' => $request->input('minPrice'),
+            'maxPrice' => $request->input('maxPrice'),
+            'sort' => $request->string('sort')->toString(),
+            'perPage' => (int) $request->input('perPage', 12),
         ];
 
-        // SEO
-        $seoTitle = 'Katalog Kami';
+        /*
+        |--------------------------------------------------------------------------
+        | Categories
+        |--------------------------------------------------------------------------
+        */
+        $categories = $this->getHierarchicalCategories();
 
-        if ($request->category) {
+        $types = [
+            'sell',
+            'rent',
+            'rent-and-sell',
+        ];
 
-            $category = Category::where(
-                'slug',
-                $request->category
-            )->first();
+        /*
+        |--------------------------------------------------------------------------
+        | Products Query
+        |--------------------------------------------------------------------------
+        */
+        $query = Product::query()
+            ->published()
+            ->with([
+                'category:id,name,slug',
+                'brand:id,name',
+                'coverImage',
+            ]);
 
-            if ($category) {
-                $seoTitle =
-                    $category->name .
-                    ' | Katalog Container';
-            }
+        $this->applyProductFilters(
+            $query,
+            $filters
+        );
+
+        $this->applySorting(
+            $query,
+            $filters['sort']
+        );
+
+        $products = $query
+            ->paginate($filters['perPage'])
+            ->withQueryString();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Fallback Products
+        |--------------------------------------------------------------------------
+        */
+        if (
+            $filters['search']
+            && $products->isEmpty()
+        ) {
+            $fallbackQuery = Product::query()
+                ->published()
+                ->with([
+                    'category:id,name,slug',
+                    'brand:id,name',
+                    'coverImage',
+                ])
+                ->latest();
+
+            $fallbackFilters = $filters;
+            $fallbackFilters['search'] = null;
+
+            $this->applyProductFilters(
+                $fallbackQuery,
+                $fallbackFilters
+            );
+
+            $this->applySorting(
+                $fallbackQuery,
+                $filters['sort']
+            );
+
+            $products = $fallbackQuery
+                ->paginate($filters['perPage'])
+                ->withQueryString();
         }
 
-        if ($request->search) {
+        /*
+        |--------------------------------------------------------------------------
+        | Transform Products
+        |--------------------------------------------------------------------------
+        */
+        $products->setCollection(
+            $products->getCollection()
+                ->map(fn($product) => $this->transformProduct($product))
+        );
 
-            $seoTitle =
-                'Pencarian "' .
-                $request->search .
-                '" | Katalog Container';
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | SEO
+        |--------------------------------------------------------------------------
+        */
+        $seo = $this->buildSeo($filters);
 
-        $seoDescription =
-            'Temukan berbagai pilihan container baru dan bekas untuk kebutuhan industri, proyek, office container, reefer, gudang, dan logistik.';
+        return Inertia::render(
+            'frontend/catalog/index',
+            [
+                'products' => [
+                    'status' => 'success',
+                    'data' => $products->items(),
 
-        $seoKeywords =
-            'jual container, sewa container, katalog container, office container, reefer container';
+                    'pagination' => [
+                        'current_page' => $products->currentPage(),
+                        'per_page' => $products->perPage(),
+                        'total' => $products->total(),
+                        'last_page' => $products->lastPage(),
+                        'from' => $products->firstItem(),
+                        'to' => $products->lastItem(),
+                    ],
+                ],
 
-        $seoImage =
-            asset('images/logo-main.png');
+                'categories' => $categories,
 
-        return Inertia::render('frontend/catalog/index', [
-            'products' => $productsData,
-            'categories' => $categories,
-            'types' => $types,
-            'filters' => $request->only(['search', 'type', 'category', 'minPrice', 'maxPrice', 'sort', 'perPage']),
-            'seo' => [
-                'title' =>
-                    $seoTitle .
-                    ' | Alumoda Sinergi Kontainer Indonesia',
+                'types' => $types,
 
-                'description' =>
-                    $seoDescription,
+                'filters' => $filters,
 
-                'keywords' =>
-                    $seoKeywords,
-
-                'image' =>
-                    $seoImage,
-
-                'type' => 'website',
-            ],
-        ]);
+                'seo' => $seo,
+            ]
+        );
     }
 
-    public function show(Request $request, $slug)
-    {
-        // Track visitor
-        $this->trackPageVisit($request, 'Product Detail - ' . $slug);
-        
-        $product = Product::published()
-            ->with(['category', 'brand', 'images' => function ($query) {
-                $query->orderBy('position', 'asc');
-            }])
+    /*
+    |--------------------------------------------------------------------------
+    | DETAIL
+    |--------------------------------------------------------------------------
+    */
+
+    public function show(
+        Request $request,
+        string $slug
+    ) {
+        $this->trackPageVisit(
+            $request,
+            'Product Detail - ' . $slug
+        );
+
+        $product = Product::query()
+            ->published()
+            ->with([
+                'category:id,name,slug',
+                'brand:id,name',
+                'coverImage',
+                'images' => fn($q) => $q->orderBy('position'),
+            ])
             ->where('slug', $slug)
             ->firstOrFail();
 
-        // Increment product view count with rate limiting (per IP per hour)
-        $this->incrementProductView($product, $request->ip());
+        /*
+        |--------------------------------------------------------------------------
+        | Increment View
+        |--------------------------------------------------------------------------
+        */
+        $this->incrementProductView(
+            $product,
+            $request->ip()
+        );
 
-        // Get related products
-        $relatedProducts = Product::published()
+        /*
+        |--------------------------------------------------------------------------
+        | Related Products
+        |--------------------------------------------------------------------------
+        */
+        $relatedProducts = Product::query()
+            ->published()
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
-            ->with(['category', 'coverImage', 'images'])
+            ->with([
+                'category:id,name,slug',
+                'coverImage',
+            ])
+            ->latest()
             ->limit(4)
             ->get()
-            ->map(function ($product) {
-                $coverImagePath = $product->coverImage?->image_path;
-                    if ($coverImagePath && !str_starts_with($coverImagePath, '/storage/')) {
-                        $coverImagePath = '/storage/' . ltrim($coverImagePath, '/');
-                    } elseif (!$coverImagePath) {
-                        $coverImagePath = '/images/placeholder.png';
-                    }
-                    
-                    // Check if the image file actually exists
-                    $fullPath = public_path($coverImagePath);
-                    if (!file_exists($fullPath)) {
-                        $coverImagePath = '/images/placeholder.png';
-                    }
-                    
-                    return [
-                        'id' => $product->id,
-                        'name' => $product->name,
-                        'slug' => $product->slug,
-                        'type' => $product->type,
-                        'quantity' => $product->quantity,
-                        'category' => $product->category?->name ?? 'Uncategorized',
-                        'price' => $product->price,
-                        'compare_at_price' => $product->compare_at_price,
-                        'stock' => $product->quantity ?? 0,
-                        'image' => $coverImagePath,
-                        'description' => $product->short_description ?? $product->description ?? '',
-                        'is_bestseller' => $product->is_bestseller ?? false,
-                        'show_price' => $product->show_price,
-                        'show_stock' => $product->show_stock,
-                        'is_new' => $product->is_new ?? false,
-                        'is_for_sell' => $product->is_for_sell ?? false,
-                        'is_rent' => $product->is_rent ?? false
-                ];
-            });
+            ->map(fn($item) => $this->transformProduct($item));
 
-        $productData = [
-            'id' => $product->id,
-            'name' => $product->name,
-            'slug' => $product->slug,
-            'type' => $product->type,
-            'category' => $product->category,
-            'brand' => $product->brand,
-            'price' => $product->price,
-            'compare_at_price' => $product->compare_at_price,
-            'stock' => $product->track_quantity ? $product->quantity : null,
-            'description' => $product->description,
-            'short_description' => $product->short_description,
-            'sku' => $product->sku,
-            'barcode' => $product->barcode,
-            'is_bestseller' => $product->is_bestseller,
-            'is_new' => $product->is_new,
-            'is_featured' => $product->is_featured,
-            'is_for_sell' => $product->is_for_sell,
-            'show_price' => $product->show_price,
-            'show_stock' => $product->show_stock,
-            'is_rent' => $product->is_rent,
-            'meta_title' => $product->meta_title,
-            'meta_description' => $product->meta_description,
-            'image' => $product->coverImage?->image_path
-                ? (str_starts_with($product->coverImage->image_path, '/storage/')
-                    ? asset($product->coverImage->image_path)
-                    : asset('storage/' . ltrim($product->coverImage->image_path, '/')))
-                : asset('/images/placeholder.png'),
-            'images' => $product->images->isNotEmpty() ? $product->images->map(function ($image) {
-                // Use the same path as backpanel - just prepend /storage/ if not already present
-                $imagePath = $image->image_path;
-                if (!str_starts_with($imagePath, '/storage/')) {
-                    $imagePath = '/storage/' . ltrim($imagePath, '/');
-                }
-                
-                // Check if the image file actually exists, otherwise use placeholder
-                $fullPath = public_path($imagePath);
-                if (!file_exists($fullPath)) {
-                    $imagePath = '/images/placeholder.png';
-                }
-                
+        /*
+        |--------------------------------------------------------------------------
+        | Product Images
+        |--------------------------------------------------------------------------
+        */
+        $images = $product->images->isNotEmpty()
+            ? $product->images->map(function ($image) {
                 return [
                     'id' => $image->id,
-                    'path' => $imagePath,
+                    'path' => $this->resolveImagePath(
+                        $image->image_path
+                    ),
                     'is_cover' => $image->is_cover,
                     'position' => $image->position,
                 ];
-            }) : [[
+            })
+            : [[
                 'id' => 0,
                 'path' => '/images/placeholder.png',
                 'is_cover' => true,
                 'position' => 0,
-            ]],
+            ]];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Product Data
+        |--------------------------------------------------------------------------
+        */
+        $productData = [
+            ...$this->transformProduct($product),
+
+            'brand' => $product->brand,
+
+            'stock' => $product->track_quantity
+                ? $product->quantity
+                : null,
+
+            'description' => $product->description,
+            'short_description' => $product->short_description,
+
+            'sku' => $product->sku,
+            'barcode' => $product->barcode,
+
+            'is_featured' => $product->is_featured,
+
+            'meta_title' => $product->meta_title,
+            'meta_description' => $product->meta_description,
+
+            'images' => $images,
+
             'tags' => $product->tags,
+
             'specific_specs' => $product->specific_specs,
         ];
 
-        return Inertia::render('frontend/catalog/detail', [
-            'product' => $productData,
-            'relatedProducts' => $relatedProducts,
-            'seo' => [
+        /*
+        |--------------------------------------------------------------------------
+        | SEO
+        |--------------------------------------------------------------------------
+        */
+        $seo = [
+            'title' => $product->meta_title
+                ?: $product->name,
 
-                'title' =>
+            'description' => $product->meta_description
+                ?: (
+                    $product->short_description
+                    ?: str($product->description)
+                        ->stripTags()
+                        ->limit(160)
+                ),
 
-                    $product->meta_title
-                    ?:
-                    $product->name,
+            'keywords' => is_array($product->tags)
+                ? implode(', ', $product->tags)
+                : '',
 
-                'description' =>
+            'image' => $this->resolveImagePath(
+                $product->coverImage?->image_path
+            ),
 
-                    $product->meta_description
-                    ?:
-                    (
-                        $product->short_description
-                        ?:
-                        str($product->description)
-                            ->stripTags()
-                            ->limit(160)
-                    ),
+            'type' => 'product',
+        ];
 
-                'keywords' =>
-
-                    is_array($product->tags)
-                        ? implode(
-                            ', ',
-                            $product->tags
-                        )
-                        : '',
-
-                'image' =>
-
-                    $product->coverImage?->image_path
-
-                        ? (
-
-                            str_starts_with(
-                                $product->coverImage->image_path,
-                                '/storage/'
-                            )
-
-                                ? asset(
-                                    $product->coverImage->image_path
-                                )
-
-                                : asset(
-                                    'storage/' .
-                                    ltrim(
-                                        $product->coverImage->image_path,
-                                        '/'
-                                    )
-                                )
-                        )
-
-                        : asset(
-                            'images/placeholder.png'
-                        ),
-
-                'type' => 'product',
-            ],
-        ]);
+        return Inertia::render(
+            'frontend/catalog/detail',
+            [
+                'product' => $productData,
+                'relatedProducts' => $relatedProducts,
+                'seo' => $seo,
+            ]
+        );
     }
 
-    // function order frontend
+    /*
+    |--------------------------------------------------------------------------
+    | ORDER
+    |--------------------------------------------------------------------------
+    */
+
     public function order(Request $request)
     {
         try {
-            /*
-            |--------------------------------------------------------------------------
-            | Validate Request
-            |--------------------------------------------------------------------------
-            */
+
             $validated = $request->validate([
                 'company_name' => ['required', 'string', 'max:255'],
-                'pic_name'      => ['required', 'string', 'max:255'],
-                'phone'         => [
+                'pic_name' => ['required', 'string', 'max:255'],
+                'phone' => [
                     'required',
                     'string',
                     'max:20',
                     'regex:/^[0-9+\-\s]+$/',
                 ],
-                'email'             => ['required', 'email:rfc,dns', 'max:255'],
-                'notes'             => ['nullable', 'string'],
-                'product_id'        => ['required', 'integer'],
-                'quantity'          => ['required', 'integer', 'min:1'],
-                'recaptcha_token'   => ['required'],
+                'email' => ['required', 'email:rfc,dns'],
+                'notes' => ['nullable', 'string'],
+                'product_id' => ['required', 'integer'],
+                'quantity' => ['required', 'integer', 'min:1'],
+                'recaptcha_token' => ['required'],
             ]);
 
             /*
             |--------------------------------------------------------------------------
-            | Verify Google reCAPTCHA v3
+            | Recaptcha
             |--------------------------------------------------------------------------
             */
-            if (!Recaptcha::verify(
-                $validated['recaptcha_token'],
-                'product_order',
-                0.5
-            )) {
+            if (
+                !Recaptcha::verify(
+                    $validated['recaptcha_token'],
+                    'product_order',
+                    0.5
+                )
+            ) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Mohon maaf terjadi kesalahan. Silakan coba lagi.',
@@ -535,132 +366,97 @@ class CatalogController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Get Product
+            | Product
             |--------------------------------------------------------------------------
             */
-            $product = Product::with([
-                'coverImage',
-                'category',
-            ])->findOrFail($validated['product_id']);
-
-            $productImage = $product->coverImage?->image_path
-                ?? $product->image_path
-                ?? null;
+            $product = Product::query()
+                ->with([
+                    'coverImage',
+                    'category',
+                ])
+                ->findOrFail(
+                    $validated['product_id']
+                );
 
             /*
             |--------------------------------------------------------------------------
-            | Database Transaction
+            | Transaction
             |--------------------------------------------------------------------------
             */
             $order = DB::transaction(function () use (
                 $validated,
-                $product,
-                $productImage
+                $product
             ) {
 
-                /*
-                |--------------------------------------------------------------------------
-                | Find Or Create Customer
-                |--------------------------------------------------------------------------
-                */
                 $customer = Customer::firstOrCreate(
                     [
                         'email' => $validated['email'],
                     ],
                     [
-                        'name'      => $validated['pic_name'],
-                        'phone'     => $validated['phone'],
-                        'address'   => '',
+                        'name' => $validated['pic_name'],
+                        'phone' => $validated['phone'],
+                        'address' => '',
                         'is_active' => true,
                     ]
                 );
 
-                /*
-                |--------------------------------------------------------------------------
-                | Generate Order
-                |--------------------------------------------------------------------------
-                */
                 $order = Order::create([
-                    'customer_id'      => $customer->id,
-                    'order_number'     => Order::generateOrderNumber(
+                    'customer_id' => $customer->id,
+
+                    'order_number' => Order::generateOrderNumber(
                         Configuration::getValue(
-                            'prefix_product_order',
+                            'catalog_prefix_product_order',
                             'ORD'
                         )
                     ),
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Customer Information
-                    |--------------------------------------------------------------------------
-                    */
                     'company_name' => $validated['company_name'],
-                    'pic_name'     => $validated['pic_name'],
-                    'phone'        => $validated['phone'],
-                    'email'        => $validated['email'],
+                    'pic_name' => $validated['pic_name'],
+                    'phone' => $validated['phone'],
+                    'email' => $validated['email'],
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Order Status
-                    |--------------------------------------------------------------------------
-                    */
                     'status' => 'pending',
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Address Information
-                    |--------------------------------------------------------------------------
-                    */
-                    'address'       => '',
-                    'province'      => '',
-                    'regency'       => '',
-                    'district'      => '',
-                    'village'       => '',
-                    'postal_code'   => '',
+                    'address' => '',
+                    'province' => '',
+                    'regency' => '',
+                    'district' => '',
+                    'village' => '',
+                    'postal_code' => '',
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Product Information
-                    |--------------------------------------------------------------------------
-                    */
-                    'product_id'       => $product->id,
-                    'product_name'     => $product->name,
-                    'product_category' => $product->category?->name ?? 'Uncategorized',
-                    'product_image'    => $productImage,
-                    'product_price'    => $product->price,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Order Details
-                    |--------------------------------------------------------------------------
-                    */
-                    'quantity'      => $validated['quantity'],
-                    'total_price'   => $product->price * $validated['quantity'],
-                    'notes'         => $validated['notes'] ?? '',
-                    'admin_notes'   => '',
+                    'product_category' =>
+                        $product->category?->name
+                        ?? 'Uncategorized',
+
+                    'product_image' =>
+                        $product->coverImage?->image_path,
+
+                    'product_price' => $product->price,
+
+                    'quantity' => $validated['quantity'],
+
+                    'total_price' =>
+                        $product->price
+                        * $validated['quantity'],
+
+                    'notes' =>
+                        $validated['notes'] ?? '',
+
+                    'admin_notes' => '',
                 ]);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Send Notification
-                |--------------------------------------------------------------------------
-                | Recommended:
-                | Use Queue Job instead of direct email sending
-                |--------------------------------------------------------------------------
-                */
-                $this->emailService->sendOrderNotifications($order);
+                $this->emailService
+                    ->sendOrderNotifications($order);
 
                 return $order;
             });
 
-            /*
-            |--------------------------------------------------------------------------
-            | Success Response
-            |--------------------------------------------------------------------------
-            */
             return response()->json([
                 'success' => true,
-                'message' => 'Pesanan Anda berhasil dikirim. Tim kami akan segera menghubungi Anda.',
+                'message' => 'Pesanan Anda berhasil dikirim.',
                 'data' => [
                     'order_number' => $order->order_number,
                 ],
@@ -670,106 +466,415 @@ class CatalogController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Validasi gagal. Silakan periksa kembali data Anda.',
-                'errors'  => $e->errors(),
+                'message' => 'Validasi gagal.',
+                'errors' => $e->errors(),
             ], 422);
 
         } catch (\Throwable $e) {
 
-            /*
-            |--------------------------------------------------------------------------
-            | Log Error
-            |--------------------------------------------------------------------------
-            */
-            \Log::error('Frontend Product Order Error', [
-                'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
-            ]);
+            \Log::error(
+                'Frontend Product Order Error',
+                [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
+            );
 
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat memproses pesanan. Silakan coba beberapa saat lagi.',
+                'message' => 'Terjadi kesalahan saat memproses pesanan.',
             ], 500);
         }
     }
 
-    /**
-     * Get hierarchical categories structure
-     */
-    private function getHierarchicalCategories()
+    /*
+    |--------------------------------------------------------------------------
+    | HELPERS
+    |--------------------------------------------------------------------------
+    */
+
+    private function applyProductFilters(
+        $query,
+        array $filters
+    ): void {
+
+        $query
+
+            ->when($filters['search'], function ($query, $search) {
+
+                $query->where(function ($q) use ($search) {
+
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+
+                });
+
+            })
+
+            ->when($filters['type'], function ($query, $type) {
+
+                match ($type) {
+
+                    'sell' =>
+                        $query->where('is_for_sell', true)
+                            ->where('is_rent', false),
+
+                    'rent' =>
+                        $query->where(function ($q) {
+                            $q->where('is_rent', true)
+                                ->orWhere(function ($nested) {
+                                    $nested->where('is_rent', false)
+                                        ->where('is_for_sell', false);
+                                });
+                        }),
+
+                    'rent-and-sell' =>
+                        $query->where('is_for_sell', true)
+                            ->where('is_rent', true),
+
+                    default => null,
+                };
+            })
+
+            ->when($filters['category'], function ($query, $category) {
+
+                $categoryIds =
+                    $this->getCategoryAndDescendants($category);
+
+                $query->whereIn(
+                    'category_id',
+                    $categoryIds
+                );
+            })
+
+            ->when($filters['minPrice'], function ($query, $minPrice) {
+
+                $query->where(
+                    'price',
+                    '>=',
+                    $minPrice
+                );
+
+            })
+
+            ->when($filters['maxPrice'], function ($query, $maxPrice) {
+
+                $query->where(
+                    'price',
+                    '<=',
+                    $maxPrice
+                );
+
+            });
+    }
+
+    private function applySorting(
+        $query,
+        ?string $sort
+    ): void {
+
+        match ($sort) {
+
+            'price-desc' =>
+                $query->orderByDesc('price'),
+
+            'name-asc' =>
+                $query->orderBy('name'),
+
+            'name-desc' =>
+                $query->orderByDesc('name'),
+
+            default =>
+                $query->orderBy('price'),
+        };
+    }
+
+    private function transformProduct(
+        Product $product
+    ): array {
+
+        return [
+            'id' => $product->id,
+
+            'name' => $product->name,
+
+            'slug' => $product->slug,
+
+            'type' => $product->type,
+
+            'quantity' => $product->quantity,
+
+            'category' => $product->category,
+
+            'price' => $product->price,
+
+            'compare_at_price' =>
+                $product->compare_at_price,
+
+            'stock' =>
+                $product->quantity ?? 0,
+
+            'image' => $this->resolveImagePath(
+                $product->coverImage?->image_path
+            ),
+
+            'description' =>
+                $product->short_description
+                ?? $product->description
+                ?? '',
+
+            'is_bestseller' =>
+                $product->is_bestseller ?? false,
+
+            'show_price' =>
+                $product->show_price,
+
+            'show_stock' =>
+                $product->show_stock,
+
+            'is_new' =>
+                $product->is_new ?? false,
+
+            'is_for_sell' =>
+                $product->is_for_sell ?? false,
+
+            'is_rent' =>
+                $product->is_rent ?? false,
+        ];
+    }
+
+    private function resolveImagePath(
+        ?string $path
+    ): string {
+
+        if (!$path) {
+            return '/images/placeholder.png';
+        }
+
+        $path = str_starts_with($path, '/storage/')
+            ? $path
+            : '/storage/' . ltrim($path, '/');
+
+        return file_exists(
+            public_path($path)
+        )
+            ? $path
+            : '/images/placeholder.png';
+    }
+
+    private function buildSeo(
+        array $filters
+    ): array {
+
+        $configs = Configuration::query()
+            ->whereIn('key', [
+                'catalog_meta_title',
+                'catalog_meta_description',
+                'catalog_meta_keywords',
+                'catalog_meta_image',
+                'site_name',
+                'site_tagline',
+                'site_logo',
+                'meta_description',
+                'meta_keywords'
+            ])
+            ->pluck('value', 'key');
+
+        $title =
+            $configs['catalog_meta_title']
+            ?? 'Katalog Kami';
+
+        if ($filters['category']) {
+
+            $category = Category::query()
+                ->where(
+                    'slug',
+                    $filters['category']
+                )
+                ->first();
+
+            if ($category) {
+                $title =
+                    $category->name .
+                    ' | Katalog Kontainer';
+            }
+        }
+
+        if ($filters['search']) {
+
+            $title =
+                'Pencarian "' .
+                $filters['search'] .
+                '" | Katalog Kontainer';
+        }
+
+        return [
+            'title' =>
+                $title .
+                ' | Alumoda Sinergi Kontainer Indonesia',
+
+            'description' =>
+                $configs['catalog_meta_description'] 
+                ?? $configs['meta_description']
+                ?? 'Temukan berbagai pilihan kontainer baru dan bekas untuk kebutuhan industri.',
+
+            'keywords' =>
+                $configs['catalog_meta_keywords'] 
+                ?? $configs['meta_keywords']
+                ?? 'jual beli kontainer, sewa kontainer, kontainer kustom, kontainer office, DNV, reefer, DRY Container',
+
+            'image' => match (true) {
+
+                !empty($configs['catalog_meta_image']) => asset(
+                    'storage/' . $configs['catalog_meta_image']
+                ),
+
+                !empty($configs['site_logo']) => asset(
+                    str_starts_with(
+                        $configs['site_logo'],
+                        'configurations/'
+                    )
+                        ? 'storage/' . $configs['site_logo']
+                        : $configs['site_logo']
+                ),
+
+                default => asset('images/logo-main.png'),
+            },
+            'type' => 'website',
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VIEW COUNTER
+    |--------------------------------------------------------------------------
+    */
+
+    private function incrementProductView(
+        Product $product,
+        string $ipAddress
+    ): void {
+
+        try {
+
+            $cacheKey =
+                'product_view_' .
+                $product->id .
+                '_' .
+                md5($ipAddress);
+
+            if (!Cache::has($cacheKey)) {
+
+                $product->increment('views');
+
+                Cache::put(
+                    $cacheKey,
+                    true,
+                    now()->addHour()
+                );
+            }
+
+        } catch (\Throwable $e) {
+
+            \Log::error(
+                'Failed increment product view',
+                [
+                    'product_id' => $product->id,
+                    'error' => $e->getMessage(),
+                ]
+            );
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CATEGORIES
+    |--------------------------------------------------------------------------
+    */
+
+    private function getHierarchicalCategories(): array
     {
-        // Get all categories ordered by parent and name
-        $allCategories = Category::active()
+        $allCategories = Category::query()
+            ->active()
             ->where('type', 'product')
             ->orderBy('parent_id')
             ->orderBy('name')
-            ->get(['id', 'name', 'parent_id', 'slug']);
+            ->get([
+                'id',
+                'name',
+                'parent_id',
+                'slug',
+            ]);
 
-        // Build hierarchical structure
         $categories = [];
-        $categoryMap = [];
+        $map = [];
 
-        // First pass: create category map
         foreach ($allCategories as $category) {
-            $categoryMap[$category->id] = [
+
+            $map[$category->id] = [
                 'label' => $category->name,
                 'value' => $category->slug,
-                'subcategories' => []
+                'subcategories' => [],
             ];
         }
 
-        // Second pass: build hierarchy
         foreach ($allCategories as $category) {
+
             if (is_null($category->parent_id)) {
-                // This is a parent category
-                $categories[] = &$categoryMap[$category->id];
-            } else {
-                // This is a child category
-                if (isset($categoryMap[$category->parent_id])) {
-                    $categoryMap[$category->parent_id]['subcategories'][] = &$categoryMap[$category->id];
-                }
+
+                $categories[] =
+                    &$map[$category->id];
+
+            } elseif (
+                isset($map[$category->parent_id])
+            ) {
+
+                $map[$category->parent_id]['subcategories'][] =
+                    &$map[$category->id];
             }
         }
 
         return $categories;
     }
-    
-    /**
-     * Get category ID and all its descendant IDs
-     */
-    private function getCategoryAndDescendants($categorySlug)
-    {
-        // Find the category by slug
-        $category = Category::where('slug', $categorySlug)->first();
-        
+
+    private function getCategoryAndDescendants(
+        string $slug
+    ): array {
+
+        $category = Category::query()
+            ->where('slug', $slug)
+            ->first();
+
         if (!$category) {
             return [];
         }
 
-        // Get all descendant categories recursively
-        $descendantIds = $this->getDescendantIds($category->id);
-        
-        // Include the category itself
-        return array_merge([$category->id], $descendantIds);
+        return array_merge(
+            [$category->id],
+            $this->getDescendantIds($category->id)
+        );
     }
 
-    /**
-     * Recursively get all descendant category IDs
-     */
-    private function getDescendantIds($parentId)
-    {
+    private function getDescendantIds(
+        int $parentId
+    ): array {
+
+        $children = Category::query()
+            ->where('parent_id', $parentId)
+            ->pluck('id');
+
         $ids = [];
-        
-        // Get direct children
-        $children = Category::where('parent_id', $parentId)->get();
-        
-        foreach ($children as $child) {
-            $ids[] = $child->id;
-            
-            // Get grandchildren recursively
-            $ids = array_merge($ids, $this->getDescendantIds($child->id));
+
+        foreach ($children as $childId) {
+
+            $ids[] = $childId;
+
+            $ids = array_merge(
+                $ids,
+                $this->getDescendantIds($childId)
+            );
         }
-        
+
         return $ids;
     }
 }

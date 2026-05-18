@@ -15,7 +15,7 @@ import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { Plus, Edit, Trash2, MoreHorizontal, Settings, Globe, Mail, Phone, MapPin, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, MoreHorizontal, Settings, Globe, Mail, Phone, MapPin, Search, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 
@@ -286,11 +286,12 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
               {/* tab setting */}
               <div className="space-y-4">
                 {/* Tab Navigation */}
-                <div className="border-b border-gray-200">
+                <div className="border-b border-border">
                   <nav className="flex space-x-8">
                     {[
                       { key: 'site', label: 'Umum', href: '/cpanel/settings/configuration/site' },
-                      { key: 'email', label: 'SMTP', href: '/cpanel/settings/configuration/email' },
+                      { key: 'email', label: 'Email', href: '/cpanel/settings/configuration/email' },
+                      { key: 'seo', label: 'SEO', href: '/cpanel/settings/configuration/seo' },
                       // { key: 'system', label: 'Sistem', href: '/cpanel/settings/configuration/system' },
                       // { key: 'payment', label: 'Pembayaran', href: '/cpanel/settings/configuration/payment' },
                       // { key: 'shipping', label: 'Pengiriman', href: '/cpanel/settings/configuration/shipping' },
@@ -482,8 +483,25 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
                 <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
                   Batal
                 </Button>
-                <Button type="submit" disabled={addForm.processing}>
+                {/* <Button type="submit" disabled={addForm.processing}>
                   {addForm.processing ? 'Menyimpan...' : 'Tambah Konfigurasi'}
+                </Button> */}
+                <Button
+                  type="submit"
+                  disabled={addForm.processing}
+                  className="min-w-[170px]"
+                >
+                  {addForm.processing ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Menyimpan...
+                    </span>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Tambah Konfigurasi
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </form>
@@ -526,8 +544,25 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
                 <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
                   Batal
                 </Button>
-                <Button type="submit" disabled={editForm.processing}>
+                {/* <Button type="submit" disabled={editForm.processing}>
                   {editForm.processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                </Button> */}
+                <Button
+                  type="submit"
+                  disabled={editForm.processing}
+                  className="min-w-[170px]"
+                >
+                  {editForm.processing ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Menyimpan...
+                    </span>
+                  ) : (
+                    <>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Simpan Perubahan
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </form>

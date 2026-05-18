@@ -20,7 +20,7 @@ export default function AppLogo() {
       </div>
       <div className="ml-1 grid flex-1 text-left text-sm">
         <span className="mb-0.5 truncate leading-tight font-semibold text-orange-400">Admin Panel</span>
-        <span className="text-muted truncate text-xs">
+        <span className="text-muted dark:text-white/50 truncate text-xs">
           {siteName}
         </span>
       </div>

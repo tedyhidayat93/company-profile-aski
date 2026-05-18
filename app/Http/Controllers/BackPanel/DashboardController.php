@@ -62,7 +62,7 @@ class DashboardController extends Controller
                 'link' => '/cpanel/crm/customer'
             ],
             [
-                'name' => 'Total Semua Pesanan',
+                'name' => 'Semua Pesanan',
                 'value' => Order::count(),
                 'icon' => 'ShoppingCart',
                 'change' => '-2.1%',
@@ -71,16 +71,16 @@ class DashboardController extends Controller
                 'link' => '/cpanel/crm/orders'
             ],
             [
-                'name' => 'Total Testimonial',
+                'name' => 'Total Ulasan',
                 'value' => Testimonial::count(),
-                'icon' => 'MessageSquare',
+                'icon' => 'StarIcon',
                 'change' => '+3.5%',
                 'changeType' => 'increase',
-                'color' => 'bg-indigo-500 text-white',
+                'color' => 'bg-orange-300 text-white',
                 'link' => '/cpanel/cms/testimonial'
             ],
             [
-                'name' => 'Total Kunjungan Situs',
+                'name' => 'Total Pengunjung',
                 'value' => LogVisitor::count(),
                 'icon' => 'Eye',
                 'change' => '+15%',

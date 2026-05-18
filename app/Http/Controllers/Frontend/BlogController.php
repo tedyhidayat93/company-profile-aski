@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\Configuration;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Traits\TracksVisitors;
@@ -12,151 +13,165 @@ use App\Traits\TracksVisitors;
 class BlogController extends Controller
 {
     use TracksVisitors;
+
     public function index(Request $request)
     {
-        // Track visitor
         $this->trackPageVisit($request, 'Blog Index');
-        
-        // Get filters
-        $search = $request->get('search');
-        $categorySlug = $request->get('category');
-        $tag = $request->get('tag');
-        
-        // Get blog categories
-        $categories = Category::where('type', 'blog')
+
+        $filters = [
+            'search' => $request->string('search')->toString(),
+            'category' => $request->string('category')->toString(),
+            'tag' => $request->string('tag')->toString(),
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Categories
+        |--------------------------------------------------------------------------
+        */
+        $categories = Category::query()
+            ->where('type', 'blog')
             ->where('is_active', true)
             ->with('children')
             ->get();
-        
-        // Get popular tags
+
+        /*
+        |--------------------------------------------------------------------------
+        | Popular Tags
+        |--------------------------------------------------------------------------
+        */
         $popularTags = Article::published()
             ->whereNotNull('tags')
-            ->where('tags', '!=', '')
             ->pluck('tags')
-            ->flatMap(function($tags) {
-                // Handle both string (JSON) and array formats
-                if (is_string($tags)) {
-                    return json_decode($tags, true) ?: [];
-                } elseif (is_array($tags)) {
+            ->flatMap(function ($tags) {
+                if (is_array($tags)) {
                     return $tags;
                 }
+
+                if (is_string($tags)) {
+                    return json_decode($tags, true) ?? [];
+                }
+
                 return [];
             })
-            ->filter(function($tag) {
-                return !empty($tag) && is_string($tag);
-            })
+            ->filter()
             ->countBy()
             ->sortDesc()
             ->take(10)
             ->keys()
-            ->toArray();    
-        
-        // Base query for articles
-        $baseQuery = Article::published()
-            ->with(['author', 'category']);
-        
-        // Apply search filter
-        if ($search) {
-            $baseQuery->where(function($query) use ($search) {
-                $query->where('title', 'LIKE', "%{$search}%")
-                      ->orWhere('excerpt', 'LIKE', "%{$search}%")
-                      ->orWhere('content', 'LIKE', "%{$search}%");
+            ->values();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Base Query
+        |--------------------------------------------------------------------------
+        */
+        $baseQuery = Article::query()
+            ->published()
+            ->with([
+                'author:id,name',
+                'category:id,name,slug',
+            ])
+            ->when($filters['search'], function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                        ->orWhere('excerpt', 'like', "%{$search}%")
+                        ->orWhere('content', 'like', "%{$search}%");
+                });
+            })
+            ->when($filters['category'], function ($query, $category) {
+                $query->whereHas('category', function ($q) use ($category) {
+                    $q->where('slug', $category);
+                });
+            })
+            ->when($filters['tag'], function ($query, $tag) {
+                $query->where('tags', 'like', "%{$tag}%");
             });
-        }
-        
-        // Apply category filter
-        if ($categorySlug) {
-            $baseQuery->whereHas('category', function($query) use ($categorySlug) {
-                $query->where('slug', $categorySlug);
-            });
-        }
-        
-        // Apply tag filter
-        if ($tag) {
-            $baseQuery->where(function($query) use ($tag) {
-                $query->where('tags', 'LIKE', "%\"{$tag}\"%")
-                      ->orWhere('tags', 'LIKE', "%{$tag}%");
-            });
-        }
-        
-        // 1. Headline articles (is_headline = true) - 5 articles
+
+        /*
+        |--------------------------------------------------------------------------
+        | Homepage Sections
+        |--------------------------------------------------------------------------
+        */
         $headlinePosts = (clone $baseQuery)
             ->headline()
-            ->orderBy('published_at', 'desc')
+            ->latest('published_at')
             ->limit(5)
             ->get();
 
-        // 2. Most read articles (views_count) - 5 articles
         $mostReadPosts = (clone $baseQuery)
-            ->orderBy('views_count', 'desc')
+            ->orderByDesc('views_count')
             ->limit(5)
             ->get();
 
-        // 3. Recently published articles - 5 articles
         $recentPosts = (clone $baseQuery)
-            ->orderBy('published_at', 'desc')
+            ->latest('published_at')
             ->limit(5)
             ->get();
 
-        // 4. All other articles with pagination
-        $allPosts = $baseQuery
-            ->orderBy('published_at', 'desc')
-            ->paginate(12);
+        $allPosts = (clone $baseQuery)
+            ->latest('published_at')
+            ->paginate(12)
+            ->withQueryString();
 
+        /*
+        |--------------------------------------------------------------------------
+        | SEO Config
+        |--------------------------------------------------------------------------
+        */
+        $seoConfigs = Configuration::query()
+            ->whereIn('key', [
+                'article_meta_image',
+                'article_meta_title',
+                'article_meta_description',
+                'meta_keywords',
+            ])
+            ->pluck('value', 'key');
 
-        // SEO
-        $seoTitle = 'Blog & Artikel';
+        $seo = [
+            'title' => $seoConfigs['article_meta_title']
+                ?? 'Blog & Artikel',
 
-        $seoDescription =
-            'Artikel terbaru seputar container, office container, reefer, logistik, modifikasi container, dan tips industri dari Alumoda Sinergi Kontainer Indonesia.';
+            'description' => $seoConfigs['article_meta_description']
+                ?? 'Artikel terbaru seputar container, office container, reefer, logistik, modifikasi container, dan tips industri dari Alumoda Sinergi Kontainer Indonesia.',
 
-        $seoKeywords =
-            'blog container, artikel container, office container, reefer container, modifikasi container';
+            'keywords' => $seoConfigs['meta_keywords']
+                ?? 'blog container, artikel container, office container, reefer container, modifikasi container',
 
-        if ($categorySlug) {
+            'image' => !empty($seoConfigs['article_meta_image'])
+                ? asset('storage/' . $seoConfigs['article_meta_image'])
+                : asset('images/placeholder.png'),
 
-            $category = Category::where(
+            'type' => 'website',
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Dynamic SEO
+        |--------------------------------------------------------------------------
+        */
+        if ($filters['category']) {
+            $category = $categories->firstWhere(
                 'slug',
-                $categorySlug
-            )->first();
+                $filters['category']
+            );
 
             if ($category) {
-
-                $seoTitle =
-                    $category->name .
-                    ' | Artikel';
-
-                $seoDescription =
-                    'Artikel dan informasi terbaru tentang ' .
-                    $category->name .
-                    ' dari Alumoda Sinergi Kontainer Indonesia.';
+                $seo['title'] = "{$category->name} | Artikel";
+                $seo['description'] = "Artikel dan informasi terbaru tentang {$category->name} dari Alumoda Sinergi Kontainer Indonesia.";
             }
         }
 
-        if ($search) {
+        if ($filters['search']) {
+            $seo['title'] = 'Pencarian "' . $filters['search'] . '" | Artikel';
 
-            $seoTitle =
-                'Pencarian "' .
-                $search .
-                '" | Artikel';
-
-            $seoDescription =
-                'Hasil pencarian artikel untuk "' .
-                $search .
-                '" di blog Alumoda Sinergi Kontainer Indonesia.';
+            $seo['description'] = 'Hasil pencarian artikel untuk "' . $filters['search'] . '" di blog Alumoda Sinergi Kontainer Indonesia.';
         }
 
-        if ($tag) {
+        if ($filters['tag']) {
+            $seo['title'] = 'Tag "' . $filters['tag'] . '" | Artikel';
 
-            $seoTitle =
-                'Tag "' .
-                $tag .
-                '" | Artikel';
-
-            $seoDescription =
-                'Artikel dengan tag "' .
-                $tag .
-                '" di blog Alumoda Sinergi Kontainer Indonesia.';
+            $seo['description'] = 'Artikel dengan tag "' . $filters['tag'] . '" di blog Alumoda Sinergi Kontainer Indonesia.';
         }
 
         return Inertia::render('frontend/blog/index', [
@@ -166,97 +181,70 @@ class BlogController extends Controller
             'all_posts' => $allPosts,
             'categories' => $categories,
             'popular_tags' => $popularTags,
-            'filters' => [
-                'search' => $search,
-                'category' => $categorySlug,
-                'tag' => $tag,
-            ],
-            'seo' => [
-                'title' =>
-                    $seoTitle,
-
-                'description' =>
-                    $seoDescription,
-
-                'keywords' =>
-                    $seoKeywords,
-
-                'image' => asset(
-                    'images/logo-main.png'
-                ),
-
-                'type' => 'website',
-            ],
+            'filters' => $filters,
+            'seo' => $seo,
         ]);
     }
 
-    public function show(Request $request, $slug)
+    public function show(Request $request, string $slug)
     {
-        // Track visitor
         $this->trackPageVisit($request, 'Blog Article - ' . $slug);
-        
-        $post = Article::where('slug', $slug)
-            ->with(['author', 'category'])
+
+        $post = Article::query()
+            ->published()
+            ->with([
+                'author:id,name',
+                'category:id,name,slug',
+            ])
+            ->where('slug', $slug)
             ->firstOrFail();
 
-        // Increment view count
         $post->increment('views_count');
 
-        // Get related posts (same category or similar tags)
-        $relatedPosts = Article::published()
+        /*
+        |--------------------------------------------------------------------------
+        | Related Posts
+        |--------------------------------------------------------------------------
+        */
+        $relatedPosts = Article::query()
+            ->published()
             ->where('id', '!=', $post->id)
-            ->orderBy('published_at', 'desc')
+            ->when($post->category_id, function ($query) use ($post) {
+                $query->where('category_id', $post->category_id);
+            })
+            ->latest('published_at')
             ->limit(3)
-            ->get(['id', 'title', 'slug', 'featured_image', 'excerpt', 'published_at']);
+            ->get([
+                'id',
+                'title',
+                'slug',
+                'featured_image',
+                'excerpt',
+                'published_at',
+            ]);
 
         return Inertia::render('frontend/blog/detail', [
             'post' => $post,
             'related_posts' => $relatedPosts,
             'seo' => [
-                'title' =>
+                'title' => $post->meta_title ?: $post->title,
 
-                    $post->meta_title
-                    ?:
-                    $post->title,
-
-                'description' =>
-
-                    $post->meta_description
-                    ?:
-                    (
+                'description' => $post->meta_description
+                    ?: (
                         $post->excerpt
-                        ?:
-                        str($post->content)
+                        ?: str($post->content)
                             ->stripTags()
                             ->limit(160)
                     ),
 
-                'image' =>
+                'image' => $post->featured_image
+                    ? asset('storage/' . ltrim($post->featured_image, '/'))
+                    : asset('images/placeholder.png'),
 
-                    $post->featured_image
-
-                        ? asset(
-                            'storage/' .
-                            ltrim(
-                                $post->featured_image,
-                                '/'
-                            )
-                        )
-
-                        : asset(
-                            'images/placeholder.png'
-                        ),
-
-                'keywords' =>
-
-                    $post->meta_keywords
-                    ?:
-                    (
+                'keywords' => $post->meta_keywords
+                    ?: (
                         is_array($post->tags)
-                            ? implode(
-                                ', ',
-                                $post->tags
-                            )
+                            ? implode(', ', $post->tags)
                             : ''
                     ),
 
@@ -265,23 +253,16 @@ class BlogController extends Controller
         ]);
     }
 
-    public function category($slug)
+    public function category(string $slug)
     {
-        // For now, redirect to blog index since we don't have category model
-        return redirect()->route('blog.index');
+        return redirect()->route('blog.index', [
+            'category' => $slug,
+        ]);
     }
 
-    public function tag($slug)
+    public function tag(string $slug)
     {
-        // Get articles with this tag
-        $posts = Article::published()
-            ->whereJsonContains('tags', $slug)
-            ->with(['author'])
-            ->orderBy('published_at', 'desc')
-            ->paginate(12);
-
-        return Inertia::render('frontend/blog/index', [
-            'posts' => $posts,
+        return redirect()->route('blog.index', [
             'tag' => $slug,
         ]);
     }
