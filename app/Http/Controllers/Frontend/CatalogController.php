@@ -709,9 +709,7 @@ class CatalogController extends Controller
         }
 
         return [
-            'title' =>
-                $title .
-                ' | Alumoda Sinergi Kontainer Indonesia',
+            'title' => $title,
 
             'description' =>
                 $configs['catalog_meta_description'] 

@@ -136,7 +136,7 @@ class ProductController extends Controller
                 'brand' => $request->brand ?? 'all',
                 'type' => $request->type ?? 'all',
                 'category' => $request->category ?? 'all',
-                'status' => $request->status ?? 'all',
+                'status' => $request->status ?? 'published',
                 'featured' => $request->featured ?? 'all',
                 'bestseller' => $request->bestseller ?? 'all',
                 'sort' => $request->sort ?? 'newest',

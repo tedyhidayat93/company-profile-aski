@@ -19,6 +19,7 @@ export interface DateRangePickerProps {
   placeholder?: string;
   id?: string;
   label?: string;
+  showLabel?: boolean;
 }
 
 export function DateRangePicker({
@@ -28,6 +29,7 @@ export function DateRangePicker({
   placeholder = "Pilih rentang tanggal",
   id = "date-picker-range",
   label = "Rentang Tanggal",
+  showLabel = true,
 }: DateRangePickerProps) {
   const [date, setDate] = React.useState<DateRange | undefined>(value)
 

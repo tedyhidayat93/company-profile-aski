@@ -12,6 +12,7 @@ use App\Models\Service;
 use App\Models\Testimonial;
 use App\Traits\TracksVisitors;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -39,176 +40,244 @@ class HomepageController extends Controller
         | Featured Products
         |--------------------------------------------------------------------------
         */
-        $products = Product::query()
-            ->published()
-            ->where('is_featured', true)
-            ->with([
-                'brand:id,name',
-                'category:id,name,slug',
-                'coverImage',
-            ])
-            ->orderBy('position')
-            ->limit(6)
-            ->get()
-            ->map(fn($product) => $this->transformProduct($product));
+        $products = Cache::remember(
+            'homepage.products',
+            now()->addMinutes(30),
+            function () {
+
+                $baseQuery = Product::query()
+                    ->published()
+                    ->with([
+                        'brand:id,name',
+                        'category:id,name,slug',
+                        'coverImage',
+                    ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Featured Products
+                |--------------------------------------------------------------------------
+                */
+                $featuredProducts = (clone $baseQuery)
+                    ->where('is_featured', true)
+                    ->orderBy('position')
+                    ->limit(6)
+                    ->get();
+
+                /*
+                |--------------------------------------------------------------------------
+                | Fallback Most Viewed
+                |--------------------------------------------------------------------------
+                */
+                $products = $featuredProducts->isNotEmpty()
+                    ? $featuredProducts
+                    : (clone $baseQuery)
+                        ->orderByDesc('views')
+                        ->limit(6)
+                        ->get();
+
+                return $products->map(
+                    fn ($product) => $this->transformProduct($product)
+                );
+            }
+        );
 
         /*
         |--------------------------------------------------------------------------
         | Services
         |--------------------------------------------------------------------------
         */
-        $services = Service::query()
-            ->where('is_active', true)
-            ->orderBy('sequence')
-            ->get([
-                'id',
-                'name',
-                'description',
-                'image',
-            ])
-            ->map(function ($service) {
+        $services = Cache::remember(
+            'homepage.services',
+            now()->addHours(12),
+            function () {
 
-                return [
-                    'id' => $service->id,
+                return Service::query()
+                    ->where('is_active', true)
+                    ->orderBy('sequence')
+                    ->get([
+                        'id',
+                        'name',
+                        'description',
+                        'image',
+                    ])
+                    ->map(function ($service) {
 
-                    'title' => $service->name,
+                        return [
+                            'id' => $service->id,
 
-                    'description' =>
-                        $service->description ?? '',
+                            'title' => $service->name,
 
-                    'image' =>
-                        $service->image
-                            ?: '/images/placeholder.png',
-                ];
-            });
+                            'description' =>
+                                $service->description ?? '',
+
+                            'image' =>
+                                $service->image
+                                    ?: '/images/placeholder.png',
+                        ];
+                    });
+            }
+        );
 
         /*
         |--------------------------------------------------------------------------
         | Clients
         |--------------------------------------------------------------------------
         */
-        $clients = Client::query()
-            ->where('is_active', true)
-            ->orderBy('sequence')
-            ->get([
-                'id',
-                'name',
-                'image',
-            ])
-            ->map(function ($client) {
+        $clients = Cache::remember(
+            'homepage.clients',
+            now()->addHours(6),
+            function () {
 
-                return [
-                    'id' => $client->id,
+                return Client::query()
+                    ->where('is_active', true)
+                    ->orderBy('sequence')
+                    ->get([
+                        'id',
+                        'name',
+                        'image',
+                    ])
+                    ->map(function ($client) {
 
-                    'name' => $client->name,
+                        return [
+                            'id' => $client->id,
 
-                    'logo' => $client->image
-                        ? '/storage/clients/' . $client->image
-                        : '/images/placeholder.png',
-                ];
-            });
+                            'name' => $client->name,
+
+                            'logo' => $client->image
+                                ? '/storage/clients/' . $client->image
+                                : '/images/placeholder.png',
+                        ];
+                    });
+            }
+        );
 
         /*
         |--------------------------------------------------------------------------
         | FAQs
         |--------------------------------------------------------------------------
         */
-        $faqs = Faq::query()
-            ->where('is_active', true)
-            ->orderBy('position')
-            ->orderBy('question')
-            ->get([
-                'id',
-                'question',
-                'answer',
-            ]);
+        $faqs = Cache::remember(
+            'homepage.faqs',
+            now()->addHours(1),
+            function () {
+
+                return Faq::query()
+                    ->where('is_active', true)
+                    ->orderBy('position')
+                    ->orderBy('question')
+                    ->get([
+                        'id',
+                        'question',
+                        'answer',
+                    ]);
+            }
+        );
 
         /*
         |--------------------------------------------------------------------------
         | Articles
         |--------------------------------------------------------------------------
         */
-        $articles = Article::query()
-            ->published()
-            ->headline()
-            ->with([
-                'author:id,name',
-                'category:id,name',
-            ])
-            ->latest('published_at')
-            ->limit(3)
-            ->get()
-            ->map(function ($article) {
+        $articles = Cache::remember(
+            'homepage.articles',
+            now()->addMinutes(20),
+            function () {
 
-                return [
-                    'id' => $article->id,
+                return Article::query()
+                    ->published()
+                    ->headline()
+                    ->with([
+                        'author:id,name',
+                        'category:id,name',
+                    ])
+                    ->latest('published_at')
+                    ->limit(3)
+                    ->get()
+                    ->map(function ($article) {
 
-                    'title' => $article->title,
+                        return [
+                            'id' => $article->id,
 
-                    'excerpt' =>
-                        $article->excerpt ?? '',
+                            'title' => $article->title,
 
-                    'image' =>
-                        $article->featured_image
-                            ?: '/images/placeholder.png',
+                            'excerpt' =>
+                                $article->excerpt ?? '',
 
-                    'category' =>
-                        $article->category?->name
-                            ?? 'Artikel',
+                            'image' =>
+                                $article->featured_image
+                                    ?: '/images/placeholder.png',
 
-                    'date' =>
-                        $article->published_at?->format('d M Y')
-                            ?? '',
+                            'category' =>
+                                $article->category?->name
+                                    ?? 'Artikel',
 
-                    'slug' => $article->slug,
-                ];
-            });
+                            'date' =>
+                                $article->published_at?->format('d M Y')
+                                    ?? '',
+
+                            'slug' => $article->slug,
+                        ];
+                    });
+            }
+        );
 
         /*
         |--------------------------------------------------------------------------
         | Testimonials
         |--------------------------------------------------------------------------
         */
-        $testimonials = Testimonial::query()
-            ->public()
-            ->ordered()
-            ->limit(4)
-            ->get([
-                'id',
-                'nama',
-                'keterangan',
-                'perusahaan',
-                'testimoni',
-                'foto_avatar',
-                'rate_star',
-            ])
-            ->map(function ($testimonial) {
+        $testimonials = Cache::remember(
+            'homepage.testimonials',
+            now()->addHours(12),
+            function () {
 
-                return [
-                    'id' => $testimonial->id,
+                return Testimonial::query()
+                    ->public()
+                    ->ordered()
+                    ->limit(4)
+                    ->get([
+                        'id',
+                        'nama',
+                        'keterangan',
+                        'perusahaan',
+                        'testimoni',
+                        'foto_avatar',
+                        'rate_star',
+                    ])
+                    ->map(function ($testimonial) {
 
-                    'name' => $testimonial->nama,
+                        return [
+                            'id' => $testimonial->id,
 
-                    'role' => $testimonial->keterangan,
+                            'name' => $testimonial->nama,
 
-                    'company' => $testimonial->perusahaan,
+                            'role' => $testimonial->keterangan,
 
-                    'content' => $testimonial->testimoni,
+                            'company' => $testimonial->perusahaan,
 
-                    'avatar' =>
-                        $testimonial->foto_avatar
-                            ?: '/images/avatar-placeholder.png',
+                            'content' => $testimonial->testimoni,
 
-                    'rating' => $testimonial->rate_star,
-                ];
-            });
+                            'avatar' =>
+                                $testimonial->foto_avatar
+                                    ?: '/images/avatar-placeholder.png',
+
+                            'rating' => $testimonial->rate_star,
+                        ];
+                    });
+            }
+        );
 
         /*
         |--------------------------------------------------------------------------
         | SEO
         |--------------------------------------------------------------------------
         */
-        $seo = $this->buildSeo();
+        $seo = Cache::remember(
+            'homepage.seo',
+            now()->addHours(12),
+            fn () => $this->buildSeo()
+        );
 
         return Inertia::render(
             'frontend/homepage',
@@ -379,6 +448,7 @@ class HomepageController extends Controller
 
                 default => asset('images/logo-main.png'),
             },
+
             'type' => 'website',
         ];
     }

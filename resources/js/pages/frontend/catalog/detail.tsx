@@ -370,8 +370,8 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
 
                             {/* DESCRIPTION */}
                             <div className="space-y-3 mt-6">
-                                <div className="bg-gray-50/10 dark:bg-gray-800/40 p-4 lg:p-0 rounded-xl text-sm leading-relaxed text-gray-700 dark:text-gray-300">
-                                {product.description || '-'}
+                                <div className="bg-gray-50/10 dark:bg-gray-800/40 p-4 lg:p-0 rounded-xl text-gray-700 dark:text-gray-300">
+                                    <div dangerouslySetInnerHTML={{ __html: product.description }} />
                                 </div>
                             </div>
 
@@ -388,15 +388,17 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     <tbody className="divide-y">
 
                                         {/* BASIC INFO */}
+                                        {product.category && (
                                         <tr>
                                             <td className="px-4 py-3 text-gray-500">Kategori</td>
                                             <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
                                                 {product.category?.name || '-'}
                                             </td>
                                         </tr>
+                                        )}
                                         {product.brand && (
                                             <tr>
-                                                <td className="px-4 py-3 text-gray-500">Brand</td>
+                                                <td className="px-4 py-3 text-gray-500">Merek</td>
                                                 <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
                                                 {product.brand.name}
                                                 </td>

@@ -20,13 +20,12 @@ import {
   Edit, 
   Trash2, 
   MoreHorizontal, 
-  Search, 
-  Filter,
   Package,
-  Star,
-  TrendingUp,
+  Rows3,
+  Table2,
+  Search,
   RefreshCw,
-  Sparkles
+  SlidersHorizontal
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { formatDate } from '@/lib/utils';
@@ -81,6 +80,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     to: filters?.date_to ? new Date(filters.date_to) : undefined,
   });
   const [perPageFilter, setPerPageFilter] = React.useState(filters?.per_page ?? '10');
+  const [viewMode, setViewMode] = React.useState<'simple' | 'detail'>('simple');
+  const [showAdvancedFilter, setShowAdvancedFilter] = React.useState(false);
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -393,359 +394,418 @@ export default function ProductIndex({ products, brands, categories, filters }: 
         <Card>
           <CardContent>
 
-            <div className="space-y-4 mb-4">
+            <div className="mb-4 rounded-2xl border text-inverse shadow-sm">
 
-              {/* Search */}
-              <div>
-                <Label className="text-xs font-medium text-gray-600 mb-1 block">
-                  Cari Produk
-                </Label>
+              {/* MAIN TOOLBAR */}
+              <div className="p-3">
 
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
 
-                  <Input
-                    placeholder="Cari produk..."
-                    value={search}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
+                  {/* LEFT */}
+                  <div className="grid flex-1 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
 
-              {/* Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+                    {/* SEARCH */}
+                    <div className="space-y-1  w-full col-span-1 xl:col-span-2">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Cari Produk
+                      </Label>
 
-                {/* Date Range */}
-                <div className="space-y-1 xl:col-span-2">
-                  <DateRangePicker
-                    value={dateRange}
-                    onChange={handleDateRangeChange}
-                  />
-                </div>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-                {/* Tipe Jual */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Tipe Jual
-                  </Label>
+                        <Input
+                          placeholder="Cari produk..."
+                          value={search}
+                          onChange={(e) => handleSearch(e.target.value)}
+                          className="h-10 rounded-xl pl-10"
+                        />
+                      </div>
+                    </div>
 
-                  <Select value={typeFilter} onValueChange={handleTypeFilter}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Tipe" />
-                    </SelectTrigger>
+                    {/* STATUS */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Status
+                      </Label>
 
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="sell">Hanya Jual</SelectItem>
-                      <SelectItem value="rent">Hanya Sewa</SelectItem>
-                      <SelectItem value="rent-and-sell">Jual & Sewa</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                      <Select
+                        value={statusFilter}
+                        onValueChange={handleStatusFilter}
+                      >
+                        <SelectTrigger className="h-10 rounded-xl">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
 
-                {/* Merek */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Merek
-                  </Label>
+                        <SelectContent>
+                          <SelectItem value="all">
+                            Semua
+                          </SelectItem>
 
-                  <Select value={brandFilter} onValueChange={handleBrandFilter}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Merek" />
-                    </SelectTrigger>
+                          <SelectItem value="published">
+                            Tayang
+                          </SelectItem>
 
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
+                          <SelectItem value="draft">
+                            Draft
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                      {brands.map((brand) => (
-                        <SelectItem
-                          key={brand.id}
-                          value={brand.id.toString()}
+                    {/* PER PAGE */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Tampilan per Halaman
+                      </Label>
+
+                      <Select
+                        value={perPageFilter}
+                        onValueChange={handlePerPageFilter}
+                      >
+                        <SelectTrigger className="h-10 rounded-xl">
+                          <SelectValue placeholder="Tampilkan" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* VIEW MODE */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Mode Tampilan
+                      </Label>
+
+                      <div className="flex h-10 items-center rounded-xl border bg-muted/40 p-1">
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={viewMode === 'simple' ? 'default' : 'ghost'}
+                          onClick={() => setViewMode('simple')}
+                          className="h-8 flex-1 rounded-lg"
                         >
-                          {brand.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                          <Rows3 className="h-4 w-4" />
 
-                {/* Kategori */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Kategori
-                  </Label>
+                          <span className="hidden text-xs sm:inline">
+                            Simple
+                          </span>
+                        </Button>
 
-                  <Select
-                    value={categoryFilter}
-                    onValueChange={handleCategoryFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Kategori" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
-
-                      {categories.map((category) => (
-                        <SelectItem
-                          key={category.id}
-                          value={category.id.toString()}
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={viewMode === 'detail' ? 'default' : 'ghost'}
+                          onClick={() => setViewMode('detail')}
+                          className="h-8 flex-1 rounded-lg"
                         >
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                          <Table2 className="h-4 w-4" />
 
-                {/* Status */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Status
-                  </Label>
+                          <span className="hidden text-xs sm:inline">
+                            Detail
+                          </span>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
 
-                  <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="published">Tayang di Katalog</SelectItem>
-                      <SelectItem value="draft">Draft</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Unggulan */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Unggulan
-                  </Label>
-
-                  <Select
-                    value={featuredFilter}
-                    onValueChange={handleFeaturedFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Unggulan" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="true">Unggulan</SelectItem>
-                      <SelectItem value="false">Tidak</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Terlaris */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Terlaris
-                  </Label>
-
-                  <Select
-                    value={bestsellerFilter}
-                    onValueChange={handleBestsellerFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Terlaris" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="true">Terlaris</SelectItem>
-                      <SelectItem value="false">Tidak</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sort */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Urutkan
-                  </Label>
-
-                  <Select
-                    value={sortFilter}
-                    onValueChange={handleSortFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Urutkan" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="newest">Terbaru</SelectItem>
-                      <SelectItem value="oldest">Terlama</SelectItem>
-                      <SelectItem value="most_viewed">
-                        Paling Banyak Dilihat
-                      </SelectItem>
-                      <SelectItem value="least_viewed">
-                        Paling Sedikit Dilihat
-                      </SelectItem>
-                      <SelectItem value="name_asc">Nama (A-Z)</SelectItem>
-                      <SelectItem value="name_desc">Nama (Z-A)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Per Page */}
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Tampilkan
-                  </Label>
-
-                  <Select
-                    value={perPageFilter}
-                    onValueChange={handlePerPageFilter}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Tampilkan" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Reset */}
-                {hasActiveFilters && (
-                  <div className="flex items-end">
+                  {/* RIGHT */}
+                  <div className="flex items-center justify-between gap-2">
+                    {/* TOGGLE FILTER */}
                     <Button
                       type="button"
-                      variant="destructive"
-                      className="w-full"
-                      onClick={handleResetFilters}
+                      variant="outline"
+                      className="rounded-xl"
+                      onClick={() => setShowAdvancedFilter((prev) => !prev)}
                     >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Reset
+                      <SlidersHorizontal className="h-2 w-2" />
+
+                      {showAdvancedFilter
+                        ? 'Sembunyikan Filter'
+                        : 'Filter Lanjutan'}
                     </Button>
+
+                    {/* RESET */}
+                    {hasActiveFilters && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        className="rounded-xl"
+                        onClick={handleResetFilters}
+                      >
+                        <RefreshCw className="h-2 w-2" />
+                        Reset
+                      </Button>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
+
+              {/* ADVANCED FILTER */}
+              {showAdvancedFilter && (
+                <div className="border-t bg-muted/20 p-3">
+
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
+
+                    {/* DATE */}
+                    <div className="space-y-1 xl:col-span-2">
+                      <DateRangePicker
+                        value={dateRange}
+                        onChange={handleDateRangeChange}
+                      />
+                    </div>
+
+                    {/* TIPE */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Tipe Jual
+                      </Label>
+
+                      <Select
+                        value={typeFilter}
+                        onValueChange={handleTypeFilter}
+                      >
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder="Tipe Jual" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectItem value="all">
+                            Semua
+                          </SelectItem>
+
+                          <SelectItem value="sell">
+                            Jual
+                          </SelectItem>
+
+                          <SelectItem value="rent">
+                            Sewa
+                          </SelectItem>
+
+                          <SelectItem value="rent-and-sell">
+                            Jual & Sewa
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* BRAND */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Merek
+                      </Label>
+
+                      <Select
+                        value={brandFilter}
+                        onValueChange={handleBrandFilter}
+                      >
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder="Merek" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectItem value="all">
+                            Semua
+                          </SelectItem>
+
+                          {brands.map((brand) => (
+                            <SelectItem
+                              key={brand.id}
+                              value={brand.id.toString()}
+                            >
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* KATEGORI */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Kategori
+                      </Label>
+
+                      <Select
+                        value={categoryFilter}
+                        onValueChange={handleCategoryFilter}
+                      >
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder="Kategori" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectItem value="all">
+                            Semua
+                          </SelectItem>
+
+                          {categories.map((category) => (
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Produk</TableHead>
-                  <TableHead>Informasi</TableHead>
-                  <TableHead> 
-                    Tanggal Dibuat</TableHead>
+
+                  {viewMode === 'detail' && (
+                    <TableHead>Informasi</TableHead>
+                  )}
+
+                  {viewMode === 'simple' && (
+                    <>
+                      <TableHead>Kategori</TableHead>
+                      <TableHead>Status</TableHead>
+                    </>
+                  )}
+
+                  <TableHead>Tanggal Dibuat</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {products.data.map((product) => (
                   <TableRow key={product.id}>
+                    
                     {/* PRODUK */}
                     <TableCell>
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-center gap-3">
                         {product.image_path ? (
                           <img
                             src={product.image_path}
                             alt={product.name}
-                            className="h-14 w-14 rounded-xl object-cover border"
+                            className="h-12 w-12 rounded-xl object-cover border"
                           />
                         ) : (
-                          <div className="h-14 w-14 rounded-xl bg-muted flex items-center justify-center">
+                          <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center">
                             <Package className="h-6 w-6 text-muted-foreground" />
                           </div>
                         )}
 
-                        <div className="space-y-2 flex-1">
-                          <div>
-                            <div className="font-semibold line-clamp-1">
-                              {product.name}
-                            </div>
+                        <div className="space-y-1 flex-1">
+                          <div className="font-semibold line-clamp-1">
+                            {product.name}
+                          </div>
 
+                          {viewMode === 'detail' && (
                             <div className="text-xs text-muted-foreground">
                               SKU: {product.sku}
                             </div>
-                          </div>
+                          )}
 
-                          <div className="flex flex-wrap gap-1">
-                            {product.is_featured && (
-                              <Badge className="text-[10px]">
-                                Unggulan
-                              </Badge>
-                            )}
+                          {viewMode === 'detail' && (
+                            <div className="flex flex-wrap gap-1 pt-1">
+                              {product.is_featured && (
+                                <Badge className="text-[10px]">
+                                  Unggulan
+                                </Badge>
+                              )}
 
-                            {product.is_bestseller && (
-                              <Badge className="text-[10px]">
-                                Terlaris
-                              </Badge>
-                            )}
+                              {product.is_bestseller && (
+                                <Badge className="text-[10px]">
+                                  Terlaris
+                                </Badge>
+                              )}
 
-                            {product.is_new && (
-                              <Badge className="text-[10px]">
-                                Baru
-                              </Badge>
-                            )}
-                          </div>
+                              {product.is_new && (
+                                <Badge className="text-[10px]">
+                                  Baru
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </TableCell>
 
-                    {/* INFO */}
-                    <TableCell>
-                      <div className="space-y-1 divide-y text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">Kategori</span>
-                          :
-                          <span className="font-medium">
-                            {product.category?.name}
-                          </span>
-                        </div>
+                    {/* DETAIL MODE */}
+                    {viewMode === 'detail' && (
+                      <TableCell>
+                        <div className="space-y-1 divide-y text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">
+                              Kategori
+                            </span>
+                            :
+                            <span className="font-medium">
+                              {product.category?.name}
+                            </span>
+                          </div>
 
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">Harga</span>
-                          :
-                          <span className="font-semibold text-orange-500">
-                            {formatPrice(product.price)} 
-                          </span>
-                          (
-                            {product.show_price ? (
-                              <>Harga Ditampilkan</>
-                            ):(
-                              <>Harga Disembunyikan</>
-                            )}
-                          )
-                        </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">
+                              Harga
+                            </span>
+                            :
+                            <span className="font-semibold text-orange-500">
+                              {formatPrice(product.price)}
+                            </span>
+                          </div>
 
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">Stok</span>
-                          :
-                          <span>{product.quantity || 0}</span>
-                          (
-                            {product.show_stock ? (
-                              <>Stok Ditampilkan</>
-                            ):(
-                              <>Stok Disembunyikan</>
-                            )}
-                          )
-                        </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">
+                              Stok
+                            </span>
+                            :
+                            <span>{product.quantity || 0}</span>
+                          </div>
 
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">Tipe Transaksi</span>
-                          :
-                          <span>
-                            {getProductTypeText({
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">
+                              Tipe
+                            </span>
+                            :
+                            <span>
+                              {getProductTypeText({
                                 is_for_sell: product.is_for_sell || false,
                                 is_rent: product.is_rent || false
-                            })}
-                          </span>
-                        </div>
+                              })}
+                            </span>
+                          </div>
 
-                        <div className="pt-1 gap-2 flex items-center">
-                          Status :
+                          <div className="pt-1 gap-2 flex items-center">
+                            Status :
+                            <Badge
+                              variant={
+                                product.status === "published"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {product.status === "published"
+                                ? "Tayang di Katalog"
+                                : "Draft"}
+                            </Badge>
+                          </div>
+                        </div>
+                      </TableCell>
+                    )}
+
+                    {/* SIMPLE MODE */}
+                    {viewMode === 'simple' && (
+                      <>
+                        <TableCell>
+                          {product.category?.name || '-'}
+                        </TableCell>
+
+                        <TableCell>
                           <Badge
                             variant={
                               product.status === "published"
@@ -754,18 +814,19 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                             }
                           >
                             {product.status === "published"
-                              ? "Tayang di Katalog"
+                              ? "Tayang"
                               : "Draft"}
                           </Badge>
-                        </div>
-                      </div>
-                    </TableCell>
+                        </TableCell>
+                      </>
+                    )}
 
                     {/* TANGGAL */}
                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                       {formatDate(product.created_at)}
                     </TableCell>
 
+                    {/* AKSI */}
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -773,6 +834,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
+
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
                             <Link href={`/cpanel/cms/product/${product.id}`}>
@@ -780,13 +842,15 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                               Lihat
                             </Link>
                           </DropdownMenuItem>
+
                           <DropdownMenuItem asChild>
                             <Link href={`/cpanel/cms/product/edit/${product.id}`}>
                               <Edit className="mr-2 h-4 w-4" />
                               Ubah
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+
+                          <DropdownMenuItem
                             onClick={() => handleDelete(product.id)}
                             className="text-red-600"
                           >
