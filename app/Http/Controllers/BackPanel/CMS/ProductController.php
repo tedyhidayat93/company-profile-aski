@@ -14,9 +14,13 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use App\Traits\HandlesSeoImage;
 
 class ProductController extends Controller
 {
+
+    use HandlesSeoImage;
+
     public function __construct()
     {
         $this->middleware('permission:product-list')
@@ -629,9 +633,17 @@ class ProductController extends Controller
 
             foreach ($images as $index => $image) {
 
-                $path = $image->store(
-                    'products',
-                    'public'
+                // $path = $image->store(
+                //     'products',
+                //     'public'
+                // );
+
+                $path = $this->optimizeSeoImage(
+                    file: $image,
+                    directory: 'products',
+                    width: 1600,
+                    height: 1600,
+                    quality: 82
                 );
 
                 $productImage = ProductImage::create([

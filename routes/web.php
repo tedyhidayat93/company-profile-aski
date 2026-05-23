@@ -68,6 +68,10 @@ Route::get('/sitemap.xml', [SitemapController::class, 'xml'])->name('sitemap.xml
 // Control Panel (Admin)
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('cpanel')->group(function () {
+        
+        // Get stats order for dashboard
+        Route::get('/dashboard/recent-orders', [DashboardController::class, 'getRecentOrdersStats'])->name('recent-orders.stats');
+
         // Dashboard
         Route::get('', [DashboardController::class, 'index'])->name('dashboard');
         

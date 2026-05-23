@@ -38,7 +38,8 @@ import  { CountryData, RegionData } from '@/components/traffic-per-country-regio
 import { formatCurrencyDisplay } from '@/utils/currency';
 import { formatDate } from '@/lib/utils';
 import TrafficVisitorCharts from '@/components/traffic-visitor-charts';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 // Type definitions
 interface TrafficData {
@@ -128,8 +129,59 @@ export default function Dashboard({
   regionStats,
 }: Props) {
 
-  const { props } = usePage();
-  const { recentOrders: recentOrdersFromProps } = props as any;
+    const [recentOrdersStats, setRecentOrders] = useState<any[]>([]);
+  
+    useEffect(() => {
+  
+      const fetchRecentOrders = async () => {
+  
+        try {
+  
+          const response = await axios.get(
+            '/cpanel/dashboard/recent-orders'
+          );
+  
+          setRecentOrders(
+            response.data.recentOrders || []
+          );
+  
+        } catch (error) {
+  
+          console.error(
+            'Failed fetch recent orders',
+            error
+          );
+        }
+      };
+  
+      /*
+      |--------------------------------------------------------------------------
+      | Initial Fetch
+      |--------------------------------------------------------------------------
+      */
+  
+      fetchRecentOrders();
+  
+      /*
+      |--------------------------------------------------------------------------
+      | Polling
+      |--------------------------------------------------------------------------
+      */
+  
+      const interval = setInterval(
+        fetchRecentOrders,
+        10000
+      );
+  
+      /*
+      |--------------------------------------------------------------------------
+      | Cleanup
+      |--------------------------------------------------------------------------
+      */
+  
+      return () => clearInterval(interval);
+  
+    }, []);
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -320,9 +372,9 @@ export default function Dashboard({
                 <Button variant="outline" size="sm" asChild>
                   <Link href="/cpanel/crm/orders">Lihat Semua <ArrowRight className="h-4 w-4 ml-1 inline-block" /></Link>
                 </Button>
-                {recentOrdersFromProps.length > 0 && (
+                {recentOrdersStats.length > 0 && (
                   <Badge className="absolute animate-pulse -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-600">
-                    {recentOrdersFromProps.length}
+                    {recentOrdersStats.length}
                   </Badge>
                 )}
               </div>
@@ -341,8 +393,8 @@ export default function Dashboard({
                     </TableHeader>
                     
                     <TableBody>
-                      {recentOrdersFromProps.length > 0 ? (
-                        recentOrdersFromProps.map((order: any) => (
+                      {recentOrdersStats.length > 0 ? (
+                        recentOrdersStats.map((order: any) => (
                           <TableRow 
                             key={order.id} 
                             onClick={() => window.location.href = `/cpanel/crm/orders/${order.id}`} 

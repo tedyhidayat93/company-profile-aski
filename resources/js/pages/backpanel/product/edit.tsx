@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { formatPrice, parseCurrencyInput, formatCurrencyInput } from '@/utils/currency';
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon, Plus, Trash2, ChevronDown, FormInput } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon, Plus, Trash2, ChevronDown, FormInput, Loader } from 'lucide-react';
 import TreeSelect from '@/components/tree-select';
 import { flattenCategories } from '@/lib/utils';
 import { getContainerSpecs, type ContainerSpec } from '@/utils/product';
@@ -1205,7 +1205,12 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
+
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Menyimpan...' : 'Simpan'}
                 </Button>
               </div>

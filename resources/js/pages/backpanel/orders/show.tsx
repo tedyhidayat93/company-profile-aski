@@ -21,7 +21,10 @@ import {
   DollarSign,
   FileText,
   Clock,
-  Eye
+  Eye,
+  Loader,
+  Save,
+  RefreshCw
 } from 'lucide-react';
 import OrderStatusInfoModal from '@/components/order-status-info-modal';
 import { getOrderStatusBadgeProps, OrderStatusBadge } from '@/utils/order-status';
@@ -109,347 +112,327 @@ export default function OrderShow({ order }: Props) {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Detail Pesanan ${order.order_number}`} />
 
-      <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-6 p-6 mx-auto w-full">
+        {/* Top Bar / Action Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border shadow-sm">
           <div className="flex items-center gap-4">
             <Link href="/cpanel/crm/orders">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="h-9">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Kembali
               </Button>
             </Link>
-            <HeaderTitle 
+            <HeaderTitle
               title={`Detail Pesanan ${order.order_number}`} 
               description="Informasi lengkap pesanan pelanggan"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
             <ResendOrderEmailDialog orderId={order.id} />
             <OrderStatusInfoModal />
-            <Link href={`/cpanel/crm/orders/edit/${order.id}`}>
-              <Button variant="outline">
+            {/* <Link href={`/cpanel/crm/orders/edit/${order.id}`}>
+              <Button variant="outline" size="sm" className="h-9">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
-            </Link>
+            </Link> */}
             <Button
-              variant="destructive"
+              variant="outline"
+              className='hover:text-white hover:bg-red-600 border-red-500 text-red-500'
+              size="sm"
               onClick={() => {
                 if (confirm('Apakah Anda yakin ingin menghapus pesanan ini?')) {
                   router.delete(`/cpanel/crm/orders/${order.id}`);
                 }
               }}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-4 w-4" />
               Hapus
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Order Information */}
+        {/* Main Content Split Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          
+          {/* LEFT SIDE: Order Details */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Customer Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Informasi Pelanggan
+
+            {/* Order Summary & Product Info Combined / Grouped */}
+            <Card className="p-0 overflow-hidden shadow-sm">
+              <CardHeader className="pb-2! pt-4 border-b bg-slate-200/60 dark:bg-slate-800/50 ">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <Hash className="h-5 w-5 text-muted-foreground" />
+                  Detail & Ringkasan Pesanan
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-sm font-medium text-gray-500">Perusahaan/Instansi</div>
-                    <div className="font-medium">{order.company_name}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-500">Nama PIC</div>
-                    <div className="font-medium">{order.pic_name}</div>
-                  </div>
-                </div>
+              <CardContent className="px-6 pb-5 space-y-6">
                 
-                <div className="grid grid-cols-2 gap-4">
+                {/* Meta Info Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <div className="text-sm font-medium text-gray-500">Telepon/WhatsApp</div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      {order.phone}
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nomor Pesanan</span>
+                    <div className="font-mono font-bold text-lg mt-0.5 tracking-tight">{order.order_number}</div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status Saat Ini</span>
+                    <div className="mt-1">
+                      <OrderStatusBadge status={order.status} />
                     </div>
                   </div>
-                  {order.email && (
-                    <div>
-                      <div className="text-sm font-medium text-gray-500">Email</div>
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        {order.email}
-                      </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Pembayaran</span>
+                    <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      {formatCurrencyDisplay(order.total_price)}
                     </div>
-                  )}
+                  </div>
                 </div>
 
-                {/* <div>
-                  <div className="text-sm font-medium text-gray-500 mb-2">Alamat Lengkap</div>
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 mt-0.5" />
-                    <div>
-                      <div>{order.address}</div>
-                      <div className="text-sm text-gray-600">
-                        {order.village}, {order.district}, {order.regency}, {order.province} {order.postal_code}
-                      </div>
-                    </div>
-                  </div>
-                </div> */}
+                <Separator />
 
-                {order.notes && (
-                  <div>
-                    <div className="text-sm font-medium text-gray-500 mb-2">Catatan Pelanggan</div>
-                    <div className="bg-gray-50 p-3 rounded-md text-sm">
-                      {order.notes}
-                    </div>
-                  </div>
-                )}
-
-                {order.admin_notes && (
-                  <div>
-                    <div className="text-sm font-medium text-gray-500 mb-2">Catatan Terakhir Admin</div>
-                    <div className="bg-gray-50 p-3 rounded-md text-sm">
-                      {order.admin_notes}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Product Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Detail Produk yang dipesanan oleh pelanggan
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
+                {/* Product Card Inside */}
+                <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-dashed flex flex-col sm:flex-row gap-4">
+                  <div className="flex-shrink-0 mx-auto sm:mx-0">
                     <img 
                       src={order.product_image ? `/storage/${order.product_image}` : order.product?.coverImage?.image_path || '/images/placeholder.png'} 
                       alt={order.product_name}
                       onError={handleImageError}
-                      className="h-24 w-24 object-cover rounded-md border"
+                      className="h-24 w-24 object-cover rounded-lg border bg-white shadow-sm"
                     />
                   </div>
-                  <div className="flex-1 space-y-2">
+                  <div className="flex-1 flex flex-col justify-between space-y-3">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <div className="font-medium text-lg">{order.product_name}</div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-semibold text-base text-slate-900 dark:text-slate-100">{order.product_name}</h4>
+                          <p className="text-xs text-muted-foreground font-medium mt-0.5">{order.product_category}</p>
+                        </div>
                         {order.product_id && (
                           <Link 
                             href={`/cpanel/cms/product/${order.product_id}`}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 dark:bg-blue-950/50 dark:text-blue-400 transition-colors border border-blue-100 dark:border-blue-900"
                           >
-                            <Eye className="h-3 w-3" />
-                            Lihat Detail
+                            <Eye className="h-3.5 w-3.5" />
+                            Lihat Produk
                           </Link>
                         )}
                       </div>
-                      <div className="text-sm text-gray-500">{order.product_category}</div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-sm">
+                    
+                    <div className="grid grid-cols-3 gap-2 text-xs border-t pt-2 border-slate-200/60 dark:border-slate-700/60">
                       <div>
-                        <div className="text-gray-500">Harga Satuan</div>
-                        <div className="font-medium">
-                          {formatCurrencyDisplay(order.product_price)}
-                        </div>
+                        <span className="text-muted-foreground block">Harga Satuan</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{formatCurrencyDisplay(order.product_price)}</span>
                       </div>
                       <div>
-                        <div className="text-gray-500">Jumlah yang dipesan</div>
-                        <div className="font-medium">{order.quantity}</div>
+                        <span className="text-muted-foreground block">Kuantitas</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">{order.quantity}</span>
                       </div>
                       <div>
-                        <div className="text-gray-500">Total Harga</div>
-                        <div className="font-bold">
-                          {formatCurrencyDisplay(order.total_price)}
-                        </div>
+                        <span className="text-muted-foreground block">Subtotal</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">{formatCurrencyDisplay(order.total_price)}</span>
                       </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Dates Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-muted-foreground bg-slate-200/60 dark:bg-slate-800/20 p-3 rounded-lg border">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-slate-400" />
+                    <span>Dibuat: <b>{new Date(order.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</b></span>
+                  </div>
+                  <div className="flex items-center gap-2 sm:border-l sm:pl-4">
+                    <Calendar className="h-4 w-4 text-slate-400" />
+                    <span>Diperbarui: <b>{new Date(order.updated_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</b></span>
+                  </div>
+                </div>
+
               </CardContent>
             </Card>
 
-            {/* Status Update */}
-            <Card className="border-2 border-orange-100">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Update Status Pesanan
+            {/* Customer Information */}
+            <Card className="p-0 shadow-sm overflow-hidden">
+              <CardHeader className="pb-2! pt-4 border-b bg-slate-200/60 dark:bg-slate-800/50 ">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                  Informasi Pelanggan
                 </CardTitle>
-                <CardDescription>
-                  Perbarui status dan catatan admin untuk pesanan ini
-                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <form onSubmit={handleStatusUpdate} className="space-y-4">
-                  <div className="grid gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Status Pesanan
-                      </label>
-                      <select
-                        value={data.status}
-                        onChange={(e) => setData('status', e.target.value as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'completed' | 'cancelled')}
-                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                      >
-                        <option value="pending">Pesanan Baru</option>
-                        <option value="confirmed">Dikonfirmasi</option>
-                        <option value="processing">Diproses</option>
-                        <option value="shipped">Dikirim</option>
-                        <option value="completed">Selesai</option>
-                        <option value="cancelled">Dibatalkan</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Catatan Admin
-                      </label>
-                      <textarea
-                        value={data.admin_notes}
-                        onChange={(e) => setData('admin_notes', e.target.value)}
-                        placeholder="Catatan untuk internal"
-                        rows={3}
-                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                      />
-                    </div>
+              <CardContent className="px-6 pb-5 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-3 bg-slate-50/60 dark:bg-slate-800/40 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <span className="text-xs text-muted-foreground block mb-0.5">Perusahaan / Instansi</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{order.company_name}</span>
                   </div>
-                  
-                  <Button type="submit" disabled={processing}>
-                    {processing ? 'Menyimpan...' : 'Update Status'}
-                  </Button>
-                </form>
+                  <div className="p-3 bg-slate-50/60 dark:bg-slate-800/40 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <span className="text-xs text-muted-foreground block mb-0.5">Nama PIC</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{order.pic_name}</span>
+                  </div>
+                  <div className="p-3 bg-slate-50/60 dark:bg-slate-800/40 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <span className="text-xs text-muted-foreground block mb-1">Telepon / WhatsApp</span>
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-800 dark:text-slate-200">
+                      <Phone className="h-3.5 w-3.5 text-emerald-500" />
+                      {order.phone}
+                    </span>
+                  </div>
+                  {order.email && (
+                    <div className="p-3 bg-slate-50/60 dark:bg-slate-800/40 rounded-lg border border-slate-100 dark:border-slate-800">
+                      <span className="text-xs text-muted-foreground block mb-1">Email Kantor</span>
+                      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-800 dark:text-slate-200">
+                        <Mail className="h-3.5 w-3.5 text-blue-500" />
+                        {order.email}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes Section */}
+                {(order.notes || order.admin_notes) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    {order.notes && (
+                      <div className="space-y-1.5">
+                        <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 block">Catatan dari Pelanggan:</span>
+                        <div className="bg-amber-50/60 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/60 p-3 rounded-lg text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                          {order.notes}
+                        </div>
+                      </div>
+                    )}
+                    {order.admin_notes && (
+                      <div className="space-y-1.5">
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">Catatan Internal Terakhir Admin:</span>
+                        <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg text-sm text-slate-600 dark:text-slate-400 border italic">
+                          "{order.admin_notes}"
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar */}
+          {/* RIGHT SIDE: Actions & Timeline History */}
           <div className="space-y-6">
-            {/* Order Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Hash className="h-5 w-5" />
-                  Ringkasan Pesanan
+
+            {/* Status Update Form Card */}
+            <Card className="p-0 border-2 border-orange-100 dark:border-orange-950/40 shadow-md">
+              <CardHeader className="pb-2! pt-4 bg-orange-50/40 dark:bg-orange-950/10 border-b border-orange-100 dark:border-orange-950/40">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-orange-800 dark:text-orange-400">
+                  <RefreshCw className="h-4 w-4 animate-spin-slow" />
+                  Update Status Pesanan
                 </CardTitle>
+                <CardDescription className="text-xs text-orange-700/70 dark:text-orange-400/70">
+                  Perbarui status dan tambahkan catatan log aktivitas internal.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <div className="text-sm font-medium text-gray-500">Nomor Pesanan</div>
-                  <div className="font-mono font-bold">{order.order_number}</div>
-                </div>
-                
-                <div>
-                  <div className="text-sm font-medium text-gray-500">Status</div>
-                  <div className="mt-1">
-                    <OrderStatusBadge status={order.status} />
+              <CardContent className="px-6 pb-5">
+                <form onSubmit={handleStatusUpdate} className="space-y-4">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                        Status Pesanan
+                      </label>
+                      <select
+                        value={data.status}
+                        onChange={(e) => setData('status', e.target.value as any)}
+                        className="w-full rounded-lg border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm text-sm p-2.5 focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                      >
+                        <option value="pending">⏳ Pesanan Baru (Pending)</option>
+                        <option value="confirmed">✅ Dikonfirmasi</option>
+                        <option value="processing">⚙️ Diproses</option>
+                        <option value="shipped">🚚 Dikirim</option>
+                        <option value="completed">🎉 Selesai</option>
+                        <option value="cancelled">❌ Dibatalkan</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                        Catatan Aktivitas Admin
+                      </label>
+                      <textarea
+                        value={data.admin_notes}
+                        onChange={(e) => setData('admin_notes', e.target.value)}
+                        placeholder="Contoh: Pembayaran DP 50% sudah diterima / Resi pengiriman JNE..."
+                        rows={3}
+                        className="w-full text-sm rounded-lg border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm p-2.5 focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-muted-foreground/60"
+                      />
+                    </div>
                   </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <div className="text-sm font-medium text-gray-500">Tanggal Pesanan</div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(order.created_at).toLocaleDateString('id-ID', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-sm font-medium text-gray-500">Terakhir Diupdate</div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(order.updated_at).toLocaleDateString('id-ID', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <div className="text-sm font-medium text-gray-500">Total Harga</div>
-                  <div className="flex items-center gap-2 text-lg font-bold text-green-600">
-                    {formatCurrencyDisplay(order.total_price)}
-                  </div>
-                </div>
+                  
+                  <Button type="submit" disabled={processing} className="w-full flex items-center justify-center gap-2 h-10 shadow-sm">
+                    {processing ? (
+                      <>
+                        <Loader className="h-4 w-4 animate-spin" />
+                        <span>Menyimpan...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        <span>Simpan Perubahan</span>
+                      </>
+                    )}
+                  </Button>
+                </form>
               </CardContent>
             </Card>
 
-          
-            {/* Status History - Timeline Style */}
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-primary" />
-                      Riwayat Aktivitas Pesanan
-                    </h4>
+            {/* Status History - Elegant Timeline */}
+            <Card className="p-0 shadow-sm">
+              <CardHeader className="pb-2! pt-4  border-b">
+                <CardTitle className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  Riwayat Aktivitas Pesanan
                 </CardTitle>
               </CardHeader>
-              <CardContent className='min-h-32 max-h-96 overflow-y-auto'>
-                {order.status_history && order.status_history.length > 0 && (
-                  <div className="relative pl-5.5 border-l-2 border-gray-200 dark:border-gray-700 ml-3">
+              
+              <CardContent className="p-5 max-h-[420px] overflow-y-auto scrollbar-thin">
+                {order.status_history && order.status_history.length > 0 ? (
+                  <div className="relative pl-4 border-l-2 border-slate-200 dark:border-slate-800 ml-2 space-y-5">
                     {order.status_history.map((history, index) => (
-                      <div key={index} className="relative px-3 rounded py-2 hover:bg-slate-300/50 duration-150">
-                        {/* Dot Indicator */}
-                        <div className={`absolute -left-[31px] mt-1.5 h-4 w-4 rounded-full border-4 border-slate-50 dark:border-slate-900 shadow-sm ${
-                          index === 0 ? 'bg-primary animate-pulse' : 'bg-gray-300 dark:bg-gray-600'
+                      <div key={index} className="relative group">
+                        
+                        {/* Timeline Dot */}
+                        <div className={`absolute -left-[25px] top-1 h-3.5 w-3.5 rounded-full border-2 bg-white dark:bg-slate-950 transition-all ${
+                          index === 0 
+                            ? 'border-primary ring-4 ring-primary/10 shadow-sm' 
+                            : 'border-slate-300 dark:border-slate-700'
                         }`} />
                         
-                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <OrderStatusBadge status={history.status as any} />
-                            <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                              {history.username}
-                            </span>
+                        {/* Content Item */}
+                        <div className="space-y-1 bg-slate-200/60 dark:bg-slate-800/30 p-2.5 rounded-lg border border-transparent hover:border-slate-200 dark:hover:border-slate-800 transition-all">
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <OrderStatusBadge status={history.status as any} />
+                              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                by {history.username}
+                              </span>
+                            </div>
+                            <time className="text-[10px] font-medium text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                              {history.formatted_date || new Date(history.created_at).toLocaleString('id-ID')}
+                            </time>
                           </div>
-                          
-                          <time className="text-[11px] font-medium text-gray-400 uppercase tracking-tighter">
-                            {history.formatted_date || new Date(history.created_at).toLocaleString('id-ID')}
-                          </time>
-                        </div>
 
-                        {history.note && (
-                          <div className="mt-2 relative">
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gray-100 dark:bg-gray-800 rounded-full" />
-                            <p className="pl-4 text-sm text-gray-500 dark:text-gray-400 italic leading-relaxed">
+                          {history.note && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 italic pl-2 border-l border-slate-300 dark:border-slate-700 mt-1.5 line-clamp-3 group-hover:line-clamp-none transition-all">
                               "{history.note}"
                             </p>
-                          </div>
-                        )}
+                          )}
+                        </div>
+
                       </div>
                     ))}
                   </div>
-                )}
-
-                {order.status_history && order.status_history.length === 0 && (
+                ) : (
                   <div className="text-center py-8">
-                    <Clock className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">Belum ada riwayat aktivitas</p>
+                    <Clock className="h-10 w-10 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground">Belum ada log riwayat aktivitas pesanan ini.</p>
                   </div>
                 )}
               </CardContent>
             </Card>
+
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Tag as TagIcon } from 'lucide-react';
+import { ArrowLeft, Loader, Save, Tag as TagIcon } from 'lucide-react';
 
 export default function TagCreate() {
   const breadcrumbs: BreadcrumbItem[] = [
@@ -142,7 +142,11 @@ export default function TagCreate() {
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Membuat...' : 'Buat Tag'}
                 </Button>
               </div>

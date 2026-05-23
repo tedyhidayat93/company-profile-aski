@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Loader } from 'lucide-react';
 
 interface Props {
   // No props needed for create
@@ -254,7 +254,11 @@ export default function ClientCreate({}: Props) {
                         </Button>
                     </Link>
                     <Button type="submit" disabled={processing}>
-                        <Save className="mr-2 h-4 w-4" />
+                        {processing ? (
+                          <Loader className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Save className="mr-2 h-4 w-4" />
+                        )}
                         {processing ? 'Menyimpan...' : 'Simpan'}
                     </Button>
                     </div>

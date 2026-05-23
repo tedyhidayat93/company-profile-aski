@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Star } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Star, Loader } from 'lucide-react';
 
 interface Props {
   // No props needed for create
@@ -235,7 +235,7 @@ export default function TestimonialCreate({}: Props) {
                 <Checkbox
                   id="is_show_public"
                   checked={data.is_show_public}
-                  onCheckedChange={(checked) => setData('is_show_public', checked)}
+                  onCheckedChange={(checked) => setData('is_show_public', Boolean(checked))}
                 />
                 <Label htmlFor="is_show_public">Tampilkan di publik</Label>
               </div>
@@ -248,7 +248,11 @@ export default function TestimonialCreate({}: Props) {
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Menyimpan...' : 'Simpan'}
                 </Button>
               </div>

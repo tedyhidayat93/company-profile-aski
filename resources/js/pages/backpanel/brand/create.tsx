@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Upload, Globe } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Globe, Loader } from 'lucide-react';
 
 export default function BrandCreate() {
 
@@ -240,7 +240,11 @@ export default function BrandCreate() {
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Membuat...' : 'Buat Merek'}
                 </Button>
               </div>

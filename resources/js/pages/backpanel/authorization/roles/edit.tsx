@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Shield } from 'lucide-react';
+import { ArrowLeft, Loader, Save, Shield } from 'lucide-react';
 
 interface Role {
   id: number;
@@ -156,7 +156,11 @@ export default function RoleEdit({ role }: Props) {
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing || role.name === 'Super Admin'}>
-                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Memperbarui...' : 'Perbarui Role'}
                 </Button>
               </div>

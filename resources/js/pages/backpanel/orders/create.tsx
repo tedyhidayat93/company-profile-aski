@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Package, User, Phone, Mail, MapPin } from 'lucide-react';
+import { ArrowLeft, Save, Package, User, Phone, Mail, MapPin, Loader } from 'lucide-react';
 
 export default function OrderCreate() {
   const breadcrumbs: BreadcrumbItem[] = [
@@ -429,7 +429,11 @@ export default function OrderCreate() {
               </Button>
             </Link>
             <Button type="submit" disabled={processing}>
-              <Save className="h-4 w-4 mr-2" />
+              {processing ? (
+                <Loader className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
               {processing ? 'Menyimpan...' : 'Simpan Pesanan'}
             </Button>
           </div>

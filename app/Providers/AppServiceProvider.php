@@ -13,6 +13,9 @@ use App\Models\Order;
 use App\Models\Service;
 use Inertia\Inertia;
 use App\Models\Configuration;
+use App\Observers\ProductObserver;
+use App\Observers\ArticleObserver;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +32,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+        Product::observe(
+            ProductObserver::class
+        );
+        Article::observe(
+            ArticleObserver::class
+        );
+
         RateLimiter::for('product-order', function (Request $request) {
             // User akan:
             // dibatasi per IP

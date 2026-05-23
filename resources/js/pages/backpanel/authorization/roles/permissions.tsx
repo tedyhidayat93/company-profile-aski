@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Shield, Key, Check } from 'lucide-react';
+import { ArrowLeft, Save, Shield, Key, Check, Loader } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 
 interface Permission {
@@ -260,7 +260,11 @@ export default function RolePermissions({ role, permissions }: Props) {
                 </Link>
 
                 <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Menyimpan...' : 'Simpan Permissions'}
                 </Button>
               </div>

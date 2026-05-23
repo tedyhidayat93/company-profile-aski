@@ -243,4 +243,12 @@ class DashboardController extends Controller
             ];
         })->toArray();
     }
+
+    public function getRecentOrdersStats()
+    {
+        return response()->json([
+            'recentOrders' =>
+                Order::getWaitingToCheckRecentOrders(),
+        ]);
+    }
 }

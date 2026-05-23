@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Globe } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Globe, Loader } from 'lucide-react';
 
 interface Brand {
   id: number;
@@ -286,7 +286,7 @@ export default function BrandEdit({ brand }: Props) {
                 <Checkbox
                   id="is_active"
                   checked={data.is_active}
-                  onCheckedChange={(checked) => setData('is_active', checked)}
+                  onCheckedChange={(checked) => setData('is_active', Boolean(checked))}
                 />
                 <Label htmlFor="is_active">Aktif</Label>
               </div>
@@ -299,7 +299,11 @@ export default function BrandEdit({ brand }: Props) {
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Menyimpan...' : 'Simpan'}
                 </Button>
               </div>

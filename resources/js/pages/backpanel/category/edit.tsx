@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Loader, Save } from 'lucide-react';
 import { Category } from './create';
 import TreeSelect from '@/components/tree-select';
 
@@ -270,7 +270,11 @@ export default function CategoryEdit({ category, parentCategories }: Props) {
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Memperbarui...' : 'Perbarui Kategori'}
                 </Button>
               </div>

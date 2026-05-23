@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Users, Mail, Phone, MapPin } from 'lucide-react';
+import { ArrowLeft, Save, Users, Mail, Phone, MapPin, Loader } from 'lucide-react';
 
 interface Customer {
   id: number;
@@ -186,7 +186,11 @@ export default function CustomerEdit({ customer }: Props) {
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Memperbarui...' : 'Perbarui Pelanggan'}
                 </Button>
               </div>

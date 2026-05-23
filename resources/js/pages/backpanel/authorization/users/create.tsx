@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Users, Shield, Upload, X, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Save, Users, Shield, Upload, X, Eye, EyeOff, Loader } from 'lucide-react';
 
 interface Role {
   id: number;
@@ -240,7 +240,11 @@ export default function UserCreate({ roles }: Props) {
                   <Button type="button" variant="outline">Batal</Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Membuat...' : 'Buat User'}
                 </Button>
               </div>

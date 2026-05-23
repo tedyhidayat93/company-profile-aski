@@ -13,9 +13,12 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use App\Traits\HandlesSeoImage;
 
 class ArticleController extends Controller
 {
+    use HandlesSeoImage;
+
     public function __construct()
     {
         // Apply permission middleware to all methods
@@ -185,8 +188,18 @@ class ArticleController extends Controller
         // Handle featured image upload
         if ($request->hasFile('featured_image')) {
             $image = $request->file('featured_image');
-            $path = $image->store('articles', 'public');
-            $validated['featured_image'] = $path;
+
+            // $path = $image->store('articles', 'public');
+            // $validated['featured_image'] = $path;
+
+            $validated['featured_image'] =
+            $this->optimizeSeoImage(
+                file: $image,
+                directory: 'articles',
+                width: 1200,
+                height: 630,
+                quality: 82
+            );
         }
 
         $article = Article::create($validated);
@@ -446,10 +459,19 @@ class ArticleController extends Controller
                     ->delete($article->featured_image);
             }
 
+            // $validated['featured_image'] =
+            //     $request
+            //         ->file('featured_image')
+            //         ->store('articles', 'public');
+
             $validated['featured_image'] =
-                $request
-                    ->file('featured_image')
-                    ->store('articles', 'public');
+            $this->optimizeSeoImage(
+                file: $image,
+                directory: 'articles',
+                width: 1200,
+                height: 630,
+                quality: 82
+            );
         }
         
 

@@ -15,12 +15,9 @@ export default function AppSidebarLayout({
   recentOrders?: any[];
 }>) {
 
-  const { props } = usePage();
-  const { recentOrders: recentOrdersFromProps } = props as any;
-  
   return (
     <AppShell variant="sidebar">
-      <AppSidebar recentOrders={recentOrdersFromProps} />
+      <AppSidebar recentOrders={recentOrders} />
       <AppContent variant="sidebar" className="overflow-x-hidden">
         <AppSidebarHeader breadcrumbs={breadcrumbs} />
         {children}

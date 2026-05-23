@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import FlashMessage from '@/components/flash-message';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, FileText, Upload, Tag as TagIcon, Calendar } from 'lucide-react';
+import { ArrowLeft, Save, FileText, Upload, Tag as TagIcon, Calendar, Loader } from 'lucide-react';
 import TinyMCEEditor from '@/components/TinyMCEEditor';
 import TreeSelect from '@/components/tree-select';
 import { flattenCategories } from '@/lib/utils';
@@ -394,7 +394,11 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Membuat...' : 'Buat Artikel'}
                 </Button>
               </div>
