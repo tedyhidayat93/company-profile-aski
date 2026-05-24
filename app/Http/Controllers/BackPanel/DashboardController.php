@@ -112,8 +112,9 @@ class DashboardController extends Controller
     {
         $products = Product::with(['category', 'coverImage'])
             ->where('views', '>', 0)
+            ->where('status', 'published')
             ->orderByDesc('views')
-            ->take(9)
+            ->take(10)
             ->get();
 
         if ($products->every(fn ($p) => $p->views == 0)) {
