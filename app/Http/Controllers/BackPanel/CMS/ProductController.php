@@ -88,6 +88,8 @@ class ProductController extends Controller
 
             ->when($request->status && $request->status !== 'all', function ($query) use ($request) {
                 $query->where('status', $request->status);
+            }, function ($query) {
+                $query->whereIn('status', ['published']);
             })
 
             ->when($request->filled('featured') && $request->featured !== 'all', function ($query) use ($request) {
