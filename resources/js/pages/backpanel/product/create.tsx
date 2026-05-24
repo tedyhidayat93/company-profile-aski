@@ -16,6 +16,7 @@ import { formatPrice, parseCurrencyInput, formatCurrencyInput } from '@/utils/cu
 import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon, Plus, Trash2, ChevronDown, FormInput, Loader } from 'lucide-react';
 import TreeSelect from '@/components/tree-select';
 import TinyMCEEditor from '@/components/TinyMCEEditor';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Brand {
   id: number;
@@ -587,7 +588,7 @@ export default function ProductCreate({ brands, categories }: Props) {
                   {errors.quantity && <p className="text-sm text-red-600">{errors.quantity}</p>}
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label htmlFor="position">Posisi</Label>
                   <Input
                     id="position"
@@ -599,7 +600,7 @@ export default function ProductCreate({ brands, categories }: Props) {
                     placeholder="0"
                   />
                   {errors.position && <p className="text-sm text-red-600">{errors.position}</p>}
-                </div>
+                </div> */}
               </div>
 
               <div className="space-y-2">
@@ -995,9 +996,22 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.is_featured}
                     onCheckedChange={(checked) => setData('is_featured', Boolean(checked))}
                   />
-                  <Label htmlFor="is_featured" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Unggulan
-                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help text-sm font-medium text-slate-700">
+                          Tampil paling atas
+                        </span>
+                      </TooltipTrigger>
+
+                      <TooltipContent side="top">
+                        <p className="max-w-[220px] text-xs leading-relaxed">
+                          Produk akan diprioritaskan tampil di halaman utama
+                          dan muncul paling atas pada katalog produk.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </label>
 
                 {/* Terlaris */}
@@ -1013,9 +1027,24 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.is_bestseller}
                     onCheckedChange={(checked) => setData('is_bestseller', Boolean(checked))}
                   />
-                  <Label htmlFor="is_bestseller" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Terlaris
-                  </Label>
+                  {/* Bestseller */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help text-sm font-medium text-slate-700">
+                        Terlaris
+                      </span>
+                    </TooltipTrigger>
+
+                    <TooltipContent
+                      side="top"
+                      className="max-w-[240px] border border-amber-200 bg-amber-50 text-slate-700"
+                    >
+                      <p className="text-xs leading-relaxed">
+                        Memberikan label produk terlaris untuk meningkatkan
+                        kepercayaan dan daya tarik pelanggan.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
 
                 {/* Harga */}
@@ -1031,9 +1060,24 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.show_price}
                     onCheckedChange={(checked) => setData('show_price', Boolean(checked))}
                   />
-                  <Label htmlFor="show_price" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Tampilkan Harga
-                  </Label>
+                  {/* Show Price */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help text-sm font-medium text-slate-700">
+                        Tampilkan Harga
+                      </span>
+                    </TooltipTrigger>
+
+                    <TooltipContent
+                      side="top"
+                      className="max-w-[240px] border border-purple-200 bg-purple-50 text-slate-700"
+                    >
+                      <p className="text-xs leading-relaxed">
+                        Menampilkan harga produk secara langsung pada katalog
+                        dan halaman detail produk.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
 
                 {/* Stok */}
@@ -1049,9 +1093,24 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.show_stock}
                     onCheckedChange={(checked) => setData('show_stock', Boolean(checked))}
                   />
-                  <Label htmlFor="show_stock" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Tampilkan Stok
-                  </Label>
+                  {/* Show Stock */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help text-sm font-medium text-slate-700">
+                        Tampilkan Stok
+                      </span>
+                    </TooltipTrigger>
+
+                    <TooltipContent
+                      side="top"
+                      className="max-w-[240px] border border-purple-200 bg-purple-50 text-slate-700"
+                    >
+                      <p className="text-xs leading-relaxed">
+                        Menampilkan informasi jumlah stok produk yang tersedia
+                        kepada pelanggan.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
 
                 {/* Baru */}
@@ -1067,9 +1126,24 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.is_new}
                     onCheckedChange={(checked) => setData('is_new', Boolean(checked))}
                   />
-                  <Label htmlFor="is_new" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Produk Baru
-                  </Label>
+                  {/* Produk Baru */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help text-sm font-medium text-slate-700">
+                        Produk Baru
+                      </span>
+                    </TooltipTrigger>
+
+                    <TooltipContent
+                      side="top"
+                      className="max-w-[240px] border border-blue-200 bg-blue-50 text-slate-700"
+                    >
+                      <p className="text-xs leading-relaxed">
+                        Memberikan badge produk baru agar lebih mudah menarik
+                        perhatian pengunjung.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
 
                 {/* Dijual */}
@@ -1085,9 +1159,23 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.is_for_sell}
                     onCheckedChange={(checked) => setData('is_for_sell', Boolean(checked))}
                   />
-                  <Label htmlFor="is_for_sell" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Dijual
-                  </Label>
+                  {/* Dijual */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help text-sm font-medium text-slate-700">
+                        Dijual
+                      </span>
+                    </TooltipTrigger>
+
+                    <TooltipContent
+                      side="top"
+                      className="max-w-[240px] border border-emerald-200 bg-emerald-50 text-slate-700"
+                    >
+                      <p className="text-xs leading-relaxed">
+                        Produk tersedia untuk pembelian langsung oleh pelanggan.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
 
                 {/* Disewakan */}
@@ -1103,9 +1191,24 @@ export default function ProductCreate({ brands, categories }: Props) {
                     checked={data.is_rent}
                     onCheckedChange={(checked) => setData('is_rent', Boolean(checked))}
                   />
-                  <Label htmlFor="is_rent" className="text-sm font-medium text-slate-700 cursor-pointer">
-                    Disewakan
-                  </Label>
+                  {/* Disewakan */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help text-sm font-medium text-slate-700">
+                        Disewakan
+                      </span>
+                    </TooltipTrigger>
+
+                    <TooltipContent
+                      side="top"
+                      className="max-w-[240px] border border-emerald-200 bg-emerald-50 text-slate-700"
+                    >
+                      <p className="text-xs leading-relaxed">
+                        Produk tersedia untuk kebutuhan sewa dengan durasi
+                        tertentu sesuai kebutuhan pelanggan.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
                 </label>
 
               </div>

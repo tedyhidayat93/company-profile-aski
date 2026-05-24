@@ -61,7 +61,7 @@ const mainNavGroups: NavGroupItem[] = [
         },
         {
           title: 'Produk',
-          href: '/cpanel/cms/product',
+          href: '/cpanel/cms/product?status=published',
           icon: LayoutGrid,
           permission: 'product-list',
         },

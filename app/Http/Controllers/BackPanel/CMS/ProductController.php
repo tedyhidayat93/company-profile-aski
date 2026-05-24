@@ -90,14 +90,6 @@ class ProductController extends Controller
                 $query->where('status', $request->status);
             })
 
-            ->when($request->filled('featured') && $request->featured !== 'all', function ($query) use ($request) {
-                $query->where('is_featured', $request->featured === 'true');
-            })
-
-            ->when($request->filled('bestseller') && $request->bestseller !== 'all', function ($query) use ($request) {
-                $query->where('is_bestseller', $request->bestseller === 'true');
-            })
-
             ->when($request->date_from, function ($query, $dateFrom) {
                 $query->whereDate('created_at', '>=', $dateFrom);
             })
@@ -141,7 +133,7 @@ class ProductController extends Controller
                 'brand' => $request->brand ?? 'all',
                 'type' => $request->type ?? 'all',
                 'category' => $request->category ?? 'all',
-                'status' => $request->status ?? 'published',
+                'status' => $request->status ?? 'all',
                 'featured' => $request->featured ?? 'all',
                 'bestseller' => $request->bestseller ?? 'all',
                 'sort' => $request->sort ?? 'newest',

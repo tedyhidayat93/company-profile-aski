@@ -15,6 +15,12 @@ import { formatPrice } from '@/utils/currency';
 import DateRangePicker from '@/components/ui/date-range-picker';
 import { type DateRange } from 'react-day-picker';
 import { setDateParam } from '@/utils/date';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"; 
 import { 
   Plus, 
   Edit, 
@@ -25,7 +31,10 @@ import {
   Table2,
   Search,
   RefreshCw,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Star,
+  StarIcon,
+  PinIcon
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { formatDate } from '@/lib/utils';
@@ -625,70 +634,16 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                           <SelectItem value="stock_high">
                             Stok Tertinggi
                           </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
 
-                    {/* FEATURED */}
-                    <div className="space-y-1">
-                      <Label className="text-xs font-medium text-muted-foreground">
-                        Produk Unggulan
-                      </Label>
-
-                      <Select
-                        value={featuredFilter}
-                        onValueChange={handleFeaturedFilter}
-                      >
-                        <SelectTrigger className="rounded-xl">
-                          <SelectValue placeholder="Unggulan" />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          <SelectItem value="all">
-                            Semua
+                          <SelectItem value="most_viewed">
+                            Paling Banyak Dilihat
                           </SelectItem>
-
-                          <SelectItem value="yes">
-                            Unggulan
-                          </SelectItem>
-
-                          <SelectItem value="no">
-                            Bukan Unggulan
+                          <SelectItem value="least_viewed">
+                            Paling Sedikit Dilihat
                           </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-
-                    {/* BESTSELLER */}
-                    <div className="space-y-1">
-                      <Label className="text-xs font-medium text-muted-foreground">
-                        Produk Terlaris
-                      </Label>
-
-                      <Select
-                        value={bestsellerFilter}
-                        onValueChange={handleBestsellerFilter}
-                      >
-                        <SelectTrigger className="rounded-xl">
-                          <SelectValue placeholder="Terlaris" />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          <SelectItem value="all">
-                            Semua
-                          </SelectItem>
-
-                          <SelectItem value="yes">
-                            Terlaris
-                          </SelectItem>
-
-                          <SelectItem value="no">
-                            Bukan Terlaris
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
                     {/* TIPE */}
                     <div className="space-y-1">
                       <Label className="text-xs font-medium text-muted-foreground">
@@ -815,7 +770,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                     
                     {/* PRODUK */}
                     <TableCell>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center pl-4 gap-3 relative">
                         {product.image_path ? (
                           <img
                             src={product.image_path}
@@ -828,38 +783,40 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                           </div>
                         )}
 
+                        {product.is_featured && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <PinIcon className="absolute -left-1 my-auto h-4 w-4 text-yellow-500 cursor-help" />
+                              </TooltipTrigger>
+
+                              <TooltipContent>
+                                <p className='text-black font-bold'>Produk akan diprioritaskan tampil di halaman utama
+                                dan muncul paling atas pada katalog produk.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+
                         <div className="space-y-1 flex-1">
                           <div className="font-semibold line-clamp-1">
                             {product.name}
                           </div>
 
-                          {viewMode === 'detail' && (
-                            <div className="text-xs text-muted-foreground">
-                              SKU: {product.sku}
-                            </div>
-                          )}
-
                             <div className="flex flex-wrap gap-1 pt-1">
-                              {product.is_featured && (
-                                <Badge className="text-[10px]">
-                                  Unggulan (tampil di halaman utama)
-                                </Badge>
-                              )}
-
                               {viewMode === 'detail' && (
-                                <>
-                                  {product.is_bestseller && (
-                                    <Badge className="text-[10px]">
-                                      Terlaris
-                                    </Badge>
-                                  )}
-
-                                  {product.is_new && (
-                                    <Badge className="text-[10px]">
-                                      Baru
-                                    </Badge>
-                                  )}
-                                </>
+                                <div className="flex gap-1">
+                                {product.is_new && (
+                                    <span className="rounded-full bg-emerald-100 border border-emerald-200 px-2 py-1 text-[10px] font-bold text-emerald-800">
+                                    Baru
+                                    </span>
+                                )}
+                                {product.is_bestseller && (
+                                    <span className="rounded-full bg-orange-100 border border-orange-200 px-2 py-1 text-[10px] font-bold text-orange-800">
+                                    Terlaris
+                                    </span>
+                                )}
+                                </div>
                               )}
                             </div>
                         </div>
@@ -877,6 +834,16 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                             :
                             <span className="font-medium">
                               {product.category?.name}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">
+                              SKU
+                            </span>
+                            :
+                            <span>
+                              {product.sku}
                             </span>
                           </div>
 
@@ -908,6 +875,15 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                                 is_for_sell: product.is_for_sell || false,
                                 is_rent: product.is_rent || false
                               })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">
+                              Merek
+                            </span>
+                            :
+                            <span>
+                              {product.brand?.name}
                             </span>
                           </div>
 

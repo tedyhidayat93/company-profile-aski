@@ -9,6 +9,7 @@ import TestimonialCard from '@/components/TestimonialCard';
 import { handleImageError } from '@/utils/image';
 import { useConfig } from '@/utils/config';
 import SeoHead from '@/components/seo-head';
+import HeroHomepageSection from '@/components/hero-hompage-section';
 
 
 export default function Homepage({ 
@@ -128,105 +129,16 @@ export default function Homepage({
 
       <main>
         {/* Hero Section */}
-        <section 
-          id="home"
-          className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-500 via-amber-400 to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
-        >
-          
-          <div className="absolute inset-0 z-20 overflow-hidden">
-            {/* BASE */}
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-300/90 via-amber-400/80 to-orange-800/80 animate-gradient-wave" />
-
-            {/* WAVE LAYER */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent animate-gradient-wave-slow blur-xl" />
-
-          </div>
-
-          <img 
-            src={'/storage/' + getConfig('hero_image', '')} 
-            alt="Alumoda Sinergi Kontainer Indonesia - Solusi Terpercaya untuk Kontainer Anda" 
-            className="absolute inset-0 z-10 object-cover w-full h-full"
-            loading="eager"
-            onError={(e) => handleImageError(e, '/images/bg-hero.png', "Hero background image")}
-          />
-          
-          <div className="container drop-shadow-md relative z-40 mx-auto px-4 py-20 text-center text-white">
-            <div className="animate-fade-in-up">
-              <h1 className="mb-6 font-black leading-[0.95] tracking-tighter text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-slate-900 dark:text-slate-950">
-                <span dangerouslySetInnerHTML={{ 
-                  __html: getConfig('hero_title', 
-                  'Solusi Terpercaya <br /> Untuk ' + 
-                  '<span className="relative inline-block mx-2">' +
-                    '<span className="relative z-10 px-4 py-1 text-white bg-slate-900 shadow-xl transform -rotate-1 inline-block">Kontainer</span>' +
-                  '</span>' + 
-                  ' Anda') 
-                }} />
-              </h1>
-              
-              <p className="mx-auto mb-10 max-w-2xl font-bold text-base md:text-xl dark:text-slate-800 text-slate-900 leading-6 md:leading-7 lg:text-xl">
-                {getConfig('hero_description', 'Kami menyediakan berbagai pilihan kontainer untuk disewa atau dibeli. Mulai dari Kontainer standar hingga Kontainer Custom sesuai kebutuhan Anda.')}
-              </p>
-
-              <div className="mx-auto max-w-2xl">
-                <form onSubmit={handleSearch} className="w-full max-w-2xl mx-auto">
-                  <div className="relative group">
-                      <input
-                          type="text"
-                          placeholder={placeholder || 'Cari kontainer...'}
-                          className="w-full rounded-full border-2 border-white/20 bg-white/80 px-6 py-4 pr-14 md:pr-36 text-white placeholder-gray-800 backdrop-blur-lg focus:border-white/40 focus:bg-white focus:text-black font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-transparent peer text-xs md:text-base"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                      />
-                      <button 
-                          type="submit"
-                          disabled={isSearching}
-                          className={`absolute right-1.5 cursor-pointer top-1/2 -translate-y-1/2 transform rounded-full px-3 py-2 md:px-8 md:py-3 font-semibold transition-all ${
-                              isSearching 
-                                  ? 'bg-amber-400 text-white cursor-wait' 
-                                  : 'bg-orange-400 text-white hover:bg-orange-500 hover:shadow-lg hover:text-white hover:shadow-orange-500/30 peer-focus:bg-primary peer-focus:text-white'
-                          }`}
-                      >
-                          {isSearching ? (
-                              <div className="flex text-sm items-center">
-                                  <Loader className="mr-2 h-5 w-5 animate-spin" />
-                                  Mencari...
-                              </div>
-                          ) : (
-                            <span className="text-xs md:text-base flex items-center gap-1"><SearchIcon className='w-4 h-4'/> Cari </span>
-                          )}
-                      </button>
-                  </div>
-                </form>
-                
-                <div className="mt-6 flex flex-wrap justify-center gap-4">
-                  <span className="flex items-center text-sm font-bold text-white/90">
-                    <span className="mr-2 flex h-2 w-2 rounded-full bg-green-400"></span>
-                    {getConfig('feature_stock_available', 'Stok Tersedia')}
-                  </span>
-                  <span className="flex items-center text-sm font-bold text-white/90">
-                    <span className="mr-2 flex h-2 w-2 rounded-full bg-blue-400"></span>
-                    {getConfig('feature_quality_guarantee', 'Garansi Kualitas')}
-                  </span>
-                  <span className="flex items-center text-sm font-bold text-white/90">
-                    <span className="mr-2 flex h-2 w-2 rounded-full bg-purple-400"></span>
-                    {getConfig('feature_competitive_price', 'Harga Kompetitif')}
-                  </span>
-                  <span className="flex items-center text-sm font-bold text-white/90">
-                    <span className="mr-2 flex h-2 w-2 rounded-full bg-black"></span>
-                    {getConfig('feature_support_247', 'Support 24/7')}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Scroll indicator */}
-          <div className="absolute bottom-8 z-40 left-1/2 -translate-x-1/2 transform animate-bounce">
-            <div className="h-8 w-5 rounded-full border-2 border-white/50 p-1">
-              <div className="h-2 w-1 rounded-full bg-white/80"></div>
-            </div>
-          </div>
-        </section>
+        <HeroHomepageSection 
+          products={products} // <-- Melempar data produk ke sini
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          handleSearch={handleSearch}
+          isSearching={isSearching}
+          placeholder="Cari kontainer office, reefer, dll..."
+          getConfig={getConfig}
+          handleImageError={handleImageError}
+        />
 
         {/* services Section */}
         <section id="services" className="bg-white py-20 dark:bg-gray-900">
@@ -290,12 +202,12 @@ export default function Homepage({
                   {getConfig('products_description', 'Temukan produk-produk kontainer untuk kebutuhanmu')}
                 </p>
               </div>
-              <Link href={catalog.index()} className="btn btn-ghost flex items-center">
-                Semua Produk <ArrowRight className="ml-1 h-4 w-4" /> 
+              <Link href={catalog.index()} className="btn btn-ghost rounded-full! flex items-center px-7!">
+                Lihat Katalog <ArrowRight className="ml-1 h-4 w-4" /> 
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((product) => (
                 <ProductCard key={product.slug} product={product} />
               ))}
@@ -411,7 +323,7 @@ export default function Homepage({
               </div>
 
               {/* FAQ List */}
-              <div className="mx-auto max-w-3xl space-y-4">
+              <div className="mx-auto max-w-full grid md:grid-cols-2 gap-4">
                 {faqs.map((faq, index) => {
                   const isActive = activeFaq === index;
 
@@ -419,7 +331,7 @@ export default function Homepage({
                     <div
                       key={index}
                       className={`
-                        group rounded-xl border transition-all duration-300
+                        group rounded-xl border transition-all duration-300 h-max
                         ${isActive 
                           ? 'bg-white dark:bg-gray-900 border-primary shadow-lg' 
                           : 'bg-white/70 dark:bg-gray-900/40 border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-primary/50'

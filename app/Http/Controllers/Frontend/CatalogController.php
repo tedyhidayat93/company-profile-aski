@@ -78,10 +78,27 @@ class CatalogController extends Controller
                 'coverImage',
             ]);
 
+        /*
+        | Default Priority :
+        | Featured -> Bestseller -> Newest
+        */
+
+        $query
+            ->orderByDesc('is_featured')
+            ->orderByDesc('is_bestseller');
+
+        /*
+        | Filters
+        */
+
         $this->applyProductFilters(
             $query,
             $filters
         );
+
+        /*
+        | Sorting
+        */
 
         $this->applySorting(
             $query,
@@ -93,9 +110,7 @@ class CatalogController extends Controller
             ->withQueryString();
 
         /*
-        |--------------------------------------------------------------------------
         | Fallback Products
-        |--------------------------------------------------------------------------
         */
         if (
             $filters['search']
@@ -138,6 +153,24 @@ class CatalogController extends Controller
                 ->map(fn($product) => $this->transformProduct($product))
         );
 
+         /*
+        |--------------------------------------------------------------------------
+        | Best Seller Products
+        |--------------------------------------------------------------------------
+        */
+
+        $bestSellerProducts = Product::query()
+            ->published()
+            ->where('is_bestseller', true)
+            ->with([
+                'category:id,name,slug',
+                'coverImage',
+            ])
+            ->latest()  
+            ->limit(10)
+            ->get()
+            ->map(fn($item) => $this->transformProduct($item));
+
         /*
         |--------------------------------------------------------------------------
         | SEO
@@ -161,6 +194,8 @@ class CatalogController extends Controller
                         'to' => $products->lastItem(),
                     ],
                 ],
+
+                'bestSellerProducts' => $bestSellerProducts,
 
                 'categories' => $categories,
 
@@ -634,6 +669,9 @@ class CatalogController extends Controller
 
             'is_new' =>
                 $product->is_new ?? false,
+
+            'is_featured' =>
+                $product->is_featured ?? false,
 
             'is_for_sell' =>
                 $product->is_for_sell ?? false,

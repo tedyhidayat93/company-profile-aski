@@ -249,20 +249,26 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                         <div className="mt-8 lg:mt-0 lg:w-1/2 flex flex-col">
                             {/* Header: Badge & Title */}
                             <div className="space-y-3">
-                                <div className="flex flex-wrap gap-2">
-                                    {product.is_new && (
-                                        <span className="bg-green-100 text-green-700 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded">Baru</span>
-                                    )}
-                                    {product.is_bestseller && (
-                                        <span className="bg-orange-100 text-orange-700 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded flex items-center gap-1"><Star className='w-2 h-2' /> Terlaris</span>
-                                    )}
-                                </div>
+                               
                                 
-                                <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
+                                <h1 className="text-2xl xl:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                                     {product.name}
                                 </h1>
                                 
-                                <div className="flex items-center gap-3 divide-x">
+                                <div className="flex items-center gap-4 divide-x divide-gray-300">
+                                    {/* Badge */}
+                                    <div className="flex gap-1 pr-3">
+                                        {product.is_new && (
+                                            <span className="rounded-full bg-emerald-100 border border-emerald-200 px-2 py-1 text-[10px] font-bold text-emerald-800">
+                                            Baru
+                                            </span>
+                                        )}
+                                        {product.is_bestseller && (
+                                            <span className="rounded-full bg-orange-100 border border-orange-200 px-2 py-1 text-[10px] font-bold text-orange-800">
+                                            Terlaris
+                                            </span>
+                                        )}
+                                    </div>
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
                                         {getProductTypeText({
                                             is_for_sell: product.is_for_sell || false,
@@ -285,7 +291,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     <div className="flex flex-col">
                                         <span className="text-xs font-bold text-gray-900 mb-1">Harga Terbaik</span>
                                         <div className="flex items-baseline gap-3">
-                                            <span className="text-3xl font-black text-primary dark:text-orange-400">
+                                            <span className="text-xl xl:text-2xl font-black text-primary dark:text-orange-400">
                                                 {formatPrice(product.price)}
                                             </span>
                                             {product.compare_at_price && Number(product.compare_at_price) > Number(product.price) && (

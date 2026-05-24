@@ -211,6 +211,11 @@
   body {
     @apply bg-primary text-primary font-sans;
   }
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px; /* Jarak otomatis agar tidak tertutup navbar */
+  }
+  
   h1,
   h2,
   h3,

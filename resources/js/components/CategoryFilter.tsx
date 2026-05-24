@@ -167,7 +167,7 @@ export default function CategoryFilter({
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="w-full rounded-md border px-3 py-2 text-left bg-white flex items-center justify-between text-sm"
+        className="w-full rounded-lg border-[2px] px-3 py-2 text-left bg-white flex items-center justify-between text-sm"
       >
         <span className="truncate">
           {findLabel(categories) ?? placeholder}

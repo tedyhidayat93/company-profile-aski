@@ -40,9 +40,10 @@ class HomepageController extends Controller
         | Featured Products
         |--------------------------------------------------------------------------
         */
+        // Cache::forget('homepage.products');
         $products = Cache::remember(
             'homepage.products',
-            now()->addMinutes(30),
+            now()->addMinutes(1),
             function () {
 
                 $baseQuery = Product::query()
@@ -60,8 +61,11 @@ class HomepageController extends Controller
                 */
                 $featuredProducts = (clone $baseQuery)
                     ->where('is_featured', true)
-                    ->orderBy('position')
-                    ->limit(6)
+                    ->orWhere('is_bestseller', true)
+                    ->orWhere('views', '>', 0)
+                    ->orderBy('is_featured', 'desc')
+                    ->orderBy('created_at', 'desc')
+                    ->limit(8)
                     ->get();
 
                 /*
@@ -73,7 +77,7 @@ class HomepageController extends Controller
                     ? $featuredProducts
                     : (clone $baseQuery)
                         ->orderByDesc('views')
-                        ->limit(6)
+                        ->limit(8)
                         ->get();
 
                 return $products->map(
