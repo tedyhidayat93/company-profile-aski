@@ -53,7 +53,11 @@ trait HandlesSeoImage
         |--------------------------------------------------------------------------
         */
 
-        $image->cover(
+        // $image->cover(
+        //     width: $width,
+        //     height: $height
+        // );
+        $image->scaleDown(
             width: $width,
             height: $height
         );

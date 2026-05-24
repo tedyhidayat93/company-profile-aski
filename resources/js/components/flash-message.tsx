@@ -1,56 +1,76 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
 import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
 
-interface FlashMessage {
-  success?: string;
-  error?: string;
-  warning?: string;
-  info?: string;
+// Definisi tipe pesan
+interface MessageItem {
+  type: 'success' | 'error' | 'warning' | 'info';
+  message: string;
+  id: string; // ID unik untuk menghapus pesan
 }
 
-interface FlashMessageProps {
-  className?: string;
-}
-
-export default function FlashMessage({ className = '' }: FlashMessageProps) {
+export default function FlashMessage() {
   const { props } = usePage();
-  const flash = props.flash as FlashMessage || {};
+  const flash = props.flash as any;
 
-  const messages = [
-    { type: 'success', message: flash.success, icon: CheckCircle, bgColor: 'bg-green-50', textColor: 'text-green-800', borderColor: 'border-green-200' },
-    { type: 'error', message: flash.error, icon: XCircle, bgColor: 'bg-red-50', textColor: 'text-red-800', borderColor: 'border-red-200' },
-    { type: 'warning', message: flash.warning, icon: AlertCircle, bgColor: 'bg-yellow-50', textColor: 'text-yellow-800', borderColor: 'border-yellow-200' },
-    { type: 'info', message: flash.info, icon: Info, bgColor: 'bg-blue-50', textColor: 'text-blue-800', borderColor: 'border-blue-200' },
-  ].filter(msg => msg.message);
+  // State untuk pesan yang dibuat dari Client-side (JS)
+  const [localMessages, setLocalMessages] = useState<MessageItem[]>([]);
 
-  if (messages.length === 0) {
-    return null;
-  }
+  // 1. Listen Flash dari Backend (Laravel)
+  useEffect(() => {
+    if (flash.success) addLocalMessage('success', flash.success);
+    if (flash.error) addLocalMessage('error', flash.error);
+    if (flash.warning) addLocalMessage('warning', flash.warning);
+    if (flash.info) addLocalMessage('info', flash.info);
+  }, [flash]);
+
+  // 2. Listen Event Custom dari Frontend (Wishlist, dll)
+  useEffect(() => {
+    const handleTrigger = (e: any) => {
+      addLocalMessage(e.detail.type, e.detail.message);
+    };
+
+    window.addEventListener('trigger-toast', handleTrigger);
+    return () => window.removeEventListener('trigger-toast', handleTrigger);
+  }, []);
+
+  // Fungsi pembantu untuk menambah pesan
+  const addLocalMessage = (type: MessageItem['type'], message: string) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setLocalMessages((prev) => [...prev, { type, message, id }]);
+
+    // Hapus otomatis setelah 5 detik
+    setTimeout(() => {
+      removeMessage(id);
+    }, 5000);
+  };
+
+  const removeMessage = (id: string) => {
+    setLocalMessages((prev) => prev.filter((msg) => msg.id !== id));
+  };
+
+  if (localMessages.length === 0) return null;
 
   return (
-    <div className={`fixed top-4 right-4 z-50 space-y-2 ${className}`}>
-      {messages.map((msg, index) => {
-        const Icon = msg.icon;
+    <div className="fixed top-4 right-4 z-[9999] space-y-3">
+      {localMessages.map((msg) => {
+        const config = {
+          success: { icon: CheckCircle, bg: 'bg-green-50', text: 'text-green-800', border: 'border-green-200' },
+          error: { icon: XCircle, bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-200' },
+          warning: { icon: AlertCircle, bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-200' },
+          info: { icon: Info, bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200' },
+        }[msg.type];
+
+        const Icon = config.icon;
+
         return (
           <div
-            key={`${msg.type}-${index}`}
-            className={`flex items-center p-4 rounded-lg border ${msg.bgColor} ${msg.textColor} ${msg.borderColor} shadow-lg min-w-[300px] max-w-md animate-in slide-in-from-right-2 fade-in-0 duration-300`}
+            key={msg.id}
+            className={`flex items-center p-4 rounded-xl border shadow-xl min-w-[320px] max-w-md animate-in slide-in-from-right-5 fade-in duration-300 ${config.bg} ${config.text} ${config.border}`}
           >
             <Icon className="h-5 w-5 flex-shrink-0 mr-3" />
-            <div className="flex-1 text-sm font-medium">
-              {msg.message}
-            </div>
-            <button
-              onClick={() => {
-                const element = document.getElementById(`flash-${msg.type}-${index}`);
-                if (element) {
-                  element.remove();
-                }
-              }}
-              className="ml-3 flex-shrink-0 p-1 rounded-md hover:bg-black/10 transition-colors"
-              id={`flash-${msg.type}-${index}`}
-            >
+            <div className="flex-1 text-sm font-bold">{msg.message}</div>
+            <button onClick={() => removeMessage(msg.id)} className="ml-3 p-1 hover:bg-black/5 rounded-lg">
               <X className="h-4 w-4" />
             </button>
           </div>

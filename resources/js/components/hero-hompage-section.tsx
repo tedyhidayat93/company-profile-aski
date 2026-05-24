@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Loader, SearchIcon, Box, Sparkles } from 'lucide-react';
+import { Loader, SearchIcon, Box, Sparkles, ArrowRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import { Product } from '@/types';
+import { Arrow } from '@radix-ui/react-dropdown-menu';
 
 interface HeroProps {
   products?: Product[];
@@ -56,8 +57,8 @@ export default function HeroSection({
     >
       {/* Background Overlays */}
       <div className="absolute inset-0 z-20 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-300/80 via-amber-400/70 to-orange-900/80 animate-gradient-wave" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent animate-gradient-wave-slow blur-xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/80 via-white/80 to-amber-700/90 animate-gradient-wave" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-orange-300/30 to-transparent animate-gradient-wave-slow blur-xl" />
       </div>
 
       <img 
@@ -73,8 +74,8 @@ export default function HeroSection({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           {/* SEBELAH KIRI: Deskripsi & Search Content */}
-          <div className="lg:col-span-7 text-center xl:text-left text-white animate-fade-in-up space-y-6">
-            <h1 className="font-black leading-[1.1] sm:leading-[0.95] tracking-tighter text-4xl sm:text-5xl md:text-6xl xl:text-7xl text-slate-900">
+          <div className="lg:col-span-7 text-center lg:text-left text-white animate-fade-in-up space-y-6">
+            <h1 className="font-bold leading-[1.1] sm:leading-[0.95] tracking-tighter text-4xl sm:text-5xl md:text-6xl xl:text-7xl text-slate-900">
               <span dangerouslySetInnerHTML={{ 
                 __html: getConfig('hero_title', 
                 'Solusi Terpercaya <br class="hidden sm:inline" /> Untuk ' + 
@@ -90,13 +91,13 @@ export default function HeroSection({
             </p>
 
             {/* Search Bar Form */}
-            <div className="w-full xl:max-w-xl pt-2">
+            <div className="w-full xl:max-w-2xl pt-2">
               <form onSubmit={handleSearch} className="w-full">
                 <div className="relative group">
                   <input
                     type="text"
                     placeholder={placeholder || 'Cari kontainer...'}
-                    className="w-full rounded-full border-2 border-white/20 bg-white/90 px-6 py-4 pr-14 md:pr-36 text-gray-900 placeholder-gray-500 backdrop-blur-lg focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 font-bold text-sm md:text-base shadow-lg transition-all"
+                    className="w-full rounded-full outline-orange-300 bg-white/90 px-6 py-4.5 pr-14 md:pr-36 text-gray-900 placeholder-gray-500 backdrop-blur-lg focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 font-bold text-sm md:text-base shadow-lg transition-all"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -125,7 +126,7 @@ export default function HeroSection({
             </div>
             
             {/* Features Badges */}
-            <div className="flex flex-wrap gap-3 pt-2 w-full justify-center xl:justify-start">
+            <div className="flex flex-wrap gap-3 pt-2 w-full justify-center lg:justify-start">
               {[
                 { text: getConfig('feature_stock_available', 'Stok Tersedia'), color: 'bg-green-500' },
                 { text: getConfig('feature_quality_guarantee', 'Garansi Kualitas'), color: 'bg-blue-500' },
@@ -143,74 +144,89 @@ export default function HeroSection({
           {/* SEBELAH KANAN: Auto-Sliding Shuffle Product */}
           <div className="lg:col-span-5 w-full flex flex-col items-center justify-center min-h-[380px]">
             {activeProduct ? (
-              <div className="w-full max-w-sm flex flex-col items-center space-y-4">
+              <div className="w-full max-w-sm flex flex-col items-center space-y-6"> 
+              {/* Ditambah space-y agar tidak menabrak dot */}
                 
-                {/* Wrapper Card dengan animasi fade-in-out */}
-                <div className={`w-full bg-white/95 backdrop-blur-md rounded-3xl p-5 shadow-2xl border border-white/20 transform hover:scale-[1.01] group/card relative overflow-hidden transition-all duration-300 ${
-                  isFade ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-                }`}>
+                {/* Wrapper Utama untuk Tumpukan Kartu */}
+                <div className="relative w-full group/stack pt-4">
                   
-                  {/* Badges Status (Bestseller / New) */}
-                  <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
-                    {activeProduct.is_bestseller && (
-                      <span className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" /> Laris
-                      </span>
-                    )}
-                    {activeProduct.is_new && (
-                      <span className="bg-green-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
-                        Baru
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Status Jual / Sewa di Pojok Kanan Atas */}
-                  <div className="absolute top-3 right-3 z-10 flex gap-1 font-bold text-[10px]">
-                    {activeProduct.is_rent && (
-                      <span className="bg-emerald-600 text-white px-2 py-0.5 rounded-md">Sewa</span>
-                    )}
-                    {activeProduct.is_for_sell && (
-                      <span className="bg-orange-600 text-white px-2 py-0.5 rounded-md">Dijual</span>
-                    )}
-                  </div>
+                  {/* KARTU KETIGA (Paling Belakang) */}
+                  <div className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-3xl border border-white/10 shadow-md transform translate-y-2 -rotate-3 scale-[0.92] -z-20 transition-all duration-500 group-hover/stack:-rotate-6 group-hover/stack:translate-y-1"></div>
                   
-                  {/* Product Image */}
-                  <div className="w-full h-48 rounded-2xl overflow-hidden bg-gray-100 relative">
-                    <img 
-                      src={activeProduct.image || '/images/placeholder-container.png'} 
-                      alt={activeProduct.name}
-                      className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/images/placeholder-container.png';
-                      }}
-                    />
-                  </div>
+                  {/* KARTU KEDUANYA (Di Tengah) */}
+                  <div className="absolute inset-0 animate-pulse bg-white/40 backdrop-blur-sm rounded-3xl border border-white/20 shadow-lg transform -translate-y-1 rotate-2 scale-[0.96] -z-10 transition-all duration-500 group-hover/stack:rotate-4 group-hover/stack:-translate-y-2"></div>
 
-                  {/* Product Info */}
-                  <div className="mt-4 space-y-2">
-                    <h3 className="font-black text-slate-900 text-lg md:text-xl line-clamp-1">
-                      {activeProduct.name}
-                    </h3>
+                  {/* KARTU UTAMA (Paling Depan) */}
+                  <div className={`w-full bg-white backdrop-blur-md rounded-3xl p-5 shadow-xl border border-white/20 transform transition-all duration-700 relative z-10 ${
+                    isFade ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                  }`}>
                     
-                    <p className="text-sm text-gray-600 line-clamp-2 font-medium min-h-[40px]">
-                      {activeProduct.description || 'Tidak ada deskripsi singkat.'}
-                    </p>
+                    {/* Badges Status (Bestseller / New) */}
+                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+                      {activeProduct.is_bestseller && (
+                        <span className="bg-amber-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" /> Laris
+                        </span>
+                      )}
+                      {activeProduct.is_new && (
+                        <span className="bg-green-500 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
+                          Baru
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Status Jual / Sewa di Pojok Kanan Atas */}
+                    <div className="absolute top-3 right-3 z-10 flex gap-1 font-bold text-[10px]">
+                      {activeProduct.is_rent && (
+                        <span className="bg-emerald-600 text-white px-2 py-0.5 rounded-md">Sewa</span>
+                      )}
+                      {activeProduct.is_for_sell && (
+                        <span className="bg-orange-600 text-white px-2 py-0.5 rounded-md">Dijual</span>
+                      )}
+                    </div>
                     
-                    {/* Footer Card: Tombol Aksi */}
-                    <div className="pt-3 flex items-center justify-end border-t border-gray-100">
-                      <Link 
-                        href={`/catalog/${activeProduct.slug}`}
-                        className="inline-flex h-9 items-center justify-center rounded-full bg-slate-900 px-5 text-xs font-bold text-white hover:bg-orange-600 transition-colors shadow-md"
-                      >
-                        Detail Unit
-                      </Link>
+                    {/* Product Image */}
+                    <div className="w-full h-48 rounded-2xl overflow-hidden bg-gray-100 relative">
+                      <img 
+                        src={activeProduct.image || '/images/placeholder-container.png'} 
+                        alt={activeProduct.name}
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/images/placeholder-container.png';
+                        }}
+                      />
+                    </div>
+
+                    {/* Product Info */}
+                    <div className="mt-4 space-y-2">
+                      <h3 className="font-black text-slate-900 text-lg md:text-xl line-clamp-1">
+                        {activeProduct.name}
+                      </h3>
+                      
+                      <p className="text-sm text-gray-600 line-clamp-2 font-medium min-h-[40px]">
+                        {activeProduct.description || 'Tidak ada deskripsi singkat.'}
+                      </p>
+                      
+                      {/* Footer Card: Tombol Aksi */}
+                      <div className="pt-3 flex items-center justify-between border-t border-gray-100">
+                        <span className="text-sm font-bold text-slate-900">
+                          {activeProduct.show_price ? `Rp ${activeProduct.price.toLocaleString()}` : 'Penawaran harga'}
+                        </span>
+                        <Link 
+                          href={`/catalog/${activeProduct.slug}`}
+                          className="inline-flex h-9 items-center justify-center rounded-full border border-slate-900 px-5 text-xs font-bold text-slate-900 hover:bg-slate-900 hover:text-white transition-colors shadow-md"
+                        >
+                          Detail Unit <ArrowRight className="w-3 h-3 ml-1 inline-block" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
+                  
                 </div>
 
-                {/* Bullets/Dots Navigation Indicator untuk Slider */}
+                {/* Bullets/Dots Navigation Indicator */}
                 {products.length > 1 && (
-                  <div className="flex items-center justify-center gap-1.5 pt-1">
+                  <div className="flex items-center justify-center gap-1.5 pt-2">
                     {products.map((_, index) => (
                       <button
                         key={index}

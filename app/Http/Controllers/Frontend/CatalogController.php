@@ -229,7 +229,7 @@ class CatalogController extends Controller
                 'category:id,name,slug',
                 'brand:id,name',
                 'coverImage',
-                'images' => fn($q) => $q->orderBy('position'),
+                'images' => fn($q) => $q->orderBy('is_cover', 'desc')->orderBy('position', 'asc'),
             ])
             ->where('slug', $slug)
             ->firstOrFail();

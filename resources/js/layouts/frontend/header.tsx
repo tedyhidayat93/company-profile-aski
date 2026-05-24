@@ -81,19 +81,19 @@ export default function Header() {
         {/* 1. Top Bar */}
         <div className="bg-primary text-white py-1">
           <div className="container mx-auto px-4 flex justify-between items-center text-sm">
-            <div className="flex items-center space-x-4 overflow-hidden">
+            <div className="flex items-center space-x-2 overflow-hidden">
               <a href={`tel:${getConfig('contact_phone', CONTACT_INFO.phone).replace(/\D/g, '')}`} className="flex items-center hover:text-yellow-300 truncate">
-                <Phone className="h-3.5 w-3.5 mr-1.5" />
-                <span className="hidden sm:inline">{getConfig('contact_phone', CONTACT_INFO.phone)}</span>
+                <Phone className="h-3 w-3 mr-1" />
+                <span className="inline text-xs">{getConfig('contact_phone', CONTACT_INFO.phone)}</span>
               </a>
               <a href={`mailto:${getConfig('contact_email', CONTACT_INFO.email)}`} className="flex items-center hover:text-yellow-300 truncate">
-                <Mail className="h-3.5 w-3.5 mr-1.5" />
-                <span className="hidden sm:inline">{getConfig('contact_email', CONTACT_INFO.email)}</span>
+                <Mail className="h-3 w-3 mr-1" />
+                <span className="inline text-xs">{getConfig('contact_email', CONTACT_INFO.email)}</span>
               </a>
             </div>
             
             <div className="flex items-center">
-              <Link href={auth?.user ? dashboard() : login()} className="px-3 py-1 hover:text-yellow-300 transition-colors">
+              <Link href={auth?.user ? dashboard() : login()} className="md:px-6 py-1 hover:text-yellow-300 transition-colors">
                 {auth?.user ? 'Dashboard' : <LogInIcon className="h-4 w-4" />}
               </Link>
             </div>

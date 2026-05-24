@@ -67,7 +67,6 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             }
             return [...prevItems, item as WishlistItem];
         });
-        alert("Berhasil menyimpan produk ke dalam wishlist!")
         return true;
     };
 

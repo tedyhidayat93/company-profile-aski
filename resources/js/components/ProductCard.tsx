@@ -55,12 +55,11 @@ export default function ProductCard({ product }: ProductCardProps) {
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                            <Star className="absolute right-2 top-2 my-auto h-4 w-4 text-yellow-500 cursor-help" />
+                            <Star className="absolute right-3 top-1 my-auto h-4 w-4 text-yellow-500 cursor-help" />
                             </TooltipTrigger>
 
                             <TooltipContent>
-                            <p className='text-black font-bold'>Produk akan diprioritaskan tampil di halaman utama
-                            dan muncul paling atas pada katalog produk.</p>
+                            <p className='text-black font-bold'>Disarankan untukmu</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>

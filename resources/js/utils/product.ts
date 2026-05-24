@@ -10,7 +10,7 @@ interface ProductSellingStatus {
  */
 export function getProductTypeText(product: ProductSellingStatus): string {
   if (product.is_for_sell && product.is_rent) {
-    return 'Jual & Sewa';
+    return 'Dijual & Disewakan';
   } else if (product.is_for_sell) {
     return 'Dijual';
   } else if (product.is_rent) {

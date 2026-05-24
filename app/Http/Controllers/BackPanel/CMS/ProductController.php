@@ -646,7 +646,7 @@ class ProductController extends Controller
                     file: $image,
                     directory: 'products',
                     width: 1600,
-                    height: 1600,
+                    height: 800,
                     quality: 82
                 );
 

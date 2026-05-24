@@ -18,6 +18,7 @@ import SingleGalleryPreview from '@/components/single-gallery-preview';
 import { Product } from '@/types';
 import { generateRecaptcha } from '@/utils/google-recaptcha';
 import SeoHead from '@/components/seo-head';
+import FlashToast from '@/components/toastify';
 
 type OrderFormData = {
   companyName: string;
@@ -187,16 +188,45 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
     // Get wishlist state and actions
     const { isInWishlist, toggleWishlistItem, wishlist } = useWishlist();
 
+    const handleWishlistItem = (product: Product) => {
+        const isAlreadyIn = isInWishlist(product.id);
+
+        toggleWishlistItem({ 
+            id: product.id, 
+            name: product.name, 
+            price: product.price, 
+            image: imageSrc || '/images/placeholder-product.svg', 
+            slug: product.slug 
+        })
+
+        // TRIGGER TOAST SECARA MANUAL
+        window.dispatchEvent(new CustomEvent('trigger-toast', {
+            detail: {
+                type: isAlreadyIn ? 'error' : 'success',
+                message: isAlreadyIn 
+                    ? `${product.name} dihapus dari wishlist` 
+                    : `${product.name} berhasil ditambah! ❤️`
+            }
+        }));
+
+        return !isAlreadyIn;
+    }
+
     const handleQuantityChange = (value: number) => {
-        const newQuantity = quantity + value;
-        // Check stock limit
-        if (newQuantity > 0 && newQuantity <= product.stock) {
-            setQuantity(newQuantity);
+        const newQty = quantity + value;
+        
+        // Tentukan batas atas (max): jika show_stock true, batasnya adalah product.stock, jika tidak, unlimited (Infinity)
+        const maxLimit = product.show_stock ? (product.stock ?? Infinity) : Infinity;
+
+        // Pastikan qty tidak kurang dari 1 dan tidak melebihi limit
+        if (newQty >= 1 && newQty <= maxLimit) {
+            setQuantity(newQty);
         }
     };
 
     return (
         <FrontendLayout>
+            <FlashToast />
 
             <SeoHead
                 title={product.meta_title || product.name}
@@ -255,21 +285,19 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     {product.name}
                                 </h1>
                                 
-                                <div className="flex items-center gap-4 divide-x divide-gray-300">
+                                <div className="flex items-center gap-2 divide-x">
                                     {/* Badge */}
-                                    <div className="flex gap-1 pr-3">
-                                        {product.is_new && (
-                                            <span className="rounded-full bg-emerald-100 border border-emerald-200 px-2 py-1 text-[10px] font-bold text-emerald-800">
-                                            Baru
-                                            </span>
-                                        )}
-                                        {product.is_bestseller && (
-                                            <span className="rounded-full bg-orange-100 border border-orange-200 px-2 py-1 text-[10px] font-bold text-orange-800">
-                                            Terlaris
-                                            </span>
-                                        )}
-                                    </div>
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                    {product.is_new && (
+                                        <span className="rounded-full bg-emerald-100 border border-emerald-200 px-2 py-1 text-[10px] font-bold text-emerald-800">
+                                        Baru
+                                        </span>
+                                    )}
+                                    {product.is_bestseller && (
+                                        <span className="rounded-full bg-orange-100 border border-orange-200 px-2 py-1 text-[10px] font-bold text-orange-800">
+                                        Terlaris
+                                        </span>
+                                    )}
+                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
                                         {getProductTypeText({
                                             is_for_sell: product.is_for_sell || false,
                                             is_rent: product.is_rent || false
@@ -357,14 +385,8 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                             Pesan Sekarang
                                         </button>
                                         <button
-                                            onClick={() => toggleWishlistItem({ 
-                                            id: product.id, 
-                                            name: product.name, 
-                                            price: product.price, 
-                                            image: imageSrc || '/images/placeholder-product.svg', 
-                                            slug: product.slug 
-                                        })}
-                                            className="h-12 w-12 cursor-pointer flex items-center justify-center rounded-lg border-2 border-gray-100 hover:bg-red-50 hover:border-red-100 transition-all group"
+                                            onClick={() => handleWishlistItem(product)}
+                                            className="hProduct12 w-12 cursor-pointer flex items-center justify-center rounded-lg border-2 border-gray-100 hover:bg-red-50 hover:border-red-100 transition-all group"
                                         >
                                             <Heart
                                                 className={`h-6 w-6 transition-colors ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400 group-hover:text-red-400'}`}
@@ -563,7 +585,8 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     <div className="flex items-center bg-white dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm overflow-hidden">
                                         <button type="button" onClick={() => handleQuantityChange(-1)} className="px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">-</button>
                                         <input
-                                            type="number"
+                                            type="text"
+                                            readOnly
                                             value={quantity}
                                             onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                                             className="w-12 text-center text-sm font-bold border-x border-gray-200 dark:border-gray-700 bg-transparent dark:text-white focus:outline-none"
