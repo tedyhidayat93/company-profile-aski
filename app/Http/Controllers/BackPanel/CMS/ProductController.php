@@ -86,12 +86,9 @@ class ProductController extends Controller
                 $query->where('category_id', $request->category);
             })
 
-            ->when(
-                $request->status && $request->status !== 'all',
-                function ($query) use ($request) {
-                    $query->where('status', $request->status);
-                }
-            )
+            ->when($request->status && $request->status !== 'all', function ($query) use ($request) {
+                $query->where('status', $request->status);
+            })
 
             ->when($request->filled('featured') && $request->featured !== 'all', function ($query) use ($request) {
                 $query->where('is_featured', $request->featured === 'true');

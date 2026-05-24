@@ -839,27 +839,29 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                             </div>
                           )}
 
-                          {viewMode === 'detail' && (
                             <div className="flex flex-wrap gap-1 pt-1">
                               {product.is_featured && (
                                 <Badge className="text-[10px]">
-                                  Unggulan
+                                  Unggulan (tampil di halaman utama)
                                 </Badge>
                               )}
 
-                              {product.is_bestseller && (
-                                <Badge className="text-[10px]">
-                                  Terlaris
-                                </Badge>
-                              )}
+                              {viewMode === 'detail' && (
+                                <>
+                                  {product.is_bestseller && (
+                                    <Badge className="text-[10px]">
+                                      Terlaris
+                                    </Badge>
+                                  )}
 
-                              {product.is_new && (
-                                <Badge className="text-[10px]">
-                                  Baru
-                                </Badge>
+                                  {product.is_new && (
+                                    <Badge className="text-[10px]">
+                                      Baru
+                                    </Badge>
+                                  )}
+                                </>
                               )}
                             </div>
-                          )}
                         </div>
                       </div>
                     </TableCell>
