@@ -110,7 +110,7 @@ export default function Header() {
                 <img
                   src={logoImage}
                   alt="Logo"
-                  className="h-8 sm:h-10 lg:h-12 w-auto object-contain"
+                  className="h-13 xl:h-16 w-auto object-contain"
                   onError={(e) => handleImageError(e, '/images/logo-main.png', 'Logo')}
                 />
               </Link>

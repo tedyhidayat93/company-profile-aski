@@ -667,10 +667,12 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
                     </div>
                 </div>
 
-                <FeaturedProductsBanner
-                    products={bestSellerProducts}
-                />
-    
+                {bestSellerProducts.length > 0 && (
+                    <FeaturedProductsBanner
+                        products={bestSellerProducts}
+                    />
+                )}
+
                 {isLoading ? (
                     <div className="grid md:grid-cols-2 gap-3 md:gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3">
                         {Array.from({ length: parseInt(filters.perPage) || 12 }).map((_, index) => (
