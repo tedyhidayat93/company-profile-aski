@@ -502,8 +502,8 @@ class ProductController extends Controller
         $validated['track_quantity'] =
             $validated['track_quantity'] ?? true;
 
-        $validated['position'] =
-            $validated['position'] ?? 0;
+        // $validated['position'] =
+        //     $validated['position'] ?? 0;
 
         return $validated;
     }
@@ -645,8 +645,8 @@ class ProductController extends Controller
                 $path = $this->optimizeSeoImage(
                     file: $image,
                     directory: 'products',
-                    width: 1600,
-                    height: 800,
+                    width: 1200,
+                    height: 630,
                     quality: 82
                 );
 

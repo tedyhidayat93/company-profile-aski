@@ -137,7 +137,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     is_rent: boolean;
     show_price: boolean;
     show_stock: boolean;
-    position: number;
+    // position: number;
     brand_id: string | null;
     category_id: string | null;
     meta_title: string;
@@ -168,7 +168,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     is_rent: product.is_rent,
     show_price: product.show_price,
     show_stock: product.show_stock,
-    position: product.position || 0,
+    // position: product.position || 0,
     brand_id: product.brand_id?.toString() || null,
     category_id: product.category_id?.toString() || null,
     meta_title: product.meta_title || '',
