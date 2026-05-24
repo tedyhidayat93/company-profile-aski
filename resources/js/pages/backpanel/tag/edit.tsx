@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Tag as TagIcon } from 'lucide-react';
+import { ArrowLeft, Loader, Save, Tag as TagIcon } from 'lucide-react';
 
 interface Tag {
   id: number;
@@ -41,7 +41,7 @@ export default function TagEdit({ tag }: Props) {
     },
   ];
 
-  const { data, setData, put, processing, errors, reset } = useForm({
+  const { data, setData, put, processing, transform, errors, reset } = useForm({
     name: tag.name,
     slug: tag.slug,
     type: tag.type,
@@ -55,15 +55,13 @@ export default function TagEdit({ tag }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value?.toString() || '');
-    });
 
-    formData.append('_method', 'PUT');
+    transform((data) => ({
+      ...data,
+    }));
 
-    router.post(`/cpanel/cms/tag/${tag.id}`, formData, {
+    put(`/cpanel/cms/tag/${tag.id}`, {
+      forceFormData: true,
       onSuccess: () => {
         reset();
       },
@@ -158,7 +156,11 @@ export default function TagEdit({ tag }: Props) {
                   </Button>
                 </Link>
                 <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
+                  {processing ? (
+                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {processing ? 'Memperbarui...' : 'Perbarui Tag'}
                 </Button>
               </div>

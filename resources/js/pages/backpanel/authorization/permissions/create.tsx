@@ -28,7 +28,7 @@ export default function PermissionCreate() {
     },
   ];
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     name: '',
     guard_name: 'web',
     group_name: '',

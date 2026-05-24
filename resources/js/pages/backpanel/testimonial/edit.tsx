@@ -31,7 +31,7 @@ interface Props {
 
 export default function TestimonialEdit({ testimonial }: Props) {
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, put, processing, transform, errors, reset }= useForm({
     nama: testimonial.nama,
     keterangan: testimonial.keterangan || '',
     perusahaan: testimonial.perusahaan || '',
@@ -65,30 +65,25 @@ export default function TestimonialEdit({ testimonial }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'foto_avatar' && value instanceof File) {
-        formData.append(key, value);
-      } else if (key === 'is_show_public') {
-        formData.append(key, value ? '1' : '0');
-      } else if (key === 'remove_foto_avatar' && value === true) {
-        formData.append(key, '1'); // Add remove flag only if true
-      } else if (key !== 'foto_avatar' && key !== 'remove_foto_avatar') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
 
-    // Add method spoofing for PUT
-    formData.append('_method', 'PUT');
+    transform((data) => ({
+      ...data,
 
-    router.post(`/cpanel/cms/testimonial/${testimonial.id}`, formData, {
+      // boolean → string
+      is_show_public: data.is_show_public ? '1' : '0',
+
+      // remove flag
+      remove_foto_avatar: data.remove_foto_avatar ? '1' : '0',
+    }));
+
+    put(`/cpanel/cms/testimonial/${testimonial.id}`, {
+      forceFormData: true,
+
       onSuccess: () => {
         reset();
       },
     });
   };
-
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
       <button

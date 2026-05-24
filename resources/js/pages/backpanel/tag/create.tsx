@@ -27,7 +27,7 @@ export default function TagCreate() {
     },
   ];
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     name: '',
     slug: '',
     type: 'product',
@@ -41,13 +41,9 @@ export default function TagCreate() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value?.toString() || '');
-    });
 
-    router.post('/cpanel/cms/tag', formData, {
+    post('/cpanel/cms/tag', {
+      forceFormData: false,
       onSuccess: () => {
         reset();
       },

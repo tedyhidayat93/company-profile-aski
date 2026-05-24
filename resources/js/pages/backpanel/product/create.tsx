@@ -59,7 +59,7 @@ export default function ProductCreate({ brands, categories }: Props) {
   const [formattedPrice, setFormattedPrice] = useState('');
   const [formattedComparePrice, setFormattedComparePrice] = useState('');
 
-  const { data, setData, post, processing, errors, reset } = useForm<{
+  const { data, setData, post, processing, transform, errors, reset } = useForm<{
     name: string;
     slug: string;
     type: 'physical' | 'digital';
@@ -311,50 +311,102 @@ export default function ProductCreate({ brands, categories }: Props) {
     setData('tags', newTags);
   };
 
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+    
+  //   console.log('Form submitted with data:', data);
+  //   console.log('Processing:', processing);
+    
+  //   const formData = new FormData();
+  //   Object.entries(data).forEach(([key, value]) => {
+  //     if (key === 'images') {
+  //       (value as File[]).forEach((file, index) => {
+  //         formData.append(`images[${index}]`, file);
+  //       });
+  //     } else if (key === 'tags') {
+  //       // Send tags as array elements instead of JSON string
+  //       tags.forEach((tag, index) => {
+  //         formData.append(`tags[${index}]`, tag);
+  //       });
+  //     } else if (key === 'price' || key === 'compare_at_price' || key === 'cost_per_item') {
+  //       formData.append(key, value?.toString() || '');
+  //     } else if (key === 'track_quantity' || key === 'is_featured' || key === 'is_bestseller' || key === 'is_new' || key === 'is_for_sell' || key === 'is_rent' || key === 'show_price' || key === 'show_stock') {
+  //       formData.append(key, value ? '1' : '0');
+  //     } else if (key === 'specific_specs') {
+  //       (value as Array<{label: string, value: string, note: string}>).forEach((spec, index) => {
+  //         formData.append(`specific_specs[${index}][label]`, spec.label || '');
+  //         formData.append(`specific_specs[${index}][value]`, spec.value || '');
+  //         formData.append(`specific_specs[${index}][note]`, spec.note || '');
+  //       });
+  //     } else if (key !== 'images' && key !== 'tags' && key !== 'specific_specs') {
+  //       formData.append(key, value?.toString() || '');
+  //     }
+  //   });
+
+  //   console.log('Submitting to: /cpanel/cms/product');
+    
+  //   router.post('/cpanel/cms/product', formData, {
+  //     onSuccess: () => {
+  //       console.log('Form submitted successfully');
+  //       reset();
+  //       setImagePreviews([]);
+  //       setCoverImageIndex(0);
+  //       setTags([]);
+  //       setTagInput('');
+  //       setSlugManuallyEdited(false);
+  //     },
+  //     onError: (errors) => {
+  //       console.log('Form submission errors:', errors);
+  //     },
+  //   });
+  // };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     console.log('Form submitted with data:', data);
     console.log('Processing:', processing);
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'images') {
-        (value as File[]).forEach((file, index) => {
-          formData.append(`images[${index}]`, file);
-        });
-      } else if (key === 'tags') {
-        // Send tags as array elements instead of JSON string
-        tags.forEach((tag, index) => {
-          formData.append(`tags[${index}]`, tag);
-        });
-      } else if (key === 'price' || key === 'compare_at_price' || key === 'cost_per_item') {
-        formData.append(key, value?.toString() || '');
-      } else if (key === 'track_quantity' || key === 'is_featured' || key === 'is_bestseller' || key === 'is_new' || key === 'is_for_sell' || key === 'is_rent' || key === 'show_price' || key === 'show_stock') {
-        formData.append(key, value ? '1' : '0');
-      } else if (key === 'specific_specs') {
-        (value as Array<{label: string, value: string, note: string}>).forEach((spec, index) => {
-          formData.append(`specific_specs[${index}][label]`, spec.label || '');
-          formData.append(`specific_specs[${index}][value]`, spec.value || '');
-          formData.append(`specific_specs[${index}][note]`, spec.note || '');
-        });
-      } else if (key !== 'images' && key !== 'tags' && key !== 'specific_specs') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
+
+    transform((data) => ({
+      ...data,
+
+      // boolean → string
+      track_quantity: data.track_quantity ? '1' : '0',
+      is_featured: data.is_featured ? '1' : '0',
+      is_bestseller: data.is_bestseller ? '1' : '0',
+      is_new: data.is_new ? '1' : '0',
+      is_for_sell: data.is_for_sell ? '1' : '0',
+      is_rent: data.is_rent ? '1' : '0',
+      show_price: data.show_price ? '1' : '0',
+      show_stock: data.show_stock ? '1' : '0',
+
+      // ensure arrays use latest state
+      tags,
+
+      // optional fallback
+      compare_at_price: data.compare_at_price || '',
+      cost_per_item: data.cost_per_item || '',
+      quantity: data.quantity || '',
+      barcode: data.barcode || '',
+    }));
 
     console.log('Submitting to: /cpanel/cms/product');
-    
-    router.post('/cpanel/cms/product', formData, {
+
+    post('/cpanel/cms/product', {
+      forceFormData: true,
+
       onSuccess: () => {
         console.log('Form submitted successfully');
+
         reset();
+
         setImagePreviews([]);
         setCoverImageIndex(0);
         setTags([]);
         setTagInput('');
         setSlugManuallyEdited(false);
       },
+
       onError: (errors) => {
         console.log('Form submission errors:', errors);
       },

@@ -17,7 +17,7 @@ interface Props {
 
 export default function ClientCreate({}: Props) {
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     name: '',
     website: '',
     phone: '',
@@ -45,20 +45,17 @@ export default function ClientCreate({}: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'image' && value instanceof File) {
-        formData.append(key, value);
-      } else if (key === 'is_active') {
-        // Convert boolean to string for FormData
-        formData.append(key, value ? '1' : '0');
-      } else if (key !== 'image') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
 
-    router.post('/cpanel/cms/client', formData, {
+    transform((data) => ({
+      ...data,
+
+      // boolean → string
+      is_active: data.is_active ? '1' : '0',
+    }));
+
+    post('/cpanel/cms/client', {
+      forceFormData: true,
+
       onSuccess: () => {
         reset();
       },

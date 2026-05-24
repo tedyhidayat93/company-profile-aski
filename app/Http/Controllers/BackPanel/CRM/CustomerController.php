@@ -71,7 +71,7 @@ class CustomerController extends Controller
 
         $customer = Customer::create($validated);
 
-        return redirect()->route('crm.customers.index')
+        return redirect()->route('crm.customer.index')
             ->with('success', 'Pelanggan berhasil dibuat');
     }
 
@@ -120,7 +120,7 @@ class CustomerController extends Controller
 
         $customer->update($validated);
 
-        return redirect()->route('crm.customers.index')
+        return redirect()->route('crm.customer.index')
             ->with('success', 'Pelanggan berhasil diperbarui');
     }
 
@@ -132,7 +132,7 @@ class CustomerController extends Controller
 
         $customer->delete();
 
-        return redirect()->route('crm.customers.index')
+        return redirect()->route('crm.customer.index')
             ->with('success', 'Pelanggan berhasil dihapus');
     }
 
@@ -144,7 +144,7 @@ class CustomerController extends Controller
         $customer->is_active = !$customer->is_active;
         $customer->save();
 
-        return redirect()->route('crm.customers.index')
+        return redirect()->route('crm.customer.index')
             ->with('success', 'Status pelanggan berhasil diperbarui');
     }
 }

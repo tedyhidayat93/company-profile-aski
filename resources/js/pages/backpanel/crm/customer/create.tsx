@@ -27,7 +27,7 @@ export default function CustomerCreate() {
     },
   ];
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     name: '',
     email: '',
     phone: '',
@@ -42,13 +42,8 @@ export default function CustomerCreate() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value?.toString() || '');
-    });
 
-    router.post('/cpanel/crm/customer', formData, {
+    post('/cpanel/crm/customer', {
       onSuccess: () => {
         reset();
       },

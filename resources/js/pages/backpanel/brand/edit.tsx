@@ -31,7 +31,7 @@ interface Props {
 }
 
 export default function BrandEdit({ brand }: Props) {
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, put, processing, transform, errors, reset }= useForm({
     name: brand.name,
     slug: brand.slug,
     description: brand.description || '',
@@ -63,24 +63,20 @@ export default function BrandEdit({ brand }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'logo' && value instanceof File) {
-        formData.append(key, value);
-      } else if (key === 'is_active') {
-        formData.append(key, value ? '1' : '0');
-      } else if (key === 'remove_logo' && value === true) {
-        formData.append(key, '1'); // Add remove flag only if true
-      } else if (key !== 'logo' && key !== 'remove_logo') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
 
-    // Add method spoofing for PUT
-    formData.append('_method', 'PUT');
+    transform((data) => ({
+      ...data,
 
-    router.post(`/cpanel/cms/brand/${brand.id}`, formData, {
+      // boolean → string
+      is_active: data.is_active ? '1' : '0',
+
+      // remove flag
+      remove_logo: data.remove_logo ? '1' : '0',
+    }));
+
+    put(`/cpanel/cms/brand/${brand.id}`, {
+      forceFormData: true,
+
       onSuccess: () => {
         reset();
       },

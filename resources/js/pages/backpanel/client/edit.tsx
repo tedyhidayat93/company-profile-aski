@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Loader } from 'lucide-react';
 
 interface Client {
   id: number;
@@ -32,7 +32,7 @@ interface Props {
 
 export default function ClientEdit({ client }: Props) {
  
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, put, processing, transform, errors, reset }= useForm({
     name: client.name,
     website: client.website || '',
     phone: client.phone || '',
@@ -63,26 +63,20 @@ export default function ClientEdit({ client }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'image' && value instanceof File) {
-        formData.append(key, value);
-      } else if (key === 'is_active') {
-        // Convert boolean to string for FormData
-        formData.append(key, value ? '1' : '0');
-      } else if (key === 'remove_image' && value === true) {
-        // Add remove_image flag only if true
-        formData.append(key, '1');
-      } else if (key !== 'image' && key !== 'remove_image') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
 
-    // Add method spoofing for PUT
-    formData.append('_method', 'PUT');
+    transform((data) => ({
+      ...data,
 
-    router.post(`/cpanel/cms/client/${client.id}`, formData, {
+      // boolean → string
+      is_active: data.is_active ? '1' : '0',
+
+      // remove flag
+      remove_image: data.remove_image ? '1' : '0',
+    }));
+
+    put(`/cpanel/cms/client/${client.id}`, {
+      forceFormData: true,
+
       onSuccess: () => {
         reset();
       },
@@ -205,7 +199,7 @@ export default function ClientEdit({ client }: Props) {
                         <div className="space-y-4">
                           <div className="relative inline-block">
                             <img
-                              src={data.image ? URL.createObjectURL(data.image) : client.image ? `/storage/clients/${client.image}` : ''}
+                              src={data.image ? URL.createObjectURL(data.image) : client.image ? `/storage/${client.image}` : ''}
                               alt="Preview"
                               className="h-32 w-32 object-cover rounded-lg mx-auto"
                             />

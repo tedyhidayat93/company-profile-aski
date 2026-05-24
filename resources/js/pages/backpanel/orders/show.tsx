@@ -160,8 +160,8 @@ export default function OrderShow({ order }: Props) {
 
             {/* Order Summary & Product Info Combined / Grouped */}
             <Card className="p-0 overflow-hidden shadow-sm">
-              <CardHeader className="pb-2! pt-4 border-b bg-slate-200/60 dark:bg-slate-800/50 ">
-                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <CardHeader className="pb-2! pt-4 border-b bg-slate-800 dark:bg-slate-800/50 ">
+                <CardTitle className="flex items-center gap-2 text-white font-semibold">
                   <Hash className="h-5 w-5 text-muted-foreground" />
                   Detail & Ringkasan Pesanan
                 </CardTitle>
@@ -253,8 +253,8 @@ export default function OrderShow({ order }: Props) {
 
             {/* Customer Information */}
             <Card className="p-0 shadow-sm overflow-hidden">
-              <CardHeader className="pb-2! pt-4 border-b bg-slate-200/60 dark:bg-slate-800/50 ">
-                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <CardHeader className="pb-2! pt-4 border-b bg-slate-800 dark:bg-slate-800/50 ">
+                <CardTitle className="flex items-center gap-2 text-white font-semibold">
                   <User className="h-5 w-5 text-muted-foreground" />
                   Informasi Pelanggan
                 </CardTitle>
@@ -383,7 +383,7 @@ export default function OrderShow({ order }: Props) {
               <CardHeader className="pb-2! pt-4  border-b">
                 <CardTitle className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                   <Clock className="h-4 w-4 text-primary" />
-                  Riwayat Aktivitas Pesanan
+                  Riwayat
                 </CardTitle>
               </CardHeader>
               

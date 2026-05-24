@@ -46,31 +46,20 @@ export default function Login({
       return;
     }
 
-    try {
-      const token = await generateRecaptcha('login');
+    const token = await generateRecaptcha('login');
 
-      form.transform((data) => ({
-        ...data,
-        recaptcha_token: token,
-      }));
+    form.transform((data) => ({
+      ...data,
+      recaptcha_token: token,
+    }));
 
-      form.post(store.url(), {
-        preserveScroll: true,
+    form.post(store.url(), {
+      preserveScroll: true,
 
-        onFinish: () => {
-          form.reset('password');
-        },
-
-        onError: () => {
-          form.setData('recaptcha_token', '');
-        },
-      });
-
-    } catch (error) {
-      console.error('reCAPTCHA error:', error);
-
-      form.setData('recaptcha_token', '');
-    }
+      onFinish: () => {
+        form.reset('password');
+      },
+    });
   };
 
   return (

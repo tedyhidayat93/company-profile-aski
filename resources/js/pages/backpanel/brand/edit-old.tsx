@@ -46,7 +46,7 @@ export default function BrandEdit({ brand }: Props) {
     }
   }, [flash]);
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     name: brand.name,
     slug: brand.slug,
     description: brand.description || '',

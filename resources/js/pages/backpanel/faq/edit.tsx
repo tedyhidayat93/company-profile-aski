@@ -43,7 +43,7 @@ export default function FaqEdit({ faq }: Props) {
     },
   ];
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, put, processing, transform, errors, reset }= useForm({
     question: faq.question,
     answer: faq.answer,
     category: faq.category,
@@ -58,20 +58,15 @@ export default function FaqEdit({ faq }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'is_active') {
-        // Convert boolean to string for FormData
-        formData.append(key, value ? '1' : '0');
-      } else {
-        formData.append(key, value?.toString() || '');
-      }
-    });
 
-    formData.append('_method', 'PUT');
+    transform((data) => ({
+      ...data,
 
-    router.post(`/cpanel/cms/faq/${faq.id}`, formData, {
+      // boolean → string
+      is_active: data.is_active ? '1' : '0',
+    }));
+
+    put(`/cpanel/cms/faq/${faq.id}`, {
       onSuccess: () => {
         reset();
       },

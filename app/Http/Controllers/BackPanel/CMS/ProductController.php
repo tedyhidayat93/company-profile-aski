@@ -112,6 +112,7 @@ class ProductController extends Controller
                 'coverImage',
             ])
 
+            ->orderBy('is_featured', 'desc')
             ->orderBy(...$this->getSort($request->sort))
 
             ->paginate($request->integer('per_page', 10))
@@ -528,12 +529,23 @@ class ProductController extends Controller
     private function getSort(?string $sort): array
     {
         return match ($sort) {
+
             'oldest' => ['created_at', 'asc'],
-            'most_viewed' => ['views', 'desc'],
-            'least_viewed' => ['views', 'asc'],
+            'newest' => ['created_at', 'desc'],
+
             'name_asc' => ['name', 'asc'],
             'name_desc' => ['name', 'desc'],
-            default => ['id', 'desc'],
+
+            'price_low' => ['price', 'asc'],
+            'price_high' => ['price', 'desc'],
+
+            'stock_low' => ['quantity', 'asc'],
+            'stock_high' => ['quantity', 'desc'],
+
+            'most_viewed' => ['views', 'desc'],
+            'least_viewed' => ['views', 'asc'],
+
+            default => ['created_at', 'desc'],
         };
     }
 

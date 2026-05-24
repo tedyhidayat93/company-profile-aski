@@ -46,7 +46,7 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
   const [featuredImagePreview, setFeaturedImagePreview] = useState<string | null>(null);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     title: '',
     slug: '',
     content: '',
@@ -110,21 +110,20 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'featured_image' && value instanceof File) {
-        formData.append('featured_image', value);
-      } else if (key === 'tags') {
-        formData.append(key, JSON.stringify(tags));
-      } else if (key !== 'featured_image') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
 
-    router.post('/cpanel/cms/article', formData, {
+    transform((data) => ({
+      ...data,
+
+      // gunakan latest tags state
+      tags,
+    }));
+
+    post('/cpanel/cms/article', {
+      forceFormData: true,
+
       onSuccess: () => {
         reset();
+
         setTags([]);
         setTagInput('');
         setFeaturedImagePreview(null);

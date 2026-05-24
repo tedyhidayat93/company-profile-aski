@@ -9,22 +9,34 @@ interface FlashProps {
 }
 
 export default function FlashToast() {
+
   const { props } = usePage();
 
-  const flash = (props.flash as FlashProps) || {
-    success: '',
-    error: '',
-  };
+  const flash = (props.flash as FlashProps) || {};
 
   useEffect(() => {
+
     if (flash.success) {
-      toast.success(flash.success);
+
+      toast.success(
+        flash.success,
+        {
+          toastId: `success-${flash.success}`,
+        }
+      );
     }
 
     if (flash.error) {
-      toast.error(flash.error);
+
+      toast.error(
+        flash.error,
+        {
+          toastId: `error-${flash.error}`,
+        }
+      );
     }
-  }, [flash.success, flash.error]);
+
+  }, [flash]);
 
   return (
     <ToastContainer

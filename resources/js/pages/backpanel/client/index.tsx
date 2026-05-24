@@ -190,7 +190,7 @@ export default function ClientIndex({ clients, filters }: Props) {
                             <TableCell>
                                 {client.image ? (
                                 <img
-                                    src={`/storage/clients/${client.image}`}
+                                    src={`/storage/${client.image}`}
                                     alt={client.name}
                                     onError={handleImageError}
                                     className="h-12 w-12 object-cover rounded-md"

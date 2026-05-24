@@ -57,15 +57,8 @@ export default function CustomerEdit({ customer }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value?.toString() || '');
-    });
 
-    formData.append('_method', 'PUT');
-
-    router.post(`/cpanel/crm/customer/${customer.id}`, formData, {
+    put(`/cpanel/crm/customer/${customer.id}`, {
       onSuccess: () => {
         reset();
       },

@@ -90,7 +90,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [editingConfig, setEditingConfig] = React.useState<Configuration | null>(null);
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const configForm = useForm({
     configurations: configurations.map(config => ({
       id: config.id,
       value: config.value

@@ -28,7 +28,7 @@ export default function FaqCreate() {
     },
   ];
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     question: '',
     answer: '',
     category: 'general',
@@ -43,18 +43,15 @@ export default function FaqCreate() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'is_active') {
-        // Convert boolean to string for FormData
-        formData.append(key, value ? '1' : '0');
-      } else {
-        formData.append(key, value?.toString() || '');
-      }
-    });
 
-    router.post('/cpanel/cms/faq', formData, {
+    transform((data) => ({
+      ...data,
+
+      // boolean → string
+      is_active: data.is_active ? '1' : '0',
+    }));
+
+    post('/cpanel/cms/faq', {
       onSuccess: () => {
         reset();
       },

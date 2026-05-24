@@ -61,7 +61,7 @@ export default function ServiceEdit({ service, categories }: Props) {
     },
   ];
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, put, processing, transform, errors, reset }= useForm({
     name: service.name,
     slug: service.slug,
     description: service.description || '',
@@ -117,22 +117,18 @@ export default function ServiceEdit({ service, categories }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'image' && value instanceof File) {
-        formData.append(key, value);
-      } else if (key === 'is_active' || key === 'is_featured') {
-        // Convert boolean to string for FormData
-        formData.append(key, value ? '1' : '0');
-      } else if (key !== 'image') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
 
-    formData.append('_method', 'PUT');
+    transform((data) => ({
+      ...data,
 
-    router.post(`/cpanel/cms/service/${service.id}`, formData, {
+      // boolean → string
+      is_active: data.is_active ? '1' : '0',
+      is_featured: data.is_featured ? '1' : '0',
+    }));
+
+    put(`/cpanel/cms/service/${service.id}`, {
+      forceFormData: true,
+
       onSuccess: () => {
         reset();
       },

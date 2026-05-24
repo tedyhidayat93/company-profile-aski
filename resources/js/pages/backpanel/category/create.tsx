@@ -52,7 +52,7 @@ export default function CategoryCreate({ parentCategories }: Props) {
 
   const [imagePreview, setImagePreview] = useState<string>('');
 
-  const { data, setData, post, processing, errors, reset } = useForm<{
+  const { data, setData, post, processing, transform, errors, reset }= useForm<{
     name: string;
     slug: string;
     description: string;
@@ -100,26 +100,26 @@ export default function CategoryCreate({ parentCategories }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'image' && value instanceof File) {
-        formData.append('image', value);
-      } else if (key === 'parent_id' && value === '0') {
-        // Tidak kirim parent_id jika '0' (root category)
-      } else if (key !== 'image') {
-        formData.append(key, (value ?? '').toString());
-      }
-    });
+
+    transform((data) => ({
+      ...data,
+
+      // root category
+      parent_id: data.parent_id === '0'
+        ? null
+        : data.parent_id,
+    }));
 
     post('/cpanel/cms/category', {
+      forceFormData: true,
+
       onSuccess: () => {
         reset();
         setImagePreview('');
       },
     });
   };
-
+  
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Buat Kategori" />

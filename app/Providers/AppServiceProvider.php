@@ -36,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
         Product::observe(
             ProductObserver::class
         );
+
         Article::observe(
             ArticleObserver::class
         );
@@ -60,11 +61,44 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+
         Inertia::share([
-            'recentOrders' => fn () => Order::getWaitingToCheckRecentOrders(),
-            'footerProducts' => fn () => Product::getBestsellerForFooter(),
-            'footerArticles' => fn () => Article::getMostReadForFooter(),
-            'footerServices' => fn () => Service::getAllForFooter(),
+            /*
+            |--------------------------------------------------------------------------
+            | Footer Products
+            |--------------------------------------------------------------------------
+            */
+
+            'footerProducts' => fn () => Cache::remember(
+                'shared.footer.products',
+                now()->addHours(1),
+                fn () => Product::getBestsellerForFooter()
+            ),
+
+            /*
+            |--------------------------------------------------------------------------
+            | Footer Articles
+            |--------------------------------------------------------------------------
+            */
+
+            'footerArticles' => fn () => Cache::remember(
+                'shared.footer.articles',
+                now()->addHours(1),
+                fn () => Article::getMostReadForFooter()
+            ),
+
+            /*
+            |--------------------------------------------------------------------------
+            | Footer Services
+            |--------------------------------------------------------------------------
+            */
+
+            'footerServices' => fn () => Cache::remember(
+                'shared.footer.services',
+                now()->addHours(6),
+                fn () => Service::getAllForFooter()
+            ),
+
         ]);
 
         View::share('siteconfig',

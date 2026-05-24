@@ -111,7 +111,7 @@ export default function CustomerIndex({ customers, filters }: Props) {
     setActiveFilter(value);
     const params: Record<string, any> = {};
     if (search) params.search = search;
-    if (value) params.active = value;
+    if (value !== 'all') params.active = value;
     if (dateRange.from) params.date_from = dateRange.from.toISOString().split('T')[0];
     if (dateRange.to) params.date_to = dateRange.to.toISOString().split('T')[0];
     

@@ -30,7 +30,7 @@ export default function BrandCreate() {
 
   const [imagePreview, setImagePreview] = useState<string>('');
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     name: '',
     slug: '',
     description: '',
@@ -58,22 +58,20 @@ export default function BrandCreate() {
       reader.readAsDataURL(file);
     }
   };
-
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'logo' && value instanceof File) {
-        formData.append(key, value);
-      } else if (key === 'is_active') {
-        formData.append(key, value ? '1' : '0');
-      } else if (key !== 'logo') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
 
-    router.post('/cpanel/cms/brand', formData, {
+    transform((data) => ({
+      ...data,
+
+      // boolean → string
+      is_active: data.is_active ? '1' : '0',
+    }));
+
+    post('/cpanel/cms/brand', {
+      forceFormData: true,
+
       onSuccess: () => {
         reset();
       },

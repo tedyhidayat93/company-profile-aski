@@ -36,7 +36,7 @@ export default function CategoryEdit({ category, parentCategories }: Props) {
 
   const [imagePreview, setImagePreview] = useState<string>('');
 
-  const { data, setData, post, processing, errors, reset } = useForm<{
+  const { data, setData, put, processing, transform, errors, reset }= useForm<{
     name: string;
     slug: string;
     description: string;
@@ -83,24 +83,22 @@ export default function CategoryEdit({ category, parentCategories }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'image' && value instanceof File) {
-        formData.append('image', value);
-      } else if (key === 'parent_id' && value === 'none') {
-        // Tidak kirim parent_id jika 'none' (root category)
-      } else if (key === 'is_active') {
-        // Convert boolean to string for FormData
-        formData.append(key, value ? '1' : '0');
-      } else if (key !== 'image') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
 
-    formData.append('_method', 'PUT');
+    transform((data) => ({
+      ...data,
 
-    router.post(`/cpanel/cms/category/${category.id}`, formData, {
+      // boolean → string
+      is_active: data.is_active ? '1' : '0',
+
+      // root category
+      parent_id: data.parent_id === 'none'
+        ? null
+        : data.parent_id,
+    }));
+
+    put(`/cpanel/cms/category/${category.id}`, {
+      forceFormData: true,
+
       onSuccess: () => {
         reset();
       },

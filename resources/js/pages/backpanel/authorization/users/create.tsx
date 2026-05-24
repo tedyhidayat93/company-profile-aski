@@ -27,7 +27,7 @@ export default function UserCreate({ roles }: Props) {
     { title: 'Buat', href: '/cpanel/authorization/user-management/create' },
   ];
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     name: '',
     email: '',
     password: '',

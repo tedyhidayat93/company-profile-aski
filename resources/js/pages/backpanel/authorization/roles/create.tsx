@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Shield } from 'lucide-react';
+import { ArrowLeft, Loader, Save, Shield } from 'lucide-react';
 
 export default function RoleCreate() {
   const breadcrumbs: BreadcrumbItem[] = [
@@ -27,7 +27,7 @@ export default function RoleCreate() {
     },
   ];
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     name: '',
     guard_name: 'web',
     description: '',

@@ -17,7 +17,7 @@ interface Props {
 
 export default function TestimonialCreate({}: Props) {
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     nama: '',
     keterangan: '',
     perusahaan: '',
@@ -48,19 +48,17 @@ export default function TestimonialCreate({}: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'foto_avatar' && value instanceof File) {
-        formData.append(key, value);
-      } else if (key === 'is_show_public') {
-        formData.append(key, value ? '1' : '0');
-      } else if (key !== 'foto_avatar') {
-        formData.append(key, value?.toString() || '');
-      }
-    });
 
-    router.post('/cpanel/cms/testimonial', formData, {
+    transform((data) => ({
+      ...data,
+
+      // boolean → string
+      is_show_public: data.is_show_public ? '1' : '0',
+    }));
+
+    post('/cpanel/cms/testimonial', {
+      forceFormData: true,
+
       onSuccess: () => {
         reset();
       },

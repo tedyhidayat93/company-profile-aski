@@ -80,8 +80,20 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     to: filters?.date_to ? new Date(filters.date_to) : undefined,
   });
   const [perPageFilter, setPerPageFilter] = React.useState(filters?.per_page ?? '10');
-  const [viewMode, setViewMode] = React.useState<'simple' | 'detail'>('simple');
   const [showAdvancedFilter, setShowAdvancedFilter] = React.useState(false);
+  // const [viewMode, setViewMode] = React.useState<'simple' | 'detail'>('simple');
+  const [viewMode, setViewMode] =
+    React.useState<'simple' | 'detail'>(() => {
+      if (typeof window === 'undefined') {
+        return 'simple';
+      }
+
+      return (
+        localStorage.getItem('product-view-mode') as
+          | 'simple'
+          | 'detail'
+      ) || 'simple';
+    });
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -374,6 +386,13 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     },
   ];
 
+  React.useEffect(() => {
+    localStorage.setItem(
+      'product-view-mode',
+      viewMode
+    );
+  }, [viewMode]);
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Produk" />
@@ -553,11 +572,121 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
 
                     {/* DATE */}
-                    <div className="space-y-1 xl:col-span-2">
+                    <div className="space-y-1">
                       <DateRangePicker
                         value={dateRange}
                         onChange={handleDateRangeChange}
                       />
+                    </div>
+
+                    {/* SORT */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Urutkan
+                      </Label>
+
+                      <Select
+                        value={sortFilter}
+                        onValueChange={handleSortFilter}
+                      >
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder="Urutkan" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectItem value="newest">
+                            Terbaru
+                          </SelectItem>
+
+                          <SelectItem value="oldest">
+                            Terlama
+                          </SelectItem>
+
+                          <SelectItem value="name_asc">
+                            Nama A-Z
+                          </SelectItem>
+
+                          <SelectItem value="name_desc">
+                            Nama Z-A
+                          </SelectItem>
+
+                          <SelectItem value="price_low">
+                            Harga Terendah
+                          </SelectItem>
+
+                          <SelectItem value="price_high">
+                            Harga Tertinggi
+                          </SelectItem>
+
+                          <SelectItem value="stock_low">
+                            Stok Terendah
+                          </SelectItem>
+
+                          <SelectItem value="stock_high">
+                            Stok Tertinggi
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* FEATURED */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Produk Unggulan
+                      </Label>
+
+                      <Select
+                        value={featuredFilter}
+                        onValueChange={handleFeaturedFilter}
+                      >
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder="Unggulan" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectItem value="all">
+                            Semua
+                          </SelectItem>
+
+                          <SelectItem value="yes">
+                            Unggulan
+                          </SelectItem>
+
+                          <SelectItem value="no">
+                            Bukan Unggulan
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* BESTSELLER */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Produk Terlaris
+                      </Label>
+
+                      <Select
+                        value={bestsellerFilter}
+                        onValueChange={handleBestsellerFilter}
+                      >
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder="Terlaris" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectItem value="all">
+                            Semua
+                          </SelectItem>
+
+                          <SelectItem value="yes">
+                            Terlaris
+                          </SelectItem>
+
+                          <SelectItem value="no">
+                            Bukan Terlaris
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {/* TIPE */}

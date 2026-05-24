@@ -4,7 +4,10 @@ namespace App\Traits;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image;
+
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Format;
 
 trait HandlesSeoImage
 {
@@ -22,29 +25,37 @@ trait HandlesSeoImage
         |--------------------------------------------------------------------------
         */
 
-        $filename =
-            uniqid('seo_')
-            . '.webp';
+        $filename = uniqid('seo_') . '.webp';
 
         /*
         |--------------------------------------------------------------------------
-        | Read Image
+        | Image Manager
         |--------------------------------------------------------------------------
         */
 
-        $image = Image::read(
+        $manager = ImageManager::usingDriver(
+            Driver::class
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Decode Image
+        |--------------------------------------------------------------------------
+        */
+
+        $image = $manager->decodePath(
             $file->getRealPath()
         );
 
         /*
         |--------------------------------------------------------------------------
-        | Cover Resize
+        | Resize / Crop
         |--------------------------------------------------------------------------
         */
 
         $image->cover(
-            $width,
-            $height
+            width: $width,
+            height: $height
         );
 
         /*
@@ -53,8 +64,9 @@ trait HandlesSeoImage
         |--------------------------------------------------------------------------
         */
 
-        $encoded = $image->toWebp(
-            $quality
+        $encoded = $image->encodeUsingFormat(
+            Format::WEBP,
+            quality: $quality
         );
 
         /*
@@ -63,10 +75,7 @@ trait HandlesSeoImage
         |--------------------------------------------------------------------------
         */
 
-        $path =
-            $directory
-            . '/'
-            . $filename;
+        $path = $directory . '/' . $filename;
 
         Storage::disk('public')->put(
             $path,
