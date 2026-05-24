@@ -65,7 +65,7 @@ export default function Header() {
     }
   };
 
-  const whatsappUrl = `https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=Halo%20Alumoda%2C%20saya%20ingin%20bertanya`;
+  const whatsappUrl = `https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=${getConfig('whatsapp_message', 'Halo%20Alumoda%2C%20saya%20ingin%20bertanya')}`;
 
   return (
     <>

@@ -4,6 +4,7 @@ import React, { ReactNode } from 'react';
 import Header from '@/layouts/frontend/header';
 import Footer from '@/layouts/frontend/footer';
 import { usePage } from '@inertiajs/react';
+import { Toaster } from "@/components/ui/sonner";
 
 // Di FrontendLayout
 interface FrontendLayoutProps {
@@ -16,6 +17,7 @@ export default function FrontendLayout({ children, title }: FrontendLayoutProps)
     <div className="min-h-screen flex flex-col">
       <Head title={title} />
       <Header />
+      <Toaster />
       <main className="grow bg-white dark:bg-gray-800">
         {children}
       </main>

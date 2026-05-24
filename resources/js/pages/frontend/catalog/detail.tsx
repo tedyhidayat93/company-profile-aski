@@ -1,5 +1,23 @@
-import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, ShoppingCart, Heart, Share2, Check, Truck, Shield, RefreshCw, X, Phone, AlertCircle, Info, Building2, User, Mail, Clock, InfoIcon, Star } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { 
+    ShoppingCart,
+    Heart,
+    Share2,
+    Check,
+    X,
+    Phone,
+    AlertCircle,
+    Info,
+    Building2,
+    User,
+    Mail,
+    InfoIcon,
+    MessageCircle,
+    Facebook,
+    Twitter,
+    Link2,
+    Instagram
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -18,7 +36,14 @@ import SingleGalleryPreview from '@/components/single-gallery-preview';
 import { Product } from '@/types';
 import { generateRecaptcha } from '@/utils/google-recaptcha';
 import SeoHead from '@/components/seo-head';
-import FlashToast from '@/components/toastify';
+import { toast } from "sonner"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 type OrderFormData = {
   companyName: string;
@@ -150,6 +175,10 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                 setQuantity(1);
                 setIsOrderModalOpen(false);
                 setIsSuccessModalOpen(true);
+
+                toast.success("Berhasil membuat pesanan.",{
+                    description: 'Tim kami akan segera menghubungi Anda untuk konfirmasi lebih lanjut.'
+                });
                 
                 setFormData({
                     companyName: '',
@@ -159,7 +188,10 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                     notes: ''
                 });
             } else {
-                throw new Error(response.data.message || 'Failed to submit order');
+                toast.error("Gagal membuat pesanan.",{
+                    description: response.data.message || 'Silakan coba lagi untuk membuat pesanan.'
+                });
+                throw new Error(response.data.message || 'Gagal membuat pesanan.');
             }
         } catch (error) {
             console.error('Order submission error:', error);
@@ -173,10 +205,14 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                     });
                     alert(errorMessage);
                 } else {
-                    alert(error.response?.data?.message || error.message || 'Terjadi kesalahan saat mengirim pesanan. Silakan coba lagi.');
+                    toast.error("Gagal membuat pesanan.",{
+                        description: error.response?.data?.message || error.message || 'Terjadi kesalahan saat mengirim pesanan. Silakan coba lagi.'
+                    });
                 }
             } else {
-                alert(error instanceof Error ? error.message : 'Terjadi kesalahan saat mengirim pesanan. Silakan coba lagi.');
+                toast.error("Gagal membuat pesanan.",{
+                    description: error instanceof Error ? error.message : 'Terjadi kesalahan saat mengirim pesanan. Silakan coba lagi.'
+                });
             }
         } finally {
             setTimeout(() => {
@@ -187,30 +223,27 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
     
     // Get wishlist state and actions
     const { isInWishlist, toggleWishlistItem, wishlist } = useWishlist();
-
     const handleWishlistItem = (product: Product) => {
-        const isAlreadyIn = isInWishlist(product.id);
+        const added = toggleWishlistItem({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: imageSrc || '/images/placeholder-product.svg',
+            slug: product.slug
+        });
 
-        toggleWishlistItem({ 
-            id: product.id, 
-            name: product.name, 
-            price: product.price, 
-            image: imageSrc || '/images/placeholder-product.svg', 
-            slug: product.slug 
-        })
+        if (added) {
+            toast.success("Berhasil menambahkan ke wishlist ❤️", {
+                description: product.name + ' telah ditambahkan ke dalam wishlist',
+            });
+        } else {
+            toast.success("Berhasil menghapus wishlist.", {
+                description: product.name + ' telah dihapus dari wishlist',
+            });
+        }
 
-        // TRIGGER TOAST SECARA MANUAL
-        window.dispatchEvent(new CustomEvent('trigger-toast', {
-            detail: {
-                type: isAlreadyIn ? 'error' : 'success',
-                message: isAlreadyIn 
-                    ? `${product.name} dihapus dari wishlist` 
-                    : `${product.name} berhasil ditambah! ❤️`
-            }
-        }));
-
-        return !isAlreadyIn;
-    }
+        return added;
+    };
 
     const handleQuantityChange = (value: number) => {
         const newQty = quantity + value;
@@ -226,7 +259,6 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
 
     return (
         <FrontendLayout>
-            <FlashToast />
 
             <SeoHead
                 title={product.meta_title || product.name}
@@ -303,13 +335,6 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                             is_rent: product.is_rent || false
                                         })}
                                     </span> 
-                                    {
-                                        product.show_stock && (
-                                            <span className={`text-sm ${product.stock > 0 ? 'text-gray-500' : 'text-red-500 font-medium'}`}>
-                                                {product.stock > 0 ? `Tersedia ${product.stock} unit` : 'Stok Habis'}
-                                            </span>
-                                        )
-                                    }
                                 </div>
                             </div>
 
@@ -353,8 +378,8 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
 
                             {/* Selection & Actions */}
                             <div className="mt-3 border-gray-100">
-                                <div className="flex flex-col sm:flex-row sm:items-end gap-6">
-                                    {/* Quantity */}
+                                {/* Quantity */}
+                                <div className="flex gap-3 items-center mb-4">
                                     <div className="w-32">
                                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Jumlah</label>
                                         <div className="flex bg-white items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary/20">
@@ -374,6 +399,15 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                             >+</button>
                                         </div>
                                     </div>
+                                    {
+                                        product.show_stock && (
+                                            <span className={`text-sm mt-6 ${product.stock > 0 ? 'text-gray-700' : 'text-red-500 font-medium'}`}>
+                                                {product.stock > 0 ? `Stok :  ${product.stock} unit` : 'Stok Habis'}
+                                            </span>
+                                        )
+                                    }
+                                </div>
+                                <div className="flex flex-col sm:flex-row sm:items-end gap-6">
 
                                     {/* Primary Buttons */}
                                     <div className="flex-1 flex gap-3">
@@ -392,6 +426,110 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                                 className={`h-6 w-6 transition-colors ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400 group-hover:text-red-400'}`}
                                             />
                                         </button>
+                                        {/* SHARE BUTTON */}
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <button
+                                                    className="h-12 w-12 cursor-pointer flex items-center justify-center rounded-lg border-2 border-gray-100 transition-all hover:border-blue-100 hover:bg-blue-50 group"
+                                                >
+                                                    <Share2 className="h-5 w-5 text-gray-400 transition-colors group-hover:text-blue-500" />
+                                                </button>
+                                            </DropdownMenuTrigger>
+
+                                            <DropdownMenuContent
+                                                align="end"
+                                                className="w-52"
+                                            >
+                                                {/* WHATSAPP */}
+                                                <DropdownMenuItem
+                                                    onClick={() => {
+                                                        const text = encodeURIComponent(
+                                                            `Lihat produk ${product.name}\n${window.location.href}`
+                                                        );
+
+                                                        window.open(
+                                                            `https://wa.me/?text=${text}`,
+                                                            '_blank'
+                                                        );
+                                                    }}
+                                                    className="cursor-pointer"
+                                                >
+                                                    <MessageCircle className="mr-2 h-4 w-4 text-green-500" />
+                                                    WhatsApp
+                                                </DropdownMenuItem>
+
+                                                {/* FACEBOOK */}
+                                                <DropdownMenuItem
+                                                    onClick={() => {
+                                                        const url = encodeURIComponent(window.location.href);
+
+                                                        window.open(
+                                                            `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+                                                            '_blank'
+                                                        );
+                                                    }}
+                                                    className="cursor-pointer"
+                                                >
+                                                    <Facebook className="mr-2 h-4 w-4 text-blue-600" />
+                                                    Facebook
+                                                </DropdownMenuItem>
+
+                                                {/* TWITTER / X */}
+                                                <DropdownMenuItem
+                                                    onClick={() => {
+                                                        const text = encodeURIComponent(
+                                                            `Lihat produk ${product.name}`
+                                                        );
+
+                                                        const url = encodeURIComponent(window.location.href);
+
+                                                        window.open(
+                                                            `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+                                                            '_blank'
+                                                        );
+                                                    }}
+                                                    className="cursor-pointer"
+                                                >
+                                                    <Twitter className="mr-2 h-4 w-4 text-sky-500" />
+                                                    Twitter / X
+                                                </DropdownMenuItem>
+
+                                                {/* INSTAGRAM */}
+                                                <DropdownMenuItem
+                                                    onClick={async () => {
+                                                        await navigator.clipboard.writeText(
+                                                            window.location.href
+                                                        );
+
+                                                        toast.success("Link disalin", {
+                                                            description:
+                                                                "Tempel link di Instagram Story atau Bio",
+                                                        });
+                                                    }}
+                                                    className="cursor-pointer"
+                                                >
+                                                    <Instagram className="mr-2 h-4 w-4 text-pink-500" />
+                                                    Instagram
+                                                </DropdownMenuItem>
+
+                                                {/* COPY LINK */}
+                                                <DropdownMenuItem
+                                                    onClick={async () => {
+                                                        await navigator.clipboard.writeText(
+                                                            window.location.href
+                                                        );
+
+                                                        toast.success("Link berhasil disalin", {
+                                                            description: product.name,
+                                                        });
+                                                    }}
+                                                    className="cursor-pointer"
+                                                >
+                                                    <Link2 className="mr-2 h-4 w-4" />
+                                                    Salin Link
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
                                 </div>
                             </div>

@@ -2,6 +2,8 @@ import { X, Heart, Trash } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from './ui/button';
+import { toast } from 'sonner';
+import product from '@/routes/cms/product';
 
 interface WishlistItem {
     id: number;
@@ -72,6 +74,8 @@ export default function Wishlist({ isOpen, onClose, items, onRemove }: WishlistP
         onRemove(id);
         // Optimistically update the local state
         setLocalItems(prevItems => prevItems.filter(item => item.id !== id));
+        
+        toast.success("Berhasil menghapus dari wishlist.");
     }, [onRemove]);
 
     if (!isVisible) return null;
