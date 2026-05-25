@@ -742,7 +742,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                           </TooltipProvider>
                         )}
 
-                        <div className="space-y-1 flex-1">
+                        <div className="space-y-1 flex-1 max-w-96 text-wrap">
                             <div className="font-semibold line-clamp-1">
                               {product.name}
                             </div>
