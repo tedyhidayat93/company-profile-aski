@@ -147,7 +147,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('', [TagController::class, 'store'])->name('store');
                 Route::get('{id}', [TagController::class, 'show'])->name('show');
                 Route::get('edit/{id}', [TagController::class, 'edit'])->name('edit');
-                Route::put('{id}', [TagController::class, 'update'])->name('update');
+                Route::match(['post', 'put'], '{id}', [TagController::class, 'update'])->name('update');
                 Route::delete('{id}', [TagController::class, 'destroy'])->name('destroy');
             });
 
@@ -186,7 +186,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('', [ArticleController::class, 'store'])->name('store');
                 Route::get('{id}', [ArticleController::class, 'show'])->name('show');
                 Route::get('edit/{id}', [ArticleController::class, 'edit'])->name('edit');
-                Route::put('{id}', [ArticleController::class, 'update'])->name('update');
+                Route::match(['post', 'put'], '{id}', [ArticleController::class, 'update'])->name('update');
                 Route::delete('{id}', [ArticleController::class, 'destroy'])->name('destroy');
                 Route::patch('{id}/toggle-status', [ArticleController::class, 'toggleStatus'])->name('toggle-status');
                 Route::patch('update-position', [ArticleController::class, 'updatePosition'])->name('update-position');
@@ -202,7 +202,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('', [OrderController::class, 'store'])->name('store');
                 Route::get('{id}', [OrderController::class, 'show'])->name('show');
                 Route::get('edit/{id}', [OrderController::class, 'edit'])->name('edit');
-                Route::put('{id}', [OrderController::class, 'update'])->name('update');
+                Route::match(['post', 'put'], '{id}', [OrderController::class, 'update'])->name('update');
                 Route::delete('{id}', [OrderController::class, 'destroy'])->name('destroy');
                 Route::patch('{id}/status', [OrderController::class, 'updateStatus'])->name('updateStatus');
                 Route::post('{id}/resend-email', [OrderController::class, 'resendEmail']) ->name('resendEmail');
@@ -215,7 +215,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('', [CustomerController::class, 'store'])->name('store');
                 Route::get('{id}', [CustomerController::class, 'show'])->name('show');
                 Route::get('edit/{id}', [CustomerController::class, 'edit'])->name('edit');
-                Route::put('{id}', [CustomerController::class, 'update'])->name('update');
+                Route::match(['post', 'put'], '{id}', [CustomerController::class, 'update'])->name('update');
                 Route::delete('{id}', [CustomerController::class, 'destroy'])->name('destroy');
                 Route::patch('{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('toggle-status');
             });
@@ -239,7 +239,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('', [UserManagementController::class, 'store'])->name('store');
                 Route::get('{id}', [UserManagementController::class, 'show'])->name('show');
                 Route::get('{id}/edit', [UserManagementController::class, 'edit'])->name('edit');
-                Route::put('{id}', [UserManagementController::class, 'update'])->name('update');
+                Route::match(['post', 'put'], '{id}', [UserManagementController::class, 'update'])->name('update');
                 Route::delete('{id}', [UserManagementController::class, 'destroy'])->name('destroy');
                 Route::patch('{id}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('toggle-status');
             });
@@ -251,7 +251,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('', [RoleController::class, 'store'])->name('store');
                 Route::get('{id}', [RoleController::class, 'show'])->name('show');
                 Route::get('edit/{id}', [RoleController::class, 'edit'])->name('edit');
-                Route::put('{id}', [RoleController::class, 'update'])->name('update');
+                Route::match(['post', 'put'], '{id}', [RoleController::class, 'update'])->name('update');
                 Route::delete('{id}', [RoleController::class, 'destroy'])->name('destroy');
                 Route::patch('{id}/toggle-status', [RoleController::class, 'toggleStatus'])->name('toggle-status');
                 Route::get('{id}/permissions', [RoleController::class, 'permissions'])->name('permissions');
@@ -265,7 +265,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('', [PermissionController::class, 'store'])->name('store');
                 Route::get('{id}', [PermissionController::class, 'show'])->name('show');
                 Route::get('edit/{id}', [PermissionController::class, 'edit'])->name('edit');
-                Route::put('{id}', [PermissionController::class, 'update'])->name('update');
+                Route::match(['post', 'put'], '{id}', [PermissionController::class, 'update'])->name('update');
                 Route::delete('{id}', [PermissionController::class, 'destroy'])->name('destroy');
                 Route::get('groups', [PermissionController::class, 'groups'])->name('groups');
             });
