@@ -465,6 +465,7 @@ class ArticleController extends Controller
             //         ->file('featured_image')
             //         ->store('articles', 'public');
 
+            $image = $request->file('featured_image');
             $validated['featured_image'] =
             $this->optimizeSeoImage(
                 file: $image,
