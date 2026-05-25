@@ -79,10 +79,10 @@ export default function ClientCreate({}: Props) {
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Create Client" />
+      <Head title="Create Klien" />
         <div className="space-y-6 p-6">
             <HeaderTitle
-                title="Create Client"
+                title="Tambah Klien"
                 description="Tambahkan klien baru"
             >
                 <Link href="/cpanel/cms/client">

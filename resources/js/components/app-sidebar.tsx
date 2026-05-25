@@ -32,6 +32,7 @@ import {
   ShoppingCart,
   StarIcon,
   Tag,
+  UserCircle,
   Users,
   UsersIcon,
 } from 'lucide-react';
@@ -114,15 +115,15 @@ const mainNavGroups: NavGroupItem[] = [
           permission: 'testimonial-list',
         },
         {
-          title: 'User',
+          title: 'Akun Pengguna',
           href: '/cpanel/authorization/user-management',
           icon: UsersIcon,
           permission: 'user-list',
         },
         {
-          title: 'Role',
+          title: 'Peran',
           href: '/cpanel/authorization/roles',
-          icon: ShieldEllipsis,
+          icon: UserCircle,
           permission: 'role-list',
         },
         {

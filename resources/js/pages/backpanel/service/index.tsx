@@ -178,7 +178,7 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Services" />
+      <Head title="Layanan" />
       
       <div className="space-y-6 p-6">
         <HeaderTitle
@@ -188,7 +188,7 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
           <Link href="/cpanel/cms/service/create">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add Service
+              Tambah Layanan
             </Button>
           </Link>
         </HeaderTitle>

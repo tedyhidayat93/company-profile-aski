@@ -31,7 +31,8 @@ import {
   Calendar,
   Eye,
   GripVertical,
-  RefreshCw
+  RefreshCw,
+  SlidersHorizontal
 } from 'lucide-react';
 
 interface Article {
@@ -122,6 +123,7 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
     to: filters?.date_to ? new Date(filters.date_to) : undefined,
   });
   const [perPageFilter, setPerPageFilter] = useState(filters?.per_page ?? '15');
+  const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
 
   const handleDateRangeChange = (range: DateRange | undefined) => {
     setDateRange(range || { from: undefined, to: undefined });
@@ -169,45 +171,98 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
     );
   };
 
-  const handleFilterChange = (filterType: string, value: string) => {
-    // Update the specific filter state
+  const handleFilterChange = (
+    filterType: string,
+    value: string
+  ) => {
+
+    // next state values
+    const nextFilters = {
+      status: statusFilter,
+      author: authorFilter,
+      headline: headlineFilter,
+      category: categoryFilter,
+      sort: sortFilter,
+      per_page: perPageFilter,
+    };
+
+    // update current changed filter
+    nextFilters[
+      filterType as keyof typeof nextFilters
+    ] = value;
+
+    // update state
     switch (filterType) {
       case 'status':
         setStatusFilter(value);
         break;
+
       case 'author':
         setAuthorFilter(value);
         break;
+
       case 'headline':
         setHeadlineFilter(value);
         break;
-      case 'sort':
-        setSortFilter(value);
-        break;
+
       case 'category':
         setCategoryFilter(value);
         break;
+
+      case 'sort':
+        setSortFilter(value);
+        break;
+
       case 'per_page':
         setPerPageFilter(value);
         break;
     }
 
-    const params = new URLSearchParams(window.location.search);
-    if (search) params.set('search', search);
-    if (statusFilter !== 'all') params.set('status', statusFilter);
-    if (authorFilter !== 'all') params.set('author', authorFilter);
-    if (headlineFilter !== 'all') params.set('headline', headlineFilter);
-    if (categoryFilter !== 'all') params.set('category', categoryFilter);
-    if (sortFilter !== 'all') params.set('sort', sortFilter);
-    if (perPageFilter !== '15') params.set('per_page', perPageFilter);
-    setDateParam(params, 'date_from', dateRange.from);
-    setDateParam(params, 'date_to', dateRange.to);
+    // build params
+    const params: Record<string, string> = {};
 
-    router.get(
-      `/cpanel/cms/article?${params.toString()}`,
-      {},
-      { preserveState: true, preserveScroll: true }
-    );
+    if (search) {
+      params.search = search;
+    }
+
+    if (nextFilters.status !== 'all') {
+      params.status = nextFilters.status;
+    }
+
+    if (nextFilters.author !== 'all') {
+      params.author = nextFilters.author;
+    }
+
+    if (nextFilters.headline !== 'all') {
+      params.headline = nextFilters.headline;
+    }
+
+    if (nextFilters.category !== 'all') {
+      params.category = nextFilters.category;
+    }
+
+    if (nextFilters.sort !== 'all') {
+      params.sort = nextFilters.sort;
+    }
+
+    if (nextFilters.per_page !== '15') {
+      params.per_page = nextFilters.per_page;
+    }
+
+    if (dateRange.from) {
+      params.date_from =
+        dateRange.from.toISOString().split('T')[0];
+    }
+
+    if (dateRange.to) {
+      params.date_to =
+        dateRange.to.toISOString().split('T')[0];
+    }
+
+    router.get('/cpanel/cms/article', params, {
+      preserveState: true,
+      preserveScroll: true,
+    });
   };
 
   const handleResetFilters = () => {
@@ -278,184 +333,257 @@ export default function ArticleIndex({ articles, authors, blogCategories, filter
         <Card>
           <CardContent className='space-y-3'>
 
-            <div className="space-y-4 mb-4">
-              {/* Search */}
-              <div>
-                <Label className="text-xs font-medium text-gray-600 mb-1 block">
-                  Cari Artikel
-                </Label>
+            <div className="mb-4 rounded-2xl border bg-background shadow-sm">
+              {/* MAIN TOOLBAR */}
+              <div className="p-3">
+                <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
 
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  {/* LEFT */}
+                  <div className="grid flex-1 grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
 
-                  <Input
-                    placeholder="Cari artikel..."
-                    value={search}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
+                    {/* SEARCH */}
+                    <div className="space-y-1 xl:col-span-2">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Cari Artikel
+                      </Label>
 
-              {/* Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-                <div className="space-y-1">
-                  <DateRangePicker
-                    value={dateRange}
-                    onChange={handleDateRangeChange}
-                  />
-                </div>
+                        <Input
+                          placeholder="Cari artikel..."
+                          value={search}
+                          onChange={(e) => handleSearch(e.target.value)}
+                          className="h-10 rounded-xl pl-10"
+                        />
+                      </div>
+                    </div>
 
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Status
-                  </Label>
+                    {/* STATUS */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Status
+                      </Label>
 
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(value) => handleFilterChange('status', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
+                      <Select
+                        value={statusFilter}
+                        onValueChange={(value) =>
+                          handleFilterChange('status', value)
+                        }
+                      >
+                        <SelectTrigger className="h-10 rounded-xl">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
 
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="published">Diterbitkan</SelectItem>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="archived">Diarsipkan</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                        <SelectContent>
+                          <SelectItem value="all">Semua</SelectItem>
+                          <SelectItem value="published">
+                            Diterbitkan
+                          </SelectItem>
+                          <SelectItem value="draft">
+                            Draft
+                          </SelectItem>
+                          <SelectItem value="archived">
+                            Diarsipkan
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Penulis
-                  </Label>
+                    {/* PER PAGE */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Tampilkan
+                      </Label>
 
-                  <Select
-                    value={authorFilter}
-                    onValueChange={(value) => handleFilterChange('author', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Penulis" />
-                    </SelectTrigger>
+                      <Select
+                        value={perPageFilter}
+                        onValueChange={(value) =>
+                          handleFilterChange('per_page', value)
+                        }
+                      >
+                        <SelectTrigger className="h-10 rounded-xl">
+                          <SelectValue placeholder="Tampilkan" />
+                        </SelectTrigger>
 
-                    <SelectContent>
-                      <SelectItem value="all">Semua Penulis</SelectItem>
+                        <SelectContent>
+                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="15">15</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                      {authors.map((author) => (
-                        <SelectItem
-                          key={author.id}
-                          value={author.id.toString()}
-                        >
-                          {author.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  {/* RIGHT */}
+                  <div className="flex items-center justify-between gap-2">
 
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Kategori
-                  </Label>
-
-                  <TreeSelect
-                    data={blogCategories}
-                    value={categoryFilter?.toString() || null}
-                    onChange={(val) =>
-                      handleFilterChange('category', val || 'all')
-                    }
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Headline
-                  </Label>
-
-                  <Select
-                    value={headlineFilter}
-                    onValueChange={(value) => handleFilterChange('headline', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Headline" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="true">Headline</SelectItem>
-                      <SelectItem value="false">Tidak</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Urutkan
-                  </Label>
-
-                  <Select
-                    value={sortFilter}
-                    onValueChange={(value) => handleFilterChange('sort', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Urutkan" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="newest">Terbaru</SelectItem>
-                      <SelectItem value="oldest">Terlama</SelectItem>
-                      <SelectItem value="most_read">Terbanyak Dibaca</SelectItem>
-                      <SelectItem value="least_read">Tersedikit Dibaca</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs font-medium text-gray-600">
-                    Tampilkan
-                  </Label>
-
-                  <Select
-                    value={perPageFilter}
-                    onValueChange={(value) =>
-                      handleFilterChange('per_page', value)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Tampilkan" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="15">15</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {hasActiveFilters && (
-                  <div className="flex items-end">
+                    {/* TOGGLE FILTER */}
                     <Button
                       type="button"
-                      variant="destructive"
-                      className="w-full"
-                      onClick={handleResetFilters}
+                      variant="outline"
+                      className="rounded-xl"
+                      onClick={() =>
+                        setShowAdvancedFilter((prev) => !prev)
+                      }
                     >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Reset
+                      <SlidersHorizontal className="h-4 w-4 mr-2" />
+
+                      {showAdvancedFilter
+                        ? 'Sembunyikan'
+                        : 'Filter Lanjutan'}
                     </Button>
+
+                    {/* RESET */}
+                    {hasActiveFilters && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        className="rounded-xl"
+                        onClick={handleResetFilters}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Reset
+                      </Button>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
+
+              {/* ADVANCED FILTER */}
+              {showAdvancedFilter && (
+                <div className="border-t bg-muted/20 p-3">
+
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+
+                    {/* DATE */}
+                    <div className="space-y-1">
+                      <DateRangePicker
+                        value={dateRange}
+                        onChange={handleDateRangeChange}
+                      />
+                    </div>
+
+                    {/* AUTHOR */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Penulis
+                      </Label>
+
+                      <Select
+                        value={authorFilter}
+                        onValueChange={(value) =>
+                          handleFilterChange('author', value)
+                        }
+                      >
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder="Penulis" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectItem value="all">
+                            Semua Penulis
+                          </SelectItem>
+
+                          {authors.map((author) => (
+                            <SelectItem
+                              key={author.id}
+                              value={author.id.toString()}
+                            >
+                              {author.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* CATEGORY */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Kategori
+                      </Label>
+
+                      <TreeSelect
+                        data={blogCategories}
+                        value={categoryFilter?.toString() || null}
+                        onChange={(val) =>
+                          handleFilterChange(
+                            'category',
+                            val || 'all'
+                          )
+                        }
+                      />
+                    </div>
+
+                    {/* HEADLINE */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Headline
+                      </Label>
+
+                      <Select
+                        value={headlineFilter}
+                        onValueChange={(value) =>
+                          handleFilterChange('headline', value)
+                        }
+                      >
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder="Headline" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectItem value="all">Semua</SelectItem>
+                          <SelectItem value="true">
+                            Headline
+                          </SelectItem>
+                          <SelectItem value="false">
+                            Tidak
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* SORT */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        Urutkan
+                      </Label>
+
+                      <Select
+                        value={sortFilter}
+                        onValueChange={(value) =>
+                          handleFilterChange('sort', value)
+                        }
+                      >
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder="Urutkan" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectItem value="all">Semua</SelectItem>
+                          <SelectItem value="newest">
+                            Terbaru
+                          </SelectItem>
+                          <SelectItem value="oldest">
+                            Terlama
+                          </SelectItem>
+                          <SelectItem value="most_read">
+                            Terbanyak Dibaca
+                          </SelectItem>
+                          <SelectItem value="least_read">
+                            Tersedikit Dibaca
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
+
             <Table>
               <TableHeader>
                 <TableRow>

@@ -81,7 +81,8 @@ class ArticleController extends Controller
             ->with(['author', 'category'])
             ->paginate($request->per_page ?? 15);
 
-        $authors = User::orderBy('name')->get();
+        $authors = User::orderBy('id', 'asc')->get();
+        // dd($authors->toArray());
         $blogCategories = Category::with('children')
             ->root()
             ->active()
@@ -224,7 +225,7 @@ class ArticleController extends Controller
         Gate::authorize('article-edit');
         
         $article = Article::findOrFail($id);
-        $authors = User::orderBy('name')->get();
+        $authors = User::orderBy('id', 'asc')->get();
         $blogCategories = Category::with('children')
             ->root()
             ->active()

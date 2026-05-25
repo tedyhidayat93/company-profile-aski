@@ -101,11 +101,11 @@ export default function ClientEdit({ client }: Props) {
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Edit Client" />
+      <Head title="Edit Klien" />
 
       <div className="space-y-6 p-6">
         <HeaderTitle
-          title="Edit Client"
+          title="Edit Klien"
           description="Ubah informasi klien"
         >
           <Link href="/cpanel/cms/client">

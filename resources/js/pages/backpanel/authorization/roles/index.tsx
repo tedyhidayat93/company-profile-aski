@@ -186,7 +186,7 @@ export default function RoleIndex({ roles, filters }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nama Role</TableHead>
+                  <TableHead>Nama Peran</TableHead>
                   <TableHead>Guard</TableHead>
                   <TableHead>Deskripsi</TableHead>
                   <TableHead>Hak Akses</TableHead>
