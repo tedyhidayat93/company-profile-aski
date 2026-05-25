@@ -146,7 +146,7 @@ class HomepageController extends Controller
                             'name' => $client->name,
 
                             'logo' => $client->image
-                                ? '/storage/clients/' . $client->image
+                                ? '/storage/' . $client->image
                                 : '/images/placeholder.png',
                         ];
                     });
