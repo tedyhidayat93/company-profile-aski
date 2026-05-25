@@ -743,7 +743,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                         )}
 
                         <div className="space-y-1 flex-1 max-w-96 text-wrap">
-                            <div className="font-semibold line-clamp-1">
+                            <div className="font-semibold tetxt-sm line-clamp-2">
                               {product.name}
                             </div>
 
