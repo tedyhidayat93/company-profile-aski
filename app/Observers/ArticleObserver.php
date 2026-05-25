@@ -81,5 +81,6 @@ class ArticleObserver
     private function clearCaches(): void
     {
         Cache::forget('homepage.articles');
+        Cache::forget('shared.footer.articles');
     }
 }

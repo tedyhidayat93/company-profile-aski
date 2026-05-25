@@ -81,5 +81,6 @@ class ProductObserver
     private function clearHomepageCache(): void
     {
         Cache::forget('homepage.products');
+        Cache::forget('shared.footer.products');
     }
 }
