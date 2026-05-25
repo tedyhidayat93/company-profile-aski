@@ -61,7 +61,7 @@ export default function ServiceEdit({ service, categories }: Props) {
     },
   ];
 
-  const { data, setData, put, processing, transform, errors, reset }= useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     name: service.name,
     slug: service.slug,
     description: service.description || '',
@@ -120,13 +120,14 @@ export default function ServiceEdit({ service, categories }: Props) {
 
     transform((data) => ({
       ...data,
+      _method: 'PUT',
 
       // boolean → string
       is_active: data.is_active ? '1' : '0',
       is_featured: data.is_featured ? '1' : '0',
     }));
 
-    put(`/cpanel/cms/service/${service.id}`, {
+    post(`/cpanel/cms/service/${service.id}`, {
       forceFormData: true,
 
       onSuccess: () => {

@@ -53,12 +53,18 @@ export default function HeroSection({
   return (
     <section 
       id="home"
-      className="relative min-h-[90vh] lg:min-h-[85vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-500 via-amber-400 to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+      className="relative min-h-[90vh] lg:min-h-[85vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-orange-500 via-amber-400 to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 rounded-b-4xl"
     >
       {/* Background Overlays */}
-      <div className="absolute inset-0 z-20 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/80 via-white/80 to-amber-700/90 animate-gradient-wave" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-orange-300/30 to-transparent animate-gradient-wave-slow blur-xl" />
+      <div className="absolute inset-0 z-20 backdrop-blur-xs overflow-hidden pointer-events-none">
+        {/* Layer Utama: Gradien lembut yang menyatu */}
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-200/70 to-rose-200/60 animate-gradient-wave" />
+        
+        {/* Layer Aksen: Memberikan efek kilau/depth */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,165,0,0.3),transparent)] blur-3xl animate-pulse" />
+        
+        {/* Layer Tekstur: Membuat warna tidak flat */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent animate-gradient-wave-slow opacity-50" />
       </div>
 
       <img 
@@ -75,7 +81,7 @@ export default function HeroSection({
           
           {/* SEBELAH KIRI: Deskripsi & Search Content */}
           <div className="lg:col-span-7 text-center lg:text-left text-white animate-fade-in-up space-y-6">
-            <h1 className="font-bold leading-[1.1] sm:leading-[0.95] tracking-tighter text-4xl sm:text-5xl md:text-6xl xl:text-7xl text-slate-900">
+            <h1 className="font-black! leading-[1.1] sm:leading-[0.95] tracking-tighter text-4xl sm:text-5xl md:text-6xl xl:text-7xl text-slate-900">
               <span dangerouslySetInnerHTML={{ 
                 __html: getConfig('hero_title', 
                 'Solusi Terpercaya <br class="hidden sm:inline" /> Untuk ' + 
@@ -86,7 +92,7 @@ export default function HeroSection({
               }} />
             </h1>
             
-            <p className="max-w-2xl font-bold text-base md:text-lg text-slate-900/90 leading-relaxed">
+            <p className="max-w-2xl font-bold text-base md:text-xl text-slate-900/90 leading-relaxed">
               {getConfig('hero_description', 'Kami menyediakan berbagai pilihan kontainer untuk disewa atau dibeli. Mulai dari Kontainer standar hingga Kontainer Custom sesuai kebutuhan Anda.')}
             </p>
 
@@ -104,7 +110,7 @@ export default function HeroSection({
                   <button 
                     type="submit"
                     disabled={isSearching}
-                    className={`absolute right-1.5 top-1/2 -translate-y-1/2 transform rounded-full px-4 py-2.5 md:px-8 md:py-3 font-bold transition-all ${
+                    className={`absolute cursor-pointer right-1.5 top-1/2 -translate-y-1/2 transform rounded-full px-4 py-2.5 md:px-8 md:py-3 font-bold transition-all ${
                       isSearching 
                         ? 'bg-amber-500 text-white cursor-wait' 
                         : 'bg-orange-500 text-white hover:bg-orange-600'
@@ -126,15 +132,18 @@ export default function HeroSection({
             </div>
             
             {/* Features Badges */}
-            <div className="flex flex-wrap gap-3 pt-2 w-full justify-center lg:justify-start">
+            <div className="flex flex-wrap justify-center gap-3 pt-2 w-full lg:justify-start">
               {[
-                { text: getConfig('feature_stock_available', 'Stok Tersedia'), color: 'bg-green-500' },
-                { text: getConfig('feature_quality_guarantee', 'Garansi Kualitas'), color: 'bg-blue-500' },
-                { text: getConfig('feature_competitive_price', 'Harga Kompetitif'), color: 'bg-amber-500' },
-                { text: getConfig('feature_support_247', 'Support 24/7'), color: 'bg-slate-900' }
+                { text: getConfig('feature_stock_available', 'Stok Tersedia'), badge: 'bg-emerald-100 text-emerald-950 border-emerald-200', dot: 'bg-emerald-600' },
+                { text: getConfig('feature_quality_guarantee', 'Garansi Kualitas'), badge: 'bg-sky-100 text-sky-950 border-sky-200', dot: 'bg-sky-600' },
+                { text: getConfig('feature_competitive_price', 'Harga Kompetitif'), badge: 'bg-amber-100 text-amber-950 border-amber-200', dot: 'bg-amber-600' },
+                { text: getConfig('feature_support_247', 'Support 24/7'), badge: 'bg-violet-100 text-violet-950 border-violet-200', dot: 'bg-violet-600' }
               ].map((feat, idx) => (
-                <span key={idx} className="flex items-center text-xs md:text-sm font-black bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-sm">
-                  <span className={`mr-2 flex h-2.5 w-2.5 rounded-full ${feat.color} animate-pulse`} />
+                <span 
+                  key={idx} 
+                  className={`flex items-center text-xs font-bold px-3 py-1.5 rounded-full border shadow-sm transition-all duration-300 ${feat.badge}`}
+                >
+                  <span className={`mr-2 flex h-2 w-2 rounded-full animate-pulse ${feat.dot}`} />
                   {feat.text}
                 </span>
               ))}
@@ -154,10 +163,10 @@ export default function HeroSection({
                   <div className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-3xl border border-white/10 shadow-md transform translate-y-2 -rotate-3 scale-[0.92] -z-20 transition-all duration-500 group-hover/stack:-rotate-6 group-hover/stack:translate-y-1"></div>
                   
                   {/* KARTU KEDUANYA (Di Tengah) */}
-                  <div className="absolute inset-0 animate-pulse bg-white/40 backdrop-blur-sm rounded-3xl border border-white/20 shadow-lg transform -translate-y-1 rotate-2 scale-[0.96] -z-10 transition-all duration-500 group-hover/stack:rotate-4 group-hover/stack:-translate-y-2"></div>
+                  <div className="absolute inset-0 animate-pulse bg-orange-500/60 backdrop-blur-sm rounded-3xl border border-white/20 shadow-lg transform -translate-y-1 rotate-2 scale-[0.96] -z-10 transition-all duration-500 group-hover/stack:rotate-4 group-hover/stack:-translate-y-2"></div>
 
                   {/* KARTU UTAMA (Paling Depan) */}
-                  <div className={`w-full bg-white backdrop-blur-md rounded-3xl p-5 shadow-xl border border-white/20 transform transition-all duration-700 relative z-10 ${
+                  <div className={`w-full bg-white backdrop-blur-md rounded-3xl p-5 shadow-xl border border-white/20 transform transition-all duration-700 relative z-10 group-hover/stack:rotate-1 ${
                     isFade ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
                   }`}>
                     

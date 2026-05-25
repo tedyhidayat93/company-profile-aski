@@ -249,7 +249,7 @@ class ProductController extends Controller
         ]);
 
         return redirect()
-            ->route('cms.product.index')
+            ->route('cms.product.index',['status' => 'published'])
             ->with('success', 'Produk berhasil diperbarui');
     }
 
@@ -270,7 +270,7 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()
-            ->route('cms.product.index')
+            ->route('cms.product.index', ['status' => 'published'])
             ->with('success', 'Produk berhasil dihapus');
     }
 
@@ -502,8 +502,8 @@ class ProductController extends Controller
         $validated['track_quantity'] =
             $validated['track_quantity'] ?? true;
 
-        // $validated['position'] =
-        //     $validated['position'] ?? 0;
+        $validated['position'] =
+            $validated['position'] ?? 0;
 
         return $validated;
     }

@@ -76,7 +76,7 @@ export default function RolePermissions({ role, permissions }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    put(`/cpanel/authorization/roles/${role.id}/permissions`);
+    post(`/cpanel/authorization/roles/${role.id}/permissions`);
   };
 
   const isGroupFullySelected = (groupName: string) => {

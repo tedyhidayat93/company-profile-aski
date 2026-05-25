@@ -88,7 +88,9 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     from: filters?.date_from ? new Date(filters.date_from) : undefined,
     to: filters?.date_to ? new Date(filters.date_to) : undefined,
   });
-  const [perPageFilter, setPerPageFilter] = React.useState(filters?.per_page ?? '10');
+  const [perPageFilter, setPerPageFilter] = React.useState(
+    products.per_page.toString()
+  );
   const [showAdvancedFilter, setShowAdvancedFilter] = React.useState(false);
   // const [viewMode, setViewMode] = React.useState<'simple' | 'detail'>('simple');
   const [viewMode, setViewMode] =
@@ -237,60 +239,6 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     router.get('/cpanel/cms/product', params, { preserveState: true });
   };
 
-  const handleFeaturedFilter = (value: string) => {
-    setFeaturedFilter(value);
-    const params: { 
-      search?: string; 
-      type_sell?: string; 
-      brand?: string; 
-      category?: string; 
-      status?: string; 
-      featured?: string; 
-      bestseller?: string;
-      sort?: string;
-      per_page?: string;
-    } = { search: search };
-    
-    if (typeFilter !== 'all') params.type_sell = typeFilter;
-    if (brandFilter !== 'all') params.brand = brandFilter;
-    if (categoryFilter !== 'all') params.category = categoryFilter;
-    if (statusFilter !== 'all') params.status = statusFilter;
-    if (value !== 'all') params.featured = value;
-    if (bestsellerFilter !== 'all') params.bestseller = bestsellerFilter;
-    if (sortFilter !== 'newest') params.sort = sortFilter;
-    if (perPageFilter !== '10') params.per_page = perPageFilter;
-    
-    router.get('/cpanel/cms/product', params, { preserveState: true });
-  };
-
-  const handleBestsellerFilter = (value: string) => {
-    setBestsellerFilter(value);
-    
-    const params: { 
-      search?: string; 
-      type_sell?: string; 
-      brand?: string; 
-      category?: string; 
-      status?: string; 
-      featured?: string; 
-      bestseller?: string;
-      sort?: string;
-      per_page?: string;
-    } = {
-      search: search || undefined,
-      type_sell: typeFilter !== 'all' ? typeFilter : undefined,
-      brand: brandFilter !== 'all' ? brandFilter : undefined,
-      category: categoryFilter !== 'all' ? categoryFilter : undefined,
-      status: statusFilter !== 'all' ? statusFilter : undefined,
-      featured: featuredFilter !== 'all' ? featuredFilter : undefined,
-      bestseller: value !== 'all' ? value : undefined,
-      sort: sortFilter !== 'newest' ? sortFilter : undefined,
-      per_page: perPageFilter !== '10' ? perPageFilter : undefined
-    };
-    
-    router.get('/cpanel/cms/product', params, { preserveState: true });
-  };
-
   const handlePerPageFilter = (value: string) => {
     setPerPageFilter(value);
     
@@ -313,7 +261,7 @@ export default function ProductIndex({ products, brands, categories, filters }: 
       featured: featuredFilter !== 'all' ? featuredFilter : undefined,
       bestseller: bestsellerFilter !== 'all' ? bestsellerFilter : undefined,
       sort: sortFilter !== 'newest' ? sortFilter : undefined,
-      per_page: value !== '10' ? value : undefined
+      per_page: value !== '10' ? value : '10'
     };
     
     router.get('/cpanel/cms/product', params, { preserveState: true });
@@ -373,10 +321,6 @@ export default function ProductIndex({ products, brands, categories, filters }: 
     sortFilter !== 'newest' ||
     dateRange.from ||
     dateRange.to;
-
-  const handleToggleStatus = (id: number) => {
-    router.patch(`/cpanel/cms/product/${id}/toggle-status`);
-  };
 
   const handleDelete = (id: number) => {
     if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
@@ -799,9 +743,13 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                         )}
 
                         <div className="space-y-1 flex-1">
-                          <div className="font-semibold line-clamp-1">
-                            {product.name}
-                          </div>
+                            <div className="font-semibold line-clamp-1">
+                              {product.name}
+                            </div>
+
+                            <a href={`/catalog/${product.slug}`} className='text-xs text-blue-400 line-clamp-1 hover:text-blue-500' target='_blank' rel='noopener noreferrer'>
+                              { window.location.origin + '/catalog/' + product.slug }
+                            </a>
 
                             <div className="flex flex-wrap gap-1 pt-1">
                               {viewMode === 'detail' && (

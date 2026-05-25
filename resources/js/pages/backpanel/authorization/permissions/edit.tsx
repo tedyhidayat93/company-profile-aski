@@ -42,7 +42,7 @@ export default function PermissionEdit({ permission }: Props) {
     },
   ];
 
-  const { data, setData, put, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset } = useForm({
     name: permission.name,
     guard_name: permission.guard_name,
     group_name: permission.group_name || '',
@@ -60,8 +60,12 @@ export default function PermissionEdit({ permission }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    transform((data) => ({
+      ...data,
+      _method: 'PUT',
+    }));
     
-    put(`/cpanel/authorization/permissions/${permission.id}`, {
+    post(`/cpanel/authorization/permissions/${permission.id}`, {
       onSuccess: () => {
         reset();
       },

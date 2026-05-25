@@ -137,19 +137,19 @@ export default function Header() {
                 </button>
 
                 <div className="hidden lg:flex items-center space-x-3">
-                  <Link
-                    href="/catalog"
-                    className="flex h-10 items-center px-5 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-sm font-semibold hover:bg-orange-100 transition-colors gap-2"
-                  >
-                    <LayoutDashboardIcon className="h-4 w-4" />
-                    Katalog
-                  </Link>
-                  <Button asChild className="rounded-full bg-orange-500 hover:bg-orange-600 shadow-md">
+                  <Button asChild className="flex h-10 items-center px-5 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-sm font-semibold hover:bg-orange-100 transition-colors gap-2">
                     <a href={whatsappUrl}>
                       <Phone className="h-4 w-4" />
                       Hubungi Kami
                     </a>
                   </Button>
+                  <Link
+                    href="/catalog"
+                    className="flex h-10 items-center px-5 rounded-full border border-slate-700 bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 transition-colors gap-2"
+                  >
+                    <LayoutDashboardIcon className="h-4 w-4" />
+                    Katalog
+                  </Link>
                 </div>
 
                 {/* Mobile Menu Toggle */}

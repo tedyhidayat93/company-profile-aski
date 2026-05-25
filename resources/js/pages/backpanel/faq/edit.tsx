@@ -43,7 +43,7 @@ export default function FaqEdit({ faq }: Props) {
     },
   ];
 
-  const { data, setData, put, processing, transform, errors, reset }= useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     question: faq.question,
     answer: faq.answer,
     category: faq.category,
@@ -61,12 +61,12 @@ export default function FaqEdit({ faq }: Props) {
 
     transform((data) => ({
       ...data,
-
+      _method: 'PUT',
       // boolean → string
       is_active: data.is_active ? '1' : '0',
     }));
 
-    put(`/cpanel/cms/faq/${faq.id}`, {
+    post(`/cpanel/cms/faq/${faq.id}`, {
       onSuccess: () => {
         reset();
       },

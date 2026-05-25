@@ -341,7 +341,7 @@ export default function Dashboard({
                           text-2xl font-black
                           text-slate-900
                           sm:text-3xl
-                          xl:text-5xl
+                          xl:text-4xl
 
                           transition-all duration-300
                           group-hover:tracking-tighter

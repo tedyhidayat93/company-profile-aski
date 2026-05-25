@@ -31,7 +31,7 @@ interface Props {
 }
 
 export default function BrandEdit({ brand }: Props) {
-  const { data, setData, put, processing, transform, errors, reset }= useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     name: brand.name,
     slug: brand.slug,
     description: brand.description || '',
@@ -66,7 +66,8 @@ export default function BrandEdit({ brand }: Props) {
 
     transform((data) => ({
       ...data,
-
+      _method: 'PUT',
+      
       // boolean → string
       is_active: data.is_active ? '1' : '0',
 
@@ -74,7 +75,7 @@ export default function BrandEdit({ brand }: Props) {
       remove_logo: data.remove_logo ? '1' : '0',
     }));
 
-    put(`/cpanel/cms/brand/${brand.id}`, {
+    post(`/cpanel/cms/brand/${brand.id}`, {
       forceFormData: true,
 
       onSuccess: () => {

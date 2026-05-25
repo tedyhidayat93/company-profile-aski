@@ -216,7 +216,7 @@ export default function Homepage({
             <div className="mt-16 flex justify-center">
                 <Link
                   href="/catalog"
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:gap-3"
+                  className="inline-flex items-center gap-2 rounded-full border-2 border-slate-100 hover:bg-orange-500/30 hover:text-orange-600 font-medium hover:border-orange-400 border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:gap-3"
                 >
                   Tampilkan Lebih Banyak
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

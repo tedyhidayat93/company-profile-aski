@@ -31,7 +31,7 @@ interface Props {
 
 export default function TestimonialEdit({ testimonial }: Props) {
 
-  const { data, setData, put, processing, transform, errors, reset }= useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     nama: testimonial.nama,
     keterangan: testimonial.keterangan || '',
     perusahaan: testimonial.perusahaan || '',
@@ -68,6 +68,7 @@ export default function TestimonialEdit({ testimonial }: Props) {
 
     transform((data) => ({
       ...data,
+      _method: 'PUT',
 
       // boolean → string
       is_show_public: data.is_show_public ? '1' : '0',
@@ -76,7 +77,7 @@ export default function TestimonialEdit({ testimonial }: Props) {
       remove_foto_avatar: data.remove_foto_avatar ? '1' : '0',
     }));
 
-    put(`/cpanel/cms/testimonial/${testimonial.id}`, {
+    post(`/cpanel/cms/testimonial/${testimonial.id}`, {
       forceFormData: true,
 
       onSuccess: () => {

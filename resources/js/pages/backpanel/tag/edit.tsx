@@ -41,7 +41,7 @@ export default function TagEdit({ tag }: Props) {
     },
   ];
 
-  const { data, setData, put, processing, transform, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset } = useForm({
     name: tag.name,
     slug: tag.slug,
     type: tag.type,
@@ -58,9 +58,10 @@ export default function TagEdit({ tag }: Props) {
 
     transform((data) => ({
       ...data,
+      _method: 'PUT',
     }));
 
-    put(`/cpanel/cms/tag/${tag.id}`, {
+    post(`/cpanel/cms/tag/${tag.id}`, {
       forceFormData: true,
       onSuccess: () => {
         reset();

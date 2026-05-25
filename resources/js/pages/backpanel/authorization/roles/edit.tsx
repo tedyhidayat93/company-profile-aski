@@ -41,7 +41,7 @@ export default function RoleEdit({ role }: Props) {
     },
   ];
 
-  const { data, setData, put, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset } = useForm({
     name: role.name,
     guard_name: role.guard_name,
     description: role.description || '',
@@ -56,7 +56,12 @@ export default function RoleEdit({ role }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    put(`/cpanel/authorization/roles/${role.id}`, {
+    transform((data) => ({
+      ...data,
+      _method: 'PUT',
+    }));
+    
+    post(`/cpanel/authorization/roles/${role.id}`, {
       onSuccess: () => {
         reset();
       },

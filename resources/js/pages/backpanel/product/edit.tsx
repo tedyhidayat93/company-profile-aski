@@ -116,7 +116,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
 
   const [coverImageIndex, setCoverImageIndex] = useState<number>(getInitialCoverIndex());
 
-  const { data, setData, put, processing, transform, errors, reset } = useForm<{
+  const { data, setData, post, processing, transform, errors, reset } = useForm<{
     name: string;
     slug: string;
     type: 'physical' | 'digital';
@@ -411,59 +411,12 @@ export default function ProductEdit({ product, brands, categories }: Props) {
     setData('specific_specs', newSpecs);
   };
 
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-    
-  //   const formData = new FormData();
-  //   Object.entries(data).forEach(([key, value]) => {
-  //     if (key === 'images') {
-  //       (value as File[]).forEach((file, index) => {
-  //         formData.append(`images[${index}]`, file);
-  //       });
-  //     } else if (key === 'tags') {
-  //       // Send tags as array elements instead of JSON string
-  //       (value as string[]).forEach((tag, index) => {
-  //         formData.append(`tags[${index}]`, tag);
-  //       });
-  //     } else if (key === 'price' || key === 'compare_at_price' || key === 'cost_per_item') {
-  //       formData.append(key, value?.toString() || '');
-  //     } else if (key === 'track_quantity' || key === 'is_featured' || key === 'is_bestseller' || key === 'is_new' || key === 'is_for_sell' || key === 'is_rent' || key === 'show_price' || key === 'show_stock') {
-  //       formData.append(key, value ? '1' : '0');
-  //     } else if (key === 'remove_images') {
-  //       (value as number[]).forEach((id, index) => {
-  //         formData.append(`remove_images[${index}]`, id.toString());
-  //       });
-  //     } else if (key === 'specific_specs') {
-  //       (value as Array<{label: string, value: string, note: string}>).forEach((spec, index) => {
-  //         formData.append(`specific_specs[${index}][label]`, spec.label || '');
-  //         formData.append(`specific_specs[${index}][value]`, spec.value || '');
-  //         formData.append(`specific_specs[${index}][note]`, spec.note || '');
-  //       });
-  //     } else if (key === 'cover_image') {
-  //       if (value !== null && value !== '') {
-  //         formData.append(key, value.toString());
-  //       }
-  //     } else if (key !== 'images' && key !== 'tags' && key !== 'specific_specs') {
-  //       formData.append(key, value?.toString() || '');
-  //     }
-  //   });  
-
-  //   formData.append('_method', 'PUT');
-
-  //   router.post(`/cpanel/cms/product/${product.id}`, formData, {
-  //     onSuccess: () => {
-  //       setImagePreviews([]);
-  //       setRemoveImages([]);
-  //     },
-  //   });
-  // };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     transform((data) => ({
       ...data,
-      // _method: 'PUT',
+      _method: 'PUT',
       // boolean → string
       track_quantity: data.track_quantity ? '1' : '0',
       is_featured: data.is_featured ? '1' : '0',
@@ -484,7 +437,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
       barcode: data.barcode || '',
     }));
 
-    put(`/cpanel/cms/product/${product.id}`, {
+    post(`/cpanel/cms/product/${product.id}`, {
       forceFormData: true,
       onSuccess: () => {
         setImagePreviews([]);

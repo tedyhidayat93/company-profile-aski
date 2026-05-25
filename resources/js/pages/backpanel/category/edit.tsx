@@ -36,7 +36,7 @@ export default function CategoryEdit({ category, parentCategories }: Props) {
 
   const [imagePreview, setImagePreview] = useState<string>('');
 
-  const { data, setData, put, processing, transform, errors, reset }= useForm<{
+  const { data, setData, post, processing, transform, errors, reset }= useForm<{
     name: string;
     slug: string;
     description: string;
@@ -86,7 +86,8 @@ export default function CategoryEdit({ category, parentCategories }: Props) {
 
     transform((data) => ({
       ...data,
-
+      _method: 'PUT',
+      
       // boolean → string
       is_active: data.is_active ? '1' : '0',
 
@@ -96,7 +97,7 @@ export default function CategoryEdit({ category, parentCategories }: Props) {
         : data.parent_id,
     }));
 
-    put(`/cpanel/cms/category/${category.id}`, {
+    post(`/cpanel/cms/category/${category.id}`, {
       forceFormData: true,
 
       onSuccess: () => {

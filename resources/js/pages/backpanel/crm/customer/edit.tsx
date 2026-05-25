@@ -42,7 +42,7 @@ export default function CustomerEdit({ customer }: Props) {
     },
   ];
 
-  const { data, setData, put, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset } = useForm({
     name: customer.name,
     email: customer.email,
     phone: customer.phone || '',
@@ -57,8 +57,13 @@ export default function CustomerEdit({ customer }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    put(`/cpanel/crm/customer/${customer.id}`, {
+    transform((data) => ({
+      ...data,
+      _method: 'PUT',
+      // boolean → string
+      is_active: data.is_active ? '1' : '0',
+    }));
+    post(`/cpanel/crm/customer/${customer.id}`, {
       onSuccess: () => {
         reset();
       },

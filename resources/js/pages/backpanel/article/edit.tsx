@@ -76,7 +76,7 @@ export default function ArticleEdit({ article, authors, blogCategories }: Props)
   );
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
-  const { data, setData, put, processing, transform, errors, reset } = useForm({
+  const { data, setData, post, processing, transform, errors, reset } = useForm({
     title: article.title,
     slug: article.slug,
     content: article.content,
@@ -158,14 +158,14 @@ export default function ArticleEdit({ article, authors, blogCategories }: Props)
 
     transform((data) => ({
       ...data,
-
+      _method: 'PUT',
       tags,
 
       remove_featured_image:
         removeFeaturedImage,
     }));
 
-    put(
+    post(
       `/cpanel/cms/article/${article.id}`,
       {
         forceFormData: true,

@@ -62,7 +62,7 @@ export default function OrderEdit({ order }: Props) {
     },
   ];
 
-  const { data, setData, put, processing, errors } = useForm({
+  const { data, setData, post, processing, transform, errors } = useForm({
     company_name: order.company_name,
     pic_name: order.pic_name,
     phone: order.phone,
@@ -106,7 +106,12 @@ export default function OrderEdit({ order }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    put(`/cpanel/crm/orders/${order.id}`);
+     transform((data) => ({
+      ...data,
+      _method: 'PUT',
+    }));
+
+    post(`/cpanel/crm/orders/${order.id}`);
   };
 
   const getStatusBadge = (status: string, color: string) => {

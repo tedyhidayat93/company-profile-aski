@@ -32,7 +32,7 @@ interface Props {
 
 export default function ClientEdit({ client }: Props) {
  
-  const { data, setData, put, processing, transform, errors, reset }= useForm({
+  const { data, setData, post, processing, transform, errors, reset }= useForm({
     name: client.name,
     website: client.website || '',
     phone: client.phone || '',
@@ -66,7 +66,8 @@ export default function ClientEdit({ client }: Props) {
 
     transform((data) => ({
       ...data,
-
+      _method: 'PUT',
+      
       // boolean → string
       is_active: data.is_active ? '1' : '0',
 
@@ -74,7 +75,7 @@ export default function ClientEdit({ client }: Props) {
       remove_image: data.remove_image ? '1' : '0',
     }));
 
-    put(`/cpanel/cms/client/${client.id}`, {
+    post(`/cpanel/cms/client/${client.id}`, {
       forceFormData: true,
 
       onSuccess: () => {

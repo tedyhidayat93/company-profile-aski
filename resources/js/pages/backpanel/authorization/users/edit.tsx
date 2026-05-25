@@ -43,7 +43,7 @@ export default function UserEdit({ user, roles }: Props) {
     { title: 'Edit', href: `/cpanel/authorization/user-management/edit/${user.id}` },
   ];
 
-  const { data, setData, put, processing, errors } = useForm({
+  const { data, setData, post, processing, transform, errors } = useForm({
     name: user.name,
     email: user.email,
     password: '',
@@ -102,7 +102,11 @@ export default function UserEdit({ user, roles }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    put(`/cpanel/authorization/user-management/${user.id}`);
+    transform((data) => ({
+      ...data,
+      _method: 'PUT',
+    }));
+    post(`/cpanel/authorization/user-management/${user.id}`);
   };
 
   return (
