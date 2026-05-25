@@ -231,7 +231,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                 {post.featured_image && (
                     <div className="mb-6">
                         <img
-                            src={`/storage/${post.featured_image}`}
+                            src={`${post.featured_image}`}
                             className="w-full h-full object-cover rounded-lg"
                             onError={(e) => handleImageError(e, '/images/placeholder.png', post.title)}
                             alt={post.title}
