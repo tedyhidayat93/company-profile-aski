@@ -161,12 +161,14 @@ class CatalogController extends Controller
 
         $bestSellerProducts = Product::query()
             ->published()
-            ->where('is_bestseller', true)
+            ->where('is_featured', true)
+            ->orWhere('is_bestseller', true)
             ->with([
                 'category:id,name,slug',
                 'coverImage',
             ])
-            ->latest()  
+            ->latest()
+            ->shuffle()  
             ->limit(10)
             ->get()
             ->map(fn($item) => $this->transformProduct($item));
