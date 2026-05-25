@@ -179,7 +179,7 @@ class ProductController extends Controller
         ]);
 
         return redirect()
-            ->route('cms.product.index')
+            ->route('cms.product.index', ['status' => 'published'])
             ->with('success', 'Produk berhasil dibuat');
     }
 
