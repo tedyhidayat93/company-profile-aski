@@ -429,7 +429,7 @@ class ProductController extends Controller
 
             'images' => 'nullable|array|max:5',
 
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5048',
 
             'remove_images' => 'nullable|array',
 

@@ -265,11 +265,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                 description={
                     product.meta_description || product.description || ''
                 }
-                image={
-                    product.image
-                        ? `${window.location.origin}/${product.image}`
-                        : `${window.location.origin}/images/placeholder.png`
-                }
+                image={product.image}
                 keywords={product.tags?.join(', ') || ''}
             />
 
@@ -663,7 +659,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                         product.show_price && (
                                             <div className="flex justify-between items-center text-sm">
                                                 <span className="text-gray-500">Harga Satuan</span>
-                                                <span className="font-medium dark:text-gray-300">{product.show_price ? formatPrice(product.price) : 'N/A'}</span>
+                                                <span className="font-medium dark:text-gray-300">{product.show_price ? formatPrice(product.price) : ''}</span>
                                             </div>
                                         )
                                     }

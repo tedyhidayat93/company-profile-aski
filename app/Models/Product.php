@@ -225,10 +225,12 @@ class Product extends Model
     {
         return self::published()
             ->bestseller()
+            ->where('is_featured', true)
             ->with(['brand', 'category', 'coverImage'])
             ->orderBy('position', 'asc')
             ->orderBy('created_at', 'desc')
-            ->take(6)
-            ->get();
+            ->take(8)
+            ->get()
+            ->shuffle();
     }
 }

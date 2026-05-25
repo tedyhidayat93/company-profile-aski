@@ -200,6 +200,9 @@ class BlogController extends Controller
             ->firstOrFail();
 
         $post->increment('views_count');
+        
+        // Manipulate featured image
+        $post->featured_image = $this->resolveImagePath($post->featured_image);
 
         /*
         |--------------------------------------------------------------------------
@@ -221,7 +224,12 @@ class BlogController extends Controller
                 'featured_image',
                 'excerpt',
                 'published_at',
-            ]);
+            ])
+            ->map(function ($item) {
+                $item->featured_image = $this->resolveImagePath($item->featured_image);
+
+                return $item;
+            });
 
         return Inertia::render('frontend/blog/detail', [
             'post' => $post,
@@ -265,5 +273,21 @@ class BlogController extends Controller
         return redirect()->route('blog.index', [
             'tag' => $slug,
         ]);
+    }
+
+    private function resolveImagePath(?string $path): string
+    {
+        $baseUrl = rtrim(config('app.url'), '/');
+
+        if (empty($path)) {
+            return $baseUrl . '/images/placeholder.png';
+        }
+
+        // Jika sudah full URL
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        return $baseUrl . '/storage/' . ltrim($path, '/');
     }
 }

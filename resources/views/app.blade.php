@@ -2,9 +2,6 @@
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
 >
-<!-- @class([
-    'dark' => ($appearance ?? 'light') === 'dark',
-]) -->
 
 <head>
 
@@ -158,7 +155,7 @@
     @endphp
 
     {{-- DARK MODE --}}
-    <script>
+    {{-- <script>
         (() => {
 
             const appearance =
@@ -181,7 +178,7 @@
             }
 
         })();
-    </script>
+    </script> --}}
 
     {{-- BACKGROUND --}}
     <style>
@@ -190,10 +187,10 @@
                 oklch(1 0 0);
         }
 
-        html.dark {
+        /* html.dark {
             background-color:
                 oklch(0.145 0 0);
-        }
+        } */
     </style>
 
     {{-- TITLE --}}

@@ -162,7 +162,7 @@ class CatalogController extends Controller
         $bestSellerProducts = Product::query()
             ->published()
             ->where('is_featured', true)
-            ->orWhere('is_bestseller', true)
+            ->where('is_bestseller', true)
             ->with([
                 'category:id,name,slug',
                 'coverImage',
@@ -683,23 +683,20 @@ class CatalogController extends Controller
         ];
     }
 
-    private function resolveImagePath(
-        ?string $path
-    ): string {
+    private function resolveImagePath(?string $path): string
+    {
+        $baseUrl = rtrim(config('app.url'), '/');
 
-        if (!$path) {
-            return '/images/placeholder.png';
+        if (empty($path)) {
+            return $baseUrl . '/images/placeholder.png';
         }
 
-        $path = str_starts_with($path, '/storage/')
-            ? $path
-            : '/storage/' . ltrim($path, '/');
+        // Jika sudah full URL
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
 
-        return file_exists(
-            public_path($path)
-        )
-            ? $path
-            : '/images/placeholder.png';
+        return $baseUrl . '/storage/' . ltrim($path, '/');
     }
 
     private function buildSeo(

@@ -144,13 +144,13 @@ export default function Wishlist({ isOpen, onClose, items, onRemove }: WishlistP
                                                                         {item.name}
                                                                     </Link>
                                                                 </h3>
-                                                                <p className="text-xs md:text-sm font-medium text-gray-900 dark:text-red-500">
-                                                                    {new Intl.NumberFormat('id-ID', {
-                                                                        style: 'currency',
-                                                                        currency: 'IDR',
-                                                                        maximumFractionDigits: 0,
-                                                                    }).format(item.price)}
-                                                                </p>
+                                                                <Link
+                                                                    href={`/catalog/${item.slug}`}
+                                                                    className="mt-1 text-sm text-gray-500 dark:text-gray-300 hover:text-primary"
+                                                                    onClick={onClose}
+                                                                >
+                                                                    Lihat Detail
+                                                                </Link>
                                                             </div>
                                                             <div className="mt-2 flex items-center justify-between">
                                                                  <Button

@@ -274,7 +274,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
             title={groupInfo.title}
             description={groupInfo.description}
           >
-            <AppearanceToggleTab />
+            {/* <AppearanceToggleTab /> */}
             <Button onClick={() => setIsAddModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Tambah Konfigurasi

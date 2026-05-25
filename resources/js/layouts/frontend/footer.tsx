@@ -126,7 +126,7 @@ export default function Footer() {
           {products.slice(0, 8).map((product: any) => (
             <li key={product.id}>
               <Link
-                href={`/katalog/${product.slug}`}
+                href={`/catalog/${product.slug}`}
                 className="line-clamp-1 text-sm text-gray-400 transition-colors hover:text-primary"
               >
                 {product.name}

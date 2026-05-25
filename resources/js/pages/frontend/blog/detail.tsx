@@ -59,11 +59,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                     post.meta_description
                     || post.excerpt
                 }
-                image={
-                    post.featured_image
-                        ? `${window.location.origin}/storage/${post.featured_image}`
-                        : `${window.location.origin}/images/placeholder.png`
-                }
+                image={post.featured_image}
                 keywords={post.meta_keywords || post.tags?.join(', ') || ''}
             />
 
@@ -366,7 +362,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                                 >
                                     <div className="flex gap-4">
                                         <img
-                                            src={`/storage/${item.featured_image}`}
+                                            src={`${item.featured_image}`}
                                             className="w-28 h-24 object-cover rounded"
                                             onError={(e) => handleImageError(e, '/images/placeholder.png', item.title)}
                                             alt={item.title}

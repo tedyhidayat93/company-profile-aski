@@ -389,6 +389,7 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
                                         <option value="12">12 Item</option>
                                         <option value="24">24 Item</option>
                                         <option value="48">48 Item</option>
+                                        <option value="100">100 Item</option>
                                     </select>
 
                                     {/* RESET BUTTON */}

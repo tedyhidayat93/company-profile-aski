@@ -95,10 +95,15 @@ export default function ProductEdit({ product, brands, categories }: Props) {
 
   // State for formatted currency display
   const [formattedPrice, setFormattedPrice] = useState(
-    product.price ? formatCurrencyInput(product.price.toString()) : ''
+    product.price !== null && product.price !== undefined
+      ? formatCurrencyInput(product.price.toString())
+      : '0'
   );
+
   const [formattedComparePrice, setFormattedComparePrice] = useState(
-    product.compare_at_price ? formatCurrencyInput(product.compare_at_price.toString()) : ''
+    product.compare_at_price !== null && product.compare_at_price !== undefined
+      ? formatCurrencyInput(product.compare_at_price.toString())
+      : ''
   );
 
   // Calculate initial cover image index from active images (excluding removed ones)
@@ -277,10 +282,10 @@ export default function ProductEdit({ product, brands, categories }: Props) {
           continue;
         }
         
-        // Validate file size (2MB = 2 * 1024 * 1024 bytes)
-        const maxSize = 2 * 1024 * 1024;
+        // Validate file size (5MB = 5 * 1024 * 1024 bytes)
+        const maxSize = 5 * 1024 * 1024;
         if (file.size > maxSize) {
-          errors.push(`File "${file.name}" terlalu besar. Maksimal ukuran file adalah 2MB`);
+          errors.push(`File "${file.name}" terlalu besar. Maksimal ukuran file adalah 5MB`);
           continue;
         }
         
@@ -1080,7 +1085,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                       <TooltipContent side="top" className='bg-orange-100 border border-orange-300'>
                         <p className="max-w-[220px] text-xs leading-relaxed">
                           Produk akan diprioritaskan tampil di halaman utama
-                          dan muncul paling atas pada katalog produk.
+                          dan muncul paling atas pada katalog produk dan juga akan tampil pada card produk yang direkomendasikan.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -1113,7 +1118,7 @@ export default function ProductEdit({ product, brands, categories }: Props) {
                     >
                       <p className="text-xs leading-relaxed">
                         Memberikan label produk terlaris untuk meningkatkan
-                        kepercayaan dan daya tarik pelanggan.
+                        kepercayaan juga daya tarik pelanggan dan akan tampil pada card produk yang direkomendasikan.
                       </p>
                     </TooltipContent>
                   </Tooltip>

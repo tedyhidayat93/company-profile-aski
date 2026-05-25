@@ -139,7 +139,7 @@ class ArticleController extends Controller
             'slug' => 'nullable|string|max:255|unique:articles,slug',
             'content' => 'required|string',
             'excerpt' => 'nullable|string|max:500',
-            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5048',
             'status' => 'required|string|in:draft,published,archived',
             'published_at' => 'nullable|date',
             'author_id' => 'required|integer|exists:users,id',

@@ -237,10 +237,10 @@ export default function ProductCreate({ brands, categories }: Props) {
           continue;
         }
         
-        // Validate file size (2MB = 2 * 1024 * 1024 bytes)
-        const maxSize = 2 * 1024 * 1024;
+        // Validate file size (5MB = 5 * 1024 * 1024 bytes)
+        const maxSize = 5 * 1024 * 1024;
         if (file.size > maxSize) {
-          errors.push(`File "${file.name}" terlalu besar. Maksimal ukuran file adalah 2MB`);
+          errors.push(`File "${file.name}" terlalu besar. Maksimal ukuran file adalah 5MB`);
           continue;
         }
         
