@@ -168,9 +168,9 @@ class CatalogController extends Controller
                 'coverImage',
             ])
             ->latest()
-            ->shuffle()  
             ->limit(10)
             ->get()
+            ->shuffle()  
             ->map(fn($item) => $this->transformProduct($item));
 
         /*
