@@ -10,6 +10,7 @@ import { handleImageError } from '@/utils/image';
 import { useConfig } from '@/utils/config';
 import SeoHead from '@/components/seo-head';
 import HeroHomepageSection from '@/components/hero-hompage-section';
+import GoogleReviewsWidget from '@/components/google-reviews-widget';
 
 
 export default function Homepage({ 
@@ -265,21 +266,20 @@ export default function Homepage({
 
         {/* Testimoni Section */}
         <section className="bg-gradient-to-b from-orange-100 to-gray-50 dark:from-gray-900 dark:to-gray-950">
-          {testimonials.length > 0 && (
-            <div className="container mx-auto px-4 py-20">
+          <div className="container mx-auto px-4 py-20">
 
               {/* Header */}
               <div className="mb-16 text-center max-w-2xl mx-auto">
                 <h2 className="text-3xl font-bold mb-1 dark:text-orange-400">
-                  Apa Kata Mereka
+                  {getConfig('testimonials_title', 'Apa Kata Mereka')}
                 </h2>
-                <p className="mt-4 text-gray-600 dark:text-gray-400">
-                  Testimoni dari klien yang telah menggunakan layanan kami
+                <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
+                  {getConfig('testimonials_description', 'Testimoni dari klien yang telah menggunakan layanan kami')}
                 </p>
               </div>
 
               {/* Testimonials Grid */}
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-4">
                 {testimonials.map((testimonial) => (
                   <div 
                     key={testimonial.id}
@@ -292,6 +292,8 @@ export default function Homepage({
                 ))}
               </div>
 
+              <GoogleReviewsWidget />
+
               {/* CTA */}
               <div className="mt-16 flex justify-center">
                 <Link
@@ -302,9 +304,7 @@ export default function Homepage({
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
-
             </div>
-          )}
         </section>
 
         {/* FAQ Section */}

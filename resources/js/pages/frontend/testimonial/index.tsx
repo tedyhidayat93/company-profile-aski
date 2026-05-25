@@ -3,6 +3,7 @@ import FrontendLayout from '@/layouts/frontend-layout';
 import { getConfig } from '@/hooks/use-configuration';
 import TestimonialCard from '@/components/TestimonialCard';
 import SeoHead from '@/components/seo-head';
+import GoogleReviewsWidget from '@/components/google-reviews-widget';
 
 export default function TestimonialIndex({ 
     testimonials = [], 
@@ -30,11 +31,13 @@ export default function TestimonialIndex({
                         </p>
                     </div>
 
-                     <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 mb-4">
                         {testimonials.map((testimonial) => (
                             <TestimonialCard key={testimonial.id} testimonial={testimonial} />
                         ))}
                     </div>
+
+                    <GoogleReviewsWidget />
 
                     {testimonials.length === 0 && (
                         <div className="text-center py-12">

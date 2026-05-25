@@ -245,9 +245,7 @@ class BlogController extends Controller
                             ->limit(160)
                     ),
 
-                'image' => $post->featured_image
-                    ? asset('storage/' . ltrim($post->featured_image, '/'))
-                    : asset('images/placeholder.png'),
+                'image' => $post->featured_image,
 
                 'keywords' => $post->meta_keywords
                     ?: (
@@ -278,7 +276,7 @@ class BlogController extends Controller
     private function resolveImagePath(?string $path): string
     {
         $baseUrl = rtrim(config('app.url'), '/');
-
+        
         if (empty($path)) {
             return $baseUrl . '/images/placeholder.png';
         }
