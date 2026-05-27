@@ -16,7 +16,8 @@ import {
     Facebook,
     Twitter,
     Link2,
-    Instagram
+    Instagram,
+    BadgeInfo
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
@@ -630,9 +631,10 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                     <DialogPanel className="w-full max-w-4xl rounded-2xl bg-white dark:bg-gray-900 shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[95vh]">
                         
                         {/* SISI KIRI: Ringkasan (Review) */}
-                        <div className="w-full md:w-5/12 bg-slate-50 dark:bg-gray-800/50 p-6 md:p-8 border-r border-gray-100 dark:border-gray-800 overflow-y-auto">
+                        <div className="w-full md:w-5/12 bg-slate-800 dark:bg-gray-800/50 p-6 md:p-8 border-r border-gray-100 dark:border-gray-800 overflow-y-auto">
                             <div className="sticky top-0">
-                                <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-6">
+                                <h3 className="text-sm font-bold uppercase tracking-wider text-orange-400 dark:text-gray-400 mb-6">
+                                    <BadgeInfo className="mr-2 h-4 w-4 inline-block" />
                                     Detail Pesanan
                                 </h3>
                                 
@@ -658,19 +660,19 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     {
                                         product.show_price && (
                                             <div className="flex justify-between items-center text-sm">
-                                                <span className="text-gray-500">Harga Satuan</span>
+                                                <span className="text-gray-200">Harga Satuan</span>
                                                 <span className="font-medium dark:text-gray-300">{product.show_price ? formatPrice(product.price) : ''}</span>
                                             </div>
                                         )
                                     }
                                     <div className="flex justify-between items-center text-sm">
-                                        <span className="text-gray-500">Jumlah</span>
+                                        <span className="text-gray-200">Jumlah</span>
                                         <span className="font-medium dark:text-gray-300">x {quantity}</span>
                                     </div>
                                     <div className="pt-3 border-t border-dashed border-gray-300 dark:border-gray-700">
                                         {product.show_price ? (
                                             <div className="flex justify-between items-center">
-                                                <span className="font-bold text-gray-900 dark:text-white text-lg">Total Estimasi</span>
+                                                <span className="font-bold text-gray-100 dark:text-white text-lg">Total Estimasi</span>
                                                 <span className="text-xl font-black text-primary dark:text-orange-400">
                                                     {formatPrice(product.price * quantity)}
                                                 </span>
@@ -701,7 +703,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                         <div className="w-full md:w-7/12 p-6 md:p-8 bg-white dark:bg-gray-900 overflow-y-auto relative">
                             <div className="flex justify-between items-start mb-8">
                                 <div>
-                                    <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">Formulir Kontak</DialogTitle>
+                                    <DialogTitle className="text-2xl font-black text-gray-900 dark:text-white">Formulir Pemesanan</DialogTitle>
                                     <p className="text-sm text-gray-500 mt-1">Lengkapi data untuk memproses pesanan Anda.</p>
                                 </div>
                                 <button 
@@ -714,7 +716,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                             
                             <form onSubmit={(e) => { e.preventDefault(); onSubmit(e); }} className="space-y-5">
                                 {/* Quantity Selector Modern */}
-                                <div className="p-4 bg-slate-50 dark:bg-gray-800 rounded-xl flex items-center justify-between border border-gray-100 dark:border-gray-700">
+                                <div className="p-4 bg-slate-200/90 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded-xl flex items-center justify-between border border-gray-100 dark:border-gray-700">
                                     <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Tentukan Jumlah</label>
                                     <div className="flex items-center bg-white dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm overflow-hidden">
                                         <button type="button" onClick={() => handleQuantityChange(-1)} className="px-3 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">-</button>
@@ -733,7 +735,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     <div className="space-y-5">
                                         {/* Nama Instansi */}
                                         <div className="space-y-2">
-                                            <Label htmlFor="companyName" className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            <Label htmlFor="companyName" className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400">
                                                 Nama Instansi / Pribadi <span className="text-red-500">*</span>
                                             </Label>
                                             <div className="relative">
@@ -753,7 +755,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {/* Nama PIC */}
                                             <div className="space-y-2">
-                                                <Label htmlFor="picName" className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                                <Label htmlFor="picName" className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400">
                                                     Nama PIC <span className="text-red-500">*</span>
                                                 </Label>
                                                 <div className="relative">
@@ -772,7 +774,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
 
                                             {/* WhatsApp / HP */}
                                             <div className="space-y-2">
-                                                <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                                <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400">
                                                     WhatsApp / HP <span className="text-red-500">*</span>
                                                 </Label>
                                                 <div className="relative">
@@ -793,7 +795,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
 
                                         {/* Alamat Email */}
                                         <div className="space-y-2">
-                                            <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                            <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400">
                                                 Alamat Email <span className="text-red-500">*</span>
                                             </Label>
                                             <div className="relative">
@@ -813,7 +815,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                     </div>
                                     
                                     <div>
-                                        <label htmlFor="notes" className="block text-[12px] font-bold uppercase tracking-widest text-gray-500 mb-2">
+                                        <label htmlFor="notes" className="block text-[12px] font-bold uppercase tracking-widest text-gray-700 mb-2">
                                             Catatan Tambahan
                                         </label>
                                         <textarea
