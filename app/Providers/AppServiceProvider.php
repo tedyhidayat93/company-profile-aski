@@ -3,19 +3,22 @@
 namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
-use App\Models\Product;
-use App\Models\Article;
-use App\Models\Order;
-use App\Models\Service;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Configuration;
+use App\Models\Product;
+use App\Models\Article;
+use App\Models\Service;
+use App\Models\Testimonial;
+use App\Models\Client;
 use App\Observers\ProductObserver;
 use App\Observers\ArticleObserver;
-
+use App\Observers\ServiceObserver;
+use App\Observers\TestimonialObserver;
+use App\Observers\ClientObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -39,6 +42,18 @@ class AppServiceProvider extends ServiceProvider
 
         Article::observe(
             ArticleObserver::class
+        );
+
+        Testimonial::observe(
+            TestimonialObserver::class
+        );
+
+        Client::observe(
+            ClientObserver::class
+        );
+
+        Service::observe(
+            ServiceObserver::class
         );
 
         RateLimiter::for('product-order', function (Request $request) {
