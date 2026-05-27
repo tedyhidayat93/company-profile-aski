@@ -193,6 +193,13 @@ export default function BlogIndex({
         <FrontendLayout>
             <SeoHead title={'Artikel'} />
 
+            <div className="sr-only">
+                <h1 className="text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('articles_title', 'Artikel Terbaru')}</h1>
+                <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
+                {getConfig('articles_description', 'Temukan informasi terbaru seputar kontainer dan solusi logistik')}
+                </p>
+            </div>
+
             <div className="max-w-6xl mx-auto px-4 py-8 space-y-7">
 
                 {/* 🔍 FILTER + TAGS */}

@@ -228,7 +228,7 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
 
         return (
             <div className="mb-6 hidden rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:block transition-all duration-300 hover:shadow-md sticky top-30 bg-white/80 backdrop-blur-sm border-b border-slate-200 z-40">
-
+                
                 {/* DEFAULT VIEW (TOP BAR) */}
                 <div className="flex items-center gap-4">
                     
@@ -760,6 +760,13 @@ export default function CatalogPage({ products, bestSellerProducts, categories, 
     return (
         <FrontendLayout>
             <SeoHead title={'Katalog Produk'} />
+
+            <div className="sr-only">
+                <h1 className="text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('products_title', 'Katalog Produk Kami')}</h1>
+                <p className="text-gray-600 dark:text-gray-300">
+                    {getConfig('products_description', 'Temukan produk-produk kontainer untuk kebutuhanmu')}
+                </p>
+            </div>
 
             <Catalog products={products} bestSellerProducts={bestSellerProducts} categories={categories} types={types} filters={filters} />
         </FrontendLayout>

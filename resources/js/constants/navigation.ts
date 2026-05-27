@@ -2,8 +2,9 @@
 export const NAV_LINKS = [
   { name: 'Beranda', href: '/' },
   { name: 'Layanan', href: '/#services' },
-  { name: 'Katalog Produk', href: '/#products' },
-  { name: 'Artikel', href: '/#article' },
+  { name: 'Katalog Produk', href: '/catalog' },
+  { name: 'Testimoni & Ulasan', href: '/testimonial' },
+  { name: 'Artikel', href: '/articles' },
   { name: 'Kontak', href: '/#contact' },
   { name: 'Sitemap', href: '/sitemap' }
 ];

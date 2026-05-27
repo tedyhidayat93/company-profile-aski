@@ -1,9 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { getConfig } from '@/hooks/use-configuration';
 import TestimonialCard from '@/components/TestimonialCard';
 import SeoHead from '@/components/seo-head';
 import GoogleReviewsWidget from '@/components/google-reviews-widget';
+import { useConfig } from '@/utils/config';
 
 export default function TestimonialIndex({ 
     testimonials = [], 
@@ -14,6 +14,7 @@ export default function TestimonialIndex({
     featuredTestimonial?: any;
     stats?: any;
 }) {
+    const { getConfig } = useConfig();
    
     return (
         <FrontendLayout>
@@ -23,11 +24,11 @@ export default function TestimonialIndex({
             <div className="py-16 dark:bg-gray-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                            Semua Testimoni
-                        </h2>
-                        <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
-                            Lihat apa yang dikatakan klien kami tentang layanan kami
+                        <h1 className="text-3xl font-bold mb-1 dark:text-orange-400">
+                            {getConfig('testimonials_title', 'Apa Kata Mereka')}
+                        </h1>
+                        <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
+                            {getConfig('testimonials_description', 'Testimoni dari klien yang telah menggunakan layanan kami')}
                         </p>
                     </div>
 

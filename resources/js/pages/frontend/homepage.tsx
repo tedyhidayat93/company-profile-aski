@@ -476,7 +476,7 @@ export default function Homepage({
                 <div className="mt-12 text-center flex items-center justify-center">
                   <Link 
                     href="/articles"
-                    className="btn btn-ghost flex items-center"
+                    className="btn btn-ghost rounded-full! flex items-center"
                   >
                     Tampilkan Lebih Banyak <ArrowRight className="ml-1 h-4 w-4" />  
                   </Link>

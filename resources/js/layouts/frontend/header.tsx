@@ -42,7 +42,7 @@ export default function Header() {
     { name: 'Beranda', id: 'home', href: isHomepage ? '#' : '/' },
     { name: 'Layanan', id: 'services', href: isHomepage ? '#' : '/#services' },
     { name: 'Produk', id: 'products', href: isCatalog ? '#' : '/catalog' },
-    { name: 'Artikel', id: 'article', href: isHomepage ? '#' : '/#article' },
+    { name: 'Artikel', id: 'article', href: isHomepage ? '#' : '/articles' },
     { name: 'Kontak', id: 'contact', href: isHomepage ? '#' : '/#contact' }
   ], [isHomepage, isCatalog]);
 
