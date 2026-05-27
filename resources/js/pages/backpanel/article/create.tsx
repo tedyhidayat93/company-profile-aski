@@ -222,6 +222,7 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
                     onChange={handleFileChange}
                     className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
+                  <small>*Maksimal 2 MB, format: JPG, PNG, GIF</small>
                   {errors.featured_image && <p className="text-sm text-red-600">{errors.featured_image}</p>}
                   {featuredImagePreview && (
                     <div className="mt-2">

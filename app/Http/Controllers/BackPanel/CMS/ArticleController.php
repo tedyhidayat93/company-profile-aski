@@ -453,7 +453,6 @@ class ArticleController extends Controller
         */
 
         if ($request->hasFile('featured_image')) {
-
             // Delete old image
             if ($article->featured_image) {
                 Storage::disk('public')
@@ -483,6 +482,9 @@ class ArticleController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        if (!$request->hasFile('featured_image')) {
+            unset($validated['featured_image']);
+        }
         $article->update($validated);
 
         /*

@@ -266,6 +266,14 @@
   thead tr th:first-child{
     @apply overflow-hidden rounded-l-lg pl-6!;
   }
+
+  .tinymce-content {
+    all: initial;
+  }
+
+  .tinymce-content * {
+    all: revert;
+  }
 }
 
 @keyframes marquee {

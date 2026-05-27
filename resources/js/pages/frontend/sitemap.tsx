@@ -168,7 +168,7 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex items-center">
+                            <div className="flex items-center col-span-1 md:col-span-3">
                                 <MapPin className="h-5 w-5 text-amber-600 mr-3" />
                                 <div>
                                     <p className="text-sm text-gray-600">Alamat</p>
@@ -181,16 +181,10 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
                     </div>
 
                     {/* SEO Section */}
-                    <div className="mt-12 bg-blue-50 rounded-lg p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                            Untuk Mesin Pencari
-                        </h2>
+                    <div className="mt-12 bg-blue-50 rounded-lg p-6 sr-only">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <h3 className="font-medium text-gray-900 mb-2">XML Sitemap</h3>
-                                <p className="text-gray-600 text-sm mb-3">
-                                    Sitemap dalam format XML untuk mesin pencari seperti Google
-                                </p>
                                 <a
                                     href="/sitemap.xml"
                                     target="_blank"
@@ -202,9 +196,6 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
                             </div>
                             <div>
                                 <h3 className="font-medium text-gray-900 mb-2">Robots.txt</h3>
-                                <p className="text-gray-600 text-sm mb-3">
-                                    Petunjuk untuk mesin pencari tentang halaman yang boleh diindeks
-                                </p>
                                 <a
                                     href="/robots.txt"
                                     target="_blank"

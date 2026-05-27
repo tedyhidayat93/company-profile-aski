@@ -40,13 +40,6 @@ export default function TestimonialIndex({
 
                     <GoogleReviewsWidget />
 
-                    {testimonials.length === 0 && (
-                        <div className="text-center py-12">
-                            <div className="text-gray-500 dark:text-gray-400">
-                                Belum ada testimoni yang tersedia.
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
         </FrontendLayout>

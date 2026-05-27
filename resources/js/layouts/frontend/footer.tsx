@@ -45,31 +45,34 @@ export default function Footer() {
       </div>
 
       {/* Social Media */}
-      <div className="flex flex-wrap gap-3">
-        {[
-          { name: 'Facebook', icon: 'Facebook', href: getConfig('social_facebook', '') },
-          { name: 'Twitter', icon: 'X', href: getConfig('social_twitter', '') },
-          { name: 'Instagram', icon: 'Instagram', href: getConfig('social_instagram', '') },
-          { name: 'YouTube', icon: 'Youtube', href: getConfig('social_youtube', '') },
-          { name: 'TikTok', icon: 'Tiktok', href: getConfig('social_tiktok', '') }
-        ]
-          .filter((social) => social.href)
-          .map((social) => {
-            const Icon = socialIcons[social.icon as keyof typeof socialIcons];
+      <div className="flex flex-col gap-3">
+        <p className="text-xs text-gray-400">Ikuti kami di media sosial:</p>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { name: 'Facebook', icon: 'Facebook', href: getConfig('social_facebook', '') },
+            { name: 'Twitter', icon: 'X', href: getConfig('social_twitter', '') },
+            { name: 'Instagram', icon: 'Instagram', href: getConfig('social_instagram', '') },
+            { name: 'YouTube', icon: 'Youtube', href: getConfig('social_youtube', '') },
+            { name: 'TikTok', icon: 'Tiktok', href: getConfig('social_tiktok', '') }
+          ]
+            .filter((social) => social.href)
+            .map((social) => {
+              const Icon = socialIcons[social.icon as keyof typeof socialIcons];
 
-            return (
-              <a
-                key={social.name}
-                href={social.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={social.name}
-                className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-800 bg-gray-900 text-gray-400 transition-all duration-300 hover:-translate-y-1 hover:border-primary hover:bg-primary hover:text-white"
-              >
-                <Icon className="h-5 w-5" />
-              </a>
-            );
-          })}
+              return (
+                <a
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={social.name}
+                  className="flex h-10 w-auto px-3 text-xs gap-2 items-center justify-center rounded-xl border border-gray-800 bg-gray-900 text-gray-400 transition-all duration-300 hover:-translate-y-1 hover:border-primary hover:bg-primary hover:text-white"
+                >
+                  <Icon className="h-3.5 w-3.5" /> {social.name}
+                </a>
+              );
+            })}
+        </div>
       </div>
     </div>
 
