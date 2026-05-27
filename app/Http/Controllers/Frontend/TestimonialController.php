@@ -14,18 +14,8 @@ class TestimonialController extends Controller
 {
     use TracksVisitors;
     
-    public function __construct()
-    {
-        // Apply permission middleware to all methods
-        $this->middleware('permission:testimonial-list')->only(['index', 'show']);
-        $this->middleware('permission:testimonial-create')->only(['create', 'store']);
-        $this->middleware('permission:testimonial-edit')->only(['edit', 'update', 'toggleStatus']);
-        $this->middleware('permission:testimonial-delete')->only(['destroy']);
-    }
     public function index(Request $request): Response
     {
-        Gate::authorize('testimonial-list');
-        
         // Track visitor
         $this->trackPageVisit($request, 'Testimonials');
         
@@ -96,7 +86,6 @@ class TestimonialController extends Controller
 
     public function show(Request $request, $id): Response
     {
-        Gate::authorize('testimonial-list');
         
         // Track visitor
         $this->trackPageVisit($request, 'Testimonial Detail - ' . $id);
@@ -146,8 +135,6 @@ class TestimonialController extends Controller
      */
     public function submit(Request $request)
     {
-        Gate::authorize('testimonial-create');
-        
         // Track visitor
         $this->trackPageVisit($request, 'Testimonial Submission');
 
