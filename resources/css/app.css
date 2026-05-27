@@ -268,11 +268,27 @@
   }
 
   .tinymce-content {
-    all: initial;
+    font-family: inherit;
+    line-height: inherit;
+    color: inherit;
   }
 
-  .tinymce-content * {
-    all: revert;
+  .tinymce-content img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .tinymce-content table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .tinymce-content iframe {
+    max-width: 100%;
+  }
+
+  .tinymce-content pre {
+    overflow-x: auto;
   }
 }
 
@@ -347,16 +363,31 @@
 }
 
 .animate-gradient-wave {
-  background-size: 200% 200%;
-  animation: gradient-wave 8s ease infinite;
+  /* Menggunakan scale untuk efek denyut yang lebih dinamis */
+  animation: pulse-effect 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes gradient-wave-slow {
-  0% { transform: translateX(-20%) translateY(0); }
-  50% { transform: translateX(20%) translateY(10%); }
-  100% { transform: translateX(-20%) translateY(0); }
+@keyframes pulse-effect {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: .7;
+    transform: scale(1.05);
+  }
 }
 
 .animate-gradient-wave-slow {
-  animation: gradient-wave-slow 12s ease-in-out infinite;
+  /* Versi lebih lambat dan halus tanpa perubahan scale yang drastis */
+  animation: pulse-effect-slow 8s ease-in-out infinite;
+}
+
+@keyframes pulse-effect-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
 }

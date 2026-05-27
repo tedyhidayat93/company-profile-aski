@@ -81,7 +81,7 @@ export default function HeroSection({
           
           {/* SEBELAH KIRI: Deskripsi & Search Content */}
           <div className="lg:col-span-7 text-center lg:text-left text-white animate-fade-in-up space-y-6">
-            <h1 className="font-black! leading-[1.1] sm:leading-[0.95] tracking-tighter text-4xl sm:text-5xl md:text-6xl xl:text-7xl text-slate-900">
+            <h1 className="font-black! leading-[1.1] sm:leading-[0.95] tracking-tighter text-4xl sm:text-5xl md:text-5xl xl:text-6xl 2xl:text-7xl text-slate-900">
               <span dangerouslySetInnerHTML={{ 
                 __html: getConfig('hero_title', 
                 'Solusi Terpercaya <br class="hidden sm:inline" /> Untuk ' + 

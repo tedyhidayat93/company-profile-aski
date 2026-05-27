@@ -196,14 +196,14 @@ export default function Homepage({
         {/* products Section */}
         <section id="products" className="bg-slate-50/80 py-20 dark:bg-gray-800">
           <div className="container mx-auto px-4">
-            <div className="mb-12 flex flex-col items-center md:justify-between md:flex-row">
+            <div className="mb-12 flex flex-col items-center md:justify-between md:flex-row xl:gap-5">
               <div className="mb-4 md:mb-0 text-center md:text-left">
                 <h2 className="text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('products_title', 'Produk Kami')}</h2>
                 <p className="text-gray-600 dark:text-gray-300">
                   {getConfig('products_description', 'Temukan produk-produk kontainer untuk kebutuhanmu')}
                 </p>
               </div>
-              <Link href={catalog.index()} className="btn btn-ghost rounded-full! flex items-center px-7!">
+              <Link href={catalog.index()} className="btn btn-ghost text-nowrap rounded-full! flex items-center px-7!">
                 Lihat Katalog <ArrowRight className="ml-1 h-4 w-4" /> 
               </Link>
             </div>
@@ -217,7 +217,7 @@ export default function Homepage({
             <div className="mt-16 flex justify-center">
                 <Link
                   href="/catalog"
-                  className="inline-flex items-center gap-2 rounded-full border-2 border-slate-100 hover:bg-orange-500/30 hover:text-orange-600 font-medium hover:border-orange-400 border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:gap-3"
+                  className="inline-flex items-center gap-2 text-nowrap rounded-full border-2 border-slate-100 hover:bg-orange-500/30 hover:text-orange-600 font-medium hover:border-orange-400 border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:gap-3"
                 >
                   Tampilkan Lebih Banyak
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -298,7 +298,7 @@ export default function Homepage({
               <div className="mt-16 flex justify-center">
                 <Link
                   href="/testimonial"
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:gap-3"
+                  className="inline-flex items-center gap-2 text-nowrap rounded-full border border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:gap-3"
                 >
                   Tampilkan Lebih Banyak
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -476,7 +476,7 @@ export default function Homepage({
                 <div className="mt-12 text-center flex items-center justify-center">
                   <Link 
                     href="/articles"
-                    className="btn btn-ghost rounded-full! flex items-center"
+                    className="btn btn-ghost text-nowrap rounded-full! flex items-center"
                   >
                     Tampilkan Lebih Banyak <ArrowRight className="ml-1 h-4 w-4" />  
                   </Link>
@@ -487,14 +487,34 @@ export default function Homepage({
         </section>
 
         {/* CTA Section */}
-        <section id="contact" className="bg-orange-200 dark:bg-orange-300 py-20 text-white">
-          <div className="container mx-auto px-4 text-center flex flex-col justify-center items-center">
-            <h2 className="mb-6 text-3xl md:text-5xl font-[800]! text-black">{getConfig('cta_title', 'Butuh Kontainer untuk Bisnis Anda?')}</h2>
-            <p className="mx-auto mb-8 text-slate-800 max-w-2xl">
+        <section id="contact" className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-orange-800 to-slate-950 py-24 text-white">
+          {/* Efek Dekoratif Background */}
+          <div className="absolute top-0 left-1/4 h-64 w-64 -translate-y-1/2 rounded-full bg-orange-500/10 blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 h-64 w-64 translate-y-1/2 rounded-full bg-amber-500/10 blur-3xl"></div>
+
+          <div className="container relative z-10 mx-auto px-6 text-center flex flex-col justify-center items-center">
+            {/* Badge Kecil di Atas */}
+            <span className="mb-4 rounded-full bg-orange-500/10 px-4 py-1.5 text-xs font-semibold tracking-wider text-orange-400 uppercase border border-orange-500/20">
+              Hubungi Kami
+            </span>
+            
+            <h2 className="mb-6 text-3xl md:text-5xl font-extrabold tracking-tight text-white xl:max-w-6xl leading-tight">
+              {getConfig('cta_title', 'Butuh Kontainer untuk Bisnis Anda?')}
+            </h2>
+            
+            <p className="mx-auto mb-10 text-base md:text-xl text-slate-300 xl:max-w-6xl leading-relaxed">
               {getConfig('cta_description', 'Dapatkan penawaran terbaik untuk sewa atau beli kontainer berkualitas. Cocok untuk berbagai kebutuhan usaha mulai dari gudang, kantor, hingga ruang komersial.')}
             </p>
-            <a target='_blank' href={`https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=${getConfig('whatsapp_message', 'Halo%20Alumoda%2C%20saya%20ingin%20bertanya')}`}  className="btn flex! w-max items-center gap-2 text-white bg-green-600 cursor-pointer animate-bounce! hover:bg-green-500 shadow-lg p-4! px-7! rounded-full! text-base"> 
-              <PhoneCall className="h-5 w-5" /> {getConfig('cta_button_text', 'Hubungi Kami via WhatsApp')}</a>
+            
+            {/* Tombol yang Lebih Elegan & Interaktif */}
+            <a 
+              target='_blank' 
+              href={`https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=${getConfig('whatsapp_message', 'Halo%20Alumoda%2C%20saya%20ingin%20bertanya')}`}  
+              className="group flex w-max items-center gap-3 bg-gradient-to-r animate-pulse from-green-500 to-emerald-600 px-8 py-4 rounded-xl text-white font-medium shadow-lg shadow-emerald-900/30 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/20"
+            > 
+              <PhoneCall className="h-5 w-5 transition-transform group-hover:rotate-12" /> 
+              <span>{getConfig('cta_button_text', 'Hubungi Kami via WhatsApp')}</span>
+            </a>
           </div>
         </section>
       </main>
