@@ -427,7 +427,7 @@ class ProductController extends Controller
 
             'specific_specs.*.note' => 'nullable|string|max:500',
 
-            'images' => 'nullable|array|max:5',
+            'images' => 'nullable|array|max:10',
 
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5048',
 
