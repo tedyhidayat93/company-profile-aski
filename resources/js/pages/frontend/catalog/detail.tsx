@@ -29,7 +29,6 @@ import { Button } from '@/components/ui/button';
 import { handleImageError } from '@/utils/image';
 import { formatPrice } from '@/utils/currency';
 import { getProductTypeText } from '@/utils/product';
-import { useConfig } from '@/utils/config';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import SingleGalleryPreview from '@/components/single-gallery-preview';

@@ -1,5 +1,4 @@
-import React from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { useConfig } from '@/utils/config';
 import {  Package, FileText, Home, Phone, Mail, MapPin } from 'lucide-react';
@@ -25,8 +24,7 @@ interface SitemapProps {
 }
 
 export default function Sitemap({ articles = [], products = [], navigation = [] }: SitemapProps) {
-    const { getConfig, siteconfig } = useConfig();
-    const page = usePage().props as any;
+    const { getConfig } = useConfig();
     
     return (
         <FrontendLayout title="Sitemap">

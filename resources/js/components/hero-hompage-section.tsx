@@ -80,7 +80,7 @@ export default function HeroSection({
           
           {/* SEBELAH KIRI: Deskripsi & Search Content */}
           <div className="lg:col-span-7 text-center lg:text-left text-white animate-fade-in-up space-y-6">
-            <h1 className="font-black! leading-[1.1] sm:leading-[0.95] tracking-tighter text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl text-slate-900">
+            <h1 className="font-black! tracking-tighter text-4xl md:text-5xl 2xl:text-6xl text-slate-900">
               <span dangerouslySetInnerHTML={{ 
                 __html: getConfig('hero_title', 
                 'Solusi Terpercaya <br class="hidden sm:inline" /> Untuk ' + 
@@ -91,7 +91,7 @@ export default function HeroSection({
               }} />
             </h1>
             
-            <p className="max-w-2xl font-bold text-base md:text-xl text-slate-900/90 leading-relaxed">
+            <p className="max-w-2xl font-medium text-base md:text-lg xl:text-xl text-slate-900 ">
               {getConfig('hero_description', 'Kami menyediakan berbagai pilihan kontainer untuk disewa atau dibeli. Mulai dari Kontainer standar hingga Kontainer Custom sesuai kebutuhan Anda.')}
             </p>
 

@@ -12,11 +12,16 @@ import Wishlist from '@/components/wishlist';
 import { useConfig } from '@/utils/config';
 import { handleImageError } from '@/utils/image';
 
-const NavItem = ({ link, onClick }: { link: any, onClick: (e: any, id: string) => void }) => (
+const NavItem = ({ link, isActive, onClick }: { link: any, isActive: boolean, onClick: (e: any, id: string) => void }) => (
   <a
     href={link.href}
+    aria-label={'go to ' + link.href}
     onClick={(e) => onClick(e, link.id)}
-    className="rounded-full border-2 border-white hover:border-orange-300 font-bold px-3 py-1.5 xl:px-5 text-sm xl:text-base text-gray-900 hover:text-orange-600 hover:bg-orange-400/20 dark:text-gray-300 transition-colors cursor-pointer"
+    className={`rounded-full border-2 font-bold px-3 py-1.5 xl:px-5 text-sm xl:text-base dark:text-gray-300 transition-colors cursor-pointer
+      ${isActive 
+        ? 'border-orange-300 text-orange-600 bg-orange-400/20' 
+        : 'border-white text-gray-900 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-400/20'
+      }`}
   >
     {link.name}
   </a>
@@ -30,9 +35,10 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
-
+  
   const isHomepage = url === '/';
   const isCatalog = url === '/catalog';
+  const [activeMenu, setActiveMenu] = useState(isHomepage ? 'home' : isCatalog ? 'products' : '');
 
   // Memoized values
   const logoImage = getConfig('/storage/site_logo', '/images/logo-main.png');
@@ -52,6 +58,8 @@ export default function Header() {
   }, []);
 
   const handleScrollTo = (e: React.MouseEvent, id: string) => {
+    setActiveMenu(id);
+
     if (isHomepage && id !== 'products') {
       e.preventDefault();
       const element = document.getElementById(id);
@@ -133,10 +141,14 @@ export default function Header() {
                 />
               </Link>
 
-              {/* Desktop Nav Links */}
               <div className="hidden lg:flex items-center space-x-2">
                 {navLinks.map((link) => (
-                  <NavItem key={link.id} link={link} onClick={handleScrollTo} />
+                  <NavItem 
+                    key={link.id} 
+                    link={link} 
+                    isActive={activeMenu === link.id} // Cara bersih ala React
+                    onClick={handleScrollTo} 
+                  />
                 ))}
               </div>
 

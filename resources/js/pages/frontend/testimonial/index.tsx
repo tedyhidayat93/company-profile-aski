@@ -1,4 +1,3 @@
-import { Head, Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import TestimonialCard from '@/components/TestimonialCard';
 import SeoHead from '@/components/seo-head';
@@ -7,8 +6,6 @@ import { useConfig } from '@/utils/config';
 
 export default function TestimonialIndex({ 
     testimonials = [], 
-    featuredTestimonial = null, 
-    stats = {} 
 }: { 
     testimonials?: any[];
     featuredTestimonial?: any;
@@ -20,7 +17,6 @@ export default function TestimonialIndex({
         <FrontendLayout>
             <SeoHead title={'Ulasan'} />
 
-            {/* All Testimonials Grid */}
             <div className="py-16 dark:bg-gray-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">

@@ -1,6 +1,6 @@
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Link, useForm, router } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { Calendar, Eye, User, Search, Filter, Tag, TagIcon, Folder, Hash, SearchIcon } from 'lucide-react';
+import { Calendar, Eye, Search, Filter, Tag, TagIcon, Folder, Hash, SearchIcon } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

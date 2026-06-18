@@ -234,7 +234,7 @@
     @apply text-2xl md:text-3xl;
   }
   p {
-    @apply text-gray-600 dark:text-gray-300 xl:text-base/7!;
+    @apply text-gray-600 dark:text-gray-300 xl:text-base/7;
   }
 
   input {

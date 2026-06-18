@@ -6,8 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, Star, Send, ArrowLeft, CheckCircle, Menu, X } from 'lucide-react';
-import { getConfig } from '@/hooks/use-configuration';
+import { Upload, Star, Send, CheckCircle } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 
 interface Props {
@@ -31,7 +30,7 @@ export default function TestimonialSubmit({
     siteLogo,
     googleMapsEmbed 
 }: Props) {
-    const { data, setData, post, processing, errors, reset, recentlySuccessful } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
         nama: '',
         keterangan: '',
         perusahaan: '',
