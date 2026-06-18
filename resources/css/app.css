@@ -234,7 +234,7 @@
     @apply text-2xl md:text-3xl;
   }
   p {
-    @apply text-gray-600 dark:text-gray-300;
+    @apply text-gray-600 dark:text-gray-300 xl:text-base/7!;
   }
 
   input {
@@ -267,28 +267,272 @@
     @apply overflow-hidden rounded-l-lg pl-6!;
   }
 
+  /* TinyMCE Content */
   .tinymce-content {
     font-family: inherit;
+    font-size: inherit;
     line-height: inherit;
     color: inherit;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
+
+  /* =========================
+    TYPOGRAPHY
+  ========================= */
+
+  .tinymce-content p {
+    margin: 0 0 1rem;
+    line-height: inherit;
+    font-size: inherit;
+  }
+
+  .tinymce-content h1,
+  .tinymce-content h2,
+  .tinymce-content h3,
+  .tinymce-content h4,
+  .tinymce-content h5,
+  .tinymce-content h6 {
+    font-family: inherit;
+    color: inherit;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tinymce-content h1 {
+    font-size: 2rem;
+  }
+
+  .tinymce-content h2 {
+    font-size: 1.75rem;
+  }
+
+  .tinymce-content h3 {
+    font-size: 1.5rem;
+  }
+
+  .tinymce-content h4 {
+    font-size: 1.25rem;
+  }
+
+  .tinymce-content h5 {
+    font-size: 1.1rem;
+  }
+
+  .tinymce-content h6 {
+    font-size: 1rem;
+  }
+
+  .tinymce-content strong,
+  .tinymce-content b {
+    font-weight: 700;
+  }
+
+  .tinymce-content em,
+  .tinymce-content i {
+    font-style: italic;
+  }
+
+  .tinymce-content u {
+    text-decoration: underline;
+  }
+
+  .tinymce-content s,
+  .tinymce-content del {
+    text-decoration: line-through;
+  }
+
+  .tinymce-content small {
+    font-size: 0.875em;
+  }
+
+  .tinymce-content mark {
+    padding: 0.1em 0.2em;
+    border-radius: 0.25rem;
+  }
+
+  /* =========================
+    LINK
+  ========================= */
+
+  .tinymce-content a {
+    color: var(--color-blue-500);
+    text-decoration: underline;
+    transition: opacity 0.2s ease;
+  }
+
+  .tinymce-content a:hover {
+    color: var(--color-blue-600);
+  }
+
+  .tinymce-content a:hover {
+    opacity: 0.8;
+  }
+
+  /* =========================
+    LIST
+  ========================= */
+
+  .tinymce-content ul,
+  .tinymce-content ol {
+    padding-left: 1.5rem;
+    margin: 0 0 1rem;
+  }
+
+  .tinymce-content ul {
+    list-style-type: disc;
+  }
+
+  .tinymce-content ol {
+    list-style-type: decimal;
+  }
+
+  .tinymce-content li {
+    margin-bottom: 0.4rem;
+    line-height: inherit;
+    color: var(--color-gray-700);
+  }
+
+  .tinymce-content li > ul,
+  .tinymce-content li > ol {
+    margin-top: 0.5rem;
+  }
+
+  /* =========================
+    BLOCKQUOTE
+  ========================= */
+
+  .tinymce-content blockquote {
+    border-left: 4px solid rgba(0, 0, 0, 0.15);
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    opacity: 0.9;
+  }
+
+  /* =========================
+    IMAGE
+  ========================= */
 
   .tinymce-content img {
     max-width: 100%;
     height: auto;
+    display: block;
+    border-radius: 0.5rem;
+    margin: 1rem auto;
   }
+
+  .tinymce-content figure {
+    margin: 1.5rem 0;
+  }
+
+  .tinymce-content figcaption {
+    font-size: 0.875rem;
+    opacity: 0.7;
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  /* =========================
+    TABLE
+  ========================= */
 
   .tinymce-content table {
     width: 100%;
     border-collapse: collapse;
+    margin: 1rem 0;
+    overflow-x: auto;
   }
 
-  .tinymce-content iframe {
-    max-width: 100%;
+  .tinymce-content table th,
+  .tinymce-content table td {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 0.75rem;
+    vertical-align: top;
+  }
+
+  .tinymce-content table th {
+    font-weight: 700;
+  }
+
+  /* =========================
+    CODE
+  ========================= */
+
+  .tinymce-content code {
+    font-family: monospace;
+    font-size: 0.9em;
+    padding: 0.15rem 0.35rem;
+    border-radius: 0.25rem;
   }
 
   .tinymce-content pre {
     overflow-x: auto;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin: 1rem 0;
+  }
+
+  .tinymce-content pre code {
+    background: transparent;
+    padding: 0;
+  }
+
+  /* =========================
+    HR
+  ========================= */
+
+  .tinymce-content hr {
+    border: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin: 2rem 0;
+  }
+
+  /* =========================
+    IFRAME / VIDEO
+  ========================= */
+
+  .tinymce-content iframe,
+  .tinymce-content video {
+    max-width: 100%;
+    width: 100%;
+    border: 0;
+    border-radius: 0.75rem;
+    margin: 1rem 0;
+  }
+
+  /* =========================
+    ALIGNMENT
+  ========================= */
+
+  .tinymce-content .text-left {
+    text-align: left;
+  }
+
+  .tinymce-content .text-center {
+    text-align: center;
+  }
+
+  .tinymce-content .text-right {
+    text-align: right;
+  }
+
+  .tinymce-content .text-justify {
+    text-align: justify;
+  }
+
+  /* =========================
+    SPACING FIX
+  ========================= */
+
+  .tinymce-content > *:first-child {
+    margin-top: 0 !important;
+  }
+
+  .tinymce-content > *:last-child {
+    margin-bottom: 0 !important;
   }
 }
 

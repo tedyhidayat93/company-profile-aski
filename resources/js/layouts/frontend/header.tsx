@@ -12,8 +12,6 @@ import Wishlist from '@/components/wishlist';
 import { useConfig } from '@/utils/config';
 import { handleImageError } from '@/utils/image';
 
-// --- Sub-Components ---
-
 const NavItem = ({ link, onClick }: { link: any, onClick: (e: any, id: string) => void }) => (
   <a
     href={link.href}
@@ -79,26 +77,26 @@ export default function Header() {
       <header className={`sticky top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
         
         {/* 1. Top Bar */}
-        <div className="bg-primary text-white py-1">
+        <div className="bg-gradient-to-l from-orange-400 via-orange-500 to-black text-white py-1">
           <div className="container mx-auto px-4 flex justify-between items-center text-sm">
             
             <div className="flex items-center space-x-2 overflow-hidden">
               <a
                 href={`tel:${getConfig('contact_phone', CONTACT_INFO.phone).replace(/\D/g, '')}`}
-                className="flex items-center hover:text-yellow-300 truncate"
+                className="flex items-center text-white font-medium hover:text-slate-100 truncate"
               >
                 <Phone className="h-3 w-3 mr-1" />
-                <span className="inline text-xs">
+                <span className="inline text-sm">
                   {getConfig('contact_phone', CONTACT_INFO.phone)}
                 </span>
               </a>
 
               <a
                 href={`mailto:${getConfig('contact_email', CONTACT_INFO.email)}`}
-                className="flex items-center hover:text-yellow-300 truncate max-w-16 md:max-w-full"
+                className="flex items-center text-white font-medium hover:text-slate-100 truncate max-w-16 md:max-w-full"
               >
                 <Mail className="h-3 w-3 mr-1" />
-                <span className="inline text-xs">
+                <span className="inline text-sm">
                   {getConfig('contact_email', CONTACT_INFO.email)}
                 </span>
               </a>
@@ -106,6 +104,7 @@ export default function Header() {
 
             <div className="flex items-center gap-3">
               <Link
+                aria-label='to login'
                 href={auth?.user ? dashboard() : login()}
                 className="md:px-6 py-1 hover:text-yellow-300 transition-colors"
               >
@@ -125,11 +124,11 @@ export default function Header() {
             <div className="flex items-center justify-between h-16 lg:h-20">
               
               {/* Logo */}
-              <Link href="/" className="flex-shrink-0">
+              <Link href="/" className="flex-shrink-0 h-13 w-auto">
                 <img
                   src={logoImage}
                   alt="Logo"
-                  className="h-13 xl:h-16 w-auto object-contain"
+                  className="max-h-full max-w-full object-contain"
                   onError={(e) => handleImageError(e, '/images/logo-main.png', 'Logo')}
                 />
               </Link>
@@ -144,6 +143,8 @@ export default function Header() {
               {/* Action Buttons (Desktop & Mobile Wishlist) */}
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <button 
+                  id='wishlists'
+                  aria-label='wishlists'
                   onClick={() => setIsWishlistOpen(true)}
                   className="relative p-2 rounded-full border cursor-pointer hover:border-orange-300 text-gray-700 hover:text-primary dark:text-white transition-transform active:scale-90"
                 >

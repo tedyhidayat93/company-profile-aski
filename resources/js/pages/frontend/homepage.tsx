@@ -1,7 +1,7 @@
 
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowRight, ArrowRightIcon, Loader, PhoneCall, RefreshCcwDot, SearchIcon } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Link, router } from '@inertiajs/react';
+import { ArrowRight, ArrowRightIcon, PhoneCall } from 'lucide-react';
 import catalog from '@/routes/catalog';
 import FrontendLayout from '@/layouts/frontend-layout';
 import ProductCard from '@/components/ProductCard';
@@ -35,45 +35,6 @@ export default function Homepage({
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
 
-  // Typing animation for placeholder
-  const [placeholder, setPlaceholder] = useState('');
-  const placeholderTexts = [
-    'Cari kontainer yang kamu butuhkan...',
-    'kontainer 20 feet...',
-    'Kontainer 40 feet...',
-    'Kontainer office...',
-    'Kontainer kustom...'
-  ];
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
-  const [currentCharIndex, setCurrentCharIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    const currentText = placeholderTexts[currentTextIndex];
-    
-    const timer = setTimeout(() => {
-      if (!isDeleting) {
-        if (currentCharIndex < currentText.length) {
-          setPlaceholder(currentText.substring(0, currentCharIndex + 1));
-          setCurrentCharIndex(currentCharIndex + 1);
-        } else {
-          setTimeout(() => setIsDeleting(true), 1500); // Pause before deleting
-        }
-      } else {
-        if (currentCharIndex > 0) {
-          setPlaceholder(currentText.substring(0, currentCharIndex - 1));
-          setCurrentCharIndex(currentCharIndex - 1);
-        } else {
-          setIsDeleting(false);
-          setCurrentTextIndex((currentTextIndex + 1) % placeholderTexts.length);
-        }
-      }
-    }, isDeleting ? 50 : 100);
-
-    return () => clearTimeout(timer);
-  }, [currentCharIndex, isDeleting, currentTextIndex, placeholderTexts]);
-
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -81,13 +42,12 @@ export default function Homepage({
 
     const query = searchQuery.trim();
 
-    // 🔥 HANDLE KOSONG DI LUAR setTimeout
     if (!query) {
       setIsSearching(true);
 
       setTimeout(() => {
         router.get('/catalog', {}, {
-          preserveState: false, // penting!
+          preserveState: false,
           preserveScroll: true,
           onFinish: () => setIsSearching(false),
         });
@@ -96,7 +56,6 @@ export default function Homepage({
       return;
     }
 
-    // 🔥 HANDLE ADA QUERY
     setIsSearching(true);
 
     setTimeout(() => {
@@ -117,21 +76,17 @@ export default function Homepage({
   };
 
   
-  // Update the image loading handler
   const handleImageLoad = (id: number) => {
     setLoadedImages(prev => ({ ...prev, [id]: true }));
   };
-
- 
 
   return (
     <FrontendLayout>
       <SeoHead />
 
       <main>
-        {/* Hero Section */}
         <HeroHomepageSection 
-          products={products} // <-- Melempar data produk ke sini
+          products={products}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           handleSearch={handleSearch}
@@ -145,8 +100,8 @@ export default function Homepage({
         <section id="services" className="bg-white py-20 dark:bg-gray-900">
           <div className="container mx-auto px-4">
             <div className="mb-16 text-center">
-              <h2 className="text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('services_title', 'Layanan Kami')}</h2>
-              <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
+              <h2 className="text-2xl xl:text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('services_title', 'Layanan Kami')}</h2>
+              <p className="mx-auto mt-2 xl:max-w-7xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
                 {getConfig('services_description', 'Berbagai layanan profesional yang kami tawarkan untuk memenuhi kebutuhan kontainer Anda')}
               </p>
             </div>
@@ -198,12 +153,12 @@ export default function Homepage({
           <div className="container mx-auto px-4">
             <div className="mb-12 flex flex-col items-center md:justify-between md:flex-row xl:gap-5">
               <div className="mb-4 md:mb-0 text-center md:text-left">
-                <h2 className="text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('products_title', 'Produk Kami')}</h2>
-                <p className="text-gray-600 dark:text-gray-300">
+                <h2 className="text-2xl xl:text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('products_title', 'Produk Kami')}</h2>
+                <p className="text-gray-600 mt-1 dark:text-gray-300">
                   {getConfig('products_description', 'Temukan produk-produk kontainer untuk kebutuhanmu')}
                 </p>
               </div>
-              <Link href={catalog.index()} className="btn btn-ghost text-nowrap rounded-full! flex items-center px-7!">
+              <Link aria-label='Go to Our Products page' href={catalog.index()} className="btn btn-ghost text-nowrap rounded-full! flex items-center px-7!">
                 Lihat Katalog <ArrowRight className="ml-1 h-4 w-4" /> 
               </Link>
             </div>
@@ -216,6 +171,7 @@ export default function Homepage({
 
             <div className="mt-16 flex justify-center">
                 <Link
+                  aria-label='View more Our Products'
                   href="/catalog"
                   className="inline-flex items-center gap-2 text-nowrap rounded-full border-2 border-slate-100 hover:bg-orange-500/30 hover:text-orange-600 font-medium hover:border-orange-400 border-gray-300 dark:border-gray-700 px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 hover:gap-3"
                 >
@@ -230,10 +186,10 @@ export default function Homepage({
         <section className="relative bg-white py-12 dark:bg-gray-900">
           <div className="container relative mx-auto px-4">
             <div className="mb-12 text-center">
-              <h2 className="text-3xl font-bold mb-1 dark:text-orange-400">
+              <h2 className="text-2xl xl:text-3xl font-bold mb-1 dark:text-orange-400">
                 {getConfig('clients_title', 'Klien Kami')}
               </h2>
-              <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
+              <p className="mx-auto mt-2 xl:max-w-7xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
                 {getConfig('clients_description', 'Kami telah melayani berbagai perusahaan dan organisasi di berbagai sektor')}
               </p>
             </div>
@@ -270,10 +226,10 @@ export default function Homepage({
 
               {/* Header */}
               <div className="mb-16 text-center max-w-2xl mx-auto">
-                <h2 className="text-3xl font-bold mb-1 dark:text-orange-400">
+                <h2 className="text-2xl xl:text-3xl font-bold mb-1 dark:text-orange-400">
                   {getConfig('testimonials_title', 'Apa Kata Mereka')}
                 </h2>
-                <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
+                <p className="mx-auto max-w-7xl mt-2 text-gray-600 dark:text-gray-300 text-base md:text-xl">
                   {getConfig('testimonials_description', 'Testimoni dari klien yang telah menggunakan layanan kami')}
                 </p>
               </div>
@@ -314,7 +270,7 @@ export default function Homepage({
               
               {/* Header */}
               <div className="mb-14 text-center">
-                <h2 className="text-3xl font-bold mb-1 dark:text-orange-400">
+                <h2 className="text-2xl xl:text-3xl font-bold mb-1 dark:text-orange-400">
                   {getConfig('faq_title', 'Pertanyaan yang Sering Diajukan')}
                 </h2>
                 <p className="mx-auto max-w-3xl text-gray-600 dark:text-gray-300 text-lg">
@@ -409,7 +365,7 @@ export default function Homepage({
             articles.length > 0 && (
               <div className="container mx-auto px-4 py-20">
                 <div className="mb-12 text-center">
-                  <h2 className="text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('articles_title', 'Artikel Terbaru')}</h2>
+                  <h2 className="text-2xl xl:text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('articles_title', 'Artikel Terbaru')}</h2>
                   <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
                     {getConfig('articles_description', 'Temukan informasi terbaru seputar kontainer dan solusi logistik')}
                   </p>
@@ -487,12 +443,12 @@ export default function Homepage({
         </section>
 
         {/* CTA Section */}
-        <section id="contact" className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-orange-800 to-slate-950 py-24 text-white">
+        <section id="contact" className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-orange-800 to-slate-950 px-2 py-24 text-white">
           {/* Efek Dekoratif Background */}
           <div className="absolute top-0 left-1/4 h-64 w-64 -translate-y-1/2 rounded-full bg-orange-500/10 blur-3xl"></div>
           <div className="absolute bottom-0 right-1/4 h-64 w-64 translate-y-1/2 rounded-full bg-amber-500/10 blur-3xl"></div>
 
-          <div className="container relative z-10 mx-auto px-6 text-center flex flex-col justify-center items-center">
+          <div className="container relative z-10 mx-auto px-4 text-center flex flex-col justify-center items-center">
             {/* Badge Kecil di Atas */}
             <span className="mb-4 rounded-full bg-orange-500/10 px-4 py-1.5 text-xs font-semibold tracking-wider text-orange-400 uppercase border border-orange-500/20">
               Hubungi Kami
@@ -502,15 +458,16 @@ export default function Homepage({
               {getConfig('cta_title', 'Butuh Kontainer untuk Bisnis Anda?')}
             </h2>
             
-            <p className="mx-auto mb-10 text-base md:text-xl text-slate-300 xl:max-w-6xl leading-relaxed">
+            <p className="mx-auto mb-10 text-base font-medium md:text-xl text-slate-200 xl:max-w-6xl leading-relaxed">
               {getConfig('cta_description', 'Dapatkan penawaran terbaik untuk sewa atau beli kontainer berkualitas. Cocok untuk berbagai kebutuhan usaha mulai dari gudang, kantor, hingga ruang komersial.')}
             </p>
             
             {/* Tombol yang Lebih Elegan & Interaktif */}
             <a 
               target='_blank' 
+              aria-label='contact us to getting best products'
               href={`https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=${getConfig('whatsapp_message', 'Halo%20Alumoda%2C%20saya%20ingin%20bertanya')}`}  
-              className="group flex w-max items-center gap-3 bg-gradient-to-r animate-pulse from-green-500 to-emerald-600 px-8 py-4 rounded-xl text-white font-medium shadow-lg shadow-emerald-900/30 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/20"
+              className="group flex w-full items-center justify-center max-w-xl gap-2 bg-gradient-to-r animate-pulse from-green-500 to-emerald-600 px-8 py-4 rounded-full text-white text-center font-medium shadow-lg shadow-emerald-900/30 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/20"
             > 
               <PhoneCall className="h-5 w-5 transition-transform group-hover:rotate-12" /> 
               <span>{getConfig('cta_button_text', 'Hubungi Kami via WhatsApp')}</span>

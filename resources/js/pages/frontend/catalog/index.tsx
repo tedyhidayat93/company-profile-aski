@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Filter, Search, ArrowUpDown, ChevronDown, X, ArrowRight, ArrowLeft, HandHeartIcon, LayoutDashboard, RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import FrontendLayout from '@/layouts/frontend-layout';
@@ -71,18 +71,17 @@ const FeaturedProductsBanner = ({
     }
 
     return (
-        <div className="group mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-white to-slate-500 transition-all duration-300">
+        <div className="group mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-500 xl:via-white to-slate-500 transition-all duration-300">
 
             {/* HEADER */}
             <div className="flex flex-wrap gap-3 items-center justify-between px-5 py-4">
                 <div className="flex flex-wrap items-center gap-3">
-                    {/* Ikon dengan efek scale saat banner di-hover */}
                     <div className="rounded-2xl bg-gradient-to-tr animate-pulse from-orange-500 to-amber-400 p-2.5 text-white shadow-md shadow-orange-500/20 transition-transform duration-300 group-hover:scale-110">
                         <HandHeartIcon className="h-5 w-5" />
                     </div>
 
                     <div>
-                        <h3 className="bg-gradient-to-r from-blue-50 via-slate-200 to-amber-500 bg-clip-text text-lg font-bold text-transparent">
+                        <h3 className="bg-gradient-to-r from-blue-50 via-slate-200 to-amber-500 bg-clip-text text-xl font-bold text-transparent">
                             Direkomendasikan Untukmu
                         </h3>
                         <p className="text-xs font-medium text-slate-300">
@@ -91,14 +90,11 @@ const FeaturedProductsBanner = ({
                     </div>
                 </div>
 
-                {/* Badge Jumlah Produk yang Lebih Modern */}
                 <div className="rounded-full bg-orange-50 border border-orange-200/60 px-3 py-1.5 text-xs font-semibold text-orange-600 backdrop-blur-sm">
                     {featuredProducts.length} Pilihan
                 </div>
             </div>
 
-            {/* CONTENT (Horizontal Scroll Section) */}
-            {/* Ditambahkan 'scrollbar-none' (jika pakai plugin) atau standard utility untuk menyembunyikan scrollbar */}
             <div className="flex min-w-full max-w-3xl gap-4 overflow-x-auto px-5 pb-5 pt-2 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {featuredProducts.map((product) => (
                     <div
@@ -115,7 +111,7 @@ const FeaturedProductsBanner = ({
 
 
 
-function Catalog({ products: initialProducts, bestSellerProducts, categories, types, filters: initialPropsFilters }: CatalogProps) {
+function Catalog({ products: initialProducts, bestSellerProducts, categories, types }: CatalogProps) {
     const { filters: initialFilters } = usePage().props as any;
     
     const [filters, setFilters] = useState({
@@ -132,7 +128,7 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
     const [isLoading, setIsLoading] = useState(false);
     const [isMobileFilterOpen, setIsMobileFilterOpen] =
     useState(false);
-    
+
     // Product Skeleton Component
     const ProductSkeleton = () => (
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm animate-pulse">
@@ -172,12 +168,6 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
         }
     }, [products]);
 
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        const newFilters = { ...filters, [name]: value };
-        setFilters(newFilters);
-        setHasChanges(true); // Mark that changes have been made
-    };
 
     const applyFilters = () => {
         setIsLoading(true); // Show skeleton loading
@@ -289,6 +279,19 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
                         >
                             Terapkan
                         </button>
+                        {/* RESET BUTTON */}
+                        {
+                            filters.search !== '' && (
+                                <button
+                                    type="button"
+                                    onClick={resetFilters}
+                                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-500 transition-colors hover:bg-red-100 active:scale-95"
+                                    title="Reset Filter"
+                                >
+                                    <RotateCcw className="h-4 w-4" />
+                                </button>
+                            )
+                        }
                     </div>
                 </div>
 
@@ -391,16 +394,6 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
                                         <option value="48">48 Item</option>
                                         <option value="100">100 Item</option>
                                     </select>
-
-                                    {/* RESET BUTTON */}
-                                    <button
-                                        type="button"
-                                        onClick={resetFilters}
-                                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-500 transition-colors hover:bg-red-100 active:scale-95"
-                                        title="Reset Filter"
-                                    >
-                                        <RotateCcw className="h-4 w-4" />
-                                    </button>
                                 </div>
                             </div>
 
@@ -412,213 +405,214 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
     };
 
     const renderMobileFilters = () => {
-    return (
-        <>
-            {/* BUTTON TRIGGER MOBILE */}
-            <div className="mb-4 flex items-center justify-between lg:hidden">
-                <button
-                    onClick={() => setIsMobileFilterOpen(true)}
-                    className="inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm active:scale-95 transition-transform"
-                >
-                    <Filter className="h-4 w-4 text-orange-500" />
-                    <span>Filter & Urutkan</span>
-                </button>
+        return (
+            <>
+                {/* BUTTON TRIGGER MOBILE */}
+                <div className="mb-4 flex items-center justify-between lg:hidden">
+                    <button
+                        onClick={() => setIsMobileFilterOpen(true)}
+                        className="inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm active:scale-95 transition-transform"
+                    >
+                        <Filter className="h-4 w-4 text-orange-500" />
+                        <span>Filter & Urutkan</span>
+                    </button>
 
-                <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
-                    {pagination.total} Produk
-                </span>
-            </div>
+                    <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
+                        {pagination.total} Produk
+                    </span>
+                </div>
 
-            {/* DRAWER / SIDEBAR MOBILE */}
-            <div
-                className={`fixed inset-0 z-50 lg:hidden ${
-                    isMobileFilterOpen ? 'pointer-events-auto' : 'pointer-events-none'
-                }`}
-            >
-                {/* OVERLAY */}
+                {/* DRAWER / SIDEBAR MOBILE */}
                 <div
-                    onClick={() => setIsMobileFilterOpen(false)}
-                    className={`absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 ${
-                        isMobileFilterOpen ? 'opacity-100' : 'opacity-0'
-                    }`}
-                />
-
-                {/* CONTENT SIDEBAR */}
-                <div
-                    className={`absolute right-0 top-0 flex h-full w-[85%] max-w-[360px] flex-col bg-white shadow-2xl transition-transform duration-300 ease-out ${
-                        isMobileFilterOpen ? 'translate-x-0' : 'translate-x-full'
+                    className={`fixed inset-0 z-50 lg:hidden ${
+                        isMobileFilterOpen ? 'pointer-events-auto' : 'pointer-events-none'
                     }`}
                 >
-                    {/* HEADER (Fixed Top) */}
-                    <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                        <div>
-                            <h2 className="text-base font-bold text-slate-900">Filter Produk</h2>
-                            <p className="text-xs text-slate-500">Temukan produk yang sesuai</p>
+                    {/* OVERLAY */}
+                    <div
+                        onClick={() => setIsMobileFilterOpen(false)}
+                        className={`absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 ${
+                            isMobileFilterOpen ? 'opacity-100' : 'opacity-0'
+                        }`}
+                    />
+
+                    {/* CONTENT SIDEBAR */}
+                    <div
+                        className={`absolute right-0 top-0 flex h-full w-[85%] max-w-[360px] flex-col bg-white shadow-2xl transition-transform duration-300 ease-out ${
+                            isMobileFilterOpen ? 'translate-x-0' : 'translate-x-full'
+                        }`}
+                    >
+                        {/* HEADER (Fixed Top) */}
+                        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                            <div>
+                                <h2 className="text-base font-bold text-slate-900">Filter Produk</h2>
+                                <p className="text-xs text-slate-500">Temukan produk yang sesuai</p>
+                            </div>
+                            <button
+                                onClick={() => setIsMobileFilterOpen(false)}
+                                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
                         </div>
-                        <button
-                            onClick={() => setIsMobileFilterOpen(false)}
-                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                        >
-                            <X className="h-5 w-5" />
-                        </button>
-                    </div>
 
-                    {/* SCROLLABLE FILTER FORM */}
-                    <div className="flex-1 overflow-y-auto p-5 space-y-6 pb-24">
-                        
-                        {/* 1. SEARCH INPUT */}
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cari Kata Kunci</label>
-                            <div className="relative">
-                                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Nama produk, merk, dll..."
-                                    value={filters.search}
-                                    onChange={(e) => {
-                                        setFilters(prev => ({ ...prev, search: e.target.value }));
+                        {/* SCROLLABLE FILTER FORM */}
+                        <div className="flex-1 overflow-y-auto p-5 space-y-6 pb-24">
+                            
+                            {/* 1. SEARCH INPUT */}
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cari Kata Kunci</label>
+                                <div className="relative">
+                                    <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Nama produk, merk, dll..."
+                                        value={filters.search}
+                                        onChange={(e) => {
+                                            setFilters(prev => ({ ...prev, search: e.target.value }));
+                                            setHasChanges(true);
+                                        }}
+                                        className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-sm font-medium outline-none focus:border-orange-400 focus:bg-white"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 2. CATEGORY FILTER */}
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Kategori</label>
+                                <CategoryFilter
+                                    categories={categories}
+                                    selectedCategory={filters.category}
+                                    onCategoryChange={(value) => {
+                                        setFilters(prev => ({ ...prev, category: value }));
                                         setHasChanges(true);
                                     }}
-                                    className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-sm font-medium outline-none focus:border-orange-400 focus:bg-white"
+                                    placeholder="Semua Kategori"
                                 />
                             </div>
-                        </div>
 
-                        {/* 2. CATEGORY FILTER */}
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Kategori</label>
-                            <CategoryFilter
-                                categories={categories}
-                                selectedCategory={filters.category}
-                                onCategoryChange={(value) => {
-                                    setFilters(prev => ({ ...prev, category: value }));
-                                    setHasChanges(true);
-                                }}
-                                placeholder="Semua Kategori"
-                            />
-                        </div>
-
-                        {/* 3. TYPE FILTER */}
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tipe Transaksi</label>
-                            <select
-                                value={filters.type || ''}
-                                onChange={(e) => {
-                                    setFilters(prev => ({ ...prev, type: e.target.value }));
-                                    setHasChanges(true);
-                                }}
-                                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none"
-                            >
-                                <option value="">Semua Tipe</option>
-                                {types.map((type) => (
-                                    <option key={type} value={type}>
-                                        {type === 'rent' ? '🏢 Disewakan' : type === 'sell' ? '🏷️ Dijual' : '🔄 Disewakan & Dijual'}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* 4. SORT FILTER */}
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Urutan Harga & Nama</label>
-                            <div className="relative">
+                            {/* 3. TYPE FILTER */}
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tipe Transaksi</label>
                                 <select
-                                    value={filters.sort || 'price-asc'}
+                                    value={filters.type || ''}
                                     onChange={(e) => {
-                                        setFilters(prev => ({ ...prev, sort: e.target.value }));
+                                        setFilters(prev => ({ ...prev, type: e.target.value }));
                                         setHasChanges(true);
                                     }}
-                                    className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm font-medium text-slate-700 outline-none"
+                                    className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none"
                                 >
-                                    <option value="price-asc">Harga Terendah</option>
-                                    <option value="price-desc">Harga Tertinggi</option>
-                                    <option value="name-asc">Nama A-Z</option>
-                                    <option value="name-desc">Nama Z-A</option>
+                                    <option value="">Semua Tipe</option>
+                                    {types.map((type) => (
+                                        <option key={type} value={type}>
+                                            {type === 'rent' ? '🏢 Disewakan' : type === 'sell' ? '🏷️ Dijual' : '🔄 Disewakan & Dijual'}
+                                        </option>
+                                    ))}
                                 </select>
-                                <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            </div>
+
+                            {/* 4. SORT FILTER */}
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Urutan Harga & Nama</label>
+                                <div className="relative">
+                                    <select
+                                        value={filters.sort || 'price-asc'}
+                                        onChange={(e) => {
+                                            setFilters(prev => ({ ...prev, sort: e.target.value }));
+                                            setHasChanges(true);
+                                        }}
+                                        className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm font-medium text-slate-700 outline-none"
+                                    >
+                                        <option value="price-asc">Harga Terendah</option>
+                                        <option value="price-desc">Harga Tertinggi</option>
+                                        <option value="name-asc">Nama A-Z</option>
+                                        <option value="name-desc">Nama Z-A</option>
+                                    </select>
+                                    <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                </div>
+                            </div>
+
+                            {/* 5. PRICE RANGE (MIN - MAX) */}
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rentang Harga (Rp)</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input
+                                        type="number"
+                                        value={filters.minPrice}
+                                        onChange={(e) => {
+                                            setFilters(prev => ({ ...prev, minPrice: e.target.value }));
+                                            setHasChanges(true);
+                                        }}
+                                        placeholder="Minimal"
+                                        className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm font-medium outline-none focus:border-orange-400"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={filters.maxPrice}
+                                        onChange={(e) => {
+                                            setFilters(prev => ({ ...prev, maxPrice: e.target.value }));
+                                            setHasChanges(true);
+                                        }}
+                                        placeholder="Maksimal"
+                                        className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm font-medium outline-none focus:border-orange-400"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 6. PER PAGE */}
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Jumlah Tampilan</label>
+                                <select
+                                    value={String(filters.perPage || '12')}
+                                    onChange={(e) => {
+                                        setFilters(prev => ({ ...prev, perPage: e.target.value }));
+                                        setHasChanges(true);
+                                    }}
+                                    className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none"
+                                >
+                                    <option value="12">Tampilkan 12 Produk</option>
+                                    <option value="24">Tampilkan 24 Produk</option>
+                                    <option value="48">Tampilkan 48 Produk</option>
+                                </select>
                             </div>
                         </div>
 
-                        {/* 5. PRICE RANGE (MIN - MAX) */}
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rentang Harga (Rp)</label>
-                            <div className="grid grid-cols-2 gap-2">
-                                <input
-                                    type="number"
-                                    value={filters.minPrice}
-                                    onChange={(e) => {
-                                        setFilters(prev => ({ ...prev, minPrice: e.target.value }));
-                                        setHasChanges(true);
-                                    }}
-                                    placeholder="Minimal"
-                                    className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm font-medium outline-none focus:border-orange-400"
-                                />
-                                <input
-                                    type="number"
-                                    value={filters.maxPrice}
-                                    onChange={(e) => {
-                                        setFilters(prev => ({ ...prev, maxPrice: e.target.value }));
-                                        setHasChanges(true);
-                                    }}
-                                    placeholder="Maksimal"
-                                    className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm font-medium outline-none focus:border-orange-400"
-                                />
-                            </div>
-                        </div>
-
-                        {/* 6. PER PAGE */}
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Jumlah Tampilan</label>
-                            <select
-                                value={String(filters.perPage || '12')}
-                                onChange={(e) => {
-                                    setFilters(prev => ({ ...prev, perPage: e.target.value }));
-                                    setHasChanges(true);
+                        {/* STICKY BOTTOM ACTIONS (Fixed di bawah Drawer agar gampang di-klik jempol) */}
+                        <div className="absolute bottom-0 left-0 flex w-full gap-2 border-t border-slate-100 bg-white p-4">
+                            {/* Reset Button */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    resetFilters();
+                                    setIsMobileFilterOpen(false); // Otomatis tutup setelah reset (opsional)
                                 }}
-                                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none"
+                                className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-500 active:bg-red-100"
+                                title="Reset Semua"
                             >
-                                <option value="12">Tampilkan 12 Produk</option>
-                                <option value="24">Tampilkan 24 Produk</option>
-                                <option value="48">Tampilkan 48 Produk</option>
-                            </select>
+                                <RotateCcw className="h-4 w-4" />
+                            </button>
+
+                            {/* Apply Button */}
+                            <button
+                                onClick={() => {
+                                    applyFilters();
+                                    setIsMobileFilterOpen(false); // Tutup drawer setelah filter diterapkan
+                                }}
+                                disabled={!hasChanges}
+                                className={`flex-1 h-12 rounded-xl text-sm font-bold shadow-sm transition-all active:scale-[0.98] ${
+                                    hasChanges
+                                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
+                                        : 'cursor-not-allowed bg-slate-100 text-slate-400'
+                                }`}
+                            >
+                                Terapkan Filter
+                            </button>
                         </div>
-                    </div>
-
-                    {/* STICKY BOTTOM ACTIONS (Fixed di bawah Drawer agar gampang di-klik jempol) */}
-                    <div className="absolute bottom-0 left-0 flex w-full gap-2 border-t border-slate-100 bg-white p-4">
-                        {/* Reset Button */}
-                        <button
-                            type="button"
-                            onClick={() => {
-                                resetFilters();
-                                setIsMobileFilterOpen(false); // Otomatis tutup setelah reset (opsional)
-                            }}
-                            className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-500 active:bg-red-100"
-                            title="Reset Semua"
-                        >
-                            <RotateCcw className="h-4 w-4" />
-                        </button>
-
-                        {/* Apply Button */}
-                        <button
-                            onClick={() => {
-                                applyFilters();
-                                setIsMobileFilterOpen(false); // Tutup drawer setelah filter diterapkan
-                            }}
-                            disabled={!hasChanges}
-                            className={`flex-1 h-12 rounded-xl text-sm font-bold shadow-sm transition-all active:scale-[0.98] ${
-                                hasChanges
-                                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
-                                    : 'cursor-not-allowed bg-slate-100 text-slate-400'
-                            }`}
-                        >
-                            Terapkan Filter
-                        </button>
                     </div>
                 </div>
-            </div>
-        </>    
-    )};
+            </>    
+        )
+    };
 
     return (
         <div className="container bg-white dark:bg-gray-800 mx-auto px-4 flex flex-col lg:flex-row gap-7 py-7">

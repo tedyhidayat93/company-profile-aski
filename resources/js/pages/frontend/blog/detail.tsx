@@ -1,10 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { Button } from '@/components/ui/button';
-import { getConfig } from '@/hooks/use-configuration';
-import { ArrowLeft, Calendar, Clock, User, Share2, Facebook, Twitter, Linkedin, Link2, Eye, MessageCircle, Instagram, Music, Copy } from 'lucide-react';
-import { useConfig } from '@/utils/config';
-import { generateBlogUrl } from '@/utils/app';
+import { Calendar, Clock, Facebook, Twitter, Linkedin, Eye, MessageCircle, Instagram, Music, Copy } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import SeoHead from '@/components/seo-head';
 
@@ -240,8 +237,6 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                 )}
 
                 {/* 🔥 CONTENT */}
-                {/* <div className="prose prose-lg max-w-none leading-relaxed prose-headings:text-black prose-p:text-black text-gray-800 dark:text-gray-100 prose-strong:text-black prose-li:text-black prose-p:mb-4 prose-headings:mb-4 prose-headings:mt-6 prose-ul:mb-4 prose-ol:mb-4 prose-blockquote:mb-4 prose-table:mb-4 [&_*]:!text-black [&_*]:!text-gray-800 dark:[&_*]:!text-gray-100 [&_*]:!border-black [&_*]:!border-gray-300 dark:[&_*]:!border-gray-600 [&_*]:!bg-transparent [&_*]:!bg-white dark:[&_*]:!bg-gray-800 [&_*]:!shadow-none [&_a]:!text-blue-600 [&_a]:!no-underline hover:[&_a]:!underline [&_img]:!max-w-full [&_img]:!h-auto [&_table]:!w-full [&_table]:!border-collapse [&_td]:!border [&_th]:!border [&_td]:!p-2 [&_th]:!p-2 [&_blockquote]:!border-l-4 [&_blockquote]:!border-gray-300 [&_blockquote]:!pl-4 [&_blockquote]:!italic [&_ul]:!list-disc [&_ol]:!list-decimal [&_ul]:!pl-5 [&_ol]:!pl-5 [&_ul_li]:!mb-2 [&_ol_li]:!mb-2 [&_code]:!bg-gray-100 [&_code]:!px-1 [&_code]:!rounded [&_pre]:!bg-gray-100 [&_pre]:!p-4 [&_pre]:!rounded [&_pre]:!overflow-x-auto [&_h1]:!text-3xl [&_h1]:!font-bold [&_h1]:!mb-4 [&_h1]:!mt-8 [&_h2]:!text-2xl [&_h2]:!font-bold [&_h2]:!mb-4 [&_h2]:!mt-6 [&_h3]:!text-xl [&_h3]:!font-bold [&_h3]:!mb-4 [&_h3]:!mt-6 [&_h4]:!text-lg [&_h4]:!font-bold [&_h4]:!mb-3 [&_h4]:!mt-4 [&_h5]:!text-base [&_h5]:!font-semibold [&_h5]:!mb-3 [&_h5]:!mt-4 [&_h6]:!text-sm [&_h6]:!font-semibold [&_h6]:!mb-3 [&_h6]:!mt-4 [&_p]:!text-base [&_p]:!leading-relaxed [&_p]:!mb-4 [&_p]:!mt-0 [&_div]:!mb-4 [&_div]:!mt-0">
-                </div> */}
                 <div
                     className="tinymce-content"
                     dangerouslySetInnerHTML={{ __html: post.content }}
@@ -255,7 +250,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                             {post.tags.map((tag, i) => (
                                 <span
                                     key={i}
-                                    className="text-xs bg-gray-100 dark:bg-orange-300 dark:text-slate-900 px-2 py-1 rounded"
+                                    className="text-xs bg-gray-50 text-gray-800 font-bold dark:bg-orange-300 dark:text-slate-900 px-2 py-1 rounded"
                                 >
                                     #{tag}
                                 </span>
@@ -270,80 +265,80 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                     <div className="flex gap-2 flex-wrap">
                         <Button
                             size="sm"
-                            className="bg-blue-600 text-white hover:bg-blue-700"
+                            className="rounded-full cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
                             onClick={() =>
                                 window.open(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`)
                             }
                         >
-                            <Facebook className="w-4 h-4 mr-2" />
+                            <Facebook className="w-4 h-4" />
                             Facebook
                         </Button>
 
                         <Button
                             size="sm"
-                            className="bg-sky-500 text-white hover:bg-sky-600"
+                            className="rounded-full cursor-pointer bg-sky-500 text-white hover:bg-sky-600"
                             onClick={() =>
                                 window.open(`https://twitter.com/intent/tweet?url=${shareUrl}`)
                             }
                         >
-                            <Twitter className="w-4 h-4 mr-2" />
+                            <Twitter className="w-4 h-4" />
                             Twitter
                         </Button>
 
                         <Button
                             size="sm"
-                            className="bg-blue-700 text-white hover:bg-blue-800"
+                            className="rounded-full cursor-pointer bg-blue-700 text-white hover:bg-blue-800"
                             onClick={() =>
                                 window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`)
                             }
                         >
-                            <Linkedin className="w-4 h-4 mr-2" />
+                            <Linkedin className="w-4 h-4" />
                             LinkedIn
                         </Button>
 
                         <Button
                             size="sm"
-                            className="bg-green-500 text-white hover:bg-green-600"
+                            className="rounded-full cursor-pointer bg-green-500 text-white hover:bg-green-600"
                             onClick={() =>
                                 window.open(`https://wa.me/?text=${encodeURIComponent(`Check out this article: ${post.title} - ${shareUrl}`)}`)
                             }
                         >
-                            <MessageCircle className="w-4 h-4 mr-2" />
+                            <MessageCircle className="w-4 h-4" />
                             WhatsApp
                         </Button>
 
                         <Button
                             size="sm"
-                            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600"
+                            className="rounded-full cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600"
                             onClick={() =>
                                 window.open(`https://www.instagram.com/`)
                             }
                         >
-                            <Instagram className="w-4 h-4 mr-2" />
+                            <Instagram className="w-4 h-4" />
                             Instagram
                         </Button>
 
                         <Button
                             size="sm"
-                            className="bg-black text-white hover:bg-gray-800"
+                            className="rounded-full cursor-pointer bg-black text-white hover:bg-gray-800"
                             onClick={() =>
                                 window.open(`https://www.tiktok.com/`)
                             }
                         >
-                            <Music className="w-4 h-4 mr-2" />
+                            <Music className="w-4 h-4" />
                             TikTok
                         </Button>
 
                         <Button
                             size="sm"
                             variant="outline"
-                            className="bg-orange-400 text-black dark:bg-white/30 dark:text-slate-200"
+                            className="rounded-full cursor-pointer bg-orange-300 hover:bg-orange-400 text-black dark:bg-white/30 dark:text-slate-200"
                             onClick={() => {
                                 navigator.clipboard.writeText(shareUrl);
                                 alert('Link berhasil disalin!');
                             }}
                         >
-                            <Copy className="w-4 h-4 mr-2" />
+                            <Copy className="w-4 h-4" />
                             Salin Link
                         </Button>
                     </div>

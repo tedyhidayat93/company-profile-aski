@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import SeoHead from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
+import { Pagination } from '@/components/ui/pagination';
 
 type BlogPost = {
     id: number;
@@ -509,70 +510,7 @@ export default function BlogIndex({
                 </div>
 
                 {/* Pagination */}
-                <div className="mt-8 flex justify-center flex-wrap gap-2">
-                   {all_posts.links.map((link: any, i: number) => {
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | Translate Pagination Label
-                        |--------------------------------------------------------------------------
-                        */
-                        let label = link.label;
-
-                        switch (label) {
-                            case 'pagination.previous':
-                                label = '← Sebelumnya';
-                                break;
-
-                            case 'pagination.next':
-                                label = 'Berikutnya →';
-                                break;
-
-                            default:
-                                label = label
-                                    .replace('&laquo;', '')
-                                    .replace('&raquo;', '')
-                                    .trim();
-                                break;
-                        }
-
-                        return (
-
-                            <Link
-                                key={i}
-                                href={link.url || '#'}
-                                className={`
-                                    inline-flex items-center justify-center
-                                    min-w-[40px] px-3 py-2
-                                    text-sm font-medium
-                                    rounded-lg transition-all duration-200
-
-                                    ${link.active
-                                        ? `
-                                            bg-orange-600 text-white
-                                            shadow-sm
-                                        `
-                                        : `
-                                            bg-muted text-muted-foreground
-                                            hover:bg-muted/80
-                                        `
-                                    }
-
-                                    ${!link.url
-                                        ? 'pointer-events-none opacity-50'
-                                        : ''
-                                    }
-                                `}
-                            >
-
-                                {label}
-
-                            </Link>
-
-                        );
-                    })}
-
-                </div>
+                <Pagination links={all_posts.links} />
 
             </div>
         </FrontendLayout>

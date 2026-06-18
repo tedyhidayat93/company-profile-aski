@@ -30,7 +30,6 @@ import { handleImageError } from '@/utils/image';
 import { formatPrice } from '@/utils/currency';
 import { getProductTypeText } from '@/utils/product';
 import { useConfig } from '@/utils/config';
-import { generateCatalogUrl } from '@/utils/app';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import SingleGalleryPreview from '@/components/single-gallery-preview';
@@ -66,13 +65,8 @@ interface ImagesGalleryPreview {
 }
 
 export default function Detail({ product, relatedProducts }: DetailProps) {
-    const { getConfig } = useConfig();
     const [quantity, setQuantity] = useState(1);
     const [productImages, setProductImages] = useState<ImagesGalleryPreview[]>([]);
-    const [selectedImage, setSelectedImage] = useState(
-        product.coverImage?.image_path || product.image_path || ''
-    );
-    const [isImageLoaded, setIsImageLoaded] = useState(false);
     
     const [imageSrc, setImageSrc] = useState(() => {
         if (product.images && product.images.length > 0) {
@@ -223,7 +217,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
     };
     
     // Get wishlist state and actions
-    const { isInWishlist, toggleWishlistItem, wishlist } = useWishlist();
+    const { isInWishlist, toggleWishlistItem } = useWishlist();
     const handleWishlistItem = (product: Product) => {
         const added = toggleWishlistItem({
             id: product.id,

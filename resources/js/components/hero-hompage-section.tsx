@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Loader, SearchIcon, Box, Sparkles, ArrowRight } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import { Product } from '@/types';
-import { Arrow } from '@radix-ui/react-dropdown-menu';
 
 interface HeroProps {
   products?: Product[];
@@ -71,7 +70,7 @@ export default function HeroSection({
         src={'/storage/' + getConfig('hero_image', '')} 
         alt="Alumoda Sinergi Kontainer Indonesia" 
         className="absolute inset-0 z-10 object-cover w-full h-full"
-        loading="eager"
+        loading="lazy"
         onError={(e) => handleImageError(e, '/images/bg-hero.png', "Hero background image")}
       />
       
@@ -81,7 +80,7 @@ export default function HeroSection({
           
           {/* SEBELAH KIRI: Deskripsi & Search Content */}
           <div className="lg:col-span-7 text-center lg:text-left text-white animate-fade-in-up space-y-6">
-            <h1 className="font-black! leading-[1.1] sm:leading-[0.95] tracking-tighter text-4xl sm:text-5xl md:text-5xl xl:text-6xl 2xl:text-7xl text-slate-900">
+            <h1 className="font-black! leading-[1.1] sm:leading-[0.95] tracking-tighter text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl text-slate-900">
               <span dangerouslySetInnerHTML={{ 
                 __html: getConfig('hero_title', 
                 'Solusi Terpercaya <br class="hidden sm:inline" /> Untuk ' + 
