@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Facebook, Instagram, Linkedin, Twitter, Youtube, Music, SquarePlay, Phone, MapPin, Mail, MessageCircle } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Twitter, Youtube, Music, SquarePlay, Phone, MapPin, Mail, MessageCircle, FileText } from 'lucide-react';
 import { NAV_LINKS, SOCIAL_LINKS, CONTACT_INFO, NavLink, SocialLink } from '@/constants/navigation';
 import { useConfig } from '@/utils/config';
 import { usePage } from '@inertiajs/react';
@@ -42,6 +42,20 @@ export default function Footer() {
             'Solusi terpercaya untuk kebutuhan kontainer Anda dengan layanan profesional dan berkualitas.'
           )}
         </p>
+
+        {getConfig('company_profile_pdf') && (
+          <div className="mt-4">
+            <a 
+              href={`/storage/${getConfig('company_profile_pdf')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-gray-300 hover:text-primary bg-gray-900 hover:bg-gray-900/60 border border-gray-800 hover:border-primary/50 px-3 py-2 rounded-xl transition duration-300"
+            >
+              <FileText className="h-3.5 w-3.5 text-primary" />
+              Unduh Company Profile (PDF)
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Social Media */}
@@ -122,7 +136,7 @@ export default function Footer() {
       {/* Products */}
       <div>
         <h4 className="mb-5 text-sm font-semibold uppercase tracking-wider text-white">
-          Produk Unggulan
+          Produk Kami
         </h4>
 
         <ul className="space-y-3">

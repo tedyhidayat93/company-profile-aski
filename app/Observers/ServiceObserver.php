@@ -81,6 +81,8 @@ class ServiceObserver
     private function clearCaches(): void
     {
         Cache::forget('homepage.services');
+        Cache::forget('service.list');
+        Cache::forget('service.products');
         Cache::forget('shared.footer.services');
     }
 }

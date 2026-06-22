@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Product;
+use App\Models\Service; // Tambahkan import model Service
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Traits\TracksVisitors;
@@ -20,6 +21,11 @@ class SitemapController extends Controller
         // Track visitor
         $this->trackPageVisit($request, 'Sitemap');
         
+        // Get all active services
+        $services = Service::where('is_active', true)
+            ->orderBy('sequence')
+            ->get(['id', 'name', 'slug', 'updated_at']);
+
         // Get all published articles
         $articles = Article::where('status', 'published')
             ->orderBy('published_at', 'desc')
@@ -30,10 +36,10 @@ class SitemapController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'created_at']);
 
-        // Navigation links from constants
+        // Navigation links dari constants (Menyesuaikan href Layanan ke halaman index barunya)
         $navigation = [
             ['name' => 'Beranda', 'href' => '/'],
-            ['name' => 'Layanan', 'href' => '/#services'],
+            ['name' => 'Layanan', 'href' => '/services'], // Diubah dari hash anchor ke path asli index services
             ['name' => 'Katalog Produk', 'href' => '/catalog'],
             ['name' => 'Artikel', 'href' => '/articles'],
             ['name' => 'Testimoni', 'href' => '/testimonial'],
@@ -42,14 +48,10 @@ class SitemapController extends Controller
         ];
 
         return Inertia::render('frontend/sitemap', [
-            'articles' => $articles ?? [],
-            'products' => $products ?? [],
+            'services'   => $services ?? [], // Kirim list services ke view React
+            'articles'   => $articles ?? [],
+            'products'   => $products ?? [],
             'navigation' => $navigation ?? [],
-            // 'debug' => [
-            //     'siteconfig_from_middleware' => config('app.url'),
-            //     'siteconfig_shared' => Inertia::getShared('siteconfig'),
-            //     'all_shared' => Inertia::getShared(),
-            // ],
         ]);
     }
 
@@ -72,8 +74,9 @@ class SitemapController extends Controller
                 <priority>1.0</priority>
             </url>';
         
-        // Add static pages
+        // Add static & main dynamic index pages
         $staticPages = [
+            '/services', // Menambahkan halaman utama index layanan
             '/catalog',
             '/#services',
             '/#products',
@@ -87,6 +90,18 @@ class SitemapController extends Controller
                 <url>
                     <loc>' . $baseUrl . $page . '</loc>
                     <lastmod>' . now()->toAtomString() . '</lastmod>
+                    <changefreq>monthly</changefreq>
+                    <priority>0.8</priority>
+                </url>';
+        }
+        
+        // --- ADD SERVICES LIST (Baru) ---
+        $services = Service::where('is_active', true)->get(['slug', 'updated_at']);
+        foreach ($services as $service) {
+            $sitemap .= '
+                <url>
+                    <loc>' . $baseUrl . '/services/' . $service->slug . '</loc>
+                    <lastmod>' . ($service->updated_at ? $service->updated_at->toAtomString() : now()->toAtomString()) . '</lastmod>
                     <changefreq>monthly</changefreq>
                     <priority>0.8</priority>
                 </url>';

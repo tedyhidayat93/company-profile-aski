@@ -67,16 +67,25 @@ class ConfigurationController extends Controller
         $request->validate([
             'id' => 'required|exists:configurations,id',
             'value' => 'nullable|string',
-            'file' => 'nullable|file|image|max:5120'
+            // Dinaikkan menjadi 10240 (10MB) agar sesuai dengan kebutuhan dokumen pdf
+            'file' => 'nullable|file|max:10240' 
         ]);
 
         $config = Configuration::findOrFail($request->id);
-
         $value = $request->value;
 
-        if ($request->hasFile('file') && $config->type === 'image') {
-            $path = $request->file('file')->store('configurations', 'public');
-            $value = $path;
+        if ($request->hasFile('file')) {
+            // Kondisi 1: Jika spesifik key company_profile_pdf atau bertipe file dokumen
+            if ($config->key === 'company_profile_pdf' || $config->type === 'file') {
+                // Disimpan ke dalam folder 'documents' di disk public
+                $path = $request->file('file')->store('documents', 'public');
+                $value = $path;
+            } 
+            // Kondisi 2: Jika konfigurasi bawaan lama berupa gambar
+            elseif ($config->type === 'image') {
+                $path = $request->file('file')->store('configurations', 'public');
+                $value = $path;
+            }
         }
 
         $config->update([

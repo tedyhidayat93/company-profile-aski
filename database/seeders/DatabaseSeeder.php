@@ -42,6 +42,7 @@ class DatabaseSeeder extends Seeder
             ClientSeeder::class,
             FaqSeeder::class,
             ArticleSeeder::class,
+            CompanyProfilePdfSeeder::class,
             // OrderSeeder::class,
             // TestimonialSeeder::class,
             // LogVisitorSeeder::class,

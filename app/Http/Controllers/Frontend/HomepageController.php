@@ -106,6 +106,7 @@ class HomepageController extends Controller
 
                         return [
                             'id' => $service->id,
+                            'slug' => $service->slug,
 
                             'title' => $service->name,
 

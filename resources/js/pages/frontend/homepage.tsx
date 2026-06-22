@@ -11,6 +11,7 @@ import { useConfig } from '@/utils/config';
 import SeoHead from '@/components/seo-head';
 import HeroHomepageSection from '@/components/hero-hompage-section';
 import GoogleReviewsWidget from '@/components/google-reviews-widget';
+import CtaSection from '@/components/cta-section';
 
 
 export default function Homepage({ 
@@ -110,15 +111,35 @@ export default function Homepage({
               {services.map((service) => (
                 <div
                   key={service.id}
-                  className="group relative overflow-hidden rounded-xl bg-white p-8 shadow-lg transition-all hover:shadow-xl hover:-translate-y-1 dark:bg-gray-800"
+                  className="group relative overflow-hidden rounded-xl bg-white p-8 shadow-lg transition-all hover:shadow-xl hover:-translate-y-1 dark:bg-gray-800 flex flex-col justify-between"
                 >
+                  {/* Efek Lingkaran Dekoratif */}
                   <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-amber-200 opacity-20 transition-all group-hover:scale-110 group-hover:opacity-30 dark:bg-amber-900/20"></div>
-                  <div className="relative z-10">
+                  
+                  <div className="relative z-10 flex flex-col h-full">
+                    {/* Bar Dekoratif */}
                     <div className="mb-6 h-2 w-12 rounded-full bg-amber-300"></div>
-                    <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-orange-400">
-                      {service.title}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base">{service.description}</p>
+                    
+                    {/* Judul & Deskripsi */}
+                    <div className="flex-grow">
+                      <h3 className="mb-3 text-xl md:text-2xl font-semibold text-gray-900 dark:text-orange-400">
+                        {service.title}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base mb-6">
+                        {service.description}
+                      </p>
+                    </div>
+
+                    {/* --- Tombol Pelajari Selengkapnya --- */}
+                    <div className="pt-2 mt-auto">
+                      <Link
+                        href={`/service/${service.slug}`}
+                        className="inline-flex items-center text-sm font-bold text-orange-500 hover:text-orange-600 dark:text-orange-400 gap-1.5 group/btn border-b border-transparent hover:border-orange-500 pb-0.5 transition duration-200"
+                      >
+                        Pelajari Selengkapnya
+                        <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition duration-200" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -127,10 +148,10 @@ export default function Homepage({
                 <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/10 transition-all group-hover:scale-110"></div>
                 <div className="relative z-10 text-white">
                   <div className="mb-6 h-2 w-12 rounded-full bg-white/50"></div>
-                  <h3 className="mb-4 text-2xl font-bold">
+                  <h3 className="mb-4 text-xl md:text-2xl font-bold">
                     Butuh Solusi Khusus?
                   </h3>
-                  <p className="mb-6 text-amber-100 text-sm md:text-base">
+                  <p className="mb-6 text-white font-medium text-sm md:text-base">
                     Tim ahli kami siap membantu memberikan solusi terbaik untuk kebutuhan kontainer Anda.
                   </p>
                   <a 
@@ -221,7 +242,7 @@ export default function Homepage({
         </section>
 
         {/* Testimoni Section */}
-        <section className="bg-gradient-to-b from-orange-100 to-gray-50 dark:from-gray-900 dark:to-gray-950">
+        <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
           <div className="container mx-auto px-4 py-20">
 
               {/* Header */}
@@ -443,37 +464,7 @@ export default function Homepage({
         </section>
 
         {/* CTA Section */}
-        <section id="contact" className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-orange-800 to-slate-950 px-2 py-24 text-white">
-          {/* Efek Dekoratif Background */}
-          <div className="absolute top-0 left-1/4 h-64 w-64 -translate-y-1/2 rounded-full bg-orange-500/10 blur-3xl"></div>
-          <div className="absolute bottom-0 right-1/4 h-64 w-64 translate-y-1/2 rounded-full bg-amber-500/10 blur-3xl"></div>
-
-          <div className="container relative z-10 mx-auto px-4 text-center flex flex-col justify-center items-center">
-            {/* Badge Kecil di Atas */}
-            <span className="mb-4 rounded-full bg-orange-500/10 px-4 py-1.5 text-xs font-semibold tracking-wider text-orange-400 uppercase border border-orange-500/20">
-              Hubungi Kami
-            </span>
-            
-            <h2 className="mb-6 text-3xl md:text-4xl font-extrabold tracking-tight text-white xl:max-w-6xl leading-tight">
-              {getConfig('cta_title', 'Butuh Kontainer untuk Bisnis Anda?')}
-            </h2>
-            
-            <p className="mx-auto mb-10 text-base font-medium md:text-lg lg:text-xl text-slate-200 xl:max-w-6xl leading-relaxed">
-              {getConfig('cta_description', 'Dapatkan penawaran terbaik untuk sewa atau beli kontainer berkualitas. Cocok untuk berbagai kebutuhan usaha mulai dari gudang, kantor, hingga ruang komersial.')}
-            </p>
-            
-            {/* Tombol yang Lebih Elegan & Interaktif */}
-            <a 
-              target='_blank' 
-              aria-label='contact us to getting best products'
-              href={`https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=${getConfig('whatsapp_message', 'Halo%20Alumoda%2C%20saya%20ingin%20bertanya')}`}  
-              className="group flex w-full items-center justify-center max-w-xl gap-2 bg-gradient-to-r animate-pulse from-green-500 to-emerald-600 px-8 py-4 rounded-full text-white text-center font-medium shadow-lg shadow-emerald-900/30 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/20"
-            > 
-              <PhoneCall className="h-5 w-5 transition-transform group-hover:rotate-12" /> 
-              <span>{getConfig('cta_button_text', 'Hubungi Kami via WhatsApp')}</span>
-            </a>
-          </div>
-        </section>
+        <CtaSection />
       </main>
     </FrontendLayout>
   );

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Frontend\HomepageController;
+use App\Http\Controllers\Frontend\ServiceController as ServiceFrontendController;
 use App\Http\Controllers\Frontend\CatalogController;
 use App\Http\Controllers\Frontend\TestimonialController as TestimonialFrontendController;
 use App\Http\Controllers\BackPanel\DashboardController;
@@ -42,13 +43,13 @@ Route::get('/testimonial', [TestimonialFrontendController::class, 'index'])->nam
 Route::match(['get', 'post'], '/testimonial/send-your-testimoni', [TestimonialFrontendController::class, 'submit'])->name('testimonial.submit');
 Route::get('/testimonial/maps', [TestimonialFrontendController::class, 'maps'])->name('testimonial.maps');
 
+Route::get('/services', [ServiceFrontendController::class, 'index'])->name('service.index');
+Route::get('/service/{slug}', [ServiceFrontendController::class, 'show'])->name('service.show');
+
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
-
 Route::post('/catalog/order', [CatalogController::class, 'order'])->name('catalog.order')->middleware('throttle:product-order');
-
 Route::get('/catalog/{id}', [CatalogController::class, 'show'])
     ->name('catalog.show');
-    
 Route::get('/catalog/{category}', function($category) {
     return 'Catalog category: ' . $category;
 })->name('catalog.category');
@@ -60,7 +61,6 @@ Route::prefix('articles')->name('article.')->group(function () {
     Route::get('/tag/{slug}', [BlogController::class, 'tag'])->name('tag');
 });
 
-// Sitemap
 Route::get('/sitemap', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/sitemap.xml', [SitemapController::class, 'xml'])->name('sitemap.xml');
 

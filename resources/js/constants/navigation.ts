@@ -1,10 +1,10 @@
 // resources/js/constants/navigation.ts
 export const NAV_LINKS = [
   { name: 'Beranda', href: '/' },
-  { name: 'Layanan', href: '/#services' },
+  { name: 'Layanan Kami', href: '/services' },
   { name: 'Katalog Produk', href: '/catalog' },
   { name: 'Testimoni & Ulasan', href: '/testimonial' },
-  { name: 'Artikel', href: '/articles' },
+  { name: 'Artikel & Berita', href: '/articles' },
   { name: 'Kontak', href: '/#contact' },
   { name: 'Sitemap', href: '/sitemap' }
 ];

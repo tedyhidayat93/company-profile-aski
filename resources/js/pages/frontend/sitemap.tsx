@@ -1,10 +1,16 @@
 import { Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { useConfig } from '@/utils/config';
-import {  Package, FileText, Home, Phone, Mail, MapPin } from 'lucide-react';
+import { Package, FileText, Home, Phone, Mail, MapPin, Layers } from 'lucide-react'; // Tambah ikon Layers
 import SeoHead from '@/components/seo-head';
 
 interface SitemapProps {
+    services?: Array<{ // Tambah tipe data prop services
+        id: number;
+        name: string;
+        slug: string;
+        updated_at: string;
+    }>;
     articles?: Array<{
         id: number;
         title: string;
@@ -23,7 +29,7 @@ interface SitemapProps {
     }>;
 }
 
-export default function Sitemap({ articles = [], products = [], navigation = [] }: SitemapProps) {
+export default function Sitemap({ services = [], articles = [], products = [], navigation = [] }: SitemapProps) {
     const { getConfig } = useConfig();
     
     return (
@@ -32,7 +38,6 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
                 title={'Sitemap'} 
                 description={`Sitemap lengkap untuk ${getConfig('site_name', 'Your site name')}. Temukan semua halaman, produk, dan artikel kami.`}
             />
-            
 
             <div className="min-h-screen bg-gray-50 py-12">
                 <div className="container mx-auto px-4">
@@ -46,7 +51,9 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Mengubah col-grid agar pas menampung 4 box (Navigasi, Layanan, Produk, Artikel) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        
                         {/* Navigation Section */}
                         <div className="bg-white rounded-lg shadow-md p-6">
                             <div className="flex items-center mb-4">
@@ -69,6 +76,42 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
                             </ul>
                         </div>
 
+                        {/* --- NEW SECTION: Services Section --- */}
+                        <div className="bg-white rounded-lg shadow-md p-6">
+                            <div className="flex items-center mb-4">
+                                <Layers className="h-6 w-6 text-amber-600 mr-3" />
+                                <h2 className="text-xl font-semibold text-gray-900">
+                                    Layanan Kami
+                                </h2>
+                            </div>
+                            {services && services.length > 0 ? (
+                                <ul className="space-y-2 max-h-96 overflow-y-auto">
+                                    {services.map((service) => (
+                                        <li key={service.id}>
+                                            <Link
+                                                href={`/services/${service.slug}`}
+                                                className="text-gray-600 hover:text-amber-600 transition-colors text-sm block py-0.5"
+                                            >
+                                                {service.name}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-gray-500 text-sm">
+                                    Belum ada layanan tersedia
+                                </p>
+                            )}
+                            <div className="mt-4 pt-4 border-t">
+                                <Link
+                                    href="/services"
+                                    className="text-amber-600 hover:text-amber-700 font-medium text-sm flex items-center"
+                                >
+                                    Lihat Semua Layanan →
+                                </Link>
+                            </div>
+                        </div>
+
                         {/* Products Section */}
                         <div className="bg-white rounded-lg shadow-md p-6">
                             <div className="flex items-center mb-4">
@@ -83,7 +126,7 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
                                         <li key={product.id}>
                                             <Link
                                                 href={`/catalog/${product.slug}`}
-                                                className="text-gray-600 hover:text-amber-600 transition-colors text-sm"
+                                                className="text-gray-600 hover:text-amber-600 transition-colors text-sm block py-0.5"
                                             >
                                                 {product.name}
                                             </Link>
@@ -119,7 +162,7 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
                                         <li key={article.id}>
                                             <Link
                                                 href={`/articles/${article.slug}`}
-                                                className="text-gray-600 hover:text-amber-600 transition-colors text-sm"
+                                                className="text-gray-600 hover:text-amber-600 transition-colors text-sm block py-0.5"
                                             >
                                                 {article.title}
                                             </Link>
@@ -133,7 +176,7 @@ export default function Sitemap({ articles = [], products = [], navigation = [] 
                             )}
                             <div className="mt-4 pt-4 border-t">
                                 <Link
-                                    href="/#articles"
+                                    href="/articles"
                                     className="text-amber-600 hover:text-amber-700 font-medium text-sm flex items-center"
                                 >
                                     Lihat Semua Artikel →
