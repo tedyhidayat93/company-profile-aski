@@ -100,7 +100,7 @@ class SitemapController extends Controller
         foreach ($services as $service) {
             $sitemap .= '
                 <url>
-                    <loc>' . $baseUrl . '/services/' . $service->slug . '</loc>
+                    <loc>' . $baseUrl . '/service/' . $service->slug . '</loc>
                     <lastmod>' . ($service->updated_at ? $service->updated_at->toAtomString() : now()->toAtomString()) . '</lastmod>
                     <changefreq>monthly</changefreq>
                     <priority>0.8</priority>
