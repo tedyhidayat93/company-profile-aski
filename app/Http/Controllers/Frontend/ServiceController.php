@@ -26,18 +26,18 @@ class ServiceController extends Controller
         */
         $services = Cache::remember(
             'service.list',
-            now()->addHours(12),
+            now()->addHours(1),
             function () {
                 return Service::query()
                     ->where('is_active', true)
                     ->orderBy('sequence')
-                    ->get(['id', 'name', 'slug', 'description', 'image'])
+                    ->get(['id', 'name', 'slug', 'description', 'short_description', 'image'])
                     ->map(function ($service) {
                         return [
                             'id'          => $service->id,
                             'title'       => $service->name,
                             'slug'        => $service->slug,
-                            'description' => $service->description ?? '',
+                            'description' => $service->short_description ?? $service->description ?? '',
                             'image'       => $service->image ?: '/images/placeholder.png',
                         ];
                     });
@@ -96,6 +96,7 @@ class ServiceController extends Controller
             'id'          => $service->id,
             'title'       => $service->name,
             'description' => $service->description ?? '',
+            'short_description' => $service->short_description ?? '',
             'content'     => $service->content ?? '',
             'image'       => $this->resolveImagePath($service->image),
         ];

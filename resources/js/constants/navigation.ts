@@ -5,7 +5,7 @@ export const NAV_LINKS = [
   { name: 'Katalog Produk', href: '/catalog' },
   { name: 'Testimoni & Ulasan', href: '/testimonial' },
   { name: 'Artikel & Berita', href: '/articles' },
-  { name: 'Kontak', href: '/#contact' },
+  { name: 'Kontak Kami', href: '/contact-us' },
   { name: 'Sitemap', href: '/sitemap' }
 ];
 

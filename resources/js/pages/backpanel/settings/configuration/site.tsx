@@ -18,6 +18,7 @@ import SettingsLayout from '@/layouts/settings/layout';
 import { Plus, Edit, Trash2, MoreHorizontal, Settings, Globe, Mail, Phone, MapPin, Search, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AppearanceToggleTab from '@/components/appearance-tabs';
+import TinyMCEEditor from '@/components/TinyMCEEditor';
 
 interface Configuration {
   id: number;
@@ -93,7 +94,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
   const configForm = useForm({
     configurations: configurations.map(config => ({
       id: config.id,
-      value: config.value
+      value: config.value,
     }))
   });
 
@@ -102,12 +103,18 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
     key: '',
     description: '',
     value: '',
+    file: null as File | null, 
     type: 'text'
   });
 
-  const editForm = useForm({
+  const editForm = useForm<{
+    id: string | number;
+    value: string;
+    file: File | null; // Tambahkan field ini agar TypeScript dan Inertia mendeteksinya
+  }>({
     id: '',
-    value: ''
+    value: '',
+    file: null // Set default nilainya sebagai null
   });
 
  
@@ -177,10 +184,15 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
     switch (editingConfig.type) {
       case 'textarea':
         return (
-          <Textarea
+          // <Textarea
+          //   value={editForm.data.value}
+          //   onChange={(e) => editForm.setData('value', e.target.value)}
+          //   placeholder={editingConfig.description || `Masukkan ${editingConfig.label.toLowerCase()}`}
+          // />
+          <TinyMCEEditor
             value={editForm.data.value}
-            onChange={(e) => editForm.setData('value', e.target.value)}
-            placeholder={editingConfig.description || `Masukkan ${editingConfig.label.toLowerCase()}`}
+            onChange={(value) => editForm.setData('value', value)}
+            height={300}
           />
         );
       case 'select':
@@ -213,22 +225,67 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
           </div>
         );
       case 'file':
+        return (
+          <div className="space-y-2">
+            <Input
+              name="file"
+              type="file"
+              // Menerima file dokumen seperti PDF, DOCX, dll.
+              accept=".pdf,.doc,.docx,.xls,.xlsx" 
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  // KIRIM OBJEK BERKASNYA, bukan file.name agar bisa dibaca backend
+                  editForm.setData('file', file); 
+                }
+              }}
+            />
+            {/* Tampilkan nama file baru yang dipilih atau path file lama dari database */}
+            {(editForm.data.file || editForm.data.value) && (
+              <p className="text-xs text-gray-500 bg-slate-50 dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800 break-all">
+                <span className="font-semibold">File aktif:</span>{' '}
+                {editForm.data.file instanceof File 
+                  ? editForm.data.file.name 
+                  : editForm.data.value}
+              </p>
+            )}
+          </div>
+        );
+
       case 'image':
         return (
           <div className="space-y-2">
             <Input
               name="file"
               type="file"
-              accept={editingConfig.type === 'image' ? 'image/*' : '*'}
+              // Khusus untuk gambar saja
+              accept="image/*"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  editForm.setData('value', file.name);
+                  // KIRIM OBJEK GAMBARNYA
+                  editForm.setData('file', file);
                 }
               }}
             />
-            {editForm.data.value && (
-              <p className="text-sm text-gray-500">File saat ini: {editForm.data.value}</p>
+            {/* Tampilkan nama gambar baru atau pratinjau gambar lama */}
+            {(editForm.data.file || editForm.data.value) && (
+              <div className="space-y-2">
+                <p className="text-xs text-gray-500">
+                  <span className="font-semibold">Gambar aktif:</span>{' '}
+                  {editForm.data.file instanceof File 
+                    ? editForm.data.file.name 
+                    : editForm.data.value}
+                </p>
+                {/* Opsional: Tampilkan thumbnail jika tipe datanya berupa string path lama */}
+                {typeof editForm.data.value === 'string' && !editForm.data.file && (
+                  <img 
+                    src={`/storage/${editForm.data.value}`} 
+                    alt="Pratinjau" 
+                    className="h-20 w-auto object-cover rounded-xl border border-slate-200"
+                  />
+                )}
+              </div>
             )}
           </div>
         );
@@ -290,6 +347,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
                   <nav className="flex space-x-8">
                     {[
                       { key: 'site', label: 'Umum', href: '/cpanel/settings/configuration/site' },
+                      { key: 'about', label: 'Tentang', href: '/cpanel/settings/configuration/about' },
                       { key: 'email', label: 'Email', href: '/cpanel/settings/configuration/email' },
                       { key: 'seo', label: 'SEO', href: '/cpanel/settings/configuration/seo' },
                       // { key: 'system', label: 'Sistem', href: '/cpanel/settings/configuration/system' },
@@ -407,7 +465,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
 
         {/* Add Configuration Modal */}
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="xl:max-w-5xl">
             <DialogHeader>
               <DialogTitle>Tambah Konfigurasi Baru</DialogTitle>
               <DialogDescription>
@@ -510,7 +568,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
 
         {/* Edit Configuration Modal */}
         <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent className="sm:max-w-[525px]">
+          <DialogContent className="xl:max-w-5xl">
             <DialogHeader>
               <DialogTitle>Edit Konfigurasi</DialogTitle>
               <DialogDescription>

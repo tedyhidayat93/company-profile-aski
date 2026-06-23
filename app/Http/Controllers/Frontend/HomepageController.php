@@ -90,7 +90,7 @@ class HomepageController extends Controller
         */
         $services = Cache::remember(
             'homepage.services',
-            now()->addHours(12),
+            now()->addHours(1),
             function () {
 
                 return Service::query()
@@ -98,8 +98,9 @@ class HomepageController extends Controller
                     ->orderBy('sequence')
                     ->get([
                         'id',
+                        'slug',
                         'name',
-                        'description',
+                        'short_description',
                         'image',
                     ])
                     ->map(function ($service) {
@@ -111,7 +112,7 @@ class HomepageController extends Controller
                             'title' => $service->name,
 
                             'description' =>
-                                $service->description ?? '',
+                                $service->short_description ?? $service->description ?? '',
 
                             'image' =>
                                 $service->image
@@ -231,7 +232,7 @@ class HomepageController extends Controller
         */
         $testimonials = Cache::remember(
             'homepage.testimonials',
-            now()->addHours(12),
+            now()->addHours(1),
             function () {
 
                 return Testimonial::query()
@@ -277,7 +278,7 @@ class HomepageController extends Controller
         */
         $seo = Cache::remember(
             'homepage.seo',
-            now()->addHours(12),
+            now()->addHours(1),
             fn () => $this->buildSeo()
         );
 

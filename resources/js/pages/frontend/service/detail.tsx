@@ -11,6 +11,7 @@ interface Props {
     service: {
         id: number;
         title: string;
+        short_description: string;
         description: string;
         content?: string;
         image: string;
@@ -28,10 +29,10 @@ export default function ServiceDetail({ service, products = [], related_services
             <SeoHead title={service?.title} />
 
             {/* --- HERO SECTION (Sama dengan Index untuk Konsistensi) --- */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-black via-orange-950/80 to-slate-900 py-24 px-4 border-b border-orange-500/20">
+            <section className="relative overflow-hidden bg-gradient-to-br from-black via-orange-950/80 to-slate-900 py-52 px-4 border-b border-orange-500/20">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] bg-orange-500/15 rounded-full blur-[120px] pointer-events-none" />
                 
-                <div className="max-w-8xl mx-auto text-center relative z-10">
+                <div className="max-w-8xl mx-auto text-center relative z-10 -mt-10">
                     <Link 
                         href="/services"
                         className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-orange-400 uppercase mb-6 hover:text-orange-300 transition group"
@@ -51,14 +52,22 @@ export default function ServiceDetail({ service, products = [], related_services
                         <div className="h-1 w-20 bg-gradient-to-r from-transparent via-orange-500 to-transparent rounded-full" />
                     </div>
                     
-                    <p className="mx-auto max-w-3xl text-white text-sm md:text-base font-medium opacity-80 leading-relaxed">
-                        {getConfig('service_description', 'Solusi kontainer terbaik, modifikasi custom, dan manajemen logistik andalan untuk bisnis Anda.')}
+                    <p className="mx-auto max-w-3xl text-white text-sm md:text-xl font-medium opacity-80 leading-relaxed">
+                        {
+                            !service.short_description ? (
+                                <>
+                                    {getConfig('service_description', 'Solusi kontainer terbaik, modifikasi custom, dan manajemen logistik andalan untuk bisnis Anda.')}
+                                </>
+                            ) : (
+                                service.short_description
+                            )
+                        }
                     </p>
                 </div>
             </section>
 
             {/* --- MAIN CONTENT SECTION --- */}
-            <main className="max-w-7xl mx-auto px-4 py-16">
+            <main className="max-w-7xl mx-auto px-4 py-16 -mt-42">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                     
                     {/* SISI KIRI: KONTEN UTAMA (8 Kolom) */}
@@ -160,7 +169,7 @@ export default function ServiceDetail({ service, products = [], related_services
                                 {related_services.map((item) => (
                                     <Link 
                                         key={item.id}
-                                        href={`/services/${item.slug}`}
+                                        href={`/service/${item.slug}`}
                                         className="group flex gap-4 items-center"
                                     >
                                         <div className="w-20 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex-shrink-0">

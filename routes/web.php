@@ -3,6 +3,7 @@
 use App\Http\Controllers\Frontend\HomepageController;
 use App\Http\Controllers\Frontend\ServiceController as ServiceFrontendController;
 use App\Http\Controllers\Frontend\CatalogController;
+use App\Http\Controllers\Frontend\ContactUsController;
 use App\Http\Controllers\Frontend\TestimonialController as TestimonialFrontendController;
 use App\Http\Controllers\BackPanel\DashboardController;
 use App\Http\Controllers\Frontend\BlogController;
@@ -43,6 +44,7 @@ Route::get('/testimonial', [TestimonialFrontendController::class, 'index'])->nam
 Route::match(['get', 'post'], '/testimonial/send-your-testimoni', [TestimonialFrontendController::class, 'submit'])->name('testimonial.submit');
 Route::get('/testimonial/maps', [TestimonialFrontendController::class, 'maps'])->name('testimonial.maps');
 
+Route::get('/contact-us', [ContactUsController::class, 'index'])->name('contact-us.index');
 Route::get('/services', [ServiceFrontendController::class, 'index'])->name('service.index');
 Route::get('/service/{slug}', [ServiceFrontendController::class, 'show'])->name('service.show');
 

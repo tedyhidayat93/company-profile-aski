@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage; // Tambahkan ini untuk menghapus file lama
 
 class ConfigurationController extends Controller
 {
@@ -19,6 +20,7 @@ class ConfigurationController extends Controller
         $this->middleware('permission:setting-configuration-edit')->only(['update']);
         $this->middleware('permission:setting-configuration-delete')->only(['destroy']);
     }
+
     public function index()
     {
         Gate::authorize('setting-configuration-list');
@@ -67,7 +69,7 @@ class ConfigurationController extends Controller
         $request->validate([
             'id' => 'required|exists:configurations,id',
             'value' => 'nullable|string',
-            // Dinaikkan menjadi 10240 (10MB) agar sesuai dengan kebutuhan dokumen pdf
+            // Maksimal 10MB untuk file dokumen atau gambar
             'file' => 'nullable|file|max:10240' 
         ]);
 
@@ -75,13 +77,18 @@ class ConfigurationController extends Controller
         $value = $request->value;
 
         if ($request->hasFile('file')) {
+            // Hapus file fisik lama jika ada di storage untuk menghemat ruang
+            if (!empty($config->value) && Storage::disk('public')->exists($config->value)) {
+                Storage::disk('public')->delete($config->value);
+            }
+
             // Kondisi 1: Jika spesifik key company_profile_pdf atau bertipe file dokumen
             if ($config->key === 'company_profile_pdf' || $config->type === 'file') {
                 // Disimpan ke dalam folder 'documents' di disk public
                 $path = $request->file('file')->store('documents', 'public');
                 $value = $path;
             } 
-            // Kondisi 2: Jika konfigurasi bawaan lama berupa gambar
+            // Kondisi 2: Jika konfigurasi berupa gambar
             elseif ($config->type === 'image') {
                 $path = $request->file('file')->store('configurations', 'public');
                 $value = $path;
@@ -92,7 +99,7 @@ class ConfigurationController extends Controller
             'value' => $value
         ]);
 
-        return back()->with('success', 'Value berhasil diperbarui');
+        return back()->with('success', 'Konfigurasi berhasil diperbarui');
     }
 
     public function destroy(Request $request, $group, $id)
@@ -100,6 +107,14 @@ class ConfigurationController extends Controller
         Gate::authorize('setting-configuration-delete');
         
         $configuration = Configuration::findOrFail($id);
+        
+        // Hapus file fisik dari storage jika tipe datanya berupa file/image sebelum row dihapus
+        if (in_array($configuration->type, ['file', 'image']) && !empty($configuration->value)) {
+            if (Storage::disk('public')->exists($configuration->value)) {
+                Storage::disk('public')->delete($configuration->value);
+            }
+        }
+
         $configuration->delete();
 
         return redirect()->back()
