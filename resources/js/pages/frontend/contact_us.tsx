@@ -13,7 +13,10 @@ import {
     Instagram, 
     Youtube, 
     SquarePlay, 
-    Twitter 
+    Twitter,
+    Building2,
+    Target,
+    Compass
 } from 'lucide-react';
 
 interface Props {
@@ -45,6 +48,9 @@ interface Props {
 export default function ContactUs({ seo, data }: Props) {
     const { getConfig } = useConfig();
     const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+    const [activeTab, setActiveTab] = useState<'vision' | 'mission'>('vision');
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isTabExpanded, setIsTabExpanded] = useState(false);
 
     const socialIcons = [
         { name: 'Facebook', icon: Facebook, href: data.social_media.facebook },
@@ -56,7 +62,6 @@ export default function ContactUs({ seo, data }: Props) {
 
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Integrasi direct chat atau email API bisa ditaruh di sini
         const whatsappUrl = `https://wa.me/${data.contact.whatsapp?.replace(/\D/g, '')}?text=Halo%20Alumoda,%20Nama%20saya%20${encodeURIComponent(form.name)}.%20${encodeURIComponent(form.message)}`;
         window.open(whatsappUrl, '_blank');
     };
@@ -87,85 +92,137 @@ export default function ContactUs({ seo, data }: Props) {
 
             {/* --- MAIN GRID SECTION --- */}
             <main className="max-w-7xl mx-auto px-4 py-20">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     
-                    {/* LEFT COLUMN: CONTACT INFORMATION (5 KOLOM) */}
-                    <div className="lg:col-span-5 space-y-8">
+                    {/* LEFT COLUMN: CONTACT INFORMATION & ABOUT (5 KOLOM) */}
+                    <div className="lg:col-span-4 space-y-8">
                         <div className="space-y-2">
                             <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                                 Informasi Kontak
                             </h2>
                             <p className="text-slate-500 dark:text-slate-400 text-sm">
-                                Silakan hubungi kami via kanal komunikasi resmi di bawah ini.
+                                Silakan hubungi kami via kanal komunikasi resmi yang tertera.
                             </p>
                         </div>
 
-                        {/* Contact Cards */}
-                        <div className="grid grid-cols-1 gap-4">
-                            {/* WhatsApp */}
-                            {data.contact.whatsapp && (
-                                <a 
-                                    href={`https://wa.me/${data.contact.whatsapp.replace(/\D/g, '')}`}
-                                    target="_blank"
-                                    className="flex gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:border-orange-500/40 transition duration-300 group"
-                                >
-                                    <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition duration-300">
-                                        <MessageCircle className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">WhatsApp Hotline</h4>
-                                        <p className="text-base font-bold text-slate-800 dark:text-slate-100 mt-0.5">{data.contact.whatsapp}</p>
-                                    </div>
-                                </a>
-                            )}
 
-                            {/* Phone */}
-                            {data.contact.phone && (
-                                <a 
-                                    href={`tel:${data.contact.phone}`}
-                                    className="flex gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:border-orange-500/40 transition duration-300 group"
-                                >
-                                    <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition duration-300">
-                                        <Phone className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Telepon Kantor</h4>
-                                        <p className="text-base font-bold text-slate-800 dark:text-slate-100 mt-0.5">{data.contact.phone}</p>
-                                    </div>
-                                </a>
-                            )}
+                        {/* --- DI SINI: BAGIAN ABOUT UTAMA YANG SUDAH DIBUAT OKE & PROFESIONAL --- */}
+                        {data.about_us.about && (
+                            <div className="bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 space-y-4">
+                                <div className="flex items-center gap-2 text-slate-800 dark:text-white font-bold text-sm">
+                                    <Building2 className="w-4 h-4 text-orange-500" />
+                                    Sekilas Perusahaan
+                                </div>
+                                
+                                {/* Container untuk teks About dengan limit tinggi & efek fade */}
+                                <div className="relative">
+                                    <div 
+                                        className={`text-xs text-slate-600 dark:text-slate-400 leading-relaxed [&_p]:mb-2 last:[&_p]:mb-0 [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-4 [&_ul]:pl-4 transition-all duration-500 overflow-hidden ${
+                                            isExpanded ? 'max-h-[1000px]' : 'max-h-24'
+                                        }`}
+                                        dangerouslySetInnerHTML={{ __html: data.about_us.about }}
+                                    />
+                                    
+                                    {/* Efek Blur Memudar jika tidak di-expand */}
+                                    {!isExpanded && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-slate-50 to-transparent dark:from-slate-900/40 pointer-events-none" />
+                                    )}
+                                </div>
 
-                            {/* Email */}
-                            {data.contact.email && (
-                                <a 
-                                    href={`mailto:${data.contact.email}`}
-                                    className="flex gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:border-orange-500/40 transition duration-300 group"
-                                >
-                                    <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition duration-300">
-                                        <Mail className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Surel / Email</h4>
-                                        <p className="text-base font-bold text-slate-800 dark:text-slate-100 mt-0.5 break-all">{data.contact.email}</p>
-                                    </div>
-                                </a>
-                            )}
-                        </div>
+                                {/* Tombol Tampilkan Lebih Banyak / Sembunyikan */}
+                                <div className="pt-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsExpanded(!isExpanded)}
+                                        className="text-xs font-bold text-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition flex items-center gap-1 focus:outline-none"
+                                    >
+                                        {isExpanded ? 'Sembunyikan' : 'Tampilkan Lebih Banyak...'}
+                                    </button>
+                                </div>
 
-                        {/* --- EXCLUSIVE: COMPANY PROFILE PDF DOWNLOAD BOX --- */}
+                                {/* Mini Tabs Visi & Misi */}
+                                <div className="pt-3 border-t border-slate-200/60 dark:border-slate-800">
+                                    <div className="flex gap-2 mb-3 bg-slate-200/50 dark:bg-slate-950 p-1 rounded-xl">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setActiveTab('vision')}
+                                            className={`flex-1 text-center py-1.5 text-xs font-bold rounded-lg transition ${activeTab === 'vision' ? 'bg-white dark:bg-slate-800 text-orange-500 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}
+                                        >
+                                            Visi
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onClick={() => setActiveTab('mission')}
+                                            className={`flex-1 text-center py-1.5 text-xs font-bold rounded-lg transition ${activeTab === 'mission' ? 'bg-white dark:bg-slate-800 text-orange-500 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}
+                                        >
+                                            Misi
+                                        </button>
+                                    </div>
+
+                                    <div className="text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-950/40 p-3 rounded-xl border border-slate-100 dark:border-slate-900 min-h-[70px] space-y-2">
+                                        {activeTab === 'vision' ? (
+                                            <div className="flex items-start gap-2">
+                                                <Target className="w-4 h-4 text-orange-500/70 shrink-0 mt-0.5" />
+                                                <div className="relative flex-1">
+                                                    {/* Render HTML TinyMCE untuk Visi */}
+                                                    <div 
+                                                        className={`w-full [&_p]:mb-1 last:[&_p]:mb-0 [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-4 [&_ul]:pl-4 transition-all duration-500 overflow-hidden ${
+                                                            isTabExpanded ? 'max-h-[1000px]' : 'max-h-16'
+                                                        }`}
+                                                        dangerouslySetInnerHTML={{ __html: data.about_us.vision }} 
+                                                    />
+                                                    {!isTabExpanded && (
+                                                        <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent dark:from-slate-900/10 pointer-events-none" />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-start gap-2">
+                                                <Compass className="w-4 h-4 text-orange-500/70 shrink-0 mt-0.5" />
+                                                <div className="relative flex-1">
+                                                    {/* Render HTML TinyMCE untuk Misi */}
+                                                    <div 
+                                                        className={`w-full [&_p]:mb-1 last:[&_p]:mb-0 [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-4 [&_ul]:pl-4 transition-all duration-500 overflow-hidden ${
+                                                            isTabExpanded ? 'max-h-[1000px]' : 'max-h-16'
+                                                        }`}
+                                                        dangerouslySetInnerHTML={{ __html: data.about_us.mission }} 
+                                                    />
+                                                    {!isTabExpanded && (
+                                                        <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent dark:from-slate-900/10 pointer-events-none" />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Tombol Toggle khusus untuk area Visi / Misi */}
+                                        <div className="pt-1 pl-6">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsTabExpanded(!isTabExpanded)}
+                                                className="text-[11px] font-bold text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 transition flex items-center gap-1 focus:outline-none"
+                                            >
+                                                {isTabExpanded ? 'Sembunyikan' : 'Lihat Detail...'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* --- COMPANY PROFILE PDF DOWNLOAD BOX --- */}
                         {data.about_us.company_profile_pdf && (
                             <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl p-6 border border-slate-800 shadow-xl relative overflow-hidden group">
                                 <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-orange-500/5 rounded-full blur-2xl pointer-events-none" />
                                 <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     <div>
-                                        <h3 className="text-sm font-bold text-white mb-1 tracking-tight">Company Profile</h3>
+                                        <h3 className="text-sm font-bold text-white mb-1 tracking-tight">Dokumen Perusahaan</h3>
                                         <p className="text-slate-400 text-xs leading-relaxed">Unduh brosur resmi & Company Profile PDF.</p>
                                     </div>
                                     <a 
                                         href={`/storage/${data.about_us.company_profile_pdf}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 bg-white/5 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded-xl border border-white/10 hover:border-orange-500 transition duration-300 text-xs shadow-md"
+                                        className="inline-flex text-nowrap items-center gap-2 bg-white/5 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded-xl border border-white/10 hover:border-orange-500 transition duration-300 text-xs shadow-md"
                                     >
                                         <FileDown className="w-3.5 h-3.5" /> Unduh PDF
                                     </a>
@@ -185,7 +242,6 @@ export default function ContactUs({ seo, data }: Props) {
                                     {socialIcons.map((social, i) => {
                                         const Icon = social.icon;
                                         
-                                        // Menentukan warna hover spesifik berdasarkan nama media sosial
                                         const getHoverStyles = (name: string) => {
                                             switch (name.toLowerCase()) {
                                                 case 'facebook': return 'hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2] hover:shadow-[#1877F2]/20';
@@ -216,7 +272,55 @@ export default function ContactUs({ seo, data }: Props) {
                     </div>
 
                     {/* RIGHT COLUMN: INTERACTIVE CONNECT FORM (7 KOLOM) */}
-                    <div className="lg:col-span-7">
+                    <div className="lg:col-span-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+                            {data.contact.whatsapp && (
+                                <a 
+                                    href={`https://wa.me/${data.contact.whatsapp.replace(/\D/g, '')}`}
+                                    target="_blank"
+                                    className="flex gap-4 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:border-orange-500/40 transition duration-300 group"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition duration-300">
+                                        <MessageCircle className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">WhatsApp Hotline</h4>
+                                        <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-0.5">{data.contact.whatsapp}</p>
+                                    </div>
+                                </a>
+                            )}
+
+                            {data.contact.phone && (
+                                <a 
+                                    href={`tel:${data.contact.phone.replace(/\D/g, '')}`}
+                                    className="flex gap-4 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:border-orange-500/40 transition duration-300 group"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition duration-300">
+                                        <Phone className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Telepon Kantor</h4>
+                                        <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-0.5">{data.contact.phone}</p>
+                                    </div>
+                                </a>
+                            )}
+
+                            {data.contact.email && (
+                                <a 
+                                    href={`mailto:${data.contact.email}`}
+                                    className="flex gap-4 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:border-orange-500/40 transition duration-300 group"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition duration-300">
+                                        <Mail className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Surel / Email</h4>
+                                        <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-0.5 break-all">{data.contact.email}</p>
+                                    </div>
+                                </a>
+                            )}
+                        </div>
+                        {/* Form code tetap sama seperti sebelumnya */}
                         <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 md:p-10 border border-slate-100 dark:border-slate-800 shadow-xl space-y-6">
                             <div className="space-y-1">
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">

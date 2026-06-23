@@ -89,7 +89,7 @@ export default function Sitemap({ services = [], articles = [], products = [], n
                                     {services.map((service) => (
                                         <li key={service.id}>
                                             <Link
-                                                href={`/services/${service.slug}`}
+                                                href={`/service/${service.slug}`}
                                                 className="text-gray-600 hover:text-amber-600 transition-colors text-sm block py-0.5"
                                             >
                                                 {service.name}
