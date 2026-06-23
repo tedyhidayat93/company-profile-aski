@@ -41,14 +41,13 @@ const TinyMCEEditor: React.FC<TinyMCEEditorProps> = ({
         remove_script_host: false,
         convert_urls: true,
         paste_data_images: true,
-        images_upload_handler: function (blobInfo: any, success: any) {
-          // For now, just return the blob as a data URL
+        images_upload_handler: (blobInfo: any) => new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = function () {
-            success(reader.result as string);
+            resolve(reader.result as string); // Gunakan resolve untuk mengembalikan data URL biner
           };
-          reader.readAsDataURL(blobInfo.files[0]);
-        },
+          reader.readAsDataURL(blobInfo.blob()); // 👈 Menggunakan .blob() bawaan TinyMCE API resmi
+        }),
       }}
     />
   );
