@@ -44,7 +44,7 @@ class SitemapController extends Controller
             ['name' => 'Katalog Produk', 'href' => '/catalog'],
             ['name' => 'Artikel', 'href' => '/articles'],
             ['name' => 'Testimoni', 'href' => '/testimonial'],
-            ['name' => 'Kontak Kami', 'href' => '/contact'],
+            ['name' => 'Kontak Kami', 'href' => '/contact-us'],
             ['name' => 'Site Map', 'href' => '/sitemap'],
         ];
 
