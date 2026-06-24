@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import SeoHead from '@/components/seo-head';
-import { useConfig } from '@/utils/config';
+// import { useConfig } from '@/utils/config';
 import { 
     Mail, 
     Phone, 
@@ -9,11 +9,11 @@ import {
     MapPin, 
     FileDown, 
     Send,
-    Facebook, 
-    Instagram, 
-    Youtube, 
-    SquarePlay, 
-    Twitter,
+    // Facebook, 
+    // Instagram, 
+    // Youtube, 
+    // SquarePlay, 
+    // Twitter,
     Building2,
     Target,
     Compass
@@ -48,19 +48,19 @@ interface Props {
 }
 
 export default function ContactUs({ seo, data }: Props) {
-    const { getConfig } = useConfig();
+    // const { getConfig } = useConfig();
     const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
     const [activeTab, setActiveTab] = useState<'vision' | 'mission'>('vision');
     const [isExpanded, setIsExpanded] = useState(false);
     const [isTabExpanded, setIsTabExpanded] = useState(false);
 
-    const socialIcons = [
-        { name: 'Facebook', icon: Facebook, href: data.social_media.facebook },
-        { name: 'Instagram', icon: Instagram, href: data.social_media.instagram },
-        { name: 'X / Twitter', icon: Twitter, href: data.social_media.x },
-        { name: 'YouTube', icon: Youtube, href: data.social_media.youtube },
-        { name: 'TikTok', icon: SquarePlay, href: data.social_media.tiktok },
-    ].filter(item => item.href);
+    // const socialIcons = [
+    //     { name: 'Facebook', icon: Facebook, href: data.social_media.facebook },
+    //     { name: 'Instagram', icon: Instagram, href: data.social_media.instagram },
+    //     { name: 'X / Twitter', icon: Twitter, href: data.social_media.x },
+    //     { name: 'YouTube', icon: Youtube, href: data.social_media.youtube },
+    //     { name: 'TikTok', icon: SquarePlay, href: data.social_media.tiktok },
+    // ].filter(item => item.href);
 
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();

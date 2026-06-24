@@ -64,11 +64,11 @@ class ServiceController extends Controller
                 'meta_keywords',
             ])
             ->pluck('value', 'key');
-
+        
         $seo = [
-            'title'       => $seoConfigs['service_meta_title'] ?? 'Our Services',
-            'description' => $seoConfigs['service_meta_description'] ?? 'Layanan terbaik dari Alumoda Sinergi Kontainer Indonesia.',
-            'keywords'    => $seoConfigs['meta_keywords'] ?? 'service container, modifikasi container',
+            'title'       => !empty($seoConfigs['service_meta_title']) ? strip_tags($seoConfigs['service_meta_title']) : 'Our Services',
+            'description' => !empty($seoConfigs['service_meta_description']) ? strip_tags($seoConfigs['service_meta_description']) : 'Layanan terbaik dari Alumoda Sinergi Kontainer Indonesia.',
+            'keywords'    => !empty($seoConfigs['meta_keywords']) ? strip_tags($seoConfigs['meta_keywords']) : 'service container, modifikasi container',
             'image'       => !empty($seoConfigs['service_meta_image'])
                 ? asset('storage/' . $seoConfigs['service_meta_image'])
                 : asset('images/placeholder.png'),
@@ -131,13 +131,16 @@ class ServiceController extends Controller
 
         return Inertia::render('frontend/service/detail', [
             'service'          => $serviceDetail,
-            'products'         => $products, // Ditampilkan di detail (show)
+            'products'         => $products,
             'related_services' => $relatedServices,
             'seo' => [
-                'title'       => $service->meta_title ?: $service->name,
-                'description' => $service->meta_description ?: str($service->description)->limit(160),
+                'title'       => $service->meta_title ? strip_tags($service->meta_title) : $service->name,
+
+                'description' => $service->meta_description 
+                    ? strip_tags($service->meta_description) 
+                    : str(strip_tags($service->description))->limit(160),
                 'image'       => $this->resolveImagePath($service->image),
-                'keywords'    => $service->meta_keywords ?: '',
+                'keywords'    => $service->meta_keywords ? strip_tags($service->meta_keywords) : '',
                 'type'        => 'article',
             ],
         ]);

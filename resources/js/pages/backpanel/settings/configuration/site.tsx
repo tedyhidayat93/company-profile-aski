@@ -54,6 +54,17 @@ const getGroupInfo = (group: string) => {
         title: 'Konfigurasi Email',
         description: 'Kelola pengaturan email dan SMTP untuk pengiriman notifikasi dan komunikasi dengan pelanggan.'
       };
+
+    case 'about':
+      return {
+        title: 'Konfigurasi Profil Perusahaan/Personal',
+        description: 'Kelola pengaturan profil detail perusahaan/personal mu.'
+      };
+    case 'seo':
+      return {
+        title: 'Konfigurasi Search Engine Optimization',
+        description: 'Kelola pengaturan SEO di tiap halaman.'
+      };
     case 'system':
       return {
         title: 'Konfigurasi Sistem',
@@ -189,11 +200,14 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
     switch (editingConfig.type) {
       case 'textarea':
         return (
-          // <Textarea
-          //   value={editForm.data.value}
-          //   onChange={(e) => editForm.setData('value', e.target.value)}
-          //   placeholder={editingConfig.description || `Masukkan ${editingConfig.label.toLowerCase()}`}
-          // />
+          <Textarea
+            value={editForm.data.value}
+            onChange={(e) => editForm.setData('value', e.target.value)}
+            placeholder={editingConfig.description || `Masukkan ${editingConfig.label.toLowerCase()}`}
+          />
+        );
+      case 'wysiwyg':
+        return (
           <TinyMCEEditor
             value={editForm.data.value}
             onChange={(value) => editForm.setData('value', value)}
@@ -354,11 +368,11 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
                       { key: 'site', label: 'Umum', href: '/cpanel/settings/configuration/site' },
                       { key: 'about', label: 'Tentang', href: '/cpanel/settings/configuration/about' },
                       { key: 'email', label: 'Email', href: '/cpanel/settings/configuration/email' },
-                      { key: 'seo', label: 'SEO', href: '/cpanel/settings/configuration/seo' },
+                      { key: 'seo', label: 'SEO Page', href: '/cpanel/settings/configuration/seo' },
                       // { key: 'system', label: 'Sistem', href: '/cpanel/settings/configuration/system' },
                       // { key: 'payment', label: 'Pembayaran', href: '/cpanel/settings/configuration/payment' },
                       // { key: 'shipping', label: 'Pengiriman', href: '/cpanel/settings/configuration/shipping' },
-                      { key: 'view_homepage', label: 'Tampilan', href: '/cpanel/settings/configuration/view_homepage' },
+                      { key: 'view_homepage', label: 'Halaman Beranda', href: '/cpanel/settings/configuration/view_homepage' },
                       { key: 'other', label: 'Lainnya', href: '/cpanel/settings/configuration/other' },
                     ].map((tab) => (
                       <Link

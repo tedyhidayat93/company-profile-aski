@@ -19,7 +19,7 @@ class OperationalHourSeeder extends Seeder
                 'group' => 'about',
                 'key' => 'office_branch',
                 'value' => '', 
-                'type' => 'textarea',
+                'type' => 'wysiwyg',
             ],
             [
                 'label' => 'Jam Operasional',
@@ -27,7 +27,7 @@ class OperationalHourSeeder extends Seeder
                 'group' => 'site',
                 'key' => 'site_operational_hour',
                 'value' => 'Buka 24 jam', 
-                'type' => 'textarea',
+                'type' => 'wysiwyg',
             ],
         ];
 

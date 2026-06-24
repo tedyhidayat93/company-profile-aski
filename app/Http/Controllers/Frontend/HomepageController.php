@@ -418,33 +418,25 @@ class HomepageController extends Controller
             ->pluck('value', 'key');
 
         return [
+            'title' => !empty($configs['homepage_meta_title']) 
+                ? strip_tags($configs['homepage_meta_title']) 
+                : (!empty($configs['site_name']) ? strip_tags($configs['site_name']) : 'Alumoda Sinergi Kontainer Indonesia'),
 
-            'title' =>
-                $configs['homepage_meta_title']
-                ?? $configs['site_name']
-                ?? 'Alumoda Sinergi Kontainer Indonesia',
+            'description' => !empty($configs['homepage_meta_description']) 
+                ? strip_tags($configs['homepage_meta_description']) 
+                : (!empty($configs['meta_description']) ? strip_tags($configs['meta_description']) : 'Solusi container terpercaya untuk kebutuhan industri, proyek, office container, reefer, dan logistik.'),
 
-            'description' =>
-                $configs['homepage_meta_description']
-                ?? $configs['meta_description']
-                ?? 'Solusi container terpercaya untuk kebutuhan industri, proyek, office container, reefer, dan logistik.',
-
-            'keywords' =>
-                $configs['homepage_meta_keywords']
-                ?? $configs['meta_keywords']
-                ?? 'container, office container, reefer container, jual container, sewa container',
+            'keywords' => !empty($configs['homepage_meta_keywords']) 
+                ? strip_tags($configs['homepage_meta_keywords']) 
+                : (!empty($configs['meta_keywords']) ? strip_tags($configs['meta_keywords']) : 'container, office container, reefer container, jual container, sewa container'),
 
             'image' => match (true) {
-
                 !empty($configs['homepage_meta_image']) => asset(
                     'storage/' . $configs['homepage_meta_image']
                 ),
 
                 !empty($configs['site_logo']) => asset(
-                    str_starts_with(
-                        $configs['site_logo'],
-                        'configurations/'
-                    )
+                    str_starts_with($configs['site_logo'], 'configurations/')
                         ? 'storage/' . $configs['site_logo']
                         : $configs['site_logo']
                 ),

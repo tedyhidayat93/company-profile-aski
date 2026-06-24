@@ -19,7 +19,7 @@ class CompanyProfileSeeder extends Seeder
                 'group' => 'about',
                 'key' => 'about_detail',
                 'value' => 'PT. Alumoda Sinergi Kontainer Indonesia adalah penyedia solusi kontainer terpercaya yang bergerak di bidang pengadaan, modifikasi custom, hingga manajemen logistik andalan untuk mendukung berbagai sektor industri.', 
-                'type' => 'textarea',
+                'type' => 'wysiwyg',
             ],
             [
                 'label' => 'Visi Perusahaan',
@@ -27,7 +27,7 @@ class CompanyProfileSeeder extends Seeder
                 'group' => 'about',
                 'key' => 'about_vision',
                 'value' => 'Menjadi pemimpin pasar nasional dalam industri modifikasi dan penyedia kontainer dengan mengutamakan inovasi, kualitas berstandar global, dan kepuasan pelanggan.', 
-                'type' => 'textarea',
+                'type' => 'wysiwyg',
             ],
             [
                 'label' => 'Misi Perusahaan',
@@ -35,7 +35,7 @@ class CompanyProfileSeeder extends Seeder
                 'group' => 'about',
                 'key' => 'about_mission',
                 'value' => '1. Menyediakan produk kontainer berkualitas tinggi dan aman.\n2. Menghadirkan inovasi modifikasi custom sesuai kebutuhan spesifik klien.\n3. Memberikan pelayanan profesional, transparan, dan pengiriman tepat waktu.', 
-                'type' => 'textarea',
+                'type' => 'wysiwyg',
             ],
             [
                 'label' => 'Company Profile PDF',

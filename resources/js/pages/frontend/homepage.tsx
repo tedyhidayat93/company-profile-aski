@@ -12,6 +12,7 @@ import SeoHead from '@/components/seo-head';
 import HeroHomepageSection from '@/components/hero-hompage-section';
 import GoogleReviewsWidget from '@/components/google-reviews-widget';
 import CtaSection from '@/components/cta-section';
+import ProfileVideoHandler from '@/components/profile-video-handler';
 
 
 export default function Homepage({ 
@@ -465,6 +466,7 @@ export default function Homepage({
 
         {/* CTA Section */}
         <CtaSection />
+
       </main>
     </FrontendLayout>
   );

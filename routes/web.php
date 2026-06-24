@@ -45,6 +45,7 @@ Route::match(['get', 'post'], '/testimonial/send-your-testimoni', [TestimonialFr
 Route::get('/testimonial/maps', [TestimonialFrontendController::class, 'maps'])->name('testimonial.maps');
 
 Route::get('/contact-us', [ContactUsController::class, 'index'])->name('contact-us.index');
+Route::get('/about-us', [ContactUsController::class, 'about'])->name('about-us.index');
 Route::get('/services', [ServiceFrontendController::class, 'index'])->name('service.index');
 Route::get('/service/{slug}', [ServiceFrontendController::class, 'show'])->name('service.show');
 

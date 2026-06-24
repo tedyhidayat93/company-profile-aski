@@ -114,11 +114,11 @@ class BlogController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        /*
+       /*
         |--------------------------------------------------------------------------
         | SEO Config
         |--------------------------------------------------------------------------
-        */
+        |*/
         $seoConfigs = Configuration::query()
             ->whereIn('key', [
                 'article_meta_image',
@@ -129,14 +129,17 @@ class BlogController extends Controller
             ->pluck('value', 'key');
 
         $seo = [
-            'title' => $seoConfigs['article_meta_title']
-                ?? 'Blog & Artikel',
+            'title' => !empty($seoConfigs['article_meta_title']) 
+                ? strip_tags($seoConfigs['article_meta_title']) 
+                : 'Blog & Artikel',
 
-            'description' => $seoConfigs['article_meta_description']
-                ?? 'Artikel terbaru seputar container, office container, reefer, logistik, modifikasi container, dan tips industri dari Alumoda Sinergi Kontainer Indonesia.',
+            'description' => !empty($seoConfigs['article_meta_description']) 
+                ? strip_tags($seoConfigs['article_meta_description']) 
+                : 'Artikel terbaru seputar container, office container, reefer, logistik, modifikasi container, dan tips industri dari Alumoda Sinergi Kontainer Indonesia.',
 
-            'keywords' => $seoConfigs['meta_keywords']
-                ?? 'blog container, artikel container, office container, reefer container, modifikasi container',
+            'keywords' => !empty($seoConfigs['meta_keywords']) 
+                ? strip_tags($seoConfigs['meta_keywords']) 
+                : 'blog container, artikel container, office container, reefer container, modifikasi container',
 
             'image' => !empty($seoConfigs['article_meta_image'])
                 ? asset('storage/' . $seoConfigs['article_meta_image'])
@@ -149,29 +152,34 @@ class BlogController extends Controller
         |--------------------------------------------------------------------------
         | Dynamic SEO
         |--------------------------------------------------------------------------
-        */
-        if ($filters['category']) {
+        |*/
+        if (!empty($filters['category'])) {
             $category = $categories->firstWhere(
                 'slug',
                 $filters['category']
             );
 
             if ($category) {
-                $seo['title'] = "{$category->name} | Artikel";
-                $seo['description'] = "Artikel dan informasi terbaru tentang {$category->name} dari Alumoda Sinergi Kontainer Indonesia.";
+                $categoryName = strip_tags($category->name);
+                $seo['title'] = "{$categoryName} | Artikel";
+                $seo['description'] = "Artikel dan informasi terbaru tentang {$categoryName} dari Alumoda Sinergi Kontainer Indonesia.";
             }
         }
 
-        if ($filters['search']) {
-            $seo['title'] = 'Pencarian "' . $filters['search'] . '" | Artikel';
-
-            $seo['description'] = 'Hasil pencarian artikel untuk "' . $filters['search'] . '" di blog Alumoda Sinergi Kontainer Indonesia.';
+        if (!empty($filters['search'])) {
+            // Sanitize input search untuk mencegah XSS di Meta Tag
+            $cleanSearch = strip_tags($filters['search']);
+            
+            $seo['title'] = 'Pencarian "' . $cleanSearch . '" | Artikel';
+            $seo['description'] = 'Hasil pencarian artikel untuk "' . $cleanSearch . '" di blog Alumoda Sinergi Kontainer Indonesia.';
         }
 
-        if ($filters['tag']) {
-            $seo['title'] = 'Tag "' . $filters['tag'] . '" | Artikel';
-
-            $seo['description'] = 'Artikel dengan tag "' . $filters['tag'] . '" di blog Alumoda Sinergi Kontainer Indonesia.';
+        if (!empty($filters['tag'])) {
+            // Sanitize input tag untuk mencegah XSS di Meta Tag
+            $cleanTag = strip_tags($filters['tag']);
+            
+            $seo['title'] = 'Tag "' . $cleanTag . '" | Artikel';
+            $seo['description'] = 'Artikel dengan tag "' . $cleanTag . '" di blog Alumoda Sinergi Kontainer Indonesia.';
         }
 
         return Inertia::render('frontend/blog/index', [
@@ -235,23 +243,24 @@ class BlogController extends Controller
             'post' => $post,
             'related_posts' => $relatedPosts,
             'seo' => [
-                'title' => $post->meta_title ?: $post->title,
+                'title' => $post->meta_title ? strip_tags($post->meta_title) : $post->title,
 
-                'description' => $post->meta_description
-                    ?: (
-                        $post->excerpt
+                'description' => ($post->meta_description ? strip_tags($post->meta_description) : null)
+                    ?: (($post->excerpt ? strip_tags($post->excerpt) : null)
                         ?: str($post->content)
                             ->stripTags()
                             ->limit(160)
+                            ->trim()
+                            ->toString()
                     ),
 
                 'image' => $post->featured_image,
 
-                'keywords' => $post->meta_keywords
-                    ?: (
-                        is_array($post->tags)
-                            ? implode(', ', $post->tags)
-                            : ''
+                'keywords' => $post->meta_keywords 
+                    ? strip_tags($post->meta_keywords) 
+                    : (is_array($post->tags)
+                        ? implode(', ', array_map('strip_tags', $post->tags))
+                        : ''
                     ),
 
                 'type' => 'article',

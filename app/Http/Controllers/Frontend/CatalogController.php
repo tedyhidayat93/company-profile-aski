@@ -746,29 +746,23 @@ class CatalogController extends Controller
         }
 
         return [
-            'title' => $title,
+            'title' => $title ? strip_tags($title) : 'Alumoda Sinergi Kontainer Indonesia',
 
-            'description' =>
-                $configs['catalog_meta_description'] 
-                ?? $configs['meta_description']
-                ?? 'Temukan berbagai pilihan kontainer baru dan bekas untuk kebutuhan industri.',
+            'description' => !empty($configs['catalog_meta_description']) 
+                ? strip_tags($configs['catalog_meta_description']) 
+                : (!empty($configs['meta_description']) ? strip_tags($configs['meta_description']) : 'Temukan berbagai pilihan kontainer baru dan bekas untuk kebutuhan industri.'),
 
-            'keywords' =>
-                $configs['catalog_meta_keywords'] 
-                ?? $configs['meta_keywords']
-                ?? 'jual beli kontainer, sewa kontainer, kontainer kustom, kontainer office, DNV, reefer, DRY Container',
+            'keywords' => !empty($configs['catalog_meta_keywords']) 
+                ? strip_tags($configs['catalog_meta_keywords']) 
+                : (!empty($configs['meta_keywords']) ? strip_tags($configs['meta_keywords']) : 'jual beli kontainer, sewa kontainer, kontainer kustom, kontainer office, DNV, reefer, DRY Container'),
 
             'image' => match (true) {
-
                 !empty($configs['catalog_meta_image']) => asset(
                     'storage/' . $configs['catalog_meta_image']
                 ),
 
                 !empty($configs['site_logo']) => asset(
-                    str_starts_with(
-                        $configs['site_logo'],
-                        'configurations/'
-                    )
+                    str_starts_with($configs['site_logo'], 'configurations/')
                         ? 'storage/' . $configs['site_logo']
                         : $configs['site_logo']
                 ),
