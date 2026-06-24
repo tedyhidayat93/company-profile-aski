@@ -40,6 +40,7 @@ class SitemapController extends Controller
         $navigation = [
             ['name' => 'Beranda', 'href' => '/'],
             ['name' => 'Layanan', 'href' => '/services'], // Diubah dari hash anchor ke path asli index services
+            ['name' => 'Tentang Kami', 'href' => '/about-us'],
             ['name' => 'Katalog Produk', 'href' => '/catalog'],
             ['name' => 'Artikel', 'href' => '/articles'],
             ['name' => 'Testimoni', 'href' => '/testimonial'],
@@ -76,12 +77,11 @@ class SitemapController extends Controller
         
         // Add static & main dynamic index pages
         $staticPages = [
-            '/services', // Menambahkan halaman utama index layanan
+            '/about-us',
+            '/services',
             '/catalog',
-            '/#services',
-            '/#products',
-            '/#articles',
-            '/#contact',
+            '/articles',
+            '/contact-us',
             '/sitemap'
         ];
         
