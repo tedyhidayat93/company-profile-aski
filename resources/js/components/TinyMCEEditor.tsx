@@ -32,9 +32,16 @@ const TinyMCEEditor: React.FC<TinyMCEEditorProps> = ({
       onEditorChange={(content) => onChange(content)}
       init={{
         height,
-        menubar,
+        menubar: false, // Menyembunyikan menu bar atas (File, Edit, dll)
         plugins,
-        toolbar,
+        
+        // 1. Matikan fitur auto-collapse agar tidak ada tool yang disembunyikan di balik ikon '...'
+        toolbar_mode: 'wrap', 
+        
+        // 2. Susun dua baris toolbar lengkap tanpa dropdown tersembunyi ala Google Docs
+        toolbar1: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough forecolor backcolor | superscript subscript | removeformat',
+        toolbar2: 'alignleft aligncenter alignright alignjustify | lineheight | bullist numlist outdent indent | table link image media emoticons | charmap hr | code fullscreen preview',
+
         content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; }',
         branding: false,
         relative_urls: false,
@@ -44,9 +51,9 @@ const TinyMCEEditor: React.FC<TinyMCEEditorProps> = ({
         images_upload_handler: (blobInfo: any) => new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = function () {
-            resolve(reader.result as string); // Gunakan resolve untuk mengembalikan data URL biner
+            resolve(reader.result as string); 
           };
-          reader.readAsDataURL(blobInfo.blob()); // 👈 Menggunakan .blob() bawaan TinyMCE API resmi
+          reader.readAsDataURL(blobInfo.blob()); 
         }),
       }}
     />

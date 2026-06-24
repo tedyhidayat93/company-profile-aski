@@ -43,6 +43,7 @@ class DatabaseSeeder extends Seeder
             FaqSeeder::class,
             ArticleSeeder::class,
             CompanyProfileSeeder::class,
+            OperationalHourSeeder::class,
             // OrderSeeder::class,
             // TestimonialSeeder::class,
             // LogVisitorSeeder::class,

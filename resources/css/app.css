@@ -635,3 +635,17 @@
     opacity: .5;
   }
 }
+
+/* Pastikan dialog modal bawaan TinyMCE berada di atas overlay Shadcn UI */
+.tox-tinymce-aux, 
+.tox-dialog-wrap, 
+.tox-dialog {
+    z-index: 60 !important; /* Nilai di atas z-index modal Shadcn (biasanya 50) */
+    pointer-events: auto !important;
+}
+
+/* Matikan pemblokiran interaksi yang dilakukan oleh overlay Radix */
+body[data-radix-pointer-selection-disabled] .tox-dialog-wrap,
+body[data-radix-pointer-selection-disabled] .tox-dialog {
+    pointer-events: auto !important;
+}

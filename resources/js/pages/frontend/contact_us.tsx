@@ -28,6 +28,8 @@ interface Props {
             vision: string;
             mission: string;
             company_profile_pdf: string | null;
+            office_branch: string;
+            site_operational_hour: string;
         };
         contact: {
             email: string;
@@ -71,7 +73,7 @@ export default function ContactUs({ seo, data }: Props) {
             <SeoHead title="Hubungi Kami" description={seo.description} />
 
             {/* --- HERO BANNER SECTION --- */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-black via-orange-950/70 to-slate-900 py-28 px-4 border-b border-orange-500/20">
+            <section className="relative overflow-hidden bg-gradient-to-br from-black via-orange-950/70 to-slate-900 py-10 md:py-28 px-4 border-b border-orange-500/20">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-orange-500/10 rounded-full blur-[140px] pointer-events-none" />
                 
                 <div className="max-w-4xl mx-auto text-center relative z-10">
@@ -91,24 +93,22 @@ export default function ContactUs({ seo, data }: Props) {
             </section>
 
             {/* --- MAIN GRID SECTION --- */}
-            <main className="max-w-7xl mx-auto px-4 py-20">
+            <main className="max-w-7xl mx-auto px-4 pt-10 md:pt-20 pb-3">
+                <div className="space-y-2 mb-8">
+                    <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                        Informasi Kontak
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">
+                        Silakan hubungi kami via kanal komunikasi resmi yang tertera.
+                    </p>
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     
                     {/* LEFT COLUMN: CONTACT INFORMATION & ABOUT (5 KOLOM) */}
-                    <div className="lg:col-span-4 space-y-8">
-                        <div className="space-y-2">
-                            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                                Informasi Kontak
-                            </h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">
-                                Silakan hubungi kami via kanal komunikasi resmi yang tertera.
-                            </p>
-                        </div>
-
-
+                    <div className="lg:col-span-4 space-y-7 order-2">
                         {/* --- DI SINI: BAGIAN ABOUT UTAMA YANG SUDAH DIBUAT OKE & PROFESIONAL --- */}
                         {data.about_us.about && (
-                            <div className="bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 space-y-4">
+                            <div className="bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 space-y-2">
                                 <div className="flex items-center gap-2 text-slate-800 dark:text-white font-bold text-sm">
                                     <Building2 className="w-4 h-4 text-orange-500" />
                                     Sekilas Perusahaan
@@ -118,7 +118,7 @@ export default function ContactUs({ seo, data }: Props) {
                                 <div className="relative">
                                     <div 
                                         className={`text-xs text-slate-600 dark:text-slate-400 leading-relaxed [&_p]:mb-2 last:[&_p]:mb-0 [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-4 [&_ul]:pl-4 transition-all duration-500 overflow-hidden ${
-                                            isExpanded ? 'max-h-[1000px]' : 'max-h-24'
+                                            isExpanded ? 'max-h-[1000px]' : 'max-h-32'
                                         }`}
                                         dangerouslySetInnerHTML={{ __html: data.about_us.about }}
                                     />
@@ -167,7 +167,7 @@ export default function ContactUs({ seo, data }: Props) {
                                                     {/* Render HTML TinyMCE untuk Visi */}
                                                     <div 
                                                         className={`w-full [&_p]:mb-1 last:[&_p]:mb-0 [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-4 [&_ul]:pl-4 transition-all duration-500 overflow-hidden ${
-                                                            isTabExpanded ? 'max-h-[1000px]' : 'max-h-16'
+                                                            isTabExpanded ? 'max-h-[1000px]' : 'max-h-24'
                                                         }`}
                                                         dangerouslySetInnerHTML={{ __html: data.about_us.vision }} 
                                                     />
@@ -183,7 +183,7 @@ export default function ContactUs({ seo, data }: Props) {
                                                     {/* Render HTML TinyMCE untuk Misi */}
                                                     <div 
                                                         className={`w-full [&_p]:mb-1 last:[&_p]:mb-0 [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-4 [&_ul]:pl-4 transition-all duration-500 overflow-hidden ${
-                                                            isTabExpanded ? 'max-h-[1000px]' : 'max-h-16'
+                                                            isTabExpanded ? 'max-h-[1000px]' : 'max-h-24'
                                                         }`}
                                                         dangerouslySetInnerHTML={{ __html: data.about_us.mission }} 
                                                     />
@@ -226,46 +226,6 @@ export default function ContactUs({ seo, data }: Props) {
                                     >
                                         <FileDown className="w-3.5 h-3.5" /> Unduh PDF
                                     </a>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Social Media Links */} 
-                        {socialIcons.length > 0 && (
-                            <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/60">
-                                <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                                    <span className="h-1.5 w-1.5 bg-orange-500 rounded-full animate-pulse" />
-                                    Ikuti Media Sosial Kami
-                                </h4>
-                                
-                                <div className="flex flex-wrap gap-3">
-                                    {socialIcons.map((social, i) => {
-                                        const Icon = social.icon;
-                                        
-                                        const getHoverStyles = (name: string) => {
-                                            switch (name.toLowerCase()) {
-                                                case 'facebook': return 'hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2] hover:shadow-[#1877F2]/20';
-                                                case 'instagram': return 'hover:bg-gradient-to-tr hover:from-[#f9ce34] hover:via-[#ee2a7b] hover:to-[#6228d7] hover:text-white hover:border-transparent hover:shadow-[#ee2a7b]/20';
-                                                case 'x / twitter': return 'hover:bg-black hover:text-white hover:border-black dark:hover:bg-white dark:hover:text-black dark:hover:border-white hover:shadow-black/10';
-                                                case 'youtube': return 'hover:bg-[#FF0000] hover:text-white hover:border-[#FF0000] hover:shadow-[#FF0000]/20';
-                                                case 'tiktok': return 'hover:bg-black hover:text-white hover:border-black hover:shadow-black/20';
-                                                default: return 'hover:bg-orange-500 hover:text-white hover:border-orange-500 hover:shadow-orange-500/20';
-                                            }
-                                        };
-
-                                        return (
-                                            <a
-                                                key={i}
-                                                href={social.href}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className={`flex h-12 w-auto px-4 items-center justify-center gap-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${getHoverStyles(social.name)}`}
-                                            >
-                                                <Icon className="h-4 w-4 shrink-0" />
-                                                <span className="text-xs font-bold tracking-wide">{social.name}</span>
-                                            </a>
-                                        );
-                                    })}
                                 </div>
                             </div>
                         )}
@@ -321,7 +281,7 @@ export default function ContactUs({ seo, data }: Props) {
                             )}
                         </div>
                         {/* Form code tetap sama seperti sebelumnya */}
-                        <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 md:p-10 border border-slate-100 dark:border-slate-800 shadow-xl space-y-6">
+                        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 md:p-12 border border-slate-100 dark:border-slate-800 shadow-xl space-y-8">
                             <div className="space-y-1">
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                                     Kirim Pesan Langsung
@@ -392,16 +352,103 @@ export default function ContactUs({ seo, data }: Props) {
                     </div>
                 </div>
 
+                {/* Social Media Links */} 
+                {/* {socialIcons.length > 0 && (
+                    <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/60">
+                        <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 bg-orange-500 rounded-full animate-pulse" />
+                            Ikuti Media Sosial Kami
+                        </h4>
+                        
+                        <div className="flex flex-wrap gap-3">
+                            {socialIcons.map((social, i) => {
+                                const Icon = social.icon;
+                                
+                                const getHoverStyles = (name: string) => {
+                                    switch (name.toLowerCase()) {
+                                        case 'facebook': return 'hover:bg-[#1877F2] hover:text-white hover:border-[#1877F2] hover:shadow-[#1877F2]/20';
+                                        case 'instagram': return 'hover:bg-gradient-to-tr hover:from-[#f9ce34] hover:via-[#ee2a7b] hover:to-[#6228d7] hover:text-white hover:border-transparent hover:shadow-[#ee2a7b]/20';
+                                        case 'x / twitter': return 'hover:bg-black hover:text-white hover:border-black dark:hover:bg-white dark:hover:text-black dark:hover:border-white hover:shadow-black/10';
+                                        case 'youtube': return 'hover:bg-[#FF0000] hover:text-white hover:border-[#FF0000] hover:shadow-[#FF0000]/20';
+                                        case 'tiktok': return 'hover:bg-black hover:text-white hover:border-black hover:shadow-black/20';
+                                        default: return 'hover:bg-orange-500 hover:text-white hover:border-orange-500 hover:shadow-orange-500/20';
+                                    }
+                                };
+
+                                return (
+                                    <a
+                                        key={i}
+                                        href={social.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`flex h-12 w-auto px-4 items-center justify-center gap-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${getHoverStyles(social.name)}`}
+                                    >
+                                        <Icon className="h-4 w-4 shrink-0" />
+                                        <span className="text-xs font-bold tracking-wide">{social.name}</span>
+                                    </a>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )} */}
+
                 {/* --- FULL WIDTH MAPS SECTION --- */}
                 {data.google_maps_embed && (
-                    <section className="mt-20 border-t border-slate-100 dark:border-slate-800 pt-16 space-y-6">
-                        <div className="flex items-center gap-2 text-orange-500 font-bold text-sm tracking-widest uppercase">
-                            <MapPin className="w-4 h-4" /> Lokasi Workshop & Kantor Pusat
+                    <section className="border-t border-slate-100 dark:border-slate-800 pt-16 space-y-6">
+                        
+                        {/* Judul Section Utama */}
+                        <div className="flex items-center gap-2 text-orange-500 font-bold text-xs tracking-widest uppercase mb-2">
+                            <MapPin className="w-4 h-4 animate-bounce" /> Jaringan Lokasi & Kantor Cabang
                         </div>
-                        <div 
-                            className="w-full h-96 md:h-[450px] rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-md grayscale-[10%] contrast-[105%] [&_iframe]:w-full [&_iframe]:h-full"
-                            dangerouslySetInnerHTML={{ __html: data.google_maps_embed }}
-                        />
+
+                        {/* Grid Integrasi Menyatu */}
+                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-xl mb-20">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                
+                                {/* KOLOM KIRI (LG: 7/12): Google Maps Embed Full Container */}
+                                <div className="lg:col-span-7 flex flex-col h-[350px] lg:h-[480px]">
+                                    {/* Sub-header List */}
+                                    <div className="flex items-center gap-2 text-slate-800 dark:text-white font-extrabold text-base mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                                        <Building2 className="w-4 h-4 text-orange-500" />
+                                        Head Office
+                                    </div>
+                                    <div 
+                                        className=" w-full h-[350px] lg:h-[480px] rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 shadow-inner
+                                            [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0 grayscale-[20%] contrast-[105%] dark:[&_iframe]:invert-[0.9] dark:[&_iframe]:hue-rotate-180 transition-all duration-300"
+                                        dangerouslySetInnerHTML={{ __html: data.google_maps_embed }}
+                                    />
+                                </div>
+
+
+                                {/* KOLOM KANAN (LG: 5/12): List Cabang Hasil TinyMCE */}
+                                <div className="lg:col-span-5 flex flex-col h-[350px] lg:h-[480px]">
+                                    {/* Sub-header List */}
+                                    <div className="flex items-center gap-2 text-slate-800 dark:text-white font-extrabold text-base mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                                        <Building2 className="w-4 h-4 text-orange-500" />
+                                        Daftar Wilayah Kerja & Cabang
+                                    </div>
+
+                                    {/* Area Scroll Box Konten TinyMCE */}
+                                    <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 space-y-2">
+                                        {data.about_us.office_branch ? (
+                                            <div 
+                                                className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed
+                                                    [&_h3]:text-sm [&_h3]:font-black [&_h3]:text-slate-900 dark:[&_h3]:text-white [&_h3]:mb-1 [&_h3]:mt-4 first:[&_h3]:mt-0 [&_h3]:tracking-tight
+                                                    [&_p]:text-slate-500 dark:[&_p]:text-slate-400 [&_p]:mb-3 [&_p]:font-medium
+                                                    [&_ul]:list-none [&_ul]:space-y-4"
+                                                dangerouslySetInnerHTML={{ __html: data.about_us.office_branch }}
+                                            />
+                                        ) : (
+                                            <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 italic text-xs py-10">
+                                                <MapPin className="w-8 h-8 text-slate-300 dark:text-slate-700 mb-2 stroke-[1.5]" />
+                                                Belum ada daftar kantor cabang yang terkonfigurasi.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
                     </section>
                 )}
             </main>

@@ -36,6 +36,8 @@ class ContactUsController extends Controller
                 'about' => $getConfigs['about_detail'],
                 'vision' => $getConfigs['about_vision'],
                 'mission' => $getConfigs['about_mission'],
+                'office_branch' => $getConfigs['office_branch'],
+                'site_operational_hour' => $getConfigs['site_operational_hour'],
                 'company_profile_pdf' => $getConfigs['company_profile_pdf'],
             ],
             'contact' => [

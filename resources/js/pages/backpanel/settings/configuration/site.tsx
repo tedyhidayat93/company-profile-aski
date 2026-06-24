@@ -1,23 +1,21 @@
 import React from 'react';
-import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import HeadingSmall from '@/components/heading-small';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { Plus, Edit, Trash2, MoreHorizontal, Settings, Globe, Mail, Phone, MapPin, Search, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, MoreHorizontal, Settings, Search, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import AppearanceToggleTab from '@/components/appearance-tabs';
 import TinyMCEEditor from '@/components/TinyMCEEditor';
 
 interface Configuration {
@@ -91,12 +89,19 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [editingConfig, setEditingConfig] = React.useState<Configuration | null>(null);
 
-  const configForm = useForm({
-    configurations: configurations.map(config => ({
-      id: config.id,
-      value: config.value,
-    }))
-  });
+  const createOpenChangeHandler = (setModalState: (open: boolean) => void) => {
+    return (openValue: boolean) => {
+      const activeEl = document.activeElement as HTMLElement;
+      const hasTinyMCEModal = document.querySelector('.tox-dialog, .tox-tiered-menu');
+
+      // Jika dipicu menutup tapi TinyMCE masih aktif, gembok modal agar tetap terbuka
+      if (!openValue && (activeEl?.closest('.tox') || hasTinyMCEModal)) {
+        return; 
+      }
+
+      setModalState(openValue);
+    };
+  };
 
   const addForm = useForm({
     label: '',
@@ -464,7 +469,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
         </div>
 
         {/* Add Configuration Modal */}
-        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <Dialog open={isAddModalOpen} onOpenChange={createOpenChangeHandler(setIsAddModalOpen)} >
           <DialogContent className="xl:max-w-5xl">
             <DialogHeader>
               <DialogTitle>Tambah Konfigurasi Baru</DialogTitle>
@@ -567,7 +572,7 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
         </Dialog>
 
         {/* Edit Configuration Modal */}
-        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <Dialog open={isEditModalOpen} onOpenChange={createOpenChangeHandler(setIsEditModalOpen)}>
           <DialogContent className="xl:max-w-5xl">
             <DialogHeader>
               <DialogTitle>Edit Konfigurasi</DialogTitle>

@@ -203,6 +203,35 @@ export default function BlogIndex({
 
             <div className="max-w-6xl mx-auto px-4 py-8 space-y-7">
 
+
+                {/* 🔥 HEADLINE BESAR */}
+                {!isLoading && headline_posts[0] && (
+                    <div className="mb-10">
+                        <Link href={`/articles/${headline_posts[0].slug}`}>
+                            <div className="relative rounded-xl overflow-hidden">
+                                <img
+                                    src={
+                                        `/storage/${headline_posts[0].featured_image}` ||
+                                        '/images/placeholder.png'
+                                    }
+                                    onError={handleImageError}
+                                    className="w-full h-[580px] object-cover"
+                                />
+
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-6 flex flex-col justify-end">
+                                    <span className="text-xs text-white bg-orange-600 px-2 py-1 w-fit mb-2">
+                                        HEADLINE
+                                    </span>
+
+                                    <h1 className="text-2xl md:text-3xl font-bold text-white">
+                                        {headline_posts[0].title}
+                                    </h1>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
+                )}
+
                 {/* 🔍 FILTER + TAGS */}
                 <div className="rounded-2xl border border-border bg-background shadow-sm p-4 md:p-5 space-y-5">
 
@@ -437,35 +466,6 @@ export default function BlogIndex({
                     )}
 
                 </div>
-
-
-                {/* 🔥 HEADLINE BESAR */}
-                {!isLoading && headline_posts[0] && (
-                    <div className="mb-10">
-                        <Link href={`/articles/${headline_posts[0].slug}`}>
-                            <div className="relative rounded-xl overflow-hidden">
-                                <img
-                                    src={
-                                        `/storage/${headline_posts[0].featured_image}` ||
-                                        '/images/placeholder.png'
-                                    }
-                                    onError={handleImageError}
-                                    className="w-full h-[420px] object-cover"
-                                />
-
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-6 flex flex-col justify-end">
-                                    <span className="text-xs text-white bg-orange-600 px-2 py-1 w-fit mb-2">
-                                        HEADLINE
-                                    </span>
-
-                                    <h1 className="text-2xl md:text-3xl font-bold text-white">
-                                        {headline_posts[0].title}
-                                    </h1>
-                                </div>
-                            </div>
-                        </Link>
-                    </div>
-                )}
 
                 {/* 🔹 Headline lainnya */}
                 <Section

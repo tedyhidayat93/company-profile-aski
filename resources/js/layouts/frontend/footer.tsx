@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Facebook, Instagram, Linkedin, Twitter, Youtube, Music, SquarePlay, Phone, MapPin, Mail, MessageCircle, FileText } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Twitter, Youtube, Music, SquarePlay, Phone, MapPin, Mail, MessageCircle, FileText, Clock } from 'lucide-react';
 import { NAV_LINKS, SOCIAL_LINKS, CONTACT_INFO, NavLink, SocialLink } from '@/constants/navigation';
 import { useConfig } from '@/utils/config';
 import { usePage } from '@inertiajs/react';
@@ -123,7 +123,7 @@ export default function Footer() {
           {services.map((service: any) => (
             <li key={service.id}>
               <Link
-                href={`/layanan/${service.slug}`}
+                href={`/service/${service.slug}`}
                 className="text-sm text-gray-400 transition-colors hover:text-primary"
               >
                 {service.name}
@@ -173,6 +173,16 @@ export default function Footer() {
           <li>
             <Phone className="h-4 w-4 inline-block mr-2" />
             {getConfig('contact_phone', CONTACT_INFO.phone)}
+          </li>
+
+          <li>
+            <Clock className="h-4 w-4 inline-block mr-2" />
+            <div
+              dangerouslySetInnerHTML={{
+                __html: getConfig('site_operational_hour', 'Senin - Jumat | 09:00 - 17:00 WIB')
+              }}
+              className="h-40 w-full"
+            />
           </li>
 
           <li>
