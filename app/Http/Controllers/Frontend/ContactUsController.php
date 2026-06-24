@@ -35,7 +35,7 @@ class ContactUsController extends Controller
             'about_us' => [
                 'about' => $getConfigs['about_detail'],
                 'tagline' => $getConfigs['site_tagline'],
-                'video_profile' => $getConfigs['video_profile'],
+                'profile_video' => $getConfigs['profile_video'],
                 'vision' => $getConfigs['about_vision'],
                 'mission' => $getConfigs['about_mission'],
                 'office_branch' => $getConfigs['office_branch'],
@@ -107,12 +107,11 @@ class ContactUsController extends Controller
         $data = [
             'site_name' => $getConfigs['site_name'] ?? '',
             'site_tagline' => $getConfigs['site_tagline'] ?? '',
-            'site_tagline' => $getConfigs['site_tagline'] ?? '',
             'meta_description' => $getConfigs['meta_description'] ?? '',
             'about_us' => [
                 'about' => $getConfigs['about_detail'] ?? '',
                 'tagline' => $getConfigs['site_tagline'] ?? '',
-                'video_profile' => $getConfigs['video_profile'] ?? '',
+                'profile_video' => $getConfigs['profile_video'] ?? '',
                 'vision' => $getConfigs['about_vision'] ?? '',
                 'mission' => $getConfigs['about_mission'] ?? '',
                 'office_branch' => $getConfigs['office_branch'] ?? '',

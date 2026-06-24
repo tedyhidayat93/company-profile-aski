@@ -27,6 +27,7 @@ interface Props {
             about: string;
             vision: string;
             mission: string;
+            profile_video: string;
             company_profile_pdf: string | null;
             office_branch: string;
             site_operational_hour: string;

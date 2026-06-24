@@ -33,6 +33,7 @@ interface Props {
             tagline: string;
             vision: string;
             mission: string;
+            profile_video: string;
             company_profile_pdf: string | null;
             office_branch: string;
             site_operational_hour: string;
@@ -54,13 +55,6 @@ interface Props {
 }
 
 export default function AboutUs({ seo, data }: Props) {
-    const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
-
-    const handleFormSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const whatsappUrl = `https://wa.me/${data.contact.whatsapp?.replace(/\D/g, '')}?text=Halo%20Alumoda,%20Nama%20saya%20${encodeURIComponent(form.name)}.%20${encodeURIComponent(form.message)}`;
-        window.open(whatsappUrl, '_blank');
-    };
 
     return (
         <FrontendLayout>
