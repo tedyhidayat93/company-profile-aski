@@ -275,6 +275,7 @@ Route::get('/', [HomepageController::class, 'index'])->name('homepage');
 Route::get('/tentang-kami', [ContactUsController::class, 'about'])->name('about-us.index');
 Route::get('/kontak', [ContactUsController::class, 'index'])->name('contact-us.index');
 Route::get('/sitemap', [SitemapController::class, 'index'])->name('sitemap.index');
+Route::get('/sitemap.xml', [SitemapController::class, 'xml'])->name('sitemap.xml');
 
 // --- SERVICES SECTION (Sangat Bagus untuk SEO Layanan) ---
 Route::get('/layanan', [ServiceFrontendController::class, 'index'])->name('service.index');
