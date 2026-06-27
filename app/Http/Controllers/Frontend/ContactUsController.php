@@ -7,6 +7,7 @@ use App\Models\Configuration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache; // Pastikan Cache di-import
 use Inertia\Inertia;
+use App\Models\Service;
 use App\Traits\TracksVisitors;
 
 class ContactUsController extends Controller
