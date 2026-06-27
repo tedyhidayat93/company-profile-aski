@@ -167,7 +167,7 @@ class ServiceController extends Controller
                 $featuredProducts = (clone $baseQuery)
                     ->where('is_featured', true)
                     ->inRandomOrder() // Dibuat random sesuai request
-                    ->limit(6)        // Dibatasi hanya 6
+                    ->limit(8)        // Dibatasi hanya 6
                     ->get();
 
                 $products = $featuredProducts->isNotEmpty()
@@ -175,7 +175,7 @@ class ServiceController extends Controller
                     : (clone $baseQuery)
                         ->orderByDesc('views')
                         ->inRandomOrder() // Fallback-nya juga di-random jika featured kosong
-                        ->limit(6)
+                        ->limit(8)
                         ->get();
 
                 // Pastikan Anda memproses transformProduct() di bawah ini atau ganti manual jika method-nya tidak ada
