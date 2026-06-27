@@ -168,4 +168,19 @@ class ContactUsController extends Controller
             'data' => $data,
         ]);
     }
+
+    private function resolveImagePath(?string $path): string
+    {
+        $baseUrl = rtrim(config('app.url'), '/');
+        
+        if (empty($path)) {
+            return $baseUrl . '/images/placeholder.png';
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        return $baseUrl . '/storage/' . ltrim($path, '/');
+    }
 }
