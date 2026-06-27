@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use App\Models\Configuration;
 use App\Models\Product;
 use App\Models\Article;
+use App\Models\Category;
 use App\Models\Service;
 use App\Models\Testimonial;
 use App\Models\Client;
@@ -78,6 +79,61 @@ class AppServiceProvider extends ServiceProvider
 
 
         Inertia::share([
+            /*
+            |--------------------------------------------------------------------------
+            | Product Categories
+            |--------------------------------------------------------------------------
+            */
+
+            // 'product_categories' => fn () => Cache::remember(
+            //     'shared.product_categories',
+            //     now()->addMinutes(10),
+            //     fn () => Category::with('children')
+            //         ->ofType('product')
+            //         ->root()
+            //         ->active()
+            //         ->orderBy('lft')
+            //         ->select(['id', 'name', 'slug', 'description', 'meta_title', 'meta_description']) // Ambil kolom spesifik root
+            //         ->with(['children' => function($query) {
+            //             $query->select(['id', 'name', 'slug', 'description', 'meta_title', 'meta_description']); // Ambil kolom spesifik children
+            //         }])
+            //         ->get()
+            // ),
+
+            'productCategories' => function () {
+                return Category::ofType('product')
+                    ->root()
+                    ->active()
+                    ->orderBy('lft')
+                    ->select(['id', 'name', 'slug', 'description', 'meta_title', 'meta_description'])
+                    ->with(['children' => function($query) {
+                        $query->select(['id', 'parent_id', 'name', 'slug', 'description'])->active()->orderBy('lft');
+                    }])
+                    ->get()
+                    ->map(function ($rootCategory) {
+                        // 🔄 Lakukan transformasi data langsung di sini
+                        return [
+                            'title'       => $rootCategory->name,
+                            'slug'        => $rootCategory->slug,
+                            'description' => $rootCategory->description,
+                            'items'       => $rootCategory->children && $rootCategory->children->isNotEmpty()
+                                ? $rootCategory->children->map(function ($child) {
+                                    return [
+                                        'name' => $child->name,
+                                        'description' => $child->description,
+                                        'href' => "/jual-sewa?category={$child->slug}",
+                                    ];
+                                })->toArray()
+                                : [
+                                    [
+                                        'name' => "Lihat Semua {$rootCategory->title}",
+                                        'href' => "/jual-sewa?category={$rootCategory->slug}",
+                                    ]
+                                ],
+                        ];
+                    });
+            },
+
             /*
             |--------------------------------------------------------------------------
             | Footer Products

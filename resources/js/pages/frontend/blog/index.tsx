@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Link, useForm, router } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { Calendar, Eye, Search, Filter, Tag, TagIcon, Folder, Hash, SearchIcon } from 'lucide-react';
+import { Calendar, Eye, Search, Filter, Tag, TagIcon, Folder, Hash, ArrowRight, Flame, Newspaper } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,42 +15,29 @@ type BlogPost = {
     slug: string;
     excerpt: string;
     featured_image: string;
-    author: {
-        name: string;
-    };
+    author: { name: string; };
     published_at: string;
     views_count: number;
-    category?: {
-        id: number;
-        name: string;
-        slug: string;
-    };
+    category?: { id: number; name: string; slug: string; };
 };
 
 type Props = {
     headline_posts: BlogPost[];
     most_read_posts: BlogPost[];
     recent_posts: BlogPost[];
-    all_posts: {
-        data: BlogPost[];
-        links: any;
-    };
+    all_posts: { data: BlogPost[]; links: any; };
     categories: Array<{ id: number; name: string; slug: string; type: string; }>;
     popular_tags: string[];
-    filters?: {
-        search?: string;
-        category?: string;
-        tag?: string;
-    };
+    filters?: { search?: string; category?: string; tag?: string; };
 };
 
 export default function BlogIndex({ 
-    headline_posts, 
-    most_read_posts, 
-    recent_posts, 
-    all_posts, 
-    categories, 
-    popular_tags,
+    headline_posts = [], 
+    most_read_posts = [], 
+    recent_posts = [], 
+    all_posts = { data: [], links: [] }, 
+    categories = [], 
+    popular_tags = [],
     filters = {} 
 }: Props) {
     const { getConfig } = useConfig();
@@ -59,34 +47,32 @@ export default function BlogIndex({
         tag: filters.tag || '',
     });
 
-    const isLoading =
-        !headline_posts ||
-        !most_read_posts ||
-        !recent_posts;
+    const [isSearching, setIsSearching] = useState(false);
+    const isLoading = !headline_posts || !most_read_posts || !recent_posts;
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        get('/articles', {
+        setIsSearching(true);
+        get('/info', {
             preserveState: true,
             preserveScroll: true,
+            onFinish: () => setIsSearching(false)
         });
     };
 
-    const handleCategoryChange = (categoryId: string) => {
-        setData('category', categoryId);
-        setData('tag', ''); // Clear tag when category changes
-        get('/articles', {
-            preserveState: true,
-            preserveScroll: true,
+    const handleCategoryChange = (slug: string) => {
+        setData(slice => {
+            const updated = { ...slice, category: slug, tag: '' };
+            router.get('/info', updated, { preserveState: true, preserveScroll: true });
+            return updated;
         });
     };
 
     const handleTagClick = (tag: string) => {
-        setData('tag', tag);
-        setData('category', ''); // Clear category when tag changes
-        get('/articles', {
-            preserveState: true,
-            preserveScroll: true,
+        setData(slice => {
+            const updated = { ...slice, tag: tag, category: '' };
+            router.get('/info', updated, { preserveState: true, preserveScroll: true });
+            return updated;
         });
     };
 
@@ -97,420 +83,313 @@ export default function BlogIndex({
             year: 'numeric',
         });
 
-    // 🔹 Skeleton
     const SkeletonItem = () => (
-        <div className="flex gap-4 animate-pulse">
-            <div className="w-28 h-20 bg-gray-200 rounded" />
-            <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-3/4" />
-                <div className="h-3 bg-gray-200 rounded w-full" />
-                <div className="h-3 bg-gray-200 rounded w-1/2" />
-            </div>
-        </div>
-    );
-
-    // 🔹 Item list ala kompas
-    const PostItem = ({ post, headline }: { post: BlogPost; headline?: boolean }) => (
-        <div className={`flex flex-col ${headline ? 'md:flex-col' : 'md:flex-row'} gap-4 py-4`}>
-            
-            <img
-                src={`/storage/${post.featured_image}`}
-                className={headline 
-                    ? "w-full h-52 object-cover rounded-md" 
-                    : "w-full md:w-32 md:h-32 object-cover rounded-md"
-                }
-                onError={(e) => handleImageError(e, undefined, post.title)}
-                loading="lazy"
-            />
-
-            <div className="flex-1">
-                <Link href={`/articles/${post.slug}`}>
-                    <h3 className={`font-bold text-gray-900 dark:text-white leading-snug hover:text-orange-600 ${
-                        headline ? 'text-base' : 'text-lg md:text-xl'
-                    }`}>
-                        {post.title}
-                    </h3>
-                </Link>
-
-                {!headline && (
-                    <p className="text-sm text-gray-500 line-clamp-2 mt-1">
-                        {post.excerpt}
-                    </p>
-                )}
-
-                <div className="text-xs text-gray-400 mt-2 flex gap-3 flex-wrap">
-                    {/* <span className="flex items-center gap-1">
-                        <User size={12} /> {post.author.name}
-                    </span> */}
-                    {post.category && (
-                        <span className="flex items-center gap-1">
-                            <TagIcon size={12} /> { post.category?.name ?? 'Artikel'}
-                        </span>
-                    )}
-                    {post.category && <span>•</span>}
-                    <span className="flex items-center gap-1">
-                        <Calendar size={12} /> {formatDate(post.published_at)}
-                    </span>
-                    {post.views_count > 0 && (<span>•</span>)}
-                    <span className="flex items-center gap-1">
-                        <Eye size={12} /> {post.views_count}
-                    </span>
-                </div>
-            </div>
-        </div>
-    );
-
-    const Section = ({
-        title,
-        data,
-        grid = false,
-        gridColumns = 1,
-        isHeadline = false,
-    }: {
-        title: string;
-        data: BlogPost[];
-        grid?: boolean;
-        gridColumns?: number;
-        isHeadline?: boolean;
-    }) => (
-        <div className="mb-10">
-            <h2 className="text-lg border-l-4 border-l-orange-400 px-4 font-black border-b pb-2 mb-4">
-                {title}
-            </h2>
-
-            <div className={grid ? `grid grid-cols-1 md:grid-cols-${gridColumns} gap-4` : "space-y-1"}>
-                {isLoading
-                    ? Array.from({ length: 3 }).map((_, i) => (
-                          <SkeletonItem key={i} />
-                      ))
-                    : data.map((post) => (
-                          <PostItem key={post.id} post={post} headline={isHeadline} />
-                      ))}
+        <div className="flex gap-4 py-3 animate-pulse border-b border-slate-100 dark:border-slate-800">
+            <div className="w-24 h-24 sm:w-32 sm:h-24 bg-slate-200 dark:bg-slate-700 rounded-xl shrink-0" />
+            <div className="flex-1 space-y-2 py-1">
+                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
+                <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-full" />
+                <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2" />
             </div>
         </div>
     );
 
     return (
         <FrontendLayout>
-            <SeoHead title={'Artikel'} />
+            <SeoHead title={getConfig('articles_title', 'Artikel & Info Terbaru')} />
 
-            <div className="sr-only">
-                <h1 className="text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('articles_title', 'Artikel Terbaru')}</h1>
-                <p className="mx-auto max-w-5xl text-gray-600 dark:text-gray-300 text-base md:text-xl">
-                {getConfig('articles_description', 'Temukan informasi terbaru seputar kontainer dan solusi logistik')}
-                </p>
-            </div>
-
-            <div className="max-w-6xl mx-auto px-4 py-8 space-y-7">
-
-
-                {/* 🔥 HEADLINE BESAR */}
+            {/* --- MASTER CONTAINER --- */}
+            <div className="max-w-7xl mx-auto px-4 py-8 lg:py-12">
+                
+                {/* 🔥 1. HEADLINE UTAMA (Mencakup Lebar Penuh Atas) */}
                 {!isLoading && headline_posts[0] && (
-                    <div className="mb-10">
-                        <Link href={`/articles/${headline_posts[0].slug}`}>
-                            <div className="relative rounded-xl overflow-hidden">
-                                <img
-                                    src={
-                                        `/storage/${headline_posts[0].featured_image}` ||
-                                        '/images/placeholder.png'
-                                    }
-                                    onError={handleImageError}
-                                    className="w-full h-[580px] object-cover"
-                                />
-
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-6 flex flex-col justify-end">
-                                    <span className="text-xs text-white bg-orange-600 px-2 py-1 w-fit mb-2">
-                                        HEADLINE
-                                    </span>
-
-                                    <h1 className="text-2xl md:text-3xl font-bold text-white">
-                                        {headline_posts[0].title}
-                                    </h1>
+                    <div className="mb-10 group relative rounded-2xl overflow-hidden border border-slate-200/60 shadow-md dark:border-slate-800">
+                        <Link href={`/${headline_posts[0].slug}`} className="block relative overflow-hidden aspect-[16/9] md:h-[520px] w-full">
+                            <img
+                                src={`/storage/${headline_posts[0].featured_image}`}
+                                onError={handleImageError}
+                                className="w-full h-full object-cover group-hover:scale-102 transition duration-700 ease-out"
+                                alt={headline_posts[0].title}
+                            />
+                            {/* Gradient Overlay Lebih Lembut & Gelap di Bawah */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent flex flex-col justify-end p-5 md:p-10" />
+                            
+                            <div className="absolute bottom-0 inset-x-0 p-5 md:p-10 z-10 space-y-3">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-extrabold tracking-widest text-white bg-orange-600 rounded-full uppercase">
+                                    <Flame className="w-3 h-3 fill-white" /> Headline Utama
+                                </span>
+                                <h1 className="text-xl md:text-3xl lg:text-4xl font-black text-white leading-tight max-w-4xl group-hover:text-orange-400 transition-colors">
+                                    {headline_posts[0].title}
+                                </h1>
+                                <p className="text-xs md:text-sm text-slate-300 line-clamp-2 max-w-2xl font-medium">
+                                    {headline_posts[0].excerpt}
+                                </p>
+                                <div className="pt-1 flex items-center gap-4 text-[11px] text-slate-400 font-semibold">
+                                    <span>By {headline_posts[0].author?.name || 'Admin'}</span>
+                                    <span>•</span>
+                                    <span>{formatDate(headline_posts[0].published_at)}</span>
                                 </div>
                             </div>
                         </Link>
                     </div>
                 )}
 
-                {/* 🔍 FILTER + TAGS */}
-                <div className="rounded-2xl border border-border bg-background shadow-sm p-4 md:p-5 space-y-5">
-
-                    {/* HEADER */}
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-                        <div className="flex items-center gap-2">
-
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-                                <Filter className="h-4 w-4 text-muted-foreground" />
-                            </div>
-
+                {/* --- 2. ASYMMETRIC 2-COLUMN GRID SYSTEM --- */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    {/* ===================================================
+                        KOLOM KIRI: STREAM BERITA UTAMA (lg:col-span-8)
+                       =================================================== */}
+                    <div className="lg:col-span-8 space-y-12">
+                        
+                        {/* SEKSI: HEADLINE LAINNYA */}
+                        {headline_posts.length > 1 && (
                             <div>
-                                <h3 className="text-sm font-semibold text-foreground">
-                                    Filter Berita
-                                </h3>
-
-                                <p className="text-xs text-muted-foreground">
-                                    Cari berita berdasarkan keyword, kategori, atau tag
-                                </p>
+                                <h2 className="text-base font-black tracking-wide uppercase text-slate-900 border-l-4 border-orange-500 pl-3 mb-5 dark:text-white flex items-center gap-2">
+                                    <Newspaper className="w-4 h-4 text-orange-500" /> Sorotan
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    {headline_posts.slice(1, 4).map((post) => (
+                                        <div key={post.id} className="group flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800/60 shadow-sm">
+                                            <Link href={`/${post.slug}`} className="aspect-video w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                                <img 
+                                                    src={`/storage/${post.featured_image}`} 
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                                    onError={handleImageError}
+                                                    alt={post.title}
+                                                />
+                                            </Link>
+                                            <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                                                <Link href={`/${post.slug}`}>
+                                                    <h3 className="font-bold text-sm text-slate-900 dark:text-white line-clamp-2 leading-snug group-hover:text-orange-500 transition-colors">
+                                                        {post.title}
+                                                    </h3>
+                                                </Link>
+                                                <div className="text-[10px] text-slate-400 font-semibold flex items-center justify-between">
+                                                    <span>{formatDate(post.published_at)}</span>
+                                                    <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {post.views_count}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-
-                        </div>
-
-                        {/* RESET */}
-                        {(data.search || data.category || data.tag) && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                    setData({
-                                        search: '',
-                                        category: '',
-                                        tag: '',
-                                    });
-
-                                    router.get(
-                                        '/articles',
-                                        {},
-                                        {
-                                            preserveState: true,
-                                            preserveScroll: true,
-                                        }
-                                    );
-                                }}
-                                className="w-full sm:w-auto text-destructive hover:text-destructive"
-                            >
-                                Reset Filter
-                            </Button>
                         )}
 
-                    </div>
-
-                    {/* SEARCH */}
-                    <form
-                        onSubmit={handleSearch}
-                        className="flex flex-col gap-3 md:flex-row"
-                    >
-
-                        {/* INPUT */}
-                        <div className="relative flex-1">
-
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-                            <Input
-                                type="text"
-                                placeholder="Cari berita..."
-                                value={data.search}
-                                onChange={(e) => setData('search', e.target.value)}
-                                className="pl-10 h-11"
-                            />
-
-                        </div>
-
-                        {/* CATEGORY */}
-                        <select
-                            value={data.category}
-                            onChange={(e) => handleCategoryChange(e.target.value)}
-                            className="
-                                h-11 w-full md:w-60
-                                rounded-lg border border-input
-                                bg-background px-3 text-sm
-                                text-foreground
-                                focus:outline-none
-                                focus:ring-2 focus:ring-ring
-                            "
-                        >
-
-                            <option value="">
-                                Semua kategori
-                            </option>
-
-                            {categories
-                                .filter(cat => cat.type === 'blog')
-                                .map((category) => (
-
-                                <option
-                                    key={category.id}
-                                    value={category.slug}
-                                >
-                                    {category.name}
-                                </option>
-
-                            ))}
-
-                        </select>
-
-                        {/* BUTTON */}
-                        <Button
-                            type="submit"
-                            className="h-11 w-full md:w-auto"
-                        >
-                            <SearchIcon className="w-3 h-3 inline-block" />
-                            Cari Berita
-                        </Button>
-
-                    </form>
-
-                    {/* ACTIVE FILTER */}
-                    {(data.search || data.category || data.tag) && (
-
-                        <div className="flex flex-wrap gap-2 border-t border-border pt-4">
-
-                            {data.search && (
-                                <div className="
-                                    inline-flex items-center gap-1.5
-                                    rounded-full border border-border
-                                    bg-muted px-3 py-1.5
-                                    text-xs text-foreground
-                                ">
-                                    <Search className="h-3 w-3" />
-                                    {data.search}
+                        {/* SEKSI: BERITA POPULER & TERBARU (SIDE-BY-SIDE GRID) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {/* Sub-Seksi: Terpopuler */}
+                            <div>
+                                <h2 className="text-base font-black tracking-wide uppercase text-slate-900 border-l-4 border-orange-500 pl-3 mb-4 dark:text-white">
+                                    Trending / Populer
+                                </h2>
+                                <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                    {most_read_posts.slice(0, 4).map((post) => (
+                                        <div key={post.id} className="group flex gap-4 py-3.5 items-start">
+                                            <Link href={`/${post.slug}`} className="w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                                <img src={`/storage/${post.featured_image}`} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" onError={handleImageError} />
+                                            </Link>
+                                            <div className="space-y-1">
+                                                <Link href={`/${post.slug}`}>
+                                                    <h4 className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 line-clamp-2 leading-snug group-hover:text-orange-500">
+                                                        {post.title}
+                                                    </h4>
+                                                </Link>
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-400">
+                                                    <Calendar className="w-3 h-3" /> {formatDate(post.published_at)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
-
-                            {data.category && (
-                                <div className="
-                                    inline-flex items-center gap-1.5
-                                    rounded-full
-                                    bg-blue-500/10
-                                    px-3 py-1.5
-                                    text-xs text-blue-600
-                                    dark:text-blue-400
-                                ">
-                                    <Folder className="h-3 w-3" />
-
-                                    {
-                                        categories.find(
-                                            c => c.id.toString() === data.category
-                                        )?.name
-                                    }
-
-                                </div>
-                            )}
-
-                            {data.tag && (
-                                <div className="
-                                    inline-flex items-center gap-1.5
-                                    rounded-full
-                                    bg-purple-500/10
-                                    px-3 py-1.5
-                                    text-xs text-purple-600
-                                    dark:text-purple-400
-                                ">
-                                    <Hash className="h-3 w-3" />
-                                    {data.tag}
-                                </div>
-                            )}
-
-                        </div>
-
-                    )}
-
-                    {/* TAGS */}
-                    {popular_tags.length > 0 && (
-
-                        <div className="space-y-3 border-t border-border pt-4">
-
-                            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-
-                                <Tag className="h-4 w-4 text-muted-foreground" />
-
-                                <span>
-                                    Tags Populer
-                                </span>
-
                             </div>
 
-                            <div className="flex flex-wrap gap-2">
-
-                                {popular_tags.map((tag, index) => {
-
-                                    const isActive = data.tag === tag;
-
-                                    return (
-
-                                        <button
-                                            key={index}
-                                            type="button"
-                                            onClick={() => handleTagClick(tag)}
-                                            className={`
-                                                rounded-full px-3 py-1.5
-                                                text-xs font-medium
-                                                transition-all duration-200
-
-                                                ${isActive
-                                                    ? `
-                                                        bg-primary text-primary-foreground
-                                                        shadow-sm
-                                                    `
-                                                    : `
-                                                        border border-border
-                                                        bg-muted/60
-                                                        text-muted-foreground
-                                                        hover:bg-muted
-                                                        hover:text-foreground
-                                                    `
-                                                }
-                                            `}
-                                        >
-                                            #{tag}
-                                        </button>
-
-                                    );
-                                })}
-
+                            {/* Sub-Seksi: Terbaru */}
+                            <div>
+                                <h2 className="text-base font-black tracking-wide uppercase text-slate-900 border-l-4 border-orange-500 pl-3 mb-4 dark:text-white">
+                                    Rilisan Terbaru
+                                </h2>
+                                <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                    {recent_posts.slice(0, 4).map((post) => (
+                                        <div key={post.id} className="group flex gap-4 py-3.5 items-start">
+                                            <Link href={`/${post.slug}`} className="w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                                <img src={`/storage/${post.featured_image}`} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" onError={handleImageError} />
+                                            </Link>
+                                            <div className="space-y-1">
+                                                <Link href={`/${post.slug}`}>
+                                                    <h4 className="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 line-clamp-2 leading-snug group-hover:text-orange-500">
+                                                        {post.title}
+                                                    </h4>
+                                                </Link>
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-400">
+                                                    <Calendar className="w-3 h-3" /> {formatDate(post.published_at)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-
                         </div>
 
-                    )}
+                        {/* SEKSI CORE LIST: ALL POSTS FEED */}
+                        <div className="pt-4">
+                            <h2 className="text-base font-black tracking-wide uppercase text-slate-900 border-l-4 border-orange-500 pl-3 mb-5 dark:text-white下">
+                                Arsip Berita & Informasi
+                            </h2>
+                            <div className="space-y-1 divide-y divide-slate-100 dark:divide-slate-800/80">
+                                {isLoading ? (
+                                    Array.from({ length: 5 }).map((_, i) => <SkeletonItem key={i} />)
+                                ) : all_posts.data.length === 0 ? (
+                                    <div className="text-center py-12 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                                        <p className="text-sm text-slate-500">Tidak ada artikel ditemukan yang sesuai kriteria.</p>
+                                    </div>
+                                ) : (
+                                    all_posts.data.map((post) => (
+                                        <div key={post.id} className="group flex flex-col sm:flex-row gap-5 py-5 items-start">
+                                            <Link href={`/${post.slug}`} className="w-full sm:w-44 aspect-[4/3] sm:h-28 shrink-0 rounded-xl overflow-hidden bg-slate-50 border border-slate-100 dark:border-slate-800 dark:bg-slate-900">
+                                                <img 
+                                                    src={`/storage/${post.featured_image}`} 
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                                                    onError={handleImageError} 
+                                                    alt={post.title}
+                                                />
+                                            </Link>
+                                            <div className="flex-1 space-y-2">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    {post.category && (
+                                                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-orange-600 bg-orange-50 px-2 py-0.5 rounded dark:bg-orange-500/10 dark:text-orange-400">
+                                                            {post.category.name}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-[10px] font-medium text-slate-400">{formatDate(post.published_at)}</span>
+                                                </div>
+                                                <Link href={`/${post.slug}`}>
+                                                    <h3 className="font-extrabold text-slate-900 text-base md:text-lg tracking-tight leading-snug group-hover:text-orange-500 transition-colors">
+                                                        {post.title}
+                                                    </h3>
+                                                </Link>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                                                    {post.excerpt}
+                                                </p>
+                                                <div className="flex items-center gap-3 text-[11px] text-slate-400 pt-1">
+                                                    <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {post.views_count} views</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
 
-                </div>
+                            {/* Paginasi Data */}
+                            <div className="mt-8 border-t border-slate-100 pt-6 dark:border-slate-800">
+                                <Pagination links={all_posts.links} />
+                            </div>
+                        </div>
 
-                {/* 🔹 Headline lainnya */}
-                <Section
-                    title="Headline Lainnya"
-                    grid={true}
-                    gridColumns={3}
-                    isHeadline={true}
-                    data={headline_posts.slice(1)}
-                />
-
-                {/* 🔹 Most Read */}
-                <Section
-                    title="Terpopuler"
-                    grid={true}
-                    gridColumns={2}
-                    data={most_read_posts}
-                />
-
-                {/* 🔹 Recent */}
-                <Section
-                    title="Terbaru"
-                    grid={true}
-                    gridColumns={2}
-                    data={recent_posts}
-                />
-
-                {/* 🔹 Semua berita */}
-                <div className="mb-10">
-                    <h2 className="text-lg border-l-4 border-l-orange-400 px-4 font-bold border-b pb-2 mb-4">
-                        Berita Lainnya
-                    </h2>
-
-                    <div className="space-y-1">
-                        {isLoading
-                            ? Array.from({ length: 5 }).map((_, i) => (
-                                  <SkeletonItem key={i} />
-                              ))
-                            : all_posts.data.map((post) => (
-                                  <PostItem key={post.id} post={post} />
-                              ))}
                     </div>
-                </div>
 
-                {/* Pagination */}
-                <Pagination links={all_posts.links} />
+                    {/* ===================================================
+                        KOLOM KANAN: STICKY UTILITY SIDEBAR (lg:col-span-4)
+                       =================================================== */}
+                    <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
+                        
+                        {/* BOX PANEL: FILTER & SEARCH */}
+                        <div className="rounded-2xl border border-slate-100 bg-white shadow-sm p-5 space-y-5 dark:bg-slate-900 dark:border-slate-800">
+                            <div className="flex items-center justify-between border-b border-slate-50 pb-3 dark:border-slate-800">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-50 text-orange-500 dark:bg-orange-500/10">
+                                        <Filter className="h-3.5 w-3.5" />
+                                    </div>
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                        Pencarian Berita
+                                    </h3>
+                                </div>
+                                
+                                {/* Trigger Reset */}
+                                {(data.search || data.category || data.tag) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setData({ search: '', category: '', tag: '' });
+                                            router.get('/info', {}, { preserveState: true, preserveScroll: true });
+                                        }}
+                                        className="text-[11px] font-bold text-red-500 hover:underline"
+                                    >
+                                        Clear All
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Form Input Pencarian */}
+                            <form onSubmit={handleSearch} className="space-y-3">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                    <Input
+                                        type="text"
+                                        placeholder="Ketik kata kunci kata..."
+                                        value={data.search}
+                                        onChange={(e) => setData('search', e.target.value)}
+                                        className="pl-9 h-10 text-xs rounded-xl"
+                                    />
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block pl-1">Pilih Kategori</label>
+                                    <select
+                                        value={data.category}
+                                        onChange={(e) => handleCategoryChange(e.target.value)}
+                                        className="h-10 w-full rounded-xl border border-input bg-background px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    >
+                                        <option value="">Semua Kategori</option>
+                                        {categories
+                                            .filter(cat => cat.type === 'blog')
+                                            .map((category) => (
+                                                <option key={category.id} value={category.slug}>
+                                                    {category.name}
+                                                </option>
+                                            ))
+                                        }
+                                    </select>
+                                </div>
+
+                                <Button type="submit" disabled={isSearching} className="w-full h-10 rounded-xl text-xs bg-slate-900 hover:bg-orange-600 font-bold text-white transition-colors">
+                                    {isSearching ? 'Mencari...' : 'Terapkan Filter'}
+                                </Button>
+                            </form>
+
+                            {/* Tags Populer di Dalam Sidebar */}
+                            {popular_tags.length > 0 && (
+                                <div className="space-y-3 border-t border-slate-50 pt-4 dark:border-slate-800">
+                                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                                        <Tag className="h-3.5 w-3.5" />
+                                        <span>Tags Terkait</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {popular_tags.map((tag, index) => {
+                                            const isActive = data.tag === tag;
+                                            return (
+                                                <button
+                                                    key={index}
+                                                    type="button"
+                                                    onClick={() => handleTagClick(tag)}
+                                                    className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all duration-200 ${
+                                                        isActive
+                                                            ? 'bg-orange-500 text-white shadow-sm'
+                                                            : 'border border-slate-100 bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400'
+                                                    }`}
+                                                >
+                                                    #{tag}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                    </aside>
+
+                </div>
 
             </div>
         </FrontendLayout>

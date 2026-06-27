@@ -134,7 +134,7 @@ export default function Homepage({
                     {/* --- Tombol Pelajari Selengkapnya --- */}
                     <div className="pt-2 mt-auto">
                       <Link
-                        href={`/service/${service.slug}`}
+                        href={`/layanan/${service.slug}`}
                         className="inline-flex items-center text-sm font-bold text-orange-500 hover:text-orange-600 dark:text-orange-400 gap-1.5 group/btn border-b border-transparent hover:border-orange-500 pb-0.5 transition duration-200"
                       >
                         Pelajari Selengkapnya
@@ -397,7 +397,7 @@ export default function Homepage({
                   {articles.map((article) => (
                     <div 
                       key={article.id} 
-                      onClick={() => window.location.href=`/articles/${article.slug}`}
+                      onClick={() => window.location.href=`/${article.slug}`}
                       className="group overflow-hidden rounded-xl bg-white shadow-sm cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:bg-gray-800"
                     >
                       <div className="relative h-52 overflow-hidden bg-gray-100 dark:bg-gray-700">
@@ -439,7 +439,7 @@ export default function Homepage({
 
                         <div className="flex items-center justify-between">
                           <Link 
-                            href={`/articles/${article.slug}`} 
+                            href={`/${article.slug}`} 
                             className="flex items-center text-sm font-medium text-slate-400 transition-colors hover:text-amber-700 dark:hover:text-amber-300"
                           >
                             Baca Selengkapnya

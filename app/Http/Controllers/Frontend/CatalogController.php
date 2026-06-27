@@ -43,18 +43,18 @@ class CatalogController extends Controller
         );
 
         $filters = [
-            'search' => $request->string('search')->toString(),
-            'type' => $request->string('type')->toString(),
-            'category' => $request->string('category')->toString(),
-            'minPrice' => $request->input('minPrice'),
-            'maxPrice' => $request->input('maxPrice'),
-            'sort' => $request->string('sort')->toString(),
-            'perPage' => (int) $request->input('perPage', 12),
+            'search'    => $request->string('search')->toString(),
+            'type'      => $request->string('type')->toString(),
+            'category'  => $request->string('category')->toString(),
+            'minPrice'  => $request->input('minPrice'),
+            'maxPrice'  => $request->input('maxPrice'),
+            'sort'      => $request->string('sort')->toString(),
+            'perPage'   => (int) $request->input('perPage', 12),
         ];
 
         /*
         |--------------------------------------------------------------------------
-        | Categories
+        | Categories Hierarchy Default
         |--------------------------------------------------------------------------
         */
         $categories = $this->getHierarchicalCategories();
@@ -67,7 +67,113 @@ class CatalogController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Products Query
+        | Base Query Facets & Products
+        |--------------------------------------------------------------------------
+        */
+        // Buat base query untuk mendasari pencarian facet
+        $baseFacetQuery = Product::query()->with([
+            'category' => function ($q) {
+                $q->where('type', 'product');
+            }
+        ])->published();
+        
+        // Terapkan filter global seperti 'search' dan 'type' terlebih dahulu ke facet
+        if ($filters['search']) {
+            // Asumsi method applyProductFilters menghandel search interior
+            // Jika tidak, sesuaikan dengan logic partial filter di aplikasi Anda
+            $baseFacetQuery->where(function($q) use ($filters) {
+                $this->applyProductFilters($q, ['search' => $filters['search']]);
+            });
+        }
+        if ($filters['type']) {
+            $baseFacetQuery->where('type', $filters['type']);
+        }
+
+        /*
+        | 1. Perhitungan Facet Kategori (Mendukung Produk di Kategori Anak / Descendants)
+        |--------------------------------------------------------------------------
+        */
+        $categoryFacets = clone $baseFacetQuery;
+        
+        // 1. Hitung flat count produk yang menempel langsung di tiap ID kategori daun/anak
+        $rawCategoryCounts = $categoryFacets
+            ->select('category_id', \DB::raw('count(*) as total'))
+            ->groupBy('category_id')
+            ->pluck('total', 'category_id')
+            ->toArray();
+
+        // 2. Ambil master kategori ber-type 'products' untuk memetakan hirarki pencarian
+        $allProductCategories = Category::ofType('product')->active()->get();
+
+        $categoryCounts = [];
+
+        // 3. Akumulasikan jumlah produk dari sub-kategori ke kategori induknya
+        foreach ($allProductCategories as $category) {
+            // Gunakan method internal kamu 'getCategoryAndDescendants' untuk menarik ID turunan
+            $descendantIds = $this->getCategoryAndDescendants($category->slug);
+            
+            $totalForThisCategory = 0;
+            
+            // Jumlahkan total produk yang ada di kategori ini beserta seluruh anaknya
+            foreach ($descendantIds as $id) {
+                $totalForThisCategory += $rawCategoryCounts[$id] ?? 0;
+            }
+
+            // Simpan hasilnya dengan key ID dan SLUG agar frontend aman mencocokkan dengan properti apapun
+            $categoryCounts[$category->id] = $totalForThisCategory;
+            $categoryCounts[$category->slug] = $totalForThisCategory;
+        }
+
+        /*
+        | 2. Perhitungan Facet Rentang Harga (Low, Mid, High)
+        |--------------------------------------------------------------------------
+        */
+        $priceFacetQuery = clone $baseFacetQuery;
+        if ($filters['category']) {
+            $this->applyProductFilters($priceFacetQuery, ['category' => $filters['category']]);
+        }
+
+        // 1. Ambil nilai MIN dan MAX harga terlebih dahulu
+        $priceBounds = (clone $priceFacetQuery)
+            ->selectRaw('MIN(price) as min_p, MAX(price) as max_p')
+            ->first();
+
+        $minAvailablePrice = (float) ($priceBounds->min_p ?? 0);
+        $maxAvailablePrice = (float) ($priceBounds->max_p ?? 0);
+
+        $priceRanges = [
+            'low'  => ['label' => 'Ekonomis', 'min' => 0, 'max' => 0, 'count' => 0],
+            'mid'  => ['label' => 'Medium', 'min' => 0, 'max' => 0, 'count' => 0],
+            'high' => ['label' => 'Premium', 'min' => 0, 'max' => 0, 'count' => 0],
+        ];
+
+        if ($maxAvailablePrice > $minAvailablePrice) {
+            $step = ($maxAvailablePrice - $minAvailablePrice) / 3;
+            
+            $lowMax  = $minAvailablePrice + $step;
+            $midMax  = $lowMax + $step;
+
+            $priceRanges['low']  = ['label' => 'Ekonomis', 'min' => $minAvailablePrice, 'max' => $lowMax, 'count' => 0];
+            $priceRanges['mid']  = ['label' => 'Medium', 'min' => $lowMax + 1, 'max' => $midMax, 'count' => 0];
+            $priceRanges['high'] = ['label' => 'Premium', 'min' => $midMax + 1, 'max' => $maxAvailablePrice, 'count' => 0];
+
+            // 2. Ambil semua list harga bersih tanpa terganggu selectRaw MIN/MAX di atas
+            $pricesList = $priceFacetQuery->pluck('price');
+            
+            foreach ($pricesList as $price) {
+                if ($price <= $lowMax) {
+                    $priceRanges['low']['count']++;
+                } elseif ($price <= $midMax) {
+                    $priceRanges['mid']['count']++;
+                } else {
+                    $priceRanges['high']['count']++;
+                }
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Products Query (Actual Listing)
         |--------------------------------------------------------------------------
         */
         $query = Product::query()
@@ -78,44 +184,19 @@ class CatalogController extends Controller
                 'coverImage',
             ]);
 
-        /*
-        | Default Priority :
-        | Featured -> Bestseller -> Newest
-        */
+        $query->orderByDesc('is_featured')->orderByDesc('is_bestseller');
 
-        $query
-            ->orderByDesc('is_featured')
-            ->orderByDesc('is_bestseller');
+        // Terapkan semua filter ke produk yang akan ditampilkan
+        $this->applyProductFilters($query, $filters);
+        $this->applySorting($query, $filters['sort']);
 
-        /*
-        | Filters
-        */
-
-        $this->applyProductFilters(
-            $query,
-            $filters
-        );
-
-        /*
-        | Sorting
-        */
-
-        $this->applySorting(
-            $query,
-            $filters['sort']
-        );
-
-        $products = $query
-            ->paginate($filters['perPage'])
-            ->withQueryString();
+        $products = $query->paginate($filters['perPage'])->withQueryString();
 
         /*
         | Fallback Products
+        |--------------------------------------------------------------------------
         */
-        if (
-            $filters['search']
-            && $products->isEmpty()
-        ) {
+        if ($filters['search'] && $products->isEmpty()) {
             $fallbackQuery = Product::query()
                 ->published()
                 ->with([
@@ -128,37 +209,24 @@ class CatalogController extends Controller
             $fallbackFilters = $filters;
             $fallbackFilters['search'] = null;
 
-            $this->applyProductFilters(
-                $fallbackQuery,
-                $fallbackFilters
-            );
+            $this->applyProductFilters($fallbackQuery, $fallbackFilters);
+            $this->applySorting($fallbackQuery, $filters['sort']);
 
-            $this->applySorting(
-                $fallbackQuery,
-                $filters['sort']
-            );
-
-            $products = $fallbackQuery
-                ->paginate($filters['perPage'])
-                ->withQueryString();
+            $products = $fallbackQuery->paginate($filters['perPage'])->withQueryString();
         }
 
         /*
-        |--------------------------------------------------------------------------
         | Transform Products
         |--------------------------------------------------------------------------
         */
         $products->setCollection(
-            $products->getCollection()
-                ->map(fn($product) => $this->transformProduct($product))
+            $products->getCollection()->map(fn($product) => $this->transformProduct($product))
         );
 
-         /*
-        |--------------------------------------------------------------------------
+        /*
         | Best Seller Products
         |--------------------------------------------------------------------------
         */
-
         $bestSellerProducts = Product::query()
             ->published()
             ->where('is_featured', true)
@@ -174,7 +242,6 @@ class CatalogController extends Controller
             ->map(fn($item) => $this->transformProduct($item));
 
         /*
-        |--------------------------------------------------------------------------
         | SEO
         |--------------------------------------------------------------------------
         */
@@ -186,26 +253,26 @@ class CatalogController extends Controller
                 'products' => [
                     'status' => 'success',
                     'data' => $products->items(),
-
                     'pagination' => [
                         'current_page' => $products->currentPage(),
-                        'per_page' => $products->perPage(),
-                        'total' => $products->total(),
-                        'last_page' => $products->lastPage(),
-                        'from' => $products->firstItem(),
-                        'to' => $products->lastItem(),
+                        'per_page'     => $products->perPage(),
+                        'total'        => $products->total(),
+                        'last_page'    => $products->lastPage(),
+                        'from'         => $products->firstItem(),
+                        'to'           => $products->lastItem(),
                     ],
                 ],
-
                 'bestSellerProducts' => $bestSellerProducts,
-
-                'categories' => $categories,
-
-                'types' => $types,
-
-                'filters' => $filters,
-
-                'seo' => $seo,
+                'categories'         => $categories,
+                'types'              => $types,
+                'filters'            => $filters,
+                'seo'                => $seo,
+                
+                // 🔥 DATA FACET BARU YANG DIKIRIM KE INERTIA FRONTEND
+                'facets' => [
+                    'categories' => $categoryCounts, // Berisi array pasangan [category_id => total_product]
+                    'price_ranges' => array_values($priceRanges), // Berisi array kumpulan label harga low, mid, high
+                ]
             ]
         );
     }
@@ -529,29 +596,27 @@ class CatalogController extends Controller
     | HELPERS
     |--------------------------------------------------------------------------
     */
-
     private function applyProductFilters(
         $query,
         array $filters
     ): void {
+        // Ambil nilai dengan fallback null jika key tidak tersedia di parameter array
+        $search   = $filters['search'] ?? null;
+        $type     = $filters['type'] ?? null;
+        $category = $filters['category'] ?? null;
+        $minPrice = $filters['minPrice'] ?? null;
+        $maxPrice = $filters['maxPrice'] ?? null;
 
         $query
-
-            ->when($filters['search'], function ($query, $search) {
-
+            ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhere('description', 'like', "%{$search}%");
-
                 });
-
             })
 
-            ->when($filters['type'], function ($query, $type) {
-
+            ->when($type, function ($query, $type) {
                 match ($type) {
-
                     'sell' =>
                         $query->where('is_for_sell', true)
                             ->where('is_rent', false),
@@ -573,35 +638,52 @@ class CatalogController extends Controller
                 };
             })
 
-            ->when($filters['category'], function ($query, $category) {
+            /*
+            |--------------------------------------------------------------------------
+            | MODIFIKASI: Mendukung Multi-Category Checklist Facet
+            |--------------------------------------------------------------------------
+            */
+            ->when($category, function ($query, $category) {
+                // Pecah string "dry-container,reefer" menjadi array
+                $categoriesArray = is_string($category) ? explode(',', $category) : (array) $category;
+                
+                $allCategoryIds = [];
 
-                $categoryIds =
-                    $this->getCategoryAndDescendants($category);
+                foreach ($categoriesArray as $catSlug) {
+                    $catSlug = trim($catSlug);
+                    if (empty($catSlug)) {
+                        continue;
+                    }
+                    
+                    $categoryIds = $this->getCategoryAndDescendants($catSlug);
+                    
+                    if (!empty($categoryIds)) {
+                        $allCategoryIds = array_merge($allCategoryIds, is_array($categoryIds) ? $categoryIds : $categoryIds->toArray());
+                    }
+                }
+
+                $uniqueCategoryIds = array_unique($allCategoryIds);
 
                 $query->whereIn(
                     'category_id',
-                    $categoryIds
+                    $uniqueCategoryIds
                 );
             })
 
-            ->when($filters['minPrice'], function ($query, $minPrice) {
-
+            ->when($minPrice, function ($query, $minPrice) {
                 $query->where(
                     'price',
                     '>=',
                     $minPrice
                 );
-
             })
 
-            ->when($filters['maxPrice'], function ($query, $maxPrice) {
-
+            ->when($maxPrice, function ($query, $maxPrice) {
                 $query->where(
                     'price',
                     '<=',
                     $maxPrice
                 );
-
             });
     }
 

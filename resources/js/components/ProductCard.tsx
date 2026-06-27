@@ -22,7 +22,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     };
 
     return (
-        <div  onClick={() => window.location.href=`/catalog/${product.slug}`} className="group relative flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <div  onClick={() => window.location.href=`/jual-sewa/${product.slug}`} className="group relative flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
             {/* Image */}
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl dark:bg-slate-800 p-3">
                 {/* Skeleton */}
@@ -62,7 +62,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 )}
 
                 {/* Title */}
-                <Link href={`/catalog/${product.slug}`}>
+                <Link href={`/jual-sewa/${product.slug}`}>
                     <h3 className="text-base leading-[1] mb-1 font-semibold text-slate-900 dark:text-white line-clamp-2 group-hover:text-orange-500 transition-colors">
                         {product.name}
                     </h3>
@@ -132,7 +132,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     <div className="h-px bg-slate-100 dark:bg-slate-800"></div>
 
                     <Link
-                        href={`/catalog/${product.slug}`}
+                        href={`/jual-sewa/${product.slug}`}
                         className="flex items-center justify-center w-full mt-1 text-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-orange-600"
                     >
                         Lihat Detail

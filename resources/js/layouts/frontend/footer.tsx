@@ -125,7 +125,7 @@ export default function Footer() {
               {services.map((service: any) => (
                 <li key={service.id}>
                   <Link
-                    href={`/service/${service.slug}`}
+                    href={`/layanan/${service.slug}`}
                     className="text-sm text-gray-400 transition-colors hover:text-primary"
                   >
                     {service.name}
@@ -145,7 +145,7 @@ export default function Footer() {
               {products.slice(0, 8).map((product: any) => (
                 <li key={product.id}>
                   <Link
-                    href={`/catalog/${product.slug}`}
+                    href={`/jual-sewa/${product.slug}`}
                     className="line-clamp-1 text-sm text-gray-400 transition-colors hover:text-primary"
                   >
                     {product.name}

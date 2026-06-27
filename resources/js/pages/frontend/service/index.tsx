@@ -6,8 +6,8 @@ import SeoHead from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import CtaSection from '@/components/cta-section';
 
-interface Service {
-    id: number;
+export interface Service {
+    id?: number;
     title: string;
     slug: string;
     description: string;
@@ -112,7 +112,7 @@ export default function ServiceIndex({ services = [], products = [], seo }: Prop
                                         </p>
                                         <div className="pt-2">
                                             <Link
-                                                href={`/service/${service.slug}`}
+                                                href={`/layanan/${service.slug}`}
                                                 className="inline-flex items-center text-sm font-bold text-orange-500 hover:text-orange-600 dark:text-orange-400 gap-1.5 group/btn border-b-2 border-transparent hover:border-orange-500 pb-0.5 transition duration-200"
                                             >
                                                 Pelajari Selengkapnya

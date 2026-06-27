@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { 
-  Phone, Mail, X, Heart, Menu, LogInIcon, LayoutDashboardIcon 
+  Phone, Mail, X, Heart, Menu, LogInIcon, LayoutDashboardIcon, ChevronDown,
+  BoxIcon
 } from 'lucide-react';
 
 import { useWishlist } from '@/hooks/useWishlist';
@@ -12,12 +13,25 @@ import Wishlist from '@/components/wishlist';
 import { useConfig } from '@/utils/config';
 import { handleImageError } from '@/utils/image';
 
+interface MenuItem {
+  name: string;
+  href: string;
+  description?: string;
+}
+
+interface MenuCategory {
+  title: string;
+  slug: string;
+  description?: string;
+  items: MenuItem[];
+}
+
 const NavItem = ({ link, isActive, onClick }: { link: any, isActive: boolean, onClick: (e: any, id: string) => void }) => (
   <a
     href={link.href}
     aria-label={'go to ' + link.href}
     onClick={(e) => onClick(e, link.id)}
-    className={`rounded-full border-2 font-bold px-3 py-1.5 xl:px-5 text-sm xl:text-base dark:text-gray-300 transition-colors cursor-pointer
+    className={`rounded-full border-2 font-bold px-3 py-1.5 xl:px-5 text-sm xl:text-base dark:text-gray-300 transition-colors cursor-pointer whitespace-nowrap
       ${isActive 
         ? 'border-orange-300 text-orange-600 bg-orange-400/20' 
         : 'border-white text-gray-900 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-400/20'
@@ -35,22 +49,28 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(false);
+  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   
   const isHomepage = url === '/';
   const isCatalog = url === '/catalog';
+  const logoImage = getConfig('/storage/site_logo', '/images/logo-main.png');
   const [activeMenu, setActiveMenu] = useState(isHomepage ? 'home' : isCatalog ? 'products' : '');
 
-  // Memoized values
-  const logoImage = getConfig('/storage/site_logo', '/images/logo-main.png');
+  const { footerServices = [], productCategories = [] } = usePage().props as any as {
+    footerServices: any[]
+    productCategories: MenuCategory[];
+  };
+
+  // Filter out 'products' dari array link utama agar bisa kita handle custom hover dropdown-nya
   const navLinks = useMemo(() => [
     { name: 'Beranda', id: 'home', href: isHomepage ? '#' : '/' },
-    { name: 'Layanan', id: 'services', href: isHomepage ? '#' : '/services' },
-    { name: 'Produk', id: 'products', href: isCatalog ? '#' : '/catalog' },
-    { name: 'Artikel', id: 'article', href: isHomepage ? '#' : '/articles' },
-    { name: 'Kontak Kami', id: 'contact', href: isHomepage ? '#' : '/contact-us' }
-  ], [isHomepage, isCatalog]);
+    { name: 'Layanan', id: 'services', href: isHomepage ? '#' : '/layanan' },
+    // Produk di-handle terpisah di bawah
+    { name: 'Artikel & Informasi', id: 'article', href: isHomepage ? '#' : '/info' },
+    { name: 'Kontak', id: 'contact', href: isHomepage ? '#' : '/kontak' }
+  ], [isHomepage]);
 
-  // Handlers
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
@@ -60,7 +80,7 @@ export default function Header() {
   const handleScrollTo = (e: React.MouseEvent, id: string) => {
     setActiveMenu(id);
 
-    if (isHomepage && id !== 'products') {
+    if (isHomepage && id !== 'products' && id !== 'article' && id !== 'services' && id !== 'contact') {
       e.preventDefault();
       const element = document.getElementById(id);
       if (element) {
@@ -116,18 +136,14 @@ export default function Header() {
                 href={auth?.user ? dashboard() : login()}
                 className="md:px-6 py-1 hover:text-yellow-300 transition-colors"
               >
-                {auth?.user
-                  ? 'Dashboard'
-                  : <LogInIcon className="h-4 w-4" />
-                }
+                {auth?.user ? 'Dashboard' : <LogInIcon className="h-4 w-4" />}
               </Link>
-
             </div>
           </div>
         </div>
 
         {/* 2. Main Navbar */}
-        <nav className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+        <nav className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 relative">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16 lg:h-20">
               
@@ -141,18 +157,126 @@ export default function Header() {
                 />
               </Link>
 
+              {/* Desktop Nav Links */}
               <div className="hidden lg:flex items-center space-x-2">
-                {navLinks.map((link) => (
-                  <NavItem 
-                    key={link.id} 
-                    link={link} 
-                    isActive={activeMenu === link.id} // Cara bersih ala React
-                    onClick={handleScrollTo} 
-                  />
+                {/* Home NavItem (navLinks.slice(0, 1)) */}
+                {navLinks.slice(0, 1).map((link) => (
+                  <NavItem key={link.id} link={link} isActive={activeMenu === link.id} onClick={handleScrollTo} />
+                ))}
+
+                {/* 🔥 CUSTOM HOVER DROP-DOWN MENU UNTUK LAYANAN */}
+                <div 
+                  className="py-4"
+                  onMouseEnter={() => setIsServicesDropdownOpen(true)}
+                  onMouseLeave={() => setIsServicesDropdownOpen(false)}
+                >
+                  <button
+                    onClick={(e) => handleScrollTo(e, 'services')}
+                    className={`inline-flex items-center gap-1 rounded-full border-2 font-bold px-3 py-1.5 xl:px-5 text-sm xl:text-base dark:text-gray-300 transition-colors cursor-pointer outline-none
+                      ${activeMenu === 'services' || isServicesDropdownOpen
+                        ? 'border-orange-300 text-orange-600 bg-orange-400/20' 
+                        : 'border-white text-gray-900 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-400/20'
+                      }`}
+                  >
+                    <span>Layanan</span>
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isServicesDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* BOX DROP-DOWN LAYANAN INTERAKTIF */}
+                  <div className={`absolute left-0 right-0 top-full w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-xl transition-all duration-300 origin-top z-50 p-6
+                    ${isServicesDropdownOpen ? 'opacity-100 scale-y-100 pointer-events-auto visible' : 'opacity-0 scale-y-95 pointer-events-none invisible'}`}
+                  >
+                    <div className="container mx-auto grid grid-cols-12 gap-6">
+                      <div className="col-span-4 border-r border-slate-100 dark:border-slate-800 pr-6 space-y-2">
+                        <div className="inline-flex items-center justify-center p-2 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600">
+                          <BoxIcon className="h-5 w-5" />
+                        </div>
+                        <h4 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wider text-orange-500">{getConfig('services_meta_title', 'Layanan Kami')}</h4>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">{getConfig('services_meta_description', 'Kami melayani fabrikasi kustom, modifikasi arsitektural, hingga penyediaan unit tangguh untuk operasional logistik berskala nasional.')}</p>
+                        <Link href="/layanan" className="text-sm font-bold text-orange-500 hover:underline">Lihat Semua Layanan →</Link>
+                      </div>
+                      <div className="col-span-8 grid grid-cols-2 gap-4">
+                        {footerServices.map((item, key) => (
+                          <Link key={key} href={`/layanan/${item.slug}`} className="group p-3 rounded-xl hover:border-l-4 hover:border-orange-400 hover:bg-orange-50/50 dark:hover:bg-slate-800 transition-colors">
+                            {/* Ukuran diubah ke text-sm (14px) */}
+                            <span className="block text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-orange-500">{item.name}</span>
+                            {/* Deskripsi diubah ke text-xs (12px) */}
+                            <span className="block text-xs text-slate-500 mt-0.5 font-medium">{item.short_description}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 🔥 PREMIUM FULL-WIDTH MEGA MENU UNTUK PRODUK */}
+                <div 
+                  className="py-4"
+                  onMouseEnter={() => setIsProductDropdownOpen(true)}
+                  onMouseLeave={() => setIsProductDropdownOpen(false)}
+                >
+                  <button
+                    onClick={(e) => handleScrollTo(e, 'products')}
+                    className={`inline-flex items-center gap-1 rounded-full border-2 font-bold px-3 py-1.5 xl:px-5 text-sm xl:text-base dark:text-gray-300 transition-colors cursor-pointer outline-none
+                      ${activeMenu === 'products' || isProductDropdownOpen
+                        ? 'border-orange-300 text-orange-600 bg-orange-400/20' 
+                        : 'border-white text-gray-900 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-400/20'
+                      }`}
+                  >
+                    <span>Produk</span>
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isProductDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  <div className={`absolute left-0 right-0 top-full w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-xl transition-all duration-300 origin-top z-50
+                    ${isProductDropdownOpen ? 'opacity-100 scale-y-100 pointer-events-auto visible' : 'opacity-0 scale-y-95 pointer-events-none invisible'}`}
+                  >
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-12 gap-8">
+                      <div className="col-span-3 border-r border-slate-100 dark:border-slate-800 pr-6 space-y-3">
+                        <div className="inline-flex items-center justify-center p-2 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600">
+                          <LayoutDashboardIcon className="h-5 w-5" />
+                        </div>
+                        <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">{getConfig('catalog_meta_title', 'Katalog Kontainer')}</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">{getConfig('catalog_meta_description', 'Temukan pilihan dimensi kontainer kargo dan kreasi unit modifikasi custom standar internasional.')}</p>
+                        <div className="pt-1">
+                          <Link href="/jual-sewa" className="text-sm font-bold text-orange-500 hover:underline">Lihat Semua Katalog →</Link>
+                        </div>
+                      </div>
+
+                      <div className={`col-span-9 grid gap-6 ${productCategories.length <= 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
+                        {productCategories.map((cat, index) => (
+                          <div key={index} className="space-y-3 group p-4 rounded-xl hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                            <div className="space-y-0.5">
+                              {/* Judul kategori diubah ke text-xs dengan font-black */}
+                              <h4 className="text-base font-black tracking-wider group-hover:text-orange-600 text-slate-900 dark:text-slate-100 uppercase text-orange-600">{cat.title}</h4>
+                              {cat.description && <p className="text-xs font-medium text-slate-500 line-clamp-2 leading-relaxed">{cat.description}</p>}
+                            </div>
+                            <ul className="space-y-1.5 border-t border-slate-100 dark:border-slate-800/60 pt-2">
+                              {cat.items.map((item, i) => (
+                                <li key={i}>
+                                  {/* List item diubah ke text-sm (14px) */}
+                                  <Link href={item.href} className="flex items-center justify-between text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-orange-500 transition-colors">
+                                    <span>{item.name}</span>
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-950/40 border-t border-slate-100 dark:border-slate-800 py-2.5 text-center text-[11px] text-slate-400 font-medium">
+                      {getConfig('catalog_meta_title', 'Pilihan Kontainer & Modifikasi Lengkap dengan Jaminan Kualitas Unit Terbaik')}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sisa menu lainnya (Artikel & Kontak) */}
+                {navLinks.slice(2).map((link) => (
+                  <NavItem key={link.id} link={link} isActive={activeMenu === link.id} onClick={handleScrollTo} />
                 ))}
               </div>
 
-              {/* Action Buttons (Desktop & Mobile Wishlist) */}
+              {/* Action Buttons */}
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <button 
                   id='wishlists'
@@ -176,7 +300,7 @@ export default function Header() {
                     </a>
                   </Button>
                   <Link
-                    href="/catalog"
+                    href="/jual-sewa"
                     className="flex h-10 items-center px-5 rounded-full border border-slate-700 bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 transition-colors gap-2"
                   >
                     <LayoutDashboardIcon className="h-4 w-4" />
@@ -195,19 +319,57 @@ export default function Header() {
             </div>
           </div>
 
-          {/* 3. Mobile Menu Dropdown */}
-          <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-[500px] border-t' : 'max-h-0'}`}>
+          {/* 3. Mobile Menu Dropdown dengan accordion kategori */}
+          <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-[850px] border-t' : 'max-h-0'}`}>
             <div className="p-4 space-y-3 bg-gray-50 dark:bg-gray-800">
-              {navLinks.map((link) => (
-                <a
-                  key={link.id}
-                  href={link.href}
-                  onClick={(e) => handleScrollTo(e, link.id)}
-                  className="block px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-white rounded-lg transition-colors"
+              
+              {/* Menu biasa */}
+              <a href={isHomepage ? '#' : '/'} onClick={(e) => handleScrollTo(e, 'home')} className="block px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-white rounded-lg">Beranda</a>
+              
+              {/* Accordion Layanan khusus Mobile */}
+              <div className="space-y-1">
+                <button 
+                  onClick={() => setIsServicesDropdownOpen(!isServicesDropdownOpen)}
+                  className="w-full flex justify-between items-center px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-white rounded-lg"
                 >
-                  {link.name}
-                </a>
-              ))}
+                  <span>Layanan</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isServicesDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {/* Ukuran diubah ke text-base (16px) */}
+                <div className={`pl-6 space-y-2 overflow-hidden transition-all duration-200 ${isServicesDropdownOpen ? 'max-h-48 py-1' : 'max-h-0'}`}>
+                  {footerServices.map((item, key) => (
+                    <Link key={key} href={`/layanan/${item.slug}`} className="block text-sm text-gray-600 dark:text-gray-400 py-1">{item.name}</Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Accordion Produk khusus Mobile */}
+              <div className="space-y-1">
+                <button 
+                  onClick={() => setIsProductDropdownOpen(!isProductDropdownOpen)}
+                  className="w-full flex justify-between items-center px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-white rounded-lg"
+                >
+                  <span>Produk Kategori</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isProductDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                <div className={`pl-6 space-y-3 overflow-auto transition-all duration-200 ${isProductDropdownOpen ? 'max-h-96 py-2' : 'max-h-0'}`}>
+                  {productCategories.map((cat, index) => (
+                    <div key={index} className="space-y-1.5">
+                      <p className="text-sm font-bold text-gray-600 uppercase tracking-wider">{cat.title}</p>
+                      {cat.items.map((item, i) => (
+                        <Link key={i} href={item.href} className="block text-xs text-gray-600 dark:text-gray-400 py-1 hover:text-orange-500">
+                          {item.name}
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <a href={isHomepage ? '#' : '/info'} onClick={(e) => handleScrollTo(e, 'article')} className="block px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-white rounded-lg">Artikel & Informasi</a>
+              <a href={isHomepage ? '#' : '/kontak'} onClick={(e) => handleScrollTo(e, 'contact')} className="block px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-white rounded-lg">Kontak Kami</a>
+              
               <hr className="border-gray-200 dark:border-gray-700" />
               <Button asChild className="w-full justify-start py-6 text-lg">
                 <a href={whatsappUrl}>

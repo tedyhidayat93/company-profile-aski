@@ -34,7 +34,7 @@ export default function ServiceDetail({ service, products = [], related_services
                 
                 <div className="max-w-8xl mx-auto text-center relative z-10 -mt-10">
                     <Link 
-                        href="/services"
+                        href="/layanan"
                         className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-orange-400 uppercase mb-6 hover:text-orange-300 transition group"
                     >
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition" /> Kembali ke Layanan
@@ -169,7 +169,7 @@ export default function ServiceDetail({ service, products = [], related_services
                                 {related_services.map((item) => (
                                     <Link 
                                         key={item.id}
-                                        href={`/service/${item.slug}`}
+                                        href={`/layanan/${item.slug}`}
                                         className="group flex gap-4 items-center"
                                     >
                                         <div className="w-20 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex-shrink-0">
@@ -214,7 +214,7 @@ export default function ServiceDetail({ service, products = [], related_services
                                 Rekomendasi Untuk Anda
                             </h2>
                         </div>
-                        <Link href="/catalog" className="text-orange-500 font-bold text-sm hover:underline">
+                        <Link href="/jual-sewa" className="text-orange-500 font-bold text-sm hover:underline">
                             Lihat Semua Katalog
                         </Link>
                     </div>

@@ -89,7 +89,7 @@ export default function Sitemap({ services = [], articles = [], products = [], n
                                     {services.map((service) => (
                                         <li key={service.id}>
                                             <Link
-                                                href={`/service/${service.slug}`}
+                                                href={`/layanan/${service.slug}`}
                                                 className="text-gray-600 hover:text-amber-600 transition-colors text-sm block py-0.5"
                                             >
                                                 {service.name}
@@ -104,7 +104,7 @@ export default function Sitemap({ services = [], articles = [], products = [], n
                             )}
                             <div className="mt-4 pt-4 border-t">
                                 <Link
-                                    href="/services"
+                                    href="/layanan"
                                     className="text-amber-600 hover:text-amber-700 font-medium text-sm flex items-center"
                                 >
                                     Lihat Semua Layanan →
@@ -125,7 +125,7 @@ export default function Sitemap({ services = [], articles = [], products = [], n
                                     {products.map((product) => (
                                         <li key={product.id}>
                                             <Link
-                                                href={`/catalog/${product.slug}`}
+                                                href={`/jual-sewa/${product.slug}`}
                                                 className="text-gray-600 hover:text-amber-600 transition-colors text-sm block py-0.5"
                                             >
                                                 {product.name}
@@ -140,7 +140,7 @@ export default function Sitemap({ services = [], articles = [], products = [], n
                             )}
                             <div className="mt-4 pt-4 border-t">
                                 <Link
-                                    href="/catalog"
+                                    href="/jual-sewa"
                                     className="text-amber-600 hover:text-amber-700 font-medium text-sm flex items-center"
                                 >
                                     Lihat Semua Produk →
@@ -161,7 +161,7 @@ export default function Sitemap({ services = [], articles = [], products = [], n
                                     {articles.map((article) => (
                                         <li key={article.id}>
                                             <Link
-                                                href={`/articles/${article.slug}`}
+                                                href={`/${article.slug}`}
                                                 className="text-gray-600 hover:text-amber-600 transition-colors text-sm block py-0.5"
                                             >
                                                 {article.title}
@@ -176,7 +176,7 @@ export default function Sitemap({ services = [], articles = [], products = [], n
                             )}
                             <div className="mt-4 pt-4 border-t">
                                 <Link
-                                    href="/articles"
+                                    href="/info"
                                     className="text-amber-600 hover:text-amber-700 font-medium text-sm flex items-center"
                                 >
                                     Lihat Semua Artikel →

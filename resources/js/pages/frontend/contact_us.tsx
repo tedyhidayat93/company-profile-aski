@@ -399,20 +399,22 @@ export default function ContactUs({ seo, data }: Props) {
                         
                         {/* Judul Section Utama */}
                         <div className="flex items-center gap-2 text-orange-500 font-bold text-xs tracking-widest uppercase mb-2">
-                            <MapPin className="w-4 h-4 animate-bounce" /> Jaringan Lokasi & Kantor Cabang
+                            <MapPin className="w-4 h-4 animate-bounce" /> Lokasi Kami
                         </div>
 
                         {/* Grid Integrasi Menyatu */}
-                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-xl mb-20">
+                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-3 shadow-xl mb-20">
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                                 
                                 {/* KOLOM KIRI (LG: 7/12): Google Maps Embed Full Container */}
-                                <div className="lg:col-span-7 flex flex-col h-[350px] lg:h-[480px]">
+                                <div className={`${data.about_us.office_branch ? 'lg:col-span-7': 'lg:col-span-12' } flex flex-col h-[350px] lg:h-[480px]`}>
                                     {/* Sub-header List */}
-                                    <div className="flex items-center gap-2 text-slate-800 dark:text-white font-extrabold text-base mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                                        <Building2 className="w-4 h-4 text-orange-500" />
-                                        Head Office
-                                    </div>
+                                     {data.about_us.office_branch && (
+                                        <div className="flex items-center gap-2 text-slate-800 dark:text-white font-extrabold text-base mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                                            <Building2 className="w-4 h-4 text-orange-500" />
+                                            Head Office
+                                        </div>
+                                     )}
                                     <div 
                                         className=" w-full h-[350px] lg:h-[480px] rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 shadow-inner
                                             [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0 grayscale-[20%] contrast-[105%] dark:[&_iframe]:invert-[0.9] dark:[&_iframe]:hue-rotate-180 transition-all duration-300"
@@ -422,16 +424,16 @@ export default function ContactUs({ seo, data }: Props) {
 
 
                                 {/* KOLOM KANAN (LG: 5/12): List Cabang Hasil TinyMCE */}
-                                <div className="lg:col-span-5 flex flex-col h-[350px] lg:h-[480px]">
-                                    {/* Sub-header List */}
-                                    <div className="flex items-center gap-2 text-slate-800 dark:text-white font-extrabold text-base mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                                        <Building2 className="w-4 h-4 text-orange-500" />
-                                        Daftar Wilayah Kerja & Cabang
-                                    </div>
+                                {data.about_us.office_branch && (
+                                    <div className="lg:col-span-5 flex flex-col h-[350px] lg:h-[480px]">
+                                        {/* Sub-header List */}
+                                        <div className="flex items-center gap-2 text-slate-800 dark:text-white font-extrabold text-base mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                                            <Building2 className="w-4 h-4 text-orange-500" />
+                                            Daftar Wilayah Kerja & Cabang
+                                        </div>
 
-                                    {/* Area Scroll Box Konten TinyMCE */}
-                                    <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 space-y-2">
-                                        {data.about_us.office_branch ? (
+                                        {/* Area Scroll Box Konten TinyMCE */}
+                                        <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 space-y-2">
                                             <div 
                                                 className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed
                                                     [&_h3]:text-sm [&_h3]:font-black [&_h3]:text-slate-900 dark:[&_h3]:text-white [&_h3]:mb-1 [&_h3]:mt-4 first:[&_h3]:mt-0 [&_h3]:tracking-tight
@@ -439,14 +441,9 @@ export default function ContactUs({ seo, data }: Props) {
                                                     [&_ul]:list-none [&_ul]:space-y-4"
                                                 dangerouslySetInnerHTML={{ __html: data.about_us.office_branch }}
                                             />
-                                        ) : (
-                                            <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 dark:text-slate-500 italic text-xs py-10">
-                                                <MapPin className="w-8 h-8 text-slate-300 dark:text-slate-700 mb-2 stroke-[1.5]" />
-                                                Belum ada daftar kantor cabang yang terkonfigurasi.
-                                            </div>
-                                        )}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                             </div>
                         </div>

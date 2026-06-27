@@ -1,12 +1,12 @@
 // resources/js/constants/navigation.ts
 export const NAV_LINKS = [
   { name: 'Beranda', href: '/' },
-  { name: 'Tentang Kami', href: '/about-us' },
-  { name: 'Layanan Kami', href: '/services' },
-  { name: 'Katalog Produk', href: '/catalog' },
+  { name: 'Tentang Kami', href: '/tentang-kami' },
+  { name: 'Layanan Kami', href: '/layanan' },
+  { name: 'Katalog Produk', href: '/jual-sewa' },
   { name: 'Testimoni & Ulasan', href: '/testimonial' },
-  { name: 'Artikel & Berita', href: '/articles' },
-  { name: 'Kontak Kami', href: '/contact-us' },
+  { name: 'Artikel & Berita', href: '/info' },
+  { name: 'Kontak Kami', href: '/kontak' },
   { name: 'Sitemap', href: '/sitemap' }
 ];
 

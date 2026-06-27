@@ -1,5 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import { Filter, Search, ArrowUpDown, ChevronDown, X, ArrowRight, ArrowLeft, HandHeartIcon, LayoutDashboard, RotateCcw, SlidersHorizontal } from 'lucide-react';
+import { Filter, Search, ArrowUpDown, ChevronDown, X, ArrowRight, ArrowLeft, HandHeartIcon, LayoutDashboard, RotateCcw, SlidersHorizontal, Layers, ChevronRight, CircleDollarSign, CheckIcon, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import ProductCard from '@/components/ProductCard';
@@ -40,6 +40,24 @@ export interface ApiResponse<T> {
     load_info: LoadInfo;
 }
 
+
+interface SidebarProps {
+  categories: any[];
+  currentFilters: {
+    search?: string;
+    type?: string;
+    category?: string; // string berisi koma: "cat-1,cat-2"
+    minPrice?: string;
+    maxPrice?: string;
+    sort?: string;
+  };
+  facets: {
+    categories: Record<number | string, number>; // id/slug => total_product
+    price_ranges: Array<{ label: string; min: number; max: number; count: number }>;
+  };
+  products: any; // Untuk mengambil total records jika diperlukan
+}
+
 interface CatalogProps {
     products: ApiResponse<Product>;
     bestSellerProducts: Product[];
@@ -53,6 +71,15 @@ interface CatalogProps {
         maxPrice?: string;
         sort?: string;
         perPage?: string | number;
+    };
+    facets: {
+        categories: Record<string | number, number>; // Format: { "slug-kategori": total_produk } atau { id: total_produk }
+        price_ranges: Array<{
+            label: string;
+            min: number;
+            max: number;
+            count: number;
+        }>;
     };
 }
 
@@ -71,10 +98,10 @@ const FeaturedProductsBanner = ({
     }
 
     return (
-        <div className="group mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-500 xl:via-white to-slate-500 transition-all duration-300">
+        <div className="group mb-6 overflow-hidden rounded-3xl transition-all duration-300">
 
             {/* HEADER */}
-            <div className="flex flex-wrap gap-3 items-center justify-between px-5 py-4">
+            <div className="flex flex-wrap gap-3 items-center justify-between px-5 py-2">
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="rounded-2xl bg-gradient-to-tr animate-pulse from-orange-500 to-amber-400 p-2.5 text-white shadow-md shadow-orange-500/20 transition-transform duration-300 group-hover:scale-110">
                         <HandHeartIcon className="h-5 w-5" />
@@ -110,8 +137,222 @@ const FeaturedProductsBanner = ({
 };
 
 
+function CatalogSidebarFacet({ categories, currentFilters, facets, products }: SidebarProps) {
+    // Ambil array kategori aktif dari string URL terpisah koma
+    const activeCategories = currentFilters?.category 
+        ? currentFilters.category.split(',').filter(Boolean) 
+        : [];
 
-function Catalog({ products: initialProducts, bestSellerProducts, categories, types }: CatalogProps) {
+    const activeMinPrice = currentFilters?.minPrice || '';
+    const activeMaxPrice = currentFilters?.maxPrice || '';
+
+    // Handler Filter via Inertia URL state (Mendukung Multi-Checkbox Kategori)
+    const handleCategoryCheck = (slug: string) => {
+        const params = new URLSearchParams(window.location.search);
+        let updatedCategories = [...activeCategories];
+
+        if (updatedCategories.includes(slug)) {
+            // Uncheck: Hapus dari list array
+            updatedCategories = updatedCategories.filter(item => item !== slug);
+        } else {
+            // Check: Tambahkan ke list array
+            updatedCategories.push(slug);
+        }
+
+        if (updatedCategories.length > 0) {
+            params.set('category', updatedCategories.join(','));
+        } else {
+            params.delete('category');
+        }
+
+        // Reset ke page 1 setiap kali filter berubah agar tidak offset-out-of-bounds
+        params.delete('page');
+
+        router.get(`/jual-sewa?${params.toString()}`, {}, { preserveState: true, replace: true });
+    };
+
+    // Handler Filter Harga Tunggal
+    const handlePriceFilter = (min: string, max: string) => {
+        const params = new URLSearchParams(window.location.search);
+        
+        if (min) params.set('minPrice', min);
+        else params.delete('minPrice');
+
+        if (max) params.set('maxPrice', max);
+        else params.delete('maxPrice');
+
+        params.delete('page');
+
+        router.get(`/jual-sewa?${params.toString()}`, {}, { preserveState: true, replace: true });
+    };
+
+    return (
+        <aside className="w-full bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-6 sticky top-24 dark:bg-slate-800 dark:border-slate-700">
+            
+            {/* GROUP 1: LIST KATEGORI (CHECKLIST-BASED FACET) */}
+            <div className="space-y-3">
+                <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-700">
+                    <Layers className="h-4 w-4 text-orange-500" />
+                    <h3 className="font-bold text-slate-800 dark:text-slate-200 text-xs tracking-wider uppercase">Kategori</h3>
+                </div>
+
+                <div className="flex flex-col gap-1 overflow-y-auto pr-1 custom-scrollbar">
+                    {/* Loop Kategori */}
+                    {categories.map((cat: any, key: any) => {
+                        // 🟢 Sesuaikan properti berdasar key error: {label, value, subcategories}
+                        const slug = cat.value;  // Menggantikan cat.slug / cat
+                        const name = cat.label;  // Menggantikan cat.name / cat
+                        const isChecked = activeCategories.includes(slug);
+                        
+                        // Mengambil nilai facet yang dihitung dari backend via slug (cat.value)
+                        const count = facets?.categories?.[slug] || 0;
+
+                        return (
+                            <div key={slug || key} className="flex flex-col gap-1">
+                                <label
+                                    className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all select-none ${
+                                        isChecked
+                                            ? 'bg-orange-50/70 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400'
+                                            : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2.5 truncate pr-2">
+                                        <div className="relative flex items-center justify-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={isChecked}
+                                                onChange={() => handleCategoryCheck(slug)}
+                                                className="sr-only"
+                                            />
+                                            <div className={`h-4 w-4 rounded-md border flex items-center justify-center transition-colors ${
+                                                isChecked 
+                                                    ? 'bg-orange-500 border-orange-500 text-white' 
+                                                    : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 group-hover:border-orange-400'
+                                            }`}>
+                                                {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
+                                            </div>
+                                        </div>
+                                        <span className="truncate">{name}</span>
+                                    </div>
+                                    
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                        isChecked 
+                                            ? 'bg-orange-500 text-white' 
+                                            : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300'
+                                    }`}>
+                                        {count}
+                                    </span>
+                                </label>
+
+                                {/* 🟢 Render sub-kategori menggunakan key properti: subcategories */}
+                                {cat.subcategories && cat.subcategories.length > 0 && (
+                                    <div className="pl-2 flex flex-col gap-1 border-l border-slate-300 dark:border-slate-700 ml-5 mt-1 mb-2">
+                                        {cat.subcategories.map((child: any, key2: any) => {
+                                            const childSlug = child.value; // sub-category slug
+                                            const childName = child.label; // sub-category name
+                                            const childIsChecked = activeCategories.includes(childSlug);
+                                            const childCount = facets?.categories?.[childSlug] || 0;
+                                            
+                                            return (
+                                                <label 
+                                                    key={childSlug || `${key}-${key2}`} 
+                                                    className={`group flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] cursor-pointer transition-all ${
+                                                        childIsChecked ? 'text-orange-600 font-bold' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-2 truncate">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={childIsChecked} 
+                                                            onChange={() => handleCategoryCheck(childSlug)} 
+                                                            className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-3 w-3"
+                                                        />
+                                                        <span className="truncate text-xs font-medium">{childName}</span>
+                                                    </div>
+                                                    <span className="text-xs text-slate-700 font-medium">({childCount})</span>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* GROUP 2: LIST RANGE HARGA (DINAMIS DARI BACKEND FACETS) */}
+            <div className="space-y-3">
+                <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-700">
+                    <CircleDollarSign className="h-4 w-4 text-orange-500" />
+                    <h3 className="font-bold text-slate-800 dark:text-slate-200 text-xs tracking-wider uppercase">Harga</h3>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    {/* Opsi Reset Harga */}
+                    <button
+                        onClick={() => handlePriceFilter('', '')}
+                        className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all ${
+                            activeMinPrice === '' && activeMaxPrice === ''
+                                ? 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400 border-l-2 border-orange-500 rounded-l-none'
+                                : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50'
+                        }`}
+                    >
+                        <div className="flex items-center gap-2 truncate">
+                            {activeMinPrice === '' && activeMaxPrice === '' ? (
+                                <Check className="h-3 w-3 text-orange-500 stroke-[3]" />
+                            ) : (
+                                <div className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600 ml-1" />
+                            )}
+                            <span>Semua Harga</span>
+                        </div>
+                    </button>
+
+                    {/* Loop Range Dinamis (Low, Mid, High) dari Backend */}
+                    {facets?.price_ranges?.map((range, index) => {
+                        const minStr = Math.round(range.min).toString();
+                        const maxStr = Math.round(range.max).toString();
+                        const isSelected = activeMinPrice === minStr && activeMaxPrice === maxStr;
+
+                        return (
+                            <button
+                                key={index}
+                                disabled={range.count === 0}
+                                onClick={() => handlePriceFilter(minStr, maxStr)}
+                                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all disabled:opacity-40 disabled:pointer-events-none ${
+                                    isSelected
+                                        ? 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400 border-l-2 border-orange-500 rounded-l-none'
+                                        : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50'
+                                }`}
+                            >
+                                <div className="flex items-center gap-2 truncate pr-2">
+                                    {isSelected ? (
+                                        <Check className="h-3 w-3 shrink-0 text-orange-500 stroke-[3]" />
+                                    ) : (
+                                        <div className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600 ml-1 shrink-0" />
+                                    )}
+                                    <div className="flex flex-col truncate">
+                                        <span>{range.label}</span>
+                                        <span className="text-[10px] text-slate-400 font-medium normal-case">
+                                            Rp {Math.round(range.min).toLocaleString('id-ID')} - Rp {Math.round(range.max).toLocaleString('id-ID')}
+                                        </span>
+                                    </div>
+                                </div>
+                                <span className="bg-slate-100 px-2 py-0.5 rounded-full text-[10px] font-bold text-slate-500 dark:bg-slate-700 dark:text-slate-300 shrink-0">
+                                    {range.count}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+        </aside>
+    );
+}
+
+
+function Catalog({products: initialProducts, bestSellerProducts, categories, types, facets, ...props }: CatalogProps) {
     const { filters: initialFilters } = usePage().props as any;
     
     const [filters, setFilters] = useState({
@@ -192,7 +433,7 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
         }
         
         setHasChanges(false);
-        router.get(`/catalog?${params.toString()}`, {}, {
+        router.get(`/jual-sewa?${params.toString()}`, {}, {
             preserveState: true,
             only: ['products', 'filters']
         });
@@ -211,13 +452,13 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
         
         setFilters(resetFilters);
         setHasChanges(false);
-        router.get('/catalog');
+        router.get('/jual-sewa');
     };
 
     const renderDesktopFilters = () => {
 
         return (
-            <div className="mb-6 hidden rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:block transition-all duration-300 hover:shadow-md sticky top-30 bg-white/80 backdrop-blur-sm border-b border-slate-200 z-40">
+            <div className="mb-6 postion-sticky top-24 hidden rounded-2xl border border-slate-300 bg-white p-5 shadow-sm lg:block transition-all duration-300 hover:shadow-md sticky top-30 bg-white/80 backdrop-blur-sm border-b border-slate-200 z-40">
                 
                 {/* DEFAULT VIEW (TOP BAR) */}
                 <div className="flex items-center gap-4">
@@ -281,7 +522,11 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
                         </button>
                         {/* RESET BUTTON */}
                         {
-                            filters.search !== '' && (
+                            (filters.search || 
+                            filters.category || 
+                            filters.type || 
+                            filters.minPrice || 
+                            filters.maxPrice) && (
                                 <button
                                     type="button"
                                     onClick={resetFilters}
@@ -615,154 +860,215 @@ function Catalog({ products: initialProducts, bestSellerProducts, categories, ty
     };
 
     return (
-        <div className="container bg-white dark:bg-gray-800 mx-auto px-4 flex flex-col lg:flex-row gap-7 py-7">
-    
+        <div className="bg-white relative dark:bg-gray-800 mx-auto px-2 pb-7">
+            
+            {/* Filter Drawer Khusus Mobile */}
             {renderMobileFilters()}
             
-            {/* Product Grid */}
-            <div className="flex-1">
-
-                {renderDesktopFilters()}
-
-                <div className="mb-6 flex flex-col md:flex-row gap-2 items-center justify-between">
-                    <p className="text-gray-600 dark:text-gray-200 text-xs md:text-sm">
-                        Menampilkan {products.length} dari {pagination.total} produk
-                    </p>
-                    <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-800">Tampilkan per halaman:</span>
-                        <select 
-                            className="rounded-lg border border-gray-300 p-1.5 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
-                            value={String(filters.perPage || '12')}
-                            onChange={(e) => {
-                                const newFilters = { ...filters, perPage: e.target.value };
-                                setFilters(newFilters);
-                                setIsLoading(true); // Show skeleton loading
-                                
-                                // Update URL with new filters immediately
-                                const params = new URLSearchParams();
-                                if (newFilters.search) params.append('search', newFilters.search);
-                                if (newFilters.type) params.append('type', newFilters.type);
-                                if (newFilters.category) params.append('category', newFilters.category);
-                                params.append('perPage', newFilters.perPage);
-                                if (newFilters.minPrice) params.append('minPrice', newFilters.minPrice);
-                                if (newFilters.maxPrice) params.append('maxPrice', newFilters.maxPrice);
-                                if (newFilters.sort) params.append('sort', newFilters.sort);
-                                
-                                router.get(`/catalog?${params.toString()}`, {}, {
-                                    preserveState: true,
-                                    only: ['products', 'filters']
-                                });
-                            }}
-                        >
-                            <option value="12">12</option>
-                            <option value="24">24</option>
-                            <option value="48">48</option>
-                            <option value="100">100</option>
-                        </select>
-                    </div>
-                </div>
-
-                {bestSellerProducts.length > 0 && (
-                    <FeaturedProductsBanner
-                        products={bestSellerProducts}
+            {renderDesktopFilters()}
+            {/* CORE LAYOUT: SIDEBAR (KIRI) & GRID PRODUK (KANAN) */}
+            <div className="flex flex-col lg:flex-row gap-8 items-start">
+                
+                {/* 1. SIDEBAR FACADE (Hanya muncul di Desktop) */}
+                <div className="hidden lg:block w-72 shrink-0">
+                    <CatalogSidebarFacet 
+                        categories={categories}
+                        currentFilters={filters}
+                        facets={facets}
+                        products={products}
                     />
-                )}
+                </div>
+                
+                {/* 2. AREA GRID PRODUK */}
+                <div className="flex-1 w-full">
 
-                {isLoading ? (
-                    <div className="grid md:grid-cols-2 gap-3 md:gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3">
-                        {Array.from({ length: parseInt(filters.perPage) || 12 }).map((_, index) => (
-                            <ProductSkeleton key={index} />
-                        ))}
+                    {/* META BAR: INFORMASI STOK & DROPDOWN PER PAGE */}
+                        
+                    <div className="mb-6 flex flex-col md:flex-row gap-2 items-center justify-between bg-slate-50 border border-slate-100 rounded-xl p-4 dark:bg-slate-900/50 dark:border-slate-700">
+                        <p className="text-gray-600 dark:text-gray-200 text-xs md:text-sm font-medium">
+                            Menampilkan <span className="font-bold text-slate-900 dark:text-white">{products.length}</span> dari <span className="font-bold text-slate-900 dark:text-white">{pagination.total}</span> produk
+                        </p>
+                        <div className="flex items-center space-x-2">
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tampilkan per halaman:</span>
+                            <select 
+                                className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm font-medium text-slate-700 outline-none focus:border-amber-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
+                                value={String(filters.perPage || '12')}
+                                onChange={(e) => {
+                                    const nextPerPage = e.target.value;
+                                    const newFilters = { ...filters, perPage: nextPerPage };
+                                    setFilters(newFilters);
+                                    setIsLoading(true);
+                                    
+                                    const params = new URLSearchParams();
+                                    Object.entries(newFilters).forEach(([k, v]) => {
+                                        if (v) params.append(k, String(v));
+                                    });
+                                    
+                                    router.get(`/jual-sewa?${params.toString()}`, {}, {
+                                        preserveState: true,
+                                        only: ['products', 'filters']
+                                    });
+                                }}
+                            >
+                                <option value="12">12</option>
+                                <option value="24">24</option>
+                                <option value="48">48</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
                     </div>
-                ) : products.length === 0 ? (
-                    <div className="rounded-lg bg-white p-12 min-h-[60vh] flex items-center justify-center flex-col text-center shadow">
-                        <LayoutDashboard className="mx-auto mb-4 h-24 w-24 text-orange-400" />
-                        <label className="mb-2 text-2xl font-medium">Produk tidak ditemukan</label>
-                        <p className="mb-4 text-gray-600">Coba ubah filter pencarian Anda</p>
-                        <button
-                            onClick={resetFilters}
-                            className="rounded-lg bg-amber-500 px-4 py-2 font-medium text-white hover:bg-amber-600"
-                        >
-                            Reset Filter
-                        </button>
-                    </div>
-                ) : (
-                    <>
-                        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {products.map((product) => (
-                                <ProductCard key={product.slug} product={product} />
+
+                    {/* CONDITION: VIEW DATA GRID / SKELETON */}
+                    {isLoading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {Array.from({ length: parseInt(filters.perPage) || 12 }).map((_, index) => (
+                                <ProductSkeleton key={index} />
                             ))}
                         </div>
+                    ) : products.length === 0 ? (
+                        <div className="rounded-2xl bg-white border-2 border-dashed border-slate-200 p-12 min-h-[50vh] flex items-center justify-center flex-col text-center dark:bg-slate-900/20 dark:border-slate-700">
+                            <LayoutDashboard className="mx-auto mb-4 h-16 w-16 text-orange-400" />
+                            <h3 className="mb-2 text-lg font-bold">Produk tidak ditemukan</h3>
+                            <p className="mb-4 text-sm text-gray-500 max-w-xs">Coba ubah kata kunci atau setelan filter pada sidebar Anda</p>
+                            <button
+                                onClick={resetFilters}
+                                className="rounded-xl bg-orange-500 px-5 py-2 text-xs font-bold text-white hover:bg-orange-600 transition-colors"
+                            >
+                                Reset Filter
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                {products.map((product) => (
+                                    <ProductCard key={product.slug} product={product} />
+                                ))}
+                            </div>
 
-                        {/* Pagination */}
-                        {pagination.total > 0 && (
-                            <div className="mt-8 flex items-center justify-center">
-                                <nav className="flex items-center space-x-1">
-                                    <button
-                                        onClick={() => {
-                                            const prevPage = Math.max(1, pagination.current_page - 1);
-                                            if (prevPage !== pagination.current_page) {
-                                                router.get(`/catalog?page=${prevPage}`, {}, {
+                            {/* NAVIGASI PAGINATION */}
+                            {pagination.total > 0 && (
+                                <div className="mt-10 flex items-center justify-center">
+                                    <nav className="flex items-center space-x-1">
+                                        <button
+                                            onClick={() => {
+                                                const prevPage = Math.max(1, pagination.current_page - 1);
+                                                if (prevPage !== pagination.current_page) {
+                                                    router.get(`/jual-sewa?page=${prevPage}`, {}, {
+                                                        preserveState: true,
+                                                        only: ['products', 'filters']
+                                                    });
+                                                }
+                                            }}
+                                            disabled={pagination.current_page === 1}
+                                            className={`flex h-10 w-10 items-center justify-center rounded-xl border ${
+                                                pagination.current_page === 1
+                                                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-slate-800 dark:border-slate-700'
+                                                    : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300'
+                                            }`}
+                                        >
+                                            <ArrowLeft className="h-4 w-4" />
+                                        </button>
+                                        
+                                        <span className="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                            Halaman {pagination.current_page}
+                                        </span>
+                                        
+                                        <button
+                                            onClick={() => {
+                                                const nextPage = pagination.current_page + 1;
+                                                router.get(`/jual-sewa?page=${nextPage}`, {}, {
                                                     preserveState: true,
                                                     only: ['products', 'filters']
                                                 });
-                                            }
-                                        }}
-                                        disabled={pagination.current_page === 1}
-                                        className={`flex h-10 w-10 items-center justify-center rounded-md border ${
-                                            pagination.current_page === 1
-                                                ? 'border-gray-200 bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                                                : 'border-gray-300 bg-white dark:bg-gray-900 text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        <ArrowLeft />
-                                    </button>
-                                    
-                                    <span className="px-4 text-sm text-gray-500">
-                                        Halaman {pagination.current_page}
-                                    </span>
-                                    
-                                    <button
-                                        onClick={() => {
-                                            const nextPage = pagination.current_page + 1;
-                                            router.get(`/catalog?page=${nextPage}`, {}, {
-                                                preserveState: true,
-                                                only: ['products', 'filters']
-                                            });
-                                        }}
-                                        disabled={products.length < pagination.per_page}
-                                        className={`flex h-10 w-10 items-center justify-center rounded-md border ${
-                                            products.length < pagination.per_page
-                                                ? 'border-gray-200 bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                                                : 'border-gray-300 bg-white dark:bg-gray-900 text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        <ArrowRight />
-                                    </button>
-                                </nav>
-                            </div>
-                        )}
-                    </>
-                )}
-            </div> 
+                                            }}
+                                            disabled={products.length < pagination.per_page}
+                                            className={`flex h-10 w-10 items-center justify-center rounded-xl border ${
+                                                products.length < pagination.per_page
+                                                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-slate-800 dark:border-slate-700'
+                                                    : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300'
+                                            }`}
+                                        >
+                                            <ArrowRight className="h-4 w-4" />
+                                        </button>
+                                    </nav>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
 
-export default function CatalogPage({ products, bestSellerProducts, categories, types, filters }: CatalogProps) {
+
+
+export default function CatalogPage({ products, bestSellerProducts, categories, types, facets, filters }: CatalogProps) {
     const { getConfig } = useConfig();
     return (
         <FrontendLayout>
-            <SeoHead title={'Katalog Produk'} />
+            <SeoHead title={getConfig('catalog_meta_title', 'Katalog Jual & Sewa Kontainer Terbaik')} />
 
-            <div className="sr-only">
-                <h1 className="text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('products_title', 'Katalog Produk Kami')}</h1>
-                <p className="text-gray-600 dark:text-gray-300">
-                    {getConfig('products_description', 'Temukan produk-produk kontainer untuk kebutuhanmu')}
-                </p>
+            {/* --- HERO HEADER SECTION --- */}
+            <div className="relative mx-2 mb-8 overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-6 shadow-xl shadow-slate-950/20 md:rounded-3xl md:p-10 lg:p-16">
+                {/* Dekorasi Grid Halus di Background */}
+                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                
+                {/* 
+                    CONDITIONAL GRID WRAPPER
+                    Jika ada best seller: gunakan grid 10 kolom di layar desktop (3 kolom untuk teks = 30%, 70% sisanya untuk banner)
+                    Jika tidak ada: biarkan flex/block biasa agar teks otomatis mengambil space 100%
+                */}
+                <div className={`relative z-10 w-full ${
+                    bestSellerProducts.length > 0 
+                        ? 'grid grid-cols-1 gap-8 lg:grid-cols-10 lg:items-center lg:gap-12' 
+                        : 'block'
+                }`}>
+                    
+                    {/* Konten Utama Header 
+                        Jika ada banner: mengambil 3 dari 10 kolom (30%)
+                        Jika tidak ada banner: mengambil 10 kolom penuh (100%)
+                    */}
+                    <div className={bestSellerProducts.length > 0 ? 'lg:col-span-4' : 'w-full max-w-4xl'}>
+                        <span className="inline-block text-xs md:text-sm font-semibold tracking-wider text-orange-400 uppercase mb-3 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
+                            {getConfig('site_name', 'Alumoda Sinergi Kontainer Indonesia')}
+                        </span>
+                        
+                        <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4 text-white drop-shadow-sm leading-tight">
+                            {getConfig('catalog_meta_title', 'Katalog Jual, Sewa & Custom Kontainer')}
+                        </h1>
+                        
+                        <div className="h-1 w-20 bg-gradient-to-r from-orange-500 to-amber-400 rounded-full mb-4"></div>
+                        
+                        <p className="text-xs md:text-sm lg:text-base text-slate-300 font-medium leading-relaxed">
+                            {getConfig('catalog_meta_description', 'Menyediakan berbagai unit kontainer berkualitas tinggi dari bermacam grade untuk kebutuhan bisnis, logistik, dan ruang modular Anda.')}
+                        </p>
+                    </div>
+
+                    {/* BANNER PRODUK UNGGULAN 
+                        Mengambil 7 dari 10 kolom sisanya (70%)
+                    */}
+                    {bestSellerProducts.length > 0 && (
+                        <div className="w-full lg:col-span-6">
+                            <FeaturedProductsBanner products={bestSellerProducts} />
+                        </div>
+                    )}
+                    
+                </div>
+                
+                {/* Efek Cahaya Dekoratif di Sudut Kanan Atas */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
             </div>
 
-            <Catalog products={products} bestSellerProducts={bestSellerProducts} categories={categories} types={types} filters={filters} />
+            {/* --- CORE CATALOG SECTION --- */}
+            <Catalog 
+                products={products} 
+                bestSellerProducts={bestSellerProducts} 
+                categories={categories} 
+                types={types} 
+                filters={filters} 
+                facets={facets}
+            />
         </FrontendLayout>
     );
 }

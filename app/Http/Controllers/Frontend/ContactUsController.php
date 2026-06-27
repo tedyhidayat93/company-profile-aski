@@ -57,9 +57,12 @@ class ContactUsController extends Controller
             'google_maps_embed' => $getConfigs['google_maps_embed'],
         ];
 
+        
+
+
         return Inertia::render('frontend/contact_us', [
             'seo'      => $seo,
-            'data'   => $data,
+            'data'      => $data,
         ]);
     }
 
@@ -104,6 +107,30 @@ class ContactUsController extends Controller
             'type' => 'website',
         ];
 
+         /*
+        |--------------------------------------------------------------------------
+        | Services
+        |--------------------------------------------------------------------------
+        */
+        $services = Cache::remember(
+            'service.list',
+            now()->addHours(1),
+            function () {
+                return Service::query()
+                    ->where('is_active', true)
+                    ->orderBy('sequence')
+                    ->get(['name', 'slug', 'description', 'short_description', 'image'])
+                    ->map(function ($service) {
+                        return [
+                            'title'       => $service->name,
+                            'slug'        => $service->slug,
+                            'description' => $service->short_description ?? $service->description ?? '',
+                            'image'       => $this->resolveImagePath($service->image),
+                        ];
+                    });
+            }
+        );
+
         $data = [
             'site_name' => $getConfigs['site_name'] ?? '',
             'site_tagline' => $getConfigs['site_tagline'] ?? '',
@@ -131,6 +158,7 @@ class ContactUsController extends Controller
                 'youtube' => $getConfigs['social_youtube'] ?? '',
             ],
             'google_maps_embed' => $getConfigs['google_maps_embed'] ?? '',
+            'services' => $services ?? [],
         ];
 
         // Jika ini halaman About Us, pastikan path-nya benar (misal: 'frontend/about_us')

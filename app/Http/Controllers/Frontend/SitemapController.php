@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Product;
-use App\Models\Service; // Tambahkan import model Service
+use App\Models\Service;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Traits\TracksVisitors;
@@ -13,8 +13,9 @@ use App\Traits\TracksVisitors;
 class SitemapController extends Controller
 {
     use TracksVisitors;
+
     /**
-     * Display the sitemap page
+     * Display the sitemap page (HTML View for Users)
      */
     public function index(Request $request)
     {
@@ -36,20 +37,20 @@ class SitemapController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'created_at']);
 
-        // Navigation links dari constants (Menyesuaikan href Layanan ke halaman index barunya)
+        // Navigation links dari constants (Diselaraskan dengan URL Baru Terlokalisasi)
         $navigation = [
             ['name' => 'Beranda', 'href' => '/'],
-            ['name' => 'Layanan', 'href' => '/services'], // Diubah dari hash anchor ke path asli index services
-            ['name' => 'Tentang Kami', 'href' => '/about-us'],
-            ['name' => 'Katalog Produk', 'href' => '/catalog'],
-            ['name' => 'Artikel', 'href' => '/articles'],
+            ['name' => 'Layanan', 'href' => '/layanan'],
+            ['name' => 'Tentang Kami', 'href' => '/tentang-kami'],
+            ['name' => 'Katalog Produk', 'href' => '/jual-sewa'],
+            ['name' => 'Info & Artikel', 'href' => '/info'],
             ['name' => 'Testimoni', 'href' => '/testimonial'],
-            ['name' => 'Kontak Kami', 'href' => '/contact-us'],
+            ['name' => 'Kontak Kami', 'href' => '/kontak'],
             ['name' => 'Site Map', 'href' => '/sitemap'],
         ];
 
         return Inertia::render('frontend/sitemap', [
-            'services'   => $services ?? [], // Kirim list services ke view React
+            'services'   => $services ?? [],
             'articles'   => $articles ?? [],
             'products'   => $products ?? [],
             'navigation' => $navigation ?? [],
@@ -66,22 +67,36 @@ class SitemapController extends Controller
         $sitemap = '<?xml version="1.0" encoding="UTF-8"?>';
         $sitemap .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
         
-        // Add homepage
+        // 1. ADD HOMEPAGE (Prioritas Utama)
         $sitemap .= '
             <url>
                 <loc>' . $baseUrl . '</loc>
                 <lastmod>' . now()->toAtomString() . '</lastmod>
-                <changefreq>weekly</changefreq>
+                <changefreq>daily</changefreq>
                 <priority>1.0</priority>
             </url>';
         
-        // Add static & main dynamic index pages
+        // 2. ADD MAIN INDEX PAGES (Halaman List Utama)
+        $mainIndexes = [
+            '/jual-sewa',
+            '/info'
+        ];
+        
+        foreach ($mainIndexes as $page) {
+            $sitemap .= '
+                <url>
+                    <loc>' . $baseUrl . $page . '</loc>
+                    <lastmod>' . now()->toAtomString() . '</lastmod>
+                    <changefreq>weekly</changefreq>
+                    <priority>0.9</priority>
+                </url>';
+        }
+
+        // 3. ADD STATIC PAGES (Halaman Informasi Statis)
         $staticPages = [
-            '/about-us',
-            '/services',
-            '/catalog',
-            '/articles',
-            '/contact-us',
+            '/tentang-kami',
+            '/layanan',
+            '/kontak',
             '/sitemap'
         ];
         
@@ -95,43 +110,43 @@ class SitemapController extends Controller
                 </url>';
         }
         
-        // --- ADD SERVICES LIST (Baru) ---
+        // 4. ADD SERVICES LIST (Detail Jasa / Repair)
         $services = Service::where('is_active', true)->get(['slug', 'updated_at']);
         foreach ($services as $service) {
             $sitemap .= '
                 <url>
-                    <loc>' . $baseUrl . '/service/' . $service->slug . '</loc>
+                    <loc>' . $baseUrl . '/layanan/' . $service->slug . '</loc>
                     <lastmod>' . ($service->updated_at ? $service->updated_at->toAtomString() : now()->toAtomString()) . '</lastmod>
                     <changefreq>monthly</changefreq>
                     <priority>0.8</priority>
                 </url>';
         }
         
-        // Add articles
+        // 5. ADD PRODUCTS LIST (Detail Unit Jual / Sewa - Set ke Weekly untuk Update Stok/Harga)
+        $products = Product::where('status', 'published')->get(['slug', 'updated_at']);
+        foreach ($products as $product) {
+            $sitemap .= '
+                <url>
+                    <loc>' . $baseUrl . '/jual-sewa/' . $product->slug . '</loc>
+                    <lastmod>' . $product->updated_at->toAtomString() . '</lastmod>
+                    <changefreq>weekly</changefreq>
+                    <priority>0.8</priority>
+                </url>';
+        }
+        
+        // 6. ADD ARTICLES LIST (Detail Blog - Mengikuti Rute Root Catch-All '/{slug}')
         $articles = Article::where('status', 'published')->get(['slug', 'updated_at']);
         foreach ($articles as $article) {
             $sitemap .= '
                 <url>
-                    <loc>' . $baseUrl . '/articles/' . $article->slug . '</loc>
+                    <loc>' . $baseUrl . '/' . $article->slug . '</loc>
                     <lastmod>' . $article->updated_at->toAtomString() . '</lastmod>
                     <changefreq>monthly</changefreq>
                     <priority>0.7</priority>
                 </url>';
         }
         
-        // Add products
-        $products = Product::where('status', 'published')->get(['slug', 'updated_at']);
-        foreach ($products as $product) {
-            $sitemap .= '
-                <url>
-                    <loc>' . $baseUrl . '/catalog/' . $product->slug . '</loc>
-                    <lastmod>' . $product->updated_at->toAtomString() . '</lastmod>
-                    <changefreq>monthly</changefreq>
-                    <priority>0.8</priority>
-                </url>';
-        }
-        
-        // Add testimonials
+        // 7. ADD TESTIMONIALS PAGE
         $sitemap .= '
             <url>
                 <loc>' . $baseUrl . '/testimonial</loc>

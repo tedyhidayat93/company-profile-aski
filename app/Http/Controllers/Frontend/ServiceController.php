@@ -38,7 +38,7 @@ class ServiceController extends Controller
                             'title'       => $service->name,
                             'slug'        => $service->slug,
                             'description' => $service->short_description ?? $service->description ?? '',
-                            'image'       => $service->image ?: '/images/placeholder.png',
+                            'image'       => $this->resolveImagePath($service->image),
                         ];
                     });
             }
@@ -118,7 +118,7 @@ class ServiceController extends Controller
             ->where('is_active', true)
             ->where('id', '!=', $service->id)
             ->orderBy('sequence')
-            ->limit(3)
+            ->limit(10)
             ->get(['id', 'name', 'slug', 'image'])
             ->map(function ($item) {
                 return [
@@ -195,6 +195,63 @@ class ServiceController extends Controller
                 });
             }
         );
+    }
+
+    private function transformProduct(
+        Product $product
+    ): array {
+
+        return [
+            'id' => $product->id,
+
+            'name' => $product->name,
+
+            'slug' => $product->slug,
+
+            'type' => $product->type,
+
+            'quantity' => $product->quantity,
+
+            'category' => $product->category,
+
+            'price' => $product->price,
+
+            'compare_at_price' =>
+                $product->compare_at_price,
+
+            'stock' =>
+                $product->quantity ?? 0,
+
+            'image' => $this->resolveImagePath(
+                $product->coverImage?->image_path
+            ),
+
+            'description' =>
+                $product->short_description
+                ?? $product->description
+                ?? '',
+
+            'is_bestseller' =>
+                $product->is_bestseller ?? false,
+
+            'show_price' =>
+                $product->show_price,
+
+            'show_stock' =>
+                $product->show_stock,
+
+            'is_new' =>
+                $product->is_new ?? false,
+
+            'is_featured' =>
+                $product->is_featured ?? false,
+
+            'is_for_sell' =>
+                $product->is_for_sell ?? false,
+
+            'is_rent' =>
+                $product->is_rent ?? false,
+        ];
     }
 
     private function resolveImagePath(?string $path): string

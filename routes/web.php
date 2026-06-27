@@ -34,38 +34,8 @@ use App\Http\Controllers\BackPanel\Authorization\{
 };
 use Illuminate\Support\Facades\Route;
 
-// API Configuration for Frontend
+// API Configuration for Frontend (Biarkan di atas/terpisah)
 Route::get('/api/configurations/{group?}', [App\Http\Controllers\Frontend\ConfigurationController::class, 'index'])->name('api.configurations');
-
-// Frontend (Public)
-Route::get('/', [HomepageController::class, 'index'])->name('homepage');
-
-Route::get('/testimonial', [TestimonialFrontendController::class, 'index'])->name('testimonial.index');
-Route::match(['get', 'post'], '/testimonial/send-your-testimoni', [TestimonialFrontendController::class, 'submit'])->name('testimonial.submit');
-Route::get('/testimonial/maps', [TestimonialFrontendController::class, 'maps'])->name('testimonial.maps');
-
-Route::get('/contact-us', [ContactUsController::class, 'index'])->name('contact-us.index');
-Route::get('/about-us', [ContactUsController::class, 'about'])->name('about-us.index');
-Route::get('/services', [ServiceFrontendController::class, 'index'])->name('service.index');
-Route::get('/service/{slug}', [ServiceFrontendController::class, 'show'])->name('service.show');
-
-Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
-Route::post('/catalog/order', [CatalogController::class, 'order'])->name('catalog.order')->middleware('throttle:product-order');
-Route::get('/catalog/{id}', [CatalogController::class, 'show'])
-    ->name('catalog.show');
-Route::get('/catalog/{category}', function($category) {
-    return 'Catalog category: ' . $category;
-})->name('catalog.category');
-
-Route::prefix('articles')->name('article.')->group(function () {
-    Route::get('/', [BlogController::class, 'index'])->name('index');
-    Route::get('/{slug}', [BlogController::class, 'show'])->name('show');
-    Route::get('/category/{slug}', [BlogController::class, 'category'])->name('category');
-    Route::get('/tag/{slug}', [BlogController::class, 'tag'])->name('tag');
-});
-
-Route::get('/sitemap', [SitemapController::class, 'index'])->name('sitemap');
-Route::get('/sitemap.xml', [SitemapController::class, 'xml'])->name('sitemap.xml');
 
 
 // Control Panel (Admin)
@@ -296,3 +266,46 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });    
     });
 });
+
+
+// ==========================================
+// FRONTEND (PUBLIC) - SEO OPTIMIZED
+// ==========================================
+Route::get('/', [HomepageController::class, 'index'])->name('homepage');
+Route::get('/tentang-kami', [ContactUsController::class, 'about'])->name('about-us.index');
+Route::get('/kontak', [ContactUsController::class, 'index'])->name('contact-us.index');
+Route::get('/sitemap', [SitemapController::class, 'index'])->name('sitemap.index');
+
+// --- SERVICES SECTION (Sangat Bagus untuk SEO Layanan) ---
+Route::get('/layanan', [ServiceFrontendController::class, 'index'])->name('service.index');
+Route::get('/layanan/{slug}', [ServiceFrontendController::class, 'show'])->name('service.show');
+
+// --- CATALOG SECTION (Sudah Diperbaiki dari Slash Ganda) ---
+Route::prefix('jual-sewa')->name('catalog.')->group(function () {
+    Route::get('/', [CatalogController::class, 'index'])->name('index');
+    Route::post('/order', [CatalogController::class, 'order'])->name('order')->middleware('throttle:product-order');
+    
+    // Dilokalkan menjadi /kategori/ agar senada dengan pasar Indonesia
+    Route::get('/kategori/{category}', function($category) {
+        return 'Catalog category: ' . $category;
+    })->name('category');
+    
+    Route::get('/{slug}', [CatalogController::class, 'show'])->name('show'); 
+});
+
+// --- TESTIMONIALS ---
+Route::prefix('testimonial')->name('testimonial.')->group(function () {
+    Route::get('/', [TestimonialFrontendController::class, 'index'])->name('index');
+    Route::get('/maps', [TestimonialFrontendController::class, 'maps'])->name('maps');
+    Route::post('/send-your-testimoni', [TestimonialFrontendController::class, 'submit'])->name('submit');
+});
+
+// --- ARTICLES / BLOG SECTION (Menggunakan /info yang sangat kasual & informatif) ---
+Route::prefix('info')->name('article.')->group(function () {
+    Route::get('/', [BlogController::class, 'index'])->name('index');
+    Route::get('/kategori/{slug}', [BlogController::class, 'category'])->name('category');
+    Route::get('/tag/{slug}', [BlogController::class, 'tag'])->name('tag');
+});
+
+// --- CATCH-ALL ROUTE FOR BLOG DETAIL (Wajib paling bawah) ---
+Route::get('/{slug}', [BlogController::class, 'show'])->name('show');
