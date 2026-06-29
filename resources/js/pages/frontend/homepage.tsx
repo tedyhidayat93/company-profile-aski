@@ -49,7 +49,7 @@ export default function Homepage({
       setIsSearching(true);
 
       setTimeout(() => {
-        router.get('/catalog', {}, {
+        router.get('/katalog', {}, {
           preserveState: false,
           preserveScroll: true,
           onFinish: () => setIsSearching(false),
