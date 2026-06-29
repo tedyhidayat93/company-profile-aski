@@ -63,7 +63,7 @@ export default function Homepage({
 
     setTimeout(() => {
       router.get(
-        '/catalog',
+        '/katalog',
         { search: query },
         {
           preserveState: true,
