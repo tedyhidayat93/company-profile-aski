@@ -105,29 +105,37 @@ class AppServiceProvider extends ServiceProvider
                     ->root()
                     ->active()
                     ->orderBy('lft')
-                    ->select(['id', 'name', 'slug', 'description', 'meta_title', 'meta_description'])
+                    ->select(['id', 'name', 'slug', 'image', 'description', 'meta_title', 'meta_description'])
                     ->with(['children' => function($query) {
-                        $query->select(['id', 'parent_id', 'name', 'slug', 'description'])->active()->orderBy('lft');
+                        $query->select(['id', 'parent_id', 'name', 'slug', 'image', 'description'])->active()->orderBy('lft');
                     }])
                     ->get()
                     ->map(function ($rootCategory) {
                         // 🔄 Lakukan transformasi data langsung di sini
                         return [
-                            'title'       => $rootCategory->name,
-                            'slug'        => $rootCategory->slug,
-                            'description' => $rootCategory->description,
-                            'items'       => $rootCategory->children && $rootCategory->children->isNotEmpty()
+                            'title'             => $rootCategory->name,
+                            'slug'              => $rootCategory->slug,
+                            'description'       => $rootCategory->description,
+                            'meta_description'  => $rootCategory->meta_description,
+                            'meta_title'        => $rootCategory->meta_title,
+                            'image'             => resolve_image_path($rootCategory->image),
+                            'items'              => $rootCategory->children && $rootCategory->children->isNotEmpty()
                                 ? $rootCategory->children->map(function ($child) {
                                     return [
-                                        'name' => $child->name,
-                                        'description' => $child->description,
-                                        'href' => "/jual-sewa?category={$child->slug}",
+                                        'name'              => $child->name,
+                                        'slug'              => $child->slug,
+                                        'description'       => $child->description,
+                                        'meta_description'  => $child->meta_description,
+                                        'meta_title'        => $child->meta_title,
+                                        'image'             => resolve_image_path($child->image),
+                                        'href'              => "/produk/{$child->slug}",
+                                        // 'href'              => "/katalog?category={$child->slug}",
                                     ];
                                 })->toArray()
                                 : [
                                     [
                                         'name' => "Lihat Semua {$rootCategory->title}",
-                                        'href' => "/jual-sewa?category={$rootCategory->slug}",
+                                        'href' => "/katalog?category={$rootCategory->slug}",
                                     ]
                                 ],
                         ];

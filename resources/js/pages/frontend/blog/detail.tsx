@@ -145,7 +145,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
 
                         {/* Isi Konten Artikel */}
                         <div
-                            className="tinymce-content prose prose-slate dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed space-y-4"
+                            className="tinymce-content"
                             dangerouslySetInnerHTML={{ __html: post.content }}
                         />
 

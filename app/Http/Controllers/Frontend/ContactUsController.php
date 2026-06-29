@@ -126,7 +126,7 @@ class ContactUsController extends Controller
                             'title'       => $service->name,
                             'slug'        => $service->slug,
                             'description' => $service->short_description ?? $service->description ?? '',
-                            'image'       => $this->resolveImagePath($service->image),
+                            'image'       => resolve_image_path($service->image),
                         ];
                     });
             }

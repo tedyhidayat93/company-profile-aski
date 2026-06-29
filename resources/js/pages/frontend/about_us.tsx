@@ -105,6 +105,7 @@ export default function AboutUs({ seo, data }: Props) {
                             <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 rounded-3xl p-8 shadow-sm flex flex-col justify-between min-h-[220px] relative overflow-hidden">
                                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-orange-500/5 rounded-full blur-2xl" />
                                 <div className="space-y-2 relative z-10">
+                                    <div className='text-xs px-4 border-2 border-orange-300 rounded-full py-1 font-bold bg-orange-300/20 w-max'>Lebih Detail Tentang Kami</div>
                                     <div className="text-slate-900 dark:text-white font-black text-lg tracking-tight">{data.site_name || `Alumoda PT. Sinergi Kontainer Indonesia`}</div>
                                     <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
                                         {data.meta_description || `Menyediakan kontainer standar internasional dengan akreditasi perbaikan teruji dan modifikasi struktural kreatif untuk memperkuat logistik bisnis Anda.`}
@@ -116,7 +117,7 @@ export default function AboutUs({ seo, data }: Props) {
                                             href={`/storage/${data.about_us.company_profile_pdf}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 bg-slate-900 hover:bg-orange-600 dark:bg-slate-800 dark:hover:bg-orange-600 text-white font-bold py-3 px-5 rounded-xl text-xs transition duration-300 shadow-sm"
+                                            className="inline-flex justify-center w-full items-center gap-2 bg-slate-900 hover:bg-orange-600 dark:bg-slate-800 dark:hover:bg-orange-600 text-white font-bold py-3 px-5 rounded-xl text-xs transition duration-300 shadow-sm"
                                         >
                                             <FileDown className="w-4 h-4" /> Unduh Company Profile (PDF)
                                         </a>
@@ -150,7 +151,7 @@ export default function AboutUs({ seo, data }: Props) {
                                             Visi Kami
                                         </h2>
                                         <div 
-                                            className="text-slate-300 text-sm md:text-base leading-relaxed [&_p]:mb-3 last:[&_p]:mb-0 [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5 [&_strong]:text-white [&_strong]:font-semibold"
+                                            className="tinymce-content"
                                             dangerouslySetInnerHTML={{ __html: data.about_us.vision }} 
                                         />
                                     </div>

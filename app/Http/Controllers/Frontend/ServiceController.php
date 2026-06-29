@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Configuration;
 use App\Models\Service;
-use App\Models\Product; // Pastikan model Product di-import
+use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache; // Pastikan Cache di-import
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use App\Traits\TracksVisitors;
 
@@ -38,7 +39,7 @@ class ServiceController extends Controller
                             'title'       => $service->name,
                             'slug'        => $service->slug,
                             'description' => $service->short_description ?? $service->description ?? '',
-                            'image'       => $this->resolveImagePath($service->image),
+                            'image'       => resolve_image_path($service->image),
                         ];
                     });
             }
@@ -58,19 +59,19 @@ class ServiceController extends Controller
         */
         $seoConfigs = Configuration::query()
             ->whereIn('key', [
-                'service_meta_image',
-                'service_meta_title',
-                'service_meta_description',
+                'services_meta_image',
+                'services_meta_title',
+                'services_meta_description',
                 'meta_keywords',
             ])
             ->pluck('value', 'key');
         
         $seo = [
-            'title'       => !empty($seoConfigs['service_meta_title']) ? strip_tags($seoConfigs['service_meta_title']) : 'Our Services',
-            'description' => !empty($seoConfigs['service_meta_description']) ? strip_tags($seoConfigs['service_meta_description']) : 'Layanan terbaik dari Alumoda Sinergi Kontainer Indonesia.',
+            'title'       => !empty($seoConfigs['services_meta_title']) ? strip_tags($seoConfigs['services_meta_title']) : 'Our Services',
+            'description' => !empty($seoConfigs['services_meta_description']) ? strip_tags($seoConfigs['services_meta_description']) : 'Layanan terbaik dari Alumoda Sinergi Kontainer Indonesia.',
             'keywords'    => !empty($seoConfigs['meta_keywords']) ? strip_tags($seoConfigs['meta_keywords']) : 'service container, modifikasi container',
-            'image'       => !empty($seoConfigs['service_meta_image'])
-                ? asset('storage/' . $seoConfigs['service_meta_image'])
+            'image'       => !empty($seoConfigs['services_meta_image'])
+                ? asset('storage/' . $seoConfigs['services_meta_image'])
                 : asset('images/placeholder.png'),
             'type'        => 'website',
         ];
@@ -98,7 +99,7 @@ class ServiceController extends Controller
             'description' => $service->description ?? '',
             'short_description' => $service->short_description ?? '',
             'content'     => $service->content ?? '',
-            'image'       => $this->resolveImagePath($service->image),
+            'image'       => resolve_image_path($service->image),
         ];
 
         /*
@@ -125,7 +126,7 @@ class ServiceController extends Controller
                     'id'    => $item->id,
                     'title' => $item->name,
                     'slug'  => $item->slug,
-                    'image' => $this->resolveImagePath($item->image),
+                    'image' => resolve_image_path($item->image),
                 ];
             });
 
@@ -139,58 +140,151 @@ class ServiceController extends Controller
                 'description' => $service->meta_description 
                     ? strip_tags($service->meta_description) 
                     : str(strip_tags($service->description))->limit(160),
-                'image'       => $this->resolveImagePath($service->image),
+                'image'       => resolve_image_path($service->image),
                 'keywords'    => $service->meta_keywords ? strip_tags($service->meta_keywords) : '',
                 'type'        => 'article',
             ],
         ]);
     }
 
-    /**
-     * Helper khusus untuk mengambil produk acak (max 6) dengan cache jangka pendek
-     */
-    private function getRandomProducts()
+    public function products(Request $request)
     {
-        // Cache dikurangi menjadi 5 menit agar efek "random" terasa saat user berpindah halaman atau refresh
+        $this->trackPageVisit($request, 'Our Products Index');
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEO Config
+        |--------------------------------------------------------------------------
+        */
+        $seoConfigs = Configuration::query()
+            ->whereIn('key', [
+                'product_meta_image',
+                'product_meta_title',
+                'product_meta_description',
+                'meta_keywords',
+            ])
+            ->pluck('value', 'key');
+        
+        $seo = [
+            'title'       => !empty($seoConfigs['product_meta_title']) ? strip_tags($seoConfigs['product_meta_title']) : 'Our Products',
+            'description' => !empty($seoConfigs['product_meta_description']) ? strip_tags($seoConfigs['product_meta_description']) : 'Produk terbaik dari Alumoda Sinergi Kontainer Indonesia.',
+            'keywords'    => !empty($seoConfigs['meta_keywords']) ? strip_tags($seoConfigs['meta_keywords']) : 'service container, modifikasi container',
+            'image'       => !empty($seoConfigs['product_meta_image'])
+                ? asset('storage/' . $seoConfigs['product_meta_image'])
+                : asset('images/placeholder.png'),
+            'type'        => 'website',
+        ];
+
+        return Inertia::render('frontend/product/index', [
+            'seo' => $seo,
+        ]);
+    }
+
+    public function productDetail(Request $request, string $slug)
+    {
+        $this->trackPageVisit($request, 'Product Detail - ' . $slug);
+
+        // Mengambil detail kategori produk berdasarkan slug
+        $productCategory = Category::query()
+            ->where('is_active', true)
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        $productDetail = [
+            'id'                => $productCategory->id,
+            'title'             => $productCategory->name,
+            'description'       => $productCategory->description ?? '',
+            'short_description' => $productCategory->short_description ?? '',
+            'content'           => $productCategory->content ?? '',
+            'image'             => resolve_image_path($productCategory->image),
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Varian / List Produk Terkait (Random & Limit 8 Berdasarkan Slug)
+        |--------------------------------------------------------------------------
+        */
+        $catalogRandom = $this->getRandomProducts($slug);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Kategori Utama Pendukung Lainnya
+        |--------------------------------------------------------------------------
+        */
+        $relatedCategories = Category::ofType('product')
+            ->active()
+            ->orderBy('lft')
+            ->select(['id', 'name', 'slug', 'image', 'description', 'meta_title', 'meta_description'])
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id'    => $item->id,
+                    'title' => $item->name,
+                    'slug'  => $item->slug,
+                    'image' => resolve_image_path($item->image),
+                ];
+            });
+
+        return Inertia::render('frontend/product/detail', [
+            'product'            => $productDetail,
+            'products'           => $catalogRandom,
+            'related_categories' => $relatedCategories,
+            'seo' => [
+                'title'       => $productCategory->meta_title ? strip_tags($productCategory->meta_title) : $productCategory->name,
+                'description' => $productCategory->meta_description 
+                    ? strip_tags($productCategory->meta_description) 
+                    : str(strip_tags($productCategory->description))->limit(160),
+                'image'       => resolve_image_path($productCategory->image),
+                'keywords'    => $productCategory->meta_keywords ? strip_tags($productCategory->meta_keywords) : '',
+                'type'        => 'article',
+            ],
+        ]);
+    }
+
+    private function getRandomProducts($slug = null)
+    {
+        // Buat cache key dinamis berdasarkan slug agar data tidak saling menimpa
+        $cacheKey = 'products.random.' . ($slug ?? 'all');
+
+        // Cache disimpan selama 5 menit agar efek acak tetap terasa saat refresh berkala
         return Cache::remember(
-            'service.products.random',
+            $cacheKey,
             now()->addMinutes(5),
-            function () {
-                $baseQuery = Product::query()
+            function () use ($slug) {
+                $products = Product::query()
                     ->published()
                     ->with([
                         'brand:id,name',
                         'category:id,name,slug',
                         'coverImage',
-                    ]);
-
-                $featuredProducts = (clone $baseQuery)
-                    ->where('is_featured', true)
-                    ->inRandomOrder() // Dibuat random sesuai request
-                    ->limit(8)        // Dibatasi hanya 6
+                    ])
+                    // Jika slug diisi, filter berdasarkan slug milik relasi category
+                    ->when($slug, function ($query) use ($slug) {
+                        return $query->whereHas('category', function ($q) use ($slug) {
+                            $q->where('slug', $slug);
+                        });
+                    })
+                    ->inRandomOrder() // Acak data langsung dari database
+                    ->limit(8)
                     ->get();
 
-                $products = $featuredProducts->isNotEmpty()
-                    ? $featuredProducts
-                    : (clone $baseQuery)
-                        ->orderByDesc('views')
-                        ->inRandomOrder() // Fallback-nya juga di-random jika featured kosong
-                        ->limit(8)
-                        ->get();
-
-                // Pastikan Anda memproses transformProduct() di bawah ini atau ganti manual jika method-nya tidak ada
                 return $products->map(function ($product) {
                     if (method_exists($this, 'transformProduct')) {
                         return $this->transformProduct($product);
                     }
 
-                    // Fallback jika method transformProduct belum didefinisikan di controller ini
+                    // Fallback mapper jika method transformProduct tidak tersedia
                     return [
-                        'id'    => $product->id,
-                        'name'  => $product->name,
-                        'slug'  => $product->slug,
-                        'image' => $product->coverImage ? $this->resolveImagePath($product->coverImage->path) : '/images/placeholder.png',
-                        'brand' => $product->brand ? $product->brand->name : null,
+                        'id'       => $product->id,
+                        'name'     => $product->name,
+                        'slug'     => $product->slug,
+                        'image'    => $product->coverImage ? resolve_image_path($product->coverImage->path) : '/images/placeholder.png',
+                        'brand'    => $product->brand ? $product->brand->name : null,
+                        'category' => $product->category ? [
+                            'id'   => $product->category->id,
+                            'name' => $product->category->name,
+                            'slug' => $product->category->slug,
+                        ] : null,
                     ];
                 });
             }
@@ -222,7 +316,7 @@ class ServiceController extends Controller
             'stock' =>
                 $product->quantity ?? 0,
 
-            'image' => $this->resolveImagePath(
+            'image' => resolve_image_path(
                 $product->coverImage?->image_path
             ),
 
@@ -252,20 +346,5 @@ class ServiceController extends Controller
             'is_rent' =>
                 $product->is_rent ?? false,
         ];
-    }
-
-    private function resolveImagePath(?string $path): string
-    {
-        $baseUrl = rtrim(config('app.url'), '/');
-        
-        if (empty($path)) {
-            return $baseUrl . '/images/placeholder.png';
-        }
-
-        if (filter_var($path, FILTER_VALIDATE_URL)) {
-            return $path;
-        }
-
-        return $baseUrl . '/storage/' . ltrim($path, '/');
     }
 }

@@ -210,7 +210,7 @@ class BlogController extends Controller
         $post->increment('views_count');
         
         // Manipulate featured image
-        $post->featured_image = $this->resolveImagePath($post->featured_image);
+        $post->featured_image = resolve_image_path($post->featured_image);
 
         /*
         |--------------------------------------------------------------------------
@@ -234,7 +234,7 @@ class BlogController extends Controller
                 'published_at',
             ])
             ->map(function ($item) {
-                $item->featured_image = $this->resolveImagePath($item->featured_image);
+                $item->featured_image = resolve_image_path($item->featured_image);
 
                 return $item;
             });

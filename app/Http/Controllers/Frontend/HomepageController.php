@@ -337,7 +337,7 @@ class HomepageController extends Controller
             'stock' =>
                 $product->quantity ?? 0,
 
-            'image' => $this->resolveImagePath(
+            'image' => resolve_image_path(
                 $product->coverImage?->image_path
             ),
 

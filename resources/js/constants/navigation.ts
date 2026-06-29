@@ -3,7 +3,7 @@ export const NAV_LINKS = [
   { name: 'Beranda', href: '/' },
   { name: 'Tentang Kami', href: '/tentang-kami' },
   { name: 'Layanan Kami', href: '/layanan' },
-  { name: 'Katalog Produk', href: '/jual-sewa' },
+  { name: 'Katalog Produk', href: '/katalog' },
   { name: 'Testimoni & Ulasan', href: '/testimonial' },
   { name: 'Artikel & Berita', href: '/info' },
   { name: 'Kontak Kami', href: '/kontak' },

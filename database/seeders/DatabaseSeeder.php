@@ -30,6 +30,11 @@ class DatabaseSeeder extends Seeder
             CompanyProfileSeeder::class,
             OperationalHourSeeder::class,
             AboutSeeder::class,
+            SeoAboutPageSeeder::class,
+
+            // new
+            SeoProductPageSeeder::class,
+            HeadingCatalogHomePageSectionSeeder::class
         ]);
 
 

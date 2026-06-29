@@ -137,7 +137,7 @@ export default function Wishlist({ isOpen, onClose, items, onRemove }: WishlistP
                                                             <div className="flex justify-center flex-col items-start">
                                                                 <h3 className="text-sm md:text-base font-semibold text-gray-900 dark:text-white line-clamp-2">
                                                                     <Link 
-                                                                        href={`/jual-sewa/${item.slug}`}
+                                                                        href={`/katalog/${item.slug}`}
                                                                         className="hover:text-primary"
                                                                         onClick={onClose}
                                                                     >
@@ -145,7 +145,7 @@ export default function Wishlist({ isOpen, onClose, items, onRemove }: WishlistP
                                                                     </Link>
                                                                 </h3>
                                                                 <Link
-                                                                    href={`/jual-sewa/${item.slug}`}
+                                                                    href={`/katalog/${item.slug}`}
                                                                     className="mt-1 text-sm text-gray-500 dark:text-gray-300 hover:text-primary"
                                                                     onClick={onClose}
                                                                 >
@@ -175,7 +175,7 @@ export default function Wishlist({ isOpen, onClose, items, onRemove }: WishlistP
                                     <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
                                         <div className="mt-6">
                                             <Link
-                                                href="/jual-sewa"
+                                                href="/katalog"
                                                 className="flex items-center justify-center rounded-md border border-transparent bg-primary px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary/90"
                                                 onClick={onClose}
                                             >

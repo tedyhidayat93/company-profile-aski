@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Product;
 use App\Models\Service;
+use App\Models\Category; // Pastikan model Category di-import
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Traits\TracksVisitors;
@@ -22,27 +23,34 @@ class SitemapController extends Controller
         // Track visitor
         $this->trackPageVisit($request, 'Sitemap');
         
-        // Get all active services
+        // 1. Ambil data Layanan Terpilih
         $services = Service::where('is_active', true)
             ->orderBy('sequence')
             ->get(['id', 'name', 'slug', 'updated_at']);
 
-        // Get all published articles
+        // 2. Ambil data Kategori Utama yang bertipe Product
+        $productCategories = Category::ofType('product')
+            ->root()
+            ->active()
+            ->get(['id', 'name', 'slug', 'updated_at']);
+
+        // 3. Ambil data Produk Unit
+        $products = Product::where('status', 'published')
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug', 'updated_at']);
+
+        // 4. Ambil data Artikel / Info Blog
         $articles = Article::where('status', 'published')
             ->orderBy('published_at', 'desc')
             ->get(['id', 'title', 'slug', 'published_at']);
 
-        // Get all active products
-        $products = Product::where('status', 'published')
-            ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'created_at']);
-
-        // Navigation links dari constants (Diselaraskan dengan URL Baru Terlokalisasi)
+        // Navigation links disesuaikan akurat mengikuti rute web.php terbaru
         $navigation = [
             ['name' => 'Beranda', 'href' => '/'],
             ['name' => 'Layanan', 'href' => '/layanan'],
+            ['name' => 'Produk', 'href' => '/produk'], 
             ['name' => 'Tentang Kami', 'href' => '/tentang-kami'],
-            ['name' => 'Katalog Produk', 'href' => '/jual-sewa'],
+            ['name' => 'Katalog Referensi', 'href' => '/katalog'], 
             ['name' => 'Info & Artikel', 'href' => '/info'],
             ['name' => 'Testimoni', 'href' => '/testimonial'],
             ['name' => 'Kontak Kami', 'href' => '/kontak'],
@@ -50,10 +58,11 @@ class SitemapController extends Controller
         ];
 
         return Inertia::render('frontend/sitemap', [
-            'services'   => $services ?? [],
-            'articles'   => $articles ?? [],
-            'products'   => $products ?? [],
-            'navigation' => $navigation ?? [],
+            'services'           => $services ?? [],
+            'product_categories' => $productCategories ?? [], // Dilempar ke frontend React
+            'products'           => $products ?? [],
+            'articles'           => $articles ?? [],
+            'navigation'         => $navigation ?? [],
         ]);
     }
 
@@ -76,9 +85,11 @@ class SitemapController extends Controller
                 <priority>1.0</priority>
             </url>';
         
-        // 2. ADD MAIN INDEX PAGES (Halaman List Utama)
+        // 2. ADD MAIN INDEX PAGES (Halaman Indeks Utama)
         $mainIndexes = [
-            '/jual-sewa',
+            '/layanan',
+            '/produk',
+            '/katalog',
             '/info'
         ];
         
@@ -92,12 +103,12 @@ class SitemapController extends Controller
                 </url>';
         }
 
-        // 3. ADD STATIC PAGES (Halaman Informasi Statis)
+        // 3. ADD STATIC PAGES
         $staticPages = [
             '/tentang-kami',
-            '/layanan',
             '/kontak',
-            '/sitemap'
+            '/sitemap',
+            '/testimonial'
         ];
         
         foreach ($staticPages as $page) {
@@ -110,7 +121,7 @@ class SitemapController extends Controller
                 </url>';
         }
         
-        // 4. ADD SERVICES LIST (Detail Jasa / Repair)
+        // 4. ADD SERVICES LIST (Detail Jasa - Rute: /layanan/{slug})
         $services = Service::where('is_active', true)->get(['slug', 'updated_at']);
         foreach ($services as $service) {
             $sitemap .= '
@@ -121,39 +132,42 @@ class SitemapController extends Controller
                     <priority>0.8</priority>
                 </url>';
         }
-        
-        // 5. ADD PRODUCTS LIST (Detail Unit Jual / Sewa - Set ke Weekly untuk Update Stok/Harga)
-        $products = Product::where('status', 'published')->get(['slug', 'updated_at']);
-        foreach ($products as $product) {
+
+        // 5. ADD PRODUCT CATEGORIES (Rute: /produk/{category})
+        $categories = Category::ofType('product')->root()->active()->get(['slug', 'updated_at']);
+        foreach ($categories as $category) {
             $sitemap .= '
                 <url>
-                    <loc>' . $baseUrl . '/jual-sewa/' . $product->slug . '</loc>
-                    <lastmod>' . $product->updated_at->toAtomString() . '</lastmod>
+                    <loc>' . $baseUrl . '/produk/' . $category->slug . '</loc>
+                    <lastmod>' . ($category->updated_at ? $category->updated_at->toAtomString() : now()->toAtomString()) . '</lastmod>
                     <changefreq>weekly</changefreq>
                     <priority>0.8</priority>
                 </url>';
         }
         
-        // 6. ADD ARTICLES LIST (Detail Blog - Mengikuti Rute Root Catch-All '/{slug}')
+        // 6. ADD PRODUCTS LIST (Detail Unit Produk - Rute: /katalog/{slug})
+        $products = Product::where('status', 'published')->get(['slug', 'updated_at']);
+        foreach ($products as $product) {
+            $sitemap .= '
+                <url>
+                    <loc>' . $baseUrl . '/katalog/' . $product->slug . '</loc>
+                    <lastmod>' . ($product->updated_at ? $product->updated_at->toAtomString() : now()->toAtomString()) . '</lastmod>
+                    <changefreq>weekly</changefreq>
+                    <priority>0.8</priority>
+                </url>';
+        }
+        
+        // 7. ADD ARTICLES LIST (Detail Blog - Mengikuti Catch-All Root Route: /{slug})
         $articles = Article::where('status', 'published')->get(['slug', 'updated_at']);
         foreach ($articles as $article) {
             $sitemap .= '
                 <url>
                     <loc>' . $baseUrl . '/' . $article->slug . '</loc>
-                    <lastmod>' . $article->updated_at->toAtomString() . '</lastmod>
+                    <lastmod>' . ($article->updated_at ? $article->updated_at->toAtomString() : now()->toAtomString()) . '</lastmod>
                     <changefreq>monthly</changefreq>
                     <priority>0.7</priority>
                 </url>';
         }
-        
-        // 7. ADD TESTIMONIALS PAGE
-        $sitemap .= '
-            <url>
-                <loc>' . $baseUrl . '/testimonial</loc>
-                <lastmod>' . now()->toAtomString() . '</lastmod>
-                <changefreq>monthly</changefreq>
-                <priority>0.7</priority>
-            </url>';
         
         $sitemap .= '</urlset>';
         

@@ -340,7 +340,7 @@ class CatalogController extends Controller
             ? $product->images->map(function ($image) {
                 return [
                     'id' => $image->id,
-                    'path' => $this->resolveImagePath(
+                    'path' => resolve_image_path(
                         $image->image_path
                     ),
                     'is_cover' => $image->is_cover,
@@ -407,7 +407,7 @@ class CatalogController extends Controller
                 ? implode(', ', $product->tags)
                 : '',
 
-            'image' => $this->resolveImagePath(
+            'image' => resolve_image_path(
                 $product->coverImage?->image_path
             ),
 
@@ -733,7 +733,7 @@ class CatalogController extends Controller
             'stock' =>
                 $product->quantity ?? 0,
 
-            'image' => $this->resolveImagePath(
+            'image' => resolve_image_path(
                 $product->coverImage?->image_path
             ),
 

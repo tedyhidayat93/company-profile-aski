@@ -281,8 +281,12 @@ Route::get('/sitemap.xml', [SitemapController::class, 'xml'])->name('sitemap.xml
 Route::get('/layanan', [ServiceFrontendController::class, 'index'])->name('service.index');
 Route::get('/layanan/{slug}', [ServiceFrontendController::class, 'show'])->name('service.show');
 
+Route::get('/produk', [ServiceFrontendController::class, 'products'])->name('service.products');
+Route::get('/produk/{slug}', [ServiceFrontendController::class, 'productDetail'])->name('service.product-detail');
+
+
 // --- CATALOG SECTION (Sudah Diperbaiki dari Slash Ganda) ---
-Route::prefix('jual-sewa')->name('catalog.')->group(function () {
+Route::prefix('katalog')->name('catalog.')->group(function () {
     Route::get('/', [CatalogController::class, 'index'])->name('index');
     Route::post('/order', [CatalogController::class, 'order'])->name('order')->middleware('throttle:product-order');
     
@@ -298,8 +302,9 @@ Route::prefix('jual-sewa')->name('catalog.')->group(function () {
 Route::prefix('testimonial')->name('testimonial.')->group(function () {
     Route::get('/', [TestimonialFrontendController::class, 'index'])->name('index');
     Route::get('/maps', [TestimonialFrontendController::class, 'maps'])->name('maps');
-    Route::post('/send-your-testimoni', [TestimonialFrontendController::class, 'submit'])->name('submit');
+    Route::match(['get', 'post'], '/send-your-testimoni', [TestimonialFrontendController::class, 'submit'])->name('testimonial.submit');
 });
+
 
 // --- ARTICLES / BLOG SECTION (Menggunakan /info yang sangat kasual & informatif) ---
 Route::prefix('info')->name('article.')->group(function () {

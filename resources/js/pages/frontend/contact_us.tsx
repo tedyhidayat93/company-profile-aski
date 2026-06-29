@@ -416,8 +416,7 @@ export default function ContactUs({ seo, data }: Props) {
                                         </div>
                                      )}
                                     <div 
-                                        className=" w-full h-[350px] lg:h-[480px] rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 shadow-inner
-                                            [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0 grayscale-[20%] contrast-[105%] dark:[&_iframe]:invert-[0.9] dark:[&_iframe]:hue-rotate-180 transition-all duration-300"
+                                        className="tinymce-content"
                                         dangerouslySetInnerHTML={{ __html: data.google_maps_embed }}
                                     />
                                 </div>
@@ -435,10 +434,7 @@ export default function ContactUs({ seo, data }: Props) {
                                         {/* Area Scroll Box Konten TinyMCE */}
                                         <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 space-y-2">
                                             <div 
-                                                className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed
-                                                    [&_h3]:text-sm [&_h3]:font-black [&_h3]:text-slate-900 dark:[&_h3]:text-white [&_h3]:mb-1 [&_h3]:mt-4 first:[&_h3]:mt-0 [&_h3]:tracking-tight
-                                                    [&_p]:text-slate-500 dark:[&_p]:text-slate-400 [&_p]:mb-3 [&_p]:font-medium
-                                                    [&_ul]:list-none [&_ul]:space-y-4"
+                                                className="tinymce-content"
                                                 dangerouslySetInnerHTML={{ __html: data.about_us.office_branch }}
                                             />
                                         </div>

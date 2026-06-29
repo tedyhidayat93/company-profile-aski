@@ -214,7 +214,7 @@ export default function ServiceDetail({ service, products = [], related_services
                                 Rekomendasi Untuk Anda
                             </h2>
                         </div>
-                        <Link href="/jual-sewa" className="text-orange-500 font-bold text-sm hover:underline">
+                        <Link href="/katalog" className="text-orange-500 font-bold text-sm hover:underline">
                             Lihat Semua Katalog
                         </Link>
                     </div>

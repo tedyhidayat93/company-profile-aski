@@ -125,7 +125,7 @@ class DashboardController extends Controller
             'id' => $product->id,
             'name' => $product->name,
             'searches' => $product->views,
-            'image_path' => $this->resolveImagePath($product->coverImage?->image_path)
+            'image_path' => resolve_image_path($product->coverImage?->image_path)
         ])->toArray();
     }
 
