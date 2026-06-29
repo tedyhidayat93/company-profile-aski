@@ -120,7 +120,7 @@ export default function HomepageProductTabs() {
                         {currentCategory.items && currentCategory.items.length > 0 ? (
                             currentCategory.items.map((item, key) => {
                                 const isFallbackItem = !item.image;
-                                const targetUrl = item.slug ? `/katalog/${item.slug}` : `/katalog/${currentCategory.slug}`;
+                                const targetUrl = item.slug ? `/produk/${item.slug}` : `/katalog?category=${currentCategory.slug}`;
 
                                 if (isFallbackItem) {
                                     return (
