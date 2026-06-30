@@ -204,7 +204,7 @@ class ServiceController extends Controller
         | Varian / List Produk Terkait (Random & Limit 8 Berdasarkan Slug)
         |--------------------------------------------------------------------------
         */
-        $catalogRandom = $this->getRandomProducts($slug);
+        $catalogRandom = $this->getRandomProducts($slug, 10);
 
         /*
         |--------------------------------------------------------------------------
@@ -241,7 +241,7 @@ class ServiceController extends Controller
         ]);
     }
 
-    private function getRandomProducts($slug = null)
+    private function getRandomProducts($slug = null, $show = 8)
     {
         // Buat cache key dinamis berdasarkan slug agar data tidak saling menimpa
         $cacheKey = 'products.random.' . ($slug ?? 'all');
@@ -250,7 +250,7 @@ class ServiceController extends Controller
         return Cache::remember(
             $cacheKey,
             now()->addMinutes(5),
-            function () use ($slug) {
+            function () use ($slug, $show) {
                 $products = Product::query()
                     ->published()
                     ->with([
@@ -265,7 +265,7 @@ class ServiceController extends Controller
                         });
                     })
                     ->inRandomOrder() // Acak data langsung dari database
-                    ->limit(8)
+                    ->limit($show)
                     ->get();
 
                 return $products->map(function ($product) {

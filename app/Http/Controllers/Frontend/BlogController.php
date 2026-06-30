@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\Configuration;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Cache;
 use App\Traits\TracksVisitors;
 
 class BlogController extends Controller
@@ -239,8 +241,12 @@ class BlogController extends Controller
                 return $item;
             });
 
+        $products = $this->getRandomProducts(null, 5);
+
+            
         return Inertia::render('frontend/blog/detail', [
             'post' => $post,
+            'random_products' => $products,
             'related_posts' => $relatedPosts,
             'seo' => [
                 'title' => $post->meta_title ? strip_tags($post->meta_title) : $post->title,
@@ -296,5 +302,55 @@ class BlogController extends Controller
         }
 
         return $baseUrl . '/storage/' . ltrim($path, '/');
+    }
+
+    private function getRandomProducts($slug = null, $show = 8)
+    {
+        // Buat cache key dinamis berdasarkan slug agar data tidak saling menimpa
+        $cacheKey = 'products.random.' . ($slug ?? 'all');
+
+        // Cache disimpan selama 5 menit agar efek acak tetap terasa saat refresh berkala
+        return Cache::remember(
+            $cacheKey,
+            now()->addMinutes(5),
+            function () use ($slug, $show) {
+                $products = Product::query()
+                    ->published()
+                    ->with([
+                        'brand:id,name',
+                        'category:id,name,slug',
+                        'coverImage',
+                    ])
+                    // Jika slug diisi, filter berdasarkan slug milik relasi category
+                    ->when($slug, function ($query) use ($slug) {
+                        return $query->whereHas('category', function ($q) use ($slug) {
+                            $q->where('slug', $slug);
+                        });
+                    })
+                    ->inRandomOrder() // Acak data langsung dari database
+                    ->limit($show)
+                    ->get();
+
+                return $products->map(function ($product) {
+                    if (method_exists($this, 'transformProduct')) {
+                        return $this->transformProduct($product);
+                    }
+
+                    // Fallback mapper jika method transformProduct tidak tersedia
+                    return [
+                        'id'       => $product->id,
+                        'name'     => $product->name,
+                        'slug'     => $product->slug,
+                        'image'    => $product->coverImage ? resolve_image_path($product->coverImage->path) : '/images/placeholder.png',
+                        'brand'    => $product->brand ? $product->brand->name : null,
+                        'category' => $product->category ? [
+                            'id'   => $product->category->id,
+                            'name' => $product->category->name,
+                            'slug' => $product->category->slug,
+                        ] : null,
+                    ];
+                });
+            }
+        );
     }
 }

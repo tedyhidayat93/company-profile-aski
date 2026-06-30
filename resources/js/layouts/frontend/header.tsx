@@ -28,7 +28,7 @@ interface MenuCategory {
 
 // Styling base untuk semua tombol Navigasi agar konsisten
 const navItemClassName = (isActive: boolean) => `
-  inline-flex items-center gap-1 rounded-full border-2 font-bold px-3 py-1.5 xl:px-5 text-sm xl:text-base dark:text-gray-300 transition-colors cursor-pointer outline-none whitespace-nowrap
+  inline-flex items-center gap-1 rounded-full border-2 font-bold px-3 py-1.5 xl:px-5 sm:text-xs xl:text-sm 2xl:text-base dark:text-gray-300 transition-colors cursor-pointer outline-none whitespace-nowrap
   ${isActive 
     ? 'border-orange-300 text-orange-600 bg-orange-400/20' 
     : 'border-white text-gray-900 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-400/20'
@@ -93,7 +93,7 @@ export default function Header() {
           currentPathname === '/catalog' || currentPathname.startsWith('/catalog/')
       },
       { 
-        name: 'Artikel & Informasi', 
+        name: 'Blog & Informasi', 
         id: 'article', 
         href: '/info', 
         isActive: currentPathname === '/info' || currentPathname.startsWith('/info/') 
@@ -165,7 +165,7 @@ export default function Header() {
             <div className="flex items-center justify-between h-16 lg:h-20">
               
               {/* Logo */}
-              <Link href="/" className="flex-shrink-0 h-13 w-auto">
+              <Link href="/" className="flex-shrink-0 h-12 w-auto">
                 <img
                   src={logoImage}
                   alt="Logo"
@@ -175,7 +175,7 @@ export default function Header() {
               </Link>
 
               {/* Desktop Nav Links */}
-              <div className="hidden lg:flex items-center space-x-2">
+              <div className="hidden lg:flex items-center">
                 {navLinks.map((link) => {
                   // Rendering CUSTOM DROPDOWN LAYANAN
                   if (link.type === 'dropdown-services') {
@@ -208,7 +208,7 @@ export default function Header() {
                             </div>
                             <div className="col-span-8 grid grid-cols-2 gap-4">
                               {footerServices.map((item, key) => (
-                                <Link key={key} href={`/layanan/${item.slug}`} className="group p-3 rounded-xl hover:border-l-4 hover:border-orange-400 hover:bg-orange-50/50 dark:hover:bg-slate-800 transition-colors">
+                                <Link key={key} href={`/layanan/${item.slug}`} className="group p-3 rounded-xl  hover:border-l-4 hover:border-orange-400 hover:bg-orange-50/50 dark:hover:bg-slate-800 transition-colors">
                                   <span className="block text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-orange-500">{item.name}</span>
                                   <span className="block text-xs text-slate-500 mt-0.5 font-medium">{item.short_description}</span>
                                 </Link>
@@ -321,62 +321,111 @@ export default function Header() {
 
           {/* Mobile Menu Dropdown */}
           <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-[850px] border-t' : 'max-h-0'}`}>
-            <div className="p-4 space-y-3 bg-gray-50 dark:bg-gray-800">
-              
-              {navLinks.map((link) => {
-                if (link.type === 'dropdown-services') {
-                  return (
-                    <div key={link.id} className="space-y-1">
-                      <button onClick={() => setIsServicesDropdownOpen(!isServicesDropdownOpen)} className={`w-full flex justify-between items-center px-4 py-2 text-base font-medium rounded-lg ${link.isActive ? 'bg-orange-100 text-orange-600' : 'text-gray-700 dark:text-gray-200 hover:bg-white'}`}>
-                        <span>{link.name}</span>
-                        <ChevronDown className={`h-4 w-4 transition-transform ${isServicesDropdownOpen ? 'rotate-180' : ''}`} />
-                      </button>
-                      <div className={`pl-6 space-y-2 overflow-hidden transition-all duration-200 ${isServicesDropdownOpen ? 'max-h-48 py-1' : 'max-h-0'}`}>
-                        {footerServices.map((item, key) => (
-                          <Link key={key} href={`/layanan/${item.slug}`} className="block text-sm text-gray-600 dark:text-gray-400 py-1">{item.name}</Link>
-                        ))}
+            <div className="p-4 space-y-4 bg-gray-50 dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800">
+              <div className="space-y-1">
+                {navLinks.map((link) => {
+                  if (link.type === 'dropdown-services') {
+                    return (
+                      <div key={link.id} className="space-y-1">
+                        <button 
+                          onClick={() => setIsServicesDropdownOpen(!isServicesDropdownOpen)} 
+                          className={`w-full flex justify-between items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
+                            link.isActive 
+                              ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400' 
+                              : 'text-gray-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          <span>{link.name}</span>
+                          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isServicesDropdownOpen ? 'rotate-180 text-amber-500' : ''}`} />
+                        </button>
+                        <div className={`pl-4 border-l-2 border-gray-200 dark:border-slate-700 ml-4 space-y-1 overflow-hidden transition-all duration-200 ${isServicesDropdownOpen ? 'max-h-60 py-1.5' : 'max-h-0'}`}>
+                          {footerServices.map((item, key) => (
+                            <Link 
+                              key={key} 
+                              href={`/layanan/${item.slug}`} 
+                              className="block text-sm text-gray-600 dark:text-slate-400 py-1.5 px-2 rounded-md hover:text-amber-600 dark:hover:text-amber-400 hover:bg-white dark:hover:bg-slate-800/50 transition-colors"
+                            >
+                              {item.name}
+                            </Link>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                }
+                    );
+                  }
 
-                if (link.type === 'dropdown-products') {
-                  return (
-                    <div key={link.id} className="space-y-1">
-                      <button onClick={() => setIsProductDropdownOpen(!isProductDropdownOpen)} className={`w-full flex justify-between items-center px-4 py-2 text-base font-medium rounded-lg ${link.isActive ? 'bg-orange-100 text-orange-600' : 'text-gray-700 dark:text-gray-200 hover:bg-white'}`}>
-                        <span>{link.name} Kategori</span>
-                        <ChevronDown className={`h-4 w-4 transition-transform ${isProductDropdownOpen ? 'rotate-180' : ''}`} />
-                      </button>
-                      <div className={`pl-6 space-y-3 overflow-auto transition-all duration-200 ${isProductDropdownOpen ? 'max-h-96 py-2' : 'max-h-0'}`}>
-                        {productCategories.map((cat, index) => (
-                          <div key={index} className="space-y-1.5">
-                            <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">{cat.title}</p>
-                            {cat.items.map((item, i) => (
-                              <Link key={i} href={item.href} className="block text-xs text-gray-600 dark:text-gray-400 py-1 hover:text-orange-500">{item.name}</Link>
-                            ))}
-                          </div>
-                        ))}
+                  if (link.type === 'dropdown-products') {
+                    return (
+                      <div key={link.id} className="space-y-1">
+                        <button 
+                          onClick={() => setIsProductDropdownOpen(!isProductDropdownOpen)} 
+                          className={`w-full flex justify-between items-center px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
+                            link.isActive 
+                              ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400' 
+                              : 'text-gray-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          <span>{link.name}</span>
+                          <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isProductDropdownOpen ? 'rotate-180 text-amber-500' : ''}`} />
+                        </button>
+                        <div className={`pl-4 border-l-2 border-gray-200 dark:border-slate-700 ml-4 space-y-3 overflow-y-auto transition-all duration-200 ${isProductDropdownOpen ? 'max-h-80 py-2' : 'max-h-0'}`}>
+                          {productCategories.map((cat, index) => (
+                            <div key={index} className="space-y-1">
+                              <p className="text-[10px] font-bold text-gray-800 dark:text-slate-500 uppercase tracking-wider px-2">{cat.title}</p>
+                              {cat.items.map((item, i) => (
+                                <Link 
+                                  key={i} 
+                                  href={item.href} 
+                                  className="block text-sm text-gray-600 dark:text-slate-400 py-1.5 px-2 pl-3 rounded-md hover:text-amber-600 dark:hover:text-amber-400 hover:bg-white dark:hover:bg-slate-800/50 transition-colors"
+                                >
+                                   - {item.name}
+                                </Link>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                }
+                    );
+                  }
 
-                return (
-                  <Link 
-                    key={link.id} 
-                    href={link.href} 
-                    onClick={(e) => handleScrollTo(e, link.id, link.href)} 
-                    className={`block px-4 py-2 text-base font-medium rounded-lg ${link.isActive ? 'bg-orange-100 text-orange-600' : 'text-gray-700 dark:text-gray-200 hover:bg-white'}`}
-                  >
-                    {link.name}
-                  </Link>
-                );
-              })}
+                  return (
+                    <Link 
+                      key={link.id} 
+                      href={link.href} 
+                      onClick={(e) => handleScrollTo(e, link.id, link.href)} 
+                      className={`block px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
+                        link.isActive 
+                          ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400' 
+                          : 'text-gray-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                  );
+                })}
+              </div>
               
-              <hr className="border-gray-200 dark:border-gray-700" />
-              <Button asChild className="w-full justify-start py-6 text-lg">
-                <a href={whatsappUrl}><Phone className="mr-3 h-5 w-5" />Hubungi Kami</a>
-              </Button>
+              <hr className="border-gray-200 dark:border-slate-800" />
+              
+              {/* Bagian CTA Action Buttons (Dibuat seimbang, presisi, dan proporsional untuk mobile) */}
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <Button 
+                  asChild 
+                  className="w-full justify-center py-5 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm rounded-xl transition-colors flex items-center gap-2"
+                >
+                  <a href={whatsappUrl}>
+                    <Phone className="h-4 w-4 shrink-0" />
+                    Hubungi Kami
+                  </a>
+                </Button>
+                
+                <Link 
+                  href="/katalog" 
+                  className="w-full flex h-10 items-center justify-center px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors gap-2"
+                >
+                  <LayoutDashboardIcon className="h-4 w-4 text-amber-600 shrink-0" />
+                  Katalog Unit
+                </Link>
+              </div>
             </div>
           </div>
         </nav>

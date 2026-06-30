@@ -299,8 +299,8 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
                 <TableRow>
                   <TableHead className="w-[80px]">Gambar</TableHead>
                   <TableHead>Nama</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Harga</TableHead>
+                  {/* <TableHead>SKU</TableHead> */}
+                  {/* <TableHead>Harga</TableHead> */}
                   <TableHead>Kategori</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Unggulan</TableHead>
@@ -325,20 +325,15 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div>
+                      <div className='max-w-96 text-wrap'>
                         <div className="font-medium">{service.name}</div>
                         <div className="text-sm text-gray-500">{service.slug}</div>
-                        {service.short_description && (
-                          <div className="text-sm text-gray-400 mt-1 line-clamp-1">
-                            {service.short_description}
-                          </div>
-                        )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <span className="text-sm font-mono">{service.sku || '-'}</span>
-                    </TableCell>
-                    <TableCell>
+                    </TableCell> */}
+                    {/* <TableCell>
                       <div className="space-y-1">
                         <div className="font-semibold text-green-600">
                           {formatPrice(service.price)}
@@ -349,7 +344,7 @@ export default function ServiceIndex({ services, categories, filters }: Props) {
                           </div>
                         )}
                       </div>
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       {service.category ? (
                         <Badge variant="outline">{service.category.name}</Badge>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +12,7 @@ import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Loader, Save } from 'lucide-react';
 import { Category } from './create';
 import TreeSelect from '@/components/tree-select';
+import TinyMCEEditor from '@/components/TinyMCEEditor';
 
 interface Props {
   category: Category;
@@ -196,13 +197,18 @@ export default function CategoryEdit({ category, parentCategories }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="description">Deskripsi</Label>
-                <Textarea
+                {/* <Textarea
                   id="description"
                   name="description"
                   value={data.description}
                   onChange={handleInputChange}
                   placeholder="Deskripsi kategori"
                   rows={3}
+                /> */}
+                <TinyMCEEditor
+                  value={data.description}
+                  onChange={(content) => setData('description', content)}
+                  height={300}
                 />
                 {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
               </div>

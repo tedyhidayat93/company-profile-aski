@@ -147,7 +147,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                 'product_order'
             );
 
-            const response = await axios.post('/catalog/order', {
+            const response = await axios.post('/katalog/order', {
                 company_name: formData.companyName || '',
                 pic_name: formData.picName || '',
                 phone: formData.phone || '',
@@ -276,7 +276,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                             <li>
                                 <div className="flex items-center">
                                     <span className="mx-2 text-gray-500">/</span>
-                                    <Link href="/catalog" className="text-gray-700 hover:text-primary">
+                                    <Link href="/katalog" className="text-gray-700 hover:text-primary">
                                         Katalog
                                     </Link>
                                 </div>
@@ -883,7 +883,7 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                 type="button"
                                 onClick={() => {
                                     setIsSuccessModalOpen(false);
-                                    window.location.href = '/catalog';
+                                    window.location.href = '/katalog';
                                 }}
                                 className="rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                             >

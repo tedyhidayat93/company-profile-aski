@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Loader } from 'lucide-react';
+import { ArrowLeft, Save, X, Image as ImageIcon, Loader } from 'lucide-react';
 import { formatCurrencyInput, parseCurrencyInput } from '@/utils/currency';
 import TreeSelect from '@/components/tree-select';
+import TinyMCEEditor from '@/components/TinyMCEEditor';
 
 interface Category {
   id: number;
@@ -317,13 +316,18 @@ export default function ServiceCreate({ categories }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="description">Deskripsi</Label>
-                <Textarea
+                {/* <Textarea
                   id="description"
                   name="description"
                   value={data.description}
                   onChange={handleInputChange}
                   placeholder="Deskripsi lengkap layanan"
                   rows={5}
+                /> */}
+                <TinyMCEEditor
+                  value={data.description}
+                  onChange={(content) => setData('description', content)}
+                  height={300}
                 />
                 {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
               </div>

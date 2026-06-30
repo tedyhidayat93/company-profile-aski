@@ -155,7 +155,7 @@ export default function Sitemap({
                             </div>
                             <div className="mt-4 pt-4 border-t border-gray-100">
                                 <Link
-                                    href="/katalog"
+                                    href="/produk"
                                     className="text-amber-600 hover:text-amber-700 font-semibold text-xs uppercase tracking-wider flex items-center"
                                 >
                                     Index Katalog →
@@ -177,7 +177,7 @@ export default function Sitemap({
                                         {products.map((product) => (
                                             <li key={product.id}>
                                                 <Link
-                                                    href={`/produk/${product.slug}`}
+                                                    href={`/katalog/${product.slug}`}
                                                     className="text-gray-600 hover:text-amber-600 transition-colors text-sm block py-0.5"
                                                 >
                                                     {product.name}
@@ -191,7 +191,7 @@ export default function Sitemap({
                             </div>
                             <div className="mt-4 pt-4 border-t border-gray-100">
                                 <Link
-                                    href="/produk"
+                                    href="/katalog"
                                     className="text-amber-600 hover:text-amber-700 font-semibold text-xs uppercase tracking-wider flex items-center"
                                 >
                                     Semua Produk Ready →

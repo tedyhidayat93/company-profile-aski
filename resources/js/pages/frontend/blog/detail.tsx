@@ -94,7 +94,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                             </>
                         )}
                         <li className="text-slate-300">/</li>
-                        <li className="text-slate-800 dark:text-slate-200 truncate max-w-xs font-semibold" aria-current="page">
+                        <li className="text-slate-800 dark:text-slate-200 max-w-xs font-semibold" aria-current="page">
                             {post.title}
                         </li>
                     </ol>

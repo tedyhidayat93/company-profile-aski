@@ -11,6 +11,7 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Save, MessageCircleQuestion, Loader } from 'lucide-react';
+import TinyMCEEditor from '@/components/TinyMCEEditor';
 
 interface Faq {
   id: number;
@@ -114,7 +115,7 @@ export default function FaqEdit({ faq }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="answer">Jawaban *</Label>
-                <Textarea
+                {/* <Textarea
                   id="answer"
                   name="answer"
                   value={data.answer}
@@ -122,6 +123,11 @@ export default function FaqEdit({ faq }: Props) {
                   placeholder="Tulis jawaban lengkap di sini..."
                   rows={6}
                   required
+                /> */}
+                <TinyMCEEditor
+                  value={data.answer}
+                  onChange={(content) => setData('answer', content)}
+                  height={300}
                 />
                 {errors.answer && <p className="text-sm text-red-600">{errors.answer}</p>}
               </div>

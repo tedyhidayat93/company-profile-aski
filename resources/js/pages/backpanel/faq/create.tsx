@@ -1,16 +1,15 @@
 import React from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, MessageCircleQuestion, Loader } from 'lucide-react';
+import { ArrowLeft, Save, Loader } from 'lucide-react';
+import TinyMCEEditor from '@/components/TinyMCEEditor';
 
 export default function FaqCreate() {
   const breadcrumbs: BreadcrumbItem[] = [
@@ -99,7 +98,7 @@ export default function FaqCreate() {
 
               <div className="space-y-2">
                 <Label htmlFor="answer">Jawaban *</Label>
-                <Textarea
+                {/* <Textarea
                   id="answer"
                   name="answer"
                   value={data.answer}
@@ -107,6 +106,11 @@ export default function FaqCreate() {
                   placeholder="Tulis jawaban lengkap di sini..."
                   rows={6}
                   required
+                /> */}
+                <TinyMCEEditor
+                  value={data.answer}
+                  onChange={(content) => setData('answer', content)}
+                  height={300}
                 />
                 {errors.answer && <p className="text-sm text-red-600">{errors.answer}</p>}
               </div>

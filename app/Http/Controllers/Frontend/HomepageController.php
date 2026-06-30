@@ -90,7 +90,7 @@ class HomepageController extends Controller
         */
         $services = Cache::remember(
             'homepage.services',
-            now()->addHours(1),
+            now()->addMinutes(10),
             function () {
 
                 return Service::query()
@@ -162,7 +162,7 @@ class HomepageController extends Controller
         */
         $faqs = Cache::remember(
             'homepage.faqs',
-            now()->addHours(1),
+            now()->addMinutes(10),
             function () {
 
                 return Faq::query()
@@ -232,7 +232,7 @@ class HomepageController extends Controller
         */
         $testimonials = Cache::remember(
             'homepage.testimonials',
-            now()->addHours(1),
+            now()->addMinutes(10),
             function () {
 
                 return Testimonial::query()
@@ -278,7 +278,7 @@ class HomepageController extends Controller
         */
         $seo = Cache::remember(
             'homepage.seo',
-            now()->addHours(1),
+            now()->addMinutes(10),
             fn () => $this->buildSeo()
         );
 

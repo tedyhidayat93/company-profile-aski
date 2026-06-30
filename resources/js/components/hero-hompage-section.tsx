@@ -221,7 +221,7 @@ export default function HeroSection({
                           {activeProduct.show_price ? `Rp ${activeProduct.price.toLocaleString()}` : 'Penawaran harga'}
                         </span>
                         <Link 
-                          href={`/catalog/${activeProduct.slug}`}
+                          href={`/katalog/${activeProduct.slug}`}
                           className="inline-flex h-9 items-center justify-center rounded-full border border-slate-900 px-5 text-xs font-bold text-slate-900 hover:bg-slate-900 hover:text-white transition-colors shadow-md"
                         >
                           Detail Unit <ArrowRight className="w-3 h-3 ml-1 inline-block" />

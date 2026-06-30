@@ -407,7 +407,7 @@ export default function ContactUs({ seo, data }: Props) {
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                                 
                                 {/* KOLOM KIRI (LG: 7/12): Google Maps Embed Full Container */}
-                                <div className={`${data.about_us.office_branch ? 'lg:col-span-7': 'lg:col-span-12' } flex flex-col h-[350px] lg:h-[480px]`}>
+                                <div className={`${data.about_us.office_branch ? 'lg:col-span-7': 'lg:col-span-12' } flex flex-col h-full lg:h-full`}>
                                     {/* Sub-header List */}
                                      {data.about_us.office_branch && (
                                         <div className="flex items-center gap-2 text-slate-800 dark:text-white font-extrabold text-base mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">

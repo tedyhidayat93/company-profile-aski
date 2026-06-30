@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import { ArrowRight, ArrowRightIcon, PhoneCall } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import catalog from '@/routes/catalog';
 import FrontendLayout from '@/layouts/frontend-layout';
 import ProductCard from '@/components/ProductCard';
@@ -12,7 +12,6 @@ import SeoHead from '@/components/seo-head';
 import HeroHomepageSection from '@/components/hero-hompage-section';
 import GoogleReviewsWidget from '@/components/google-reviews-widget';
 import CtaSection from '@/components/cta-section';
-import ProfileVideoHandler from '@/components/profile-video-handler';
 import HomepageProductTabs from '@/components/homepage-product-tabs';
 
 
@@ -189,7 +188,7 @@ export default function Homepage({
             <div className="mb-14 flex flex-col items-center justify-between md:flex-row gap-6">
               <div className="text-center md:text-left md:border-l-4 md:border-orange-500 md:pl-5">
                 <span className="inline-block px-2.5 py-0.5 text-[10px] font-extrabold tracking-widest text-orange-600 uppercase bg-orange-100/60 dark:bg-orange-500/10 dark:text-orange-400 rounded-md mb-2 border border-orange-200/40 dark:border-orange-500/10">
-                  Our Fleet
+                  Sewa Kontainer & Jual Kointainer
                 </span>
                 <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-950 dark:text-white">
                   {getConfig('catalog_title', 'Produk Kami')}
@@ -221,7 +220,7 @@ export default function Homepage({
             <div className="mt-16 flex justify-center">
               <Link
                 aria-label='View more Our Products'
-                href="/catalog"
+                href="/katalog"
                 className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-800 dark:text-neutral-200 bg-white dark:bg-neutral-950 border-2 border-slate-200 dark:border-neutral-800 hover:border-orange-500 dark:hover:border-orange-500/50 hover:bg-orange-50/30 dark:hover:bg-neutral-900 rounded-xl px-7 py-4 shadow-sm transition-all hover:shadow-md active:scale-98 duration-300"
               >
                 <span>Tampilkan Lebih Banyak</span>
@@ -407,7 +406,11 @@ export default function Homepage({
                       >
                         <div className="overflow-hidden">
                           <div className="px-5 pb-5 pl-[44px] text-xs md:text-sm text-slate-600 dark:text-neutral-400 leading-relaxed font-medium">
-                            {faq.answer}
+                            {/* {faq.answer} */}
+                            <div 
+                                className="tinymce-content"
+                                dangerouslySetInnerHTML={{ __html: faq.answer }} 
+                            />
                           </div>
                         </div>
                       </div>
@@ -443,7 +446,7 @@ export default function Homepage({
                 </div>
                 
                 <Link 
-                  href="/articles"
+                  href="/info"
                   className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-900 hover:text-white dark:text-neutral-200 dark:hover:text-white px-5 py-3 bg-white hover:bg-slate-900 dark:bg-neutral-900 dark:hover:bg-orange-500 border border-slate-200 dark:border-neutral-800 rounded-xl transition-all shadow-xs duration-300"
                 >
                   <span>Semua Artikel</span> 
@@ -461,7 +464,6 @@ export default function Homepage({
                   >
                     {/* Thumbnail Image Container */}
                     <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-neutral-800 border-b border-slate-100 dark:border-neutral-800">
-                      <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-neutral-800 dark:to-neutral-700 transition-transform duration-500 group-hover:scale-104" />
                       <img 
                         src={'storage/' + article.image} 
                         alt={article.title} 
@@ -506,7 +508,7 @@ export default function Homepage({
               {/* Mobile-Only Bottom Navigation */}
               <div className="mt-12 text-center flex items-center justify-center md:hidden">
                 <Link 
-                  href="/articles"
+                  href="/info"
                   className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-800 dark:text-neutral-200 bg-white dark:bg-neutral-950 border-2 border-slate-200 dark:border-neutral-800 rounded-xl px-6 py-3.5 shadow-sm"
                 >
                   <span>Tampilkan Lebih Banyak</span>

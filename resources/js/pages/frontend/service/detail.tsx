@@ -73,12 +73,12 @@ export default function ServiceDetail({ service, products = [], related_services
                     {/* SISI KIRI: KONTEN UTAMA (8 Kolom) */}
                     <div className="lg:col-span-8 space-y-10">
                         {/* Gambar Utama Layanan */}
-                        <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800">
+                        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800">
                             <img 
                                 src={service.image} 
                                 alt={service.title} 
                                 onError={handleImageError}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover aspect-5/3"
                             />
                         </div>
 
@@ -95,9 +95,10 @@ export default function ServiceDetail({ service, products = [], related_services
                                         dangerouslySetInnerHTML={{ __html: service.content }} 
                                     />
                                 ) : (
-                                    <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed">
-                                        {service.description}
-                                    </p>
+                                    <div 
+                                        className="tinymce-content"
+                                        dangerouslySetInnerHTML={{ __html: service.description }}
+                                    />
                                 )}
                             </div>
                         </article>

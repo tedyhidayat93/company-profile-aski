@@ -351,10 +351,10 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
             description={groupInfo.description}
           >
             {/* <AppearanceToggleTab /> */}
-            <Button onClick={() => setIsAddModalOpen(true)}>
+            {/* <Button onClick={() => setIsAddModalOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Tambah Konfigurasi
-            </Button>
+            </Button> */}
           </HeaderTitle>
 
           <Card>
@@ -448,13 +448,13 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem
+                            {/* <DropdownMenuItem
                               onClick={() => handleDelete(config.id)}
                               className="text-red-600"
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Hapus
-                            </DropdownMenuItem>
+                            </DropdownMenuItem> */}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -470,12 +470,12 @@ export default function SiteConfiguration({ configurations, currentGroup }: Prop
                   <p className="mt-1 text-sm text-gray-500">
                     Mulai dengan membuat konfigurasi baru.
                   </p>
-                  <div className="mt-6">
+                  {/* <div className="mt-6">
                     <Button onClick={() => setIsAddModalOpen(true)}>
                       <Plus className="mr-2 h-4 w-4" />
                       Tambah Konfigurasi
                     </Button>
-                  </div>
+                  </div> */}
                 </div>
               )}
             </CardContent>

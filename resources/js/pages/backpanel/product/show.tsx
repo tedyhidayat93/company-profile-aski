@@ -1,14 +1,13 @@
-import React from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+
+import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
-import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem, Product } from '@/types';
 import { formatPrice } from '@/utils/currency';
 import { formatDate } from '@/lib/utils';
-import { Edit, Eye, EyeOff, Star, TrendingUp, Sparkles,  Image, ExternalLink } from 'lucide-react';
+import { Edit, Eye, EyeOff, Star, TrendingUp, Sparkles, ExternalLink } from 'lucide-react';
 
 import SingleGalleryPreview from '@/components/single-gallery-preview';
 
@@ -107,7 +106,7 @@ export default function ProductShow({ product }: Props) {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <a href={`/catalog/${product.slug}`} target="_blank">
+                <a href={`/katalog/${product.slug}`} target="_blank">
                   <Button size="sm" variant="outline">
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Lihat di Katalog 

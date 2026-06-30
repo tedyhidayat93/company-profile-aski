@@ -30,7 +30,7 @@ class SitemapController extends Controller
 
         // 2. Ambil data Kategori Utama yang bertipe Product
         $productCategories = Category::ofType('product')
-            ->root()
+            
             ->active()
             ->get(['id', 'name', 'slug', 'updated_at']);
 
@@ -134,8 +134,9 @@ class SitemapController extends Controller
         }
 
         // 5. ADD PRODUCT CATEGORIES (Rute: /produk/{category})
-        $categories = Category::ofType('product')->root()->active()->get(['slug', 'updated_at']);
+        $categories = Category::ofType('product')->active()->get(['slug', 'updated_at']);
         foreach ($categories as $category) {
+            // 2. Masukkan kategori utama (Parent)
             $sitemap .= '
                 <url>
                     <loc>' . $baseUrl . '/produk/' . $category->slug . '</loc>
@@ -143,6 +144,17 @@ class SitemapController extends Controller
                     <changefreq>weekly</changefreq>
                     <priority>0.8</priority>
                 </url>';
+
+            // 3. Loop langsung children-nya di sini agar hasilnya flat di XML
+            foreach ($category->children as $child) {
+                $sitemap .= '
+                    <url>
+                        <loc>' . $baseUrl . '/produk/' . $child->slug . '</loc>
+                        <lastmod>' . ($child->updated_at ? $child->updated_at->toAtomString() : now()->toAtomString()) . '</lastmod>
+                        <changefreq>weekly</changefreq>
+                        <priority>0.7</priority> <!-- Opsional: menurunkan sedikit prioritas untuk sub-kategori -->
+                    </url>';
+            }
         }
         
         // 6. ADD PRODUCTS LIST (Detail Unit Produk - Rute: /katalog/{slug})

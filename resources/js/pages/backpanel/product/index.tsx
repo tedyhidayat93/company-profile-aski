@@ -747,8 +747,8 @@ export default function ProductIndex({ products, brands, categories, filters }: 
                               {product.name}
                             </div>
 
-                            <a href={`/catalog/${product.slug}`} className='text-xs text-blue-400 truncate line-clamp-1 max-w-72 hover:text-blue-500' target='_blank' rel='noopener noreferrer'>
-                              { window.location.origin + '/catalog/' + product.slug }
+                            <a href={`/katalog/${product.slug}`} className='text-xs text-blue-400 truncate line-clamp-1 max-w-72 hover:text-blue-500' target='_blank' rel='noopener noreferrer'>
+                              { window.location.origin + '/katalog/' + product.slug }
                             </a>
 
                             <div className="flex flex-wrap gap-1 pt-1">

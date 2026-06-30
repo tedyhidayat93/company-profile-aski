@@ -12,6 +12,7 @@ import { type BreadcrumbItem } from '@/types';
 import { ArrowLeft, Loader, Save } from 'lucide-react';
 import { flattenCategories } from '@/lib/utils';
 import TreeSelect from '@/components/tree-select';
+import TinyMCEEditor from '@/components/TinyMCEEditor';
 
 export interface Category {
   id: number;
@@ -206,13 +207,18 @@ export default function CategoryCreate({ parentCategories }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="description">Deskripsi</Label>
-                <Textarea
+                {/* <Textarea
                   id="description"
                   name="description"
                   value={data.description}
                   onChange={handleInputChange}
                   placeholder="Deskripsi kategori"
                   rows={3}
+                /> */}
+                <TinyMCEEditor
+                  value={data.description}
+                  onChange={(content) => setData('description', content)}
+                  height={300}
                 />
                 {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
               </div>

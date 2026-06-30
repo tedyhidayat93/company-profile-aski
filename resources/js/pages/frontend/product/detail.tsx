@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { ArrowLeft, CheckCircle2, Layers, Package, PhoneCall, ChevronDown, Download, ShieldCheck, FileText, BadgeCheck, Truck } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Layers, Package, PhoneCall, ChevronDown, Download, ShieldCheck, FileText, BadgeCheck, Truck, ArrowRight } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import SeoHead from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import CtaSection from '@/components/cta-section';
 import ProductCard from '@/components/ProductCard';
+import { FeaturedProductsBanner } from '../catalog';
 
 interface Props {
     product: {
@@ -30,6 +31,28 @@ export default function ProductDetail({ product, products = [], related_categori
     const defaultVisibleCount = 5;
     const hasMoreCategories = related_categories.length > defaultVisibleCount;
 
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [isHovered, setIsHovered] = useState(false);
+
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container || products.length === 0 || isHovered) return;
+
+        // Mengatur kecepatan laju scroll (makin kecil angkanya, makin halus lajunya)
+        const speed = 1; 
+        
+        const autoScrollInterval = setInterval(() => {
+            // Jika sudah mencapai batas akhir kanan, reset kembali ke posisi awal (looping)
+            if (container.scrollLeft + container.clientWidth >= container.scrollHeight - 10) {
+                container.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                container.scrollLeft += speed;
+            }
+        }, 5); // Bergeser setiap 30 milidetik
+
+        return () => clearInterval(autoScrollInterval);
+    }, [products, isHovered]);
+
     // Teks Pesan WhatsApp Universal untuk Segala Kebutuhan Unit
     const waMessage = `Halo Alumoda, saya tertarik dan ingin menanyakan informasi lebih lanjut mengenai produk/layanan: ${encodeURIComponent(product.title)}. Mohon info spesifikasi detail dan penawaran harga terbaiknya.`;
 
@@ -43,7 +66,7 @@ export default function ProductDetail({ product, products = [], related_categori
                 <div className="absolute inset-0 opacity-15 bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] bg-[size:30px_30px]" />
                 <div className="absolute -bottom-24 -left-20 w-96 h-96 bg-white/20 rounded-full blur-[100px] pointer-events-none" />
 
-                <div className="max-w-7xl mx-auto relative z-10">
+                <div className="max-w-7xl mx-auto relative z-10 space-y-10">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                         
                         {/* Kiri: Judul Utama Universal */}
@@ -64,82 +87,82 @@ export default function ProductDetail({ product, products = [], related_categori
                         </div>
 
                         {/* Kanan: Badge Penawaran Universal Sapujagat */}
-                        <div className="lg:col-span-4 bg-slate-950 text-white p-6 border-2 border-white/20 shadow-2xl rounded-xs">
-                            <span className="text-[10px] uppercase font-black tracking-widest text-orange-500 block mb-1">Status Unit & Layanan</span>
+                        <div className="lg:col-span-4 bg-slate-950 text-white p-6 border-2 border-white/20 shadow-2xl rounded-xl">
+                            {/* 1. KATA KUNCI: JAMINAN DAN KEPASTIAN */}
+                            <span className="text-[10px] uppercase font-black tracking-widest text-orange-500 block mb-1">
+                                📍 Jaminan Unit & Status Depot
+                            </span>
+                            
+                            {/* 2. KATA KUNCI: REAL-TIME & SIAP KIRIM (Menghilangkan trauma inden lama) */}
                             <div className="text-xl font-black uppercase text-white tracking-tight mb-4 flex items-center gap-2">
-                                <Truck className="w-5 h-5 text-orange-500" /> READY STOCK / SPACE
+                                <Truck className="w-5 h-5 text-orange-500 animate-bounce" /> READY STOCK & SIAP KIRIM
                             </div>
+                            
                             <div className="space-y-2 text-xs font-semibold text-slate-300">
+                                {/* 3. KATA KUNCI: FLEKSIBEL & RESMI */}
                                 <div className="flex justify-between py-1 border-b border-white/10">
-                                    <span>Opsi Transaksi:</span> 
-                                    <span className="text-white font-bold">Jual Beli / Sewa Fleksibel</span>
+                                    <span>Metode Transaksi:</span> 
+                                    <span className="text-white font-bold">Bisa Jual-Beli / Sewa Resmi</span>
                                 </div>
+                                
+                                {/* 4. KATA KUNCI: INSPEKSI & KUALITAS (Menandakan barang dicek, bukan kontainer rongsok) */}
                                 <div className="flex justify-between py-1 border-b border-white/10">
-                                    <span>Standar Unit:</span> 
-                                    <span className="text-orange-400 font-bold">Heavy Duty Corten Steel</span>
+                                    <span>Kondisi Struktural:</span> 
+                                    <span className="text-orange-400 font-bold">Lolos Inspeksi / Cargo Worthy</span>
                                 </div>
+                                
+                                {/* 5. KATA KUNCI: KEPASTIAN LOGISTIK */}
                                 <div className="flex justify-between py-1">
-                                    <span>Cakupan Layanan:</span> 
-                                    <span className="text-white font-bold">Pengiriman Seluruh Indonesia</span>
+                                    <span>Layanan Armada:</span> 
+                                    <span className="text-white font-bold">Kirim & Set di Lokasi (Nasional)</span>
+                                </div>
+
+                                {/* 6. PIL BADGES DENGAN WARNA HIGHLIGHT ASIA/INDONESIA (Hijau/Biru Terang untuk trust) */}
+                                <div className="flex flex-wrap justify-center gap-2.5 pt-5 w-full lg:justify-start">
+                                    {[
+                                        { text: getConfig('feature_stock_available', 'Unit Selalu Ready'), badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', dot: 'bg-emerald-500' },
+                                        { text: getConfig('feature_quality_guarantee', 'Garansi Anti Bocor'), badge: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30', dot: 'bg-cyan-500' },
+                                        { text: getConfig('feature_competitive_price', 'Harga Langsung Depo'), badge: 'bg-amber-500/10 text-amber-400 border-amber-500/30', dot: 'bg-amber-500' },
+                                        { text: getConfig('feature_support_247', 'Survei Unit Silahkan'), badge: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30', dot: 'bg-indigo-500' }
+                                    ].map((feat, idx) => (
+                                        <span 
+                                            key={idx} 
+                                            className={`flex items-center text-[11px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-xs border shadow-sm transition-all duration-300 ${feat.badge}`}
+                                        >
+                                            <span className={`mr-2 flex h-2 w-2 rounded-full animate-pulse ${feat.dot}`} />
+                                            {feat.text}
+                                        </span>
+                                    ))}
                                 </div>
                             </div>
                         </div>
 
-                    </div>
-                </div>
-            </section>
-
-            {/* --- 📦 SECTION: STOCK READY SHOWCASE (AUTO HORIZONTAL SCROLL) --- */}
-            <section className="bg-slate-100 dark:bg-neutral-950 py-10 border-b border-slate-200 dark:border-neutral-800">
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <Package className="w-4 h-4 text-orange-600" />
-                            <h2 className="text-sm md:text-base font-black uppercase tracking-wider text-slate-950 dark:text-white">
-                                Varian Seri & Tipe Unit Kontainer / Gudang / Properti
-                            </h2>
-                        </div>
-                        <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 hidden sm:inline">
-                            ← Geser ke samping untuk melihat unit →
-                        </span>
-                    </div>
-
-                    {/* Container Scroll Horizontal */}
-                    <div className="flex gap-4 overflow-x-auto pb-4 pt-1 snap-x scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-neutral-800">
-                        {products.length > 0 ? (
-                            products.map((item) => (
-                                <div key={item.slug} className="w-[280px] sm:w-[310px] shrink-0 snap-start">
-                                    <ProductCard product={item} />
-                                </div>
-                            ))
-                        ) : (
-                            <div className="w-full py-8 text-center text-xs text-neutral-400 bg-white dark:bg-neutral-900 border border-dashed border-slate-200 dark:border-neutral-800">
-                                Belum ada lampiran sub-katalog produk spesifik untuk unit {product.title} ini.
-                            </div>
-                        )}
                     </div>
                 </div>
             </section>
 
             {/* --- 🛠️ MAIN TECHNICAL SPECS LAYOUT --- */}
-            <main className="max-w-7xl mx-auto px-4 py-12 md:py-16 relative z-20">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+            <main className="max-w-7xl mx-auto md:px-4 xl:px-0 py-12 md:py-16 relative z-20">
+                <div className='-mt-52 bg-gradient-to-br from-slate-950 via-slate-300 to-slate-900 rounded-3xl'>
+                    <FeaturedProductsBanner products={products}/>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start mt-10">
                     
                     {/* SISI KIRI: DATA TEKNIS & GAMBAR UTAMA (8 Kolom) */}
                     <div className="lg:col-span-8 space-y-8">
                         
                         {/* Foto Utama Unit/Depo */}
-                        <div className="relative aspect-[16/10] overflow-hidden border-2 border-slate-300 dark:border-neutral-800 bg-neutral-900 group shadow-md">
+                        <div className="relative overflow-hidden border-2 border-slate-300 dark:border-neutral-800 bg-neutral-900 group shadow-md">
                             <div className="absolute inset-3 border border-white/20 z-10 pointer-events-none" />
                             <img 
                                 src={product.image} 
                                 alt={product.title} 
                                 onError={handleImageError}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover aspect-[16/10]"
                             />
-                            <div className="absolute top-6 left-6 z-20 bg-slate-950/90 text-white border border-orange-500/50 px-3 py-1.5 flex items-center gap-2 rounded-xs backdrop-blur-sm">
+                            <div className="absolute top-6 left-6 z-20 bg-slate-950/90 text-white border border-orange-500/50 px-3 py-1.5 flex items-center gap-2 rounded-xl backdrop-blur-sm">
                                 <ShieldCheck className="w-3.5 h-3.5 text-orange-500" />
-                                <span className="text-[10px] font-black tracking-wider uppercase">ALUMODA DEPOT QUALITY INSPECTED</span>
+                                <span className="text-[10px] font-black tracking-wider uppercase">Sewa Kontainer & jual beli container Jabodetabek & Indonesia</span>
                             </div>
                         </div>
 
@@ -159,7 +182,10 @@ export default function ProductDetail({ product, products = [], related_categori
                                 {product.content ? (
                                     <div className="space-y-4" dangerouslySetInnerHTML={{ __html: product.content }} />
                                 ) : (
-                                    <p className="leading-relaxed">{product.description}</p>
+                                    <div 
+                                        className="tinymce-content"
+                                        dangerouslySetInnerHTML={{ __html: product.description }}
+                                    />
                                 )}
                             </div>
                         </div>
@@ -175,7 +201,7 @@ export default function ProductDetail({ product, products = [], related_categori
                             </div>
                             
                             <h3 className="text-xl font-black uppercase mb-1 text-white tracking-tight">
-                                Hubungi Layanan Penjualan
+                                Hubungi TIM AHLI KAMI
                             </h3>
                             <p className="text-slate-400 text-xs mb-6 font-medium leading-relaxed">
                                 Konsultasikan rencana proyek, kustomisasi ruang, manajemen sewa kontainer, atau estimasi pengadaan unit {product.title} langsung bersama tim ahli kami.
@@ -217,7 +243,7 @@ export default function ProductDetail({ product, products = [], related_categori
                                 {related_categories.slice(0, defaultVisibleCount).map((item) => (
                                     <Link 
                                         key={item.id}
-                                        href={`/katalog/${item.slug}`}
+                                        href={`/produk/${item.slug}`}
                                         className={`flex gap-3 items-center py-2.5 transition-colors hover:text-orange-500 group ${item.title === product.title ? 'text-orange-500 font-extrabold' : 'text-slate-800 dark:text-neutral-300 font-bold'}`}
                                     >
                                         <BadgeCheck className={`w-4 h-4 shrink-0 ${item.title === product.title ? 'text-orange-500' : 'text-slate-300 dark:text-neutral-700 group-hover:text-orange-500'}`} />
@@ -236,7 +262,7 @@ export default function ProductDetail({ product, products = [], related_categori
                                             {related_categories.slice(defaultVisibleCount).map((item) => (
                                                 <Link 
                                                     key={item.id}
-                                                    href={`/katalog/${item.slug}`}
+                                                    href={`/produk/${item.slug}`}
                                                     className="flex gap-3 items-center py-2.5 text-slate-700 dark:text-neutral-300 font-bold transition-colors hover:text-orange-500 group"
                                                 >
                                                     <BadgeCheck className="w-4 h-4 shrink-0 text-slate-300 dark:text-neutral-700 group-hover:text-orange-500" />

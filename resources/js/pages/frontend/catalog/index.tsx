@@ -83,7 +83,7 @@ interface CatalogProps {
     };
 }
 
-const FeaturedProductsBanner = ({
+export const FeaturedProductsBanner = ({
     products,
 }: {
     products: Product[];
@@ -130,7 +130,7 @@ const FeaturedProductsBanner = ({
                     </div>
 
                     <div>
-                        <h3 className="bg-gradient-to-r from-blue-50 via-slate-200 to-amber-500 bg-clip-text text-xl font-bold text-transparent">
+                        <h3 className="bg-gradient-to-r from-blue-50 via-slate-200 to-amber-500 bg-clip-text text-sm 2xl:text-base font-bold text-transparent">
                             Direkomendasikan Untukmu
                         </h3>
                         <p className="text-xs font-medium text-slate-300">
@@ -1113,11 +1113,11 @@ export default function CatalogPage({ products, bestSellerProducts, categories, 
                         Jika tidak ada banner: mengambil 10 kolom penuh (100%)
                     */}
                     <div className={bestSellerProducts.length > 0 ? 'lg:col-span-4' : 'w-full max-w-4xl'}>
-                        <span className="inline-block text-xs md:text-sm font-semibold tracking-wider text-orange-400 uppercase mb-3 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
+                        <span className="inline-block text-xs xl:text-sm font-semibold tracking-wider text-orange-400 uppercase mb-3 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
                             {getConfig('site_name', 'Alumoda Sinergi Kontainer Indonesia')}
                         </span>
                         
-                        <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4 text-white drop-shadow-sm leading-tight">
+                        <h1 className="text-2xl md:text-3xl xl:text-5xl font-extrabold tracking-tight mb-4 text-white drop-shadow-sm leading-tight">
                             {getConfig('catalog_meta_title', 'Katalog Jual, Sewa & Custom Kontainer')}
                         </h1>
                         

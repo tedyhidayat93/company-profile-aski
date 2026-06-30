@@ -105,7 +105,7 @@ export default function AboutUs({ seo, data }: Props) {
                             <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 rounded-3xl p-8 shadow-sm flex flex-col justify-between min-h-[220px] relative overflow-hidden">
                                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-orange-500/5 rounded-full blur-2xl" />
                                 <div className="space-y-2 relative z-10">
-                                    <div className='text-xs px-4 border-2 border-orange-300 rounded-full py-1 font-bold bg-orange-300/20 w-max'>Lebih Detail Tentang Kami</div>
+                                    <div className='text-xs px-4 border-2 border-orange-300 rounded-full py-1 font-bold bg-orange-300/20 w-max'>Sewa Kontainer & Jual Beli Kontainer</div>
                                     <div className="text-slate-900 dark:text-white font-black text-lg tracking-tight">{data.site_name || `Alumoda PT. Sinergi Kontainer Indonesia`}</div>
                                     <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
                                         {data.meta_description || `Menyediakan kontainer standar internasional dengan akreditasi perbaikan teruji dan modifikasi struktural kreatif untuk memperkuat logistik bisnis Anda.`}
@@ -130,10 +130,8 @@ export default function AboutUs({ seo, data }: Props) {
 
                 {/* --- BLOK ELEGAN: VISI & MISI --- */}
                 {(data.about_us.vision || data.about_us.mission) && (
-                    <div className="w-full bg-slate-950 dark:bg-slate-900/40 border-y border-slate-900 dark:border-slate-800 py-20 md:py-28 my-12 relative overflow-hidden">
-                        <div className="absolute left-1/4 top-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none" />
-                        <div className="absolute right-1/4 bottom-0 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
-
+                    <div className="w-full bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-950 border-y border-slate-900 dark:border-slate-800 py-20 md:py-28 my-12 relative overflow-hidden">
+                       
                         <div className="max-w-6xl mx-auto px-4 space-y-24 md:space-y-32 relative z-10">
                             {/* BARIS 2: VISI */}
                             {data.about_us.vision && (
