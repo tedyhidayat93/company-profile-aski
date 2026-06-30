@@ -1,7 +1,9 @@
 import * as React from "react"
 import { Link } from "@inertiajs/react" // Import Link dari Inertia untuk SPA navigation
 import {
+  ChevronLeft,
   ChevronLeftIcon,
+  ChevronRight,
   ChevronRightIcon,
   MoreHorizontalIcon,
 } from "lucide-react"
@@ -22,7 +24,6 @@ interface PaginationProps extends React.ComponentProps<"nav"> {
 }
 
 function Pagination({ className, links, ...props }: PaginationProps) {
-  // JIKA menerima prop links, kita langsung render struktur paginasinya secara otomatis
   if (links) {
     return (
       <nav
@@ -34,8 +35,11 @@ function Pagination({ className, links, ...props }: PaginationProps) {
       >
         <PaginationContent>
           {links.map((link, idx) => {
-            // Hilangkan tombol Previous/Next bawaan array jika tidak ada URL-nya
-            if (!link.url && (link.label.includes("Previous") || link.label.includes("Next"))) {
+            const isPrevious = link.label.toLowerCase().includes("previous") || link.label.includes("&laquo;");
+            const isNext = link.label.toLowerCase().includes("next") || link.label.includes("&raquo;");
+
+            // 1. Hilangkan tombol jika tidak ada URL pautannya (opsional, jika ingin disembunyikan saat di halaman pertama/terakhir)
+            if (!link.url && (isPrevious || isNext)) {
               return null;
             }
 
@@ -43,11 +47,31 @@ function Pagination({ className, links, ...props }: PaginationProps) {
               <PaginationItem key={idx}>
                 {link.label.includes("...") ? (
                   <PaginationEllipsis />
-                ) : (
+                ) : isPrevious ? (
+                  /* 2. Kustomisasi Tombol SEBELUMNYA + Ikon */
                   <PaginationLink
                     href={link.url ?? "#"}
                     isActive={link.active}
-                    // Menggunakan dangerouslySetInnerHTML karena Laravel menyertakan entitas HTML seperti &laquo; dan &raquo;
+                    className="gap-1 pl-2.5 text-xs font-semibold"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>Sebelumnya</span>
+                  </PaginationLink>
+                ) : isNext ? (
+                  /* 3. Kustomisasi Tombol SELANJUTNYA + Ikon */
+                  <PaginationLink
+                    href={link.url ?? "#"}
+                    isActive={link.active}
+                    className="gap-1 pr-2.5 text-xs font-semibold"
+                  >
+                    <span>Selanjutnya</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </PaginationLink>
+                ) : (
+                  /* 4. Render Angka Halaman Biasa */
+                  <PaginationLink
+                    href={link.url ?? "#"}
+                    isActive={link.active}
                     dangerouslySetInnerHTML={{ __html: link.label }}
                   />
                 )}
@@ -56,10 +80,9 @@ function Pagination({ className, links, ...props }: PaginationProps) {
           })}
         </PaginationContent>
       </nav>
-    )
+    );
   }
 
-  // Fallback ke behavior asli shadcn jika dipakai manual tanpa prop links
   return (
     <nav
       role="navigation"
@@ -68,7 +91,7 @@ function Pagination({ className, links, ...props }: PaginationProps) {
       className={cn("mx-auto flex w-full justify-center", className)}
       {...props}
     />
-  )
+  );
 }
 
 function PaginationContent({

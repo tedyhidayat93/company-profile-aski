@@ -92,25 +92,56 @@ export const FeaturedProductsBanner = ({
         (product) => product.is_featured
     );
 
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
 
-    // Efek otomatis slide tiap 3 detik
+    // Lebar card produk (w-60 = 240px) + Gap (gap-4 = 16px) = 256px
+    const cardStepWidth = 256; 
+
+    // 1. Efek Otomatis Slide Terjaga (Akan dijeda saat user melakukan hover/touch)
     useEffect(() => {
         if (featuredProducts.length <= 1 || isHovered) return;
 
         const interval = setInterval(() => {
             setCurrentIndex((prevIndex) => {
-                // Jika sudah sampai ujung kanan, kembali ke index 0
-                if (prevIndex >= featuredProducts.length - 1) {
-                    return 0;
-                }
-                return prevIndex + 1;
+                const nextIndex = prevIndex >= featuredProducts.length - 1 ? 0 : prevIndex + 1;
+                
+                // Eksekusi pergerakan scroll secara native halus
+                scrollContainerRef.current?.scrollTo({
+                    left: nextIndex * cardStepWidth,
+                    behavior: 'smooth'
+                });
+
+                return nextIndex;
             });
-        }, 3000); // 3000ms = 3 detik
+        }, 3000);
 
         return () => clearInterval(interval);
     }, [featuredProducts.length, isHovered]);
+
+    // 2. Handler untuk mendeteksi perubahan index saat di-scroll MANUAL via trackpad/touch
+    const handleScrollEvent = () => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        // Hitung posisi indeks terdekat berdasarkan koordinat gulir saat ini
+        const scrolledPosition = container.scrollLeft;
+        const calculatedIndex = Math.round(scrolledPosition / cardStepWidth);
+        
+        if (calculatedIndex !== currentIndex && calculatedIndex < featuredProducts.length) {
+            setCurrentIndex(calculatedIndex);
+        }
+    };
+
+    // 3. Handler saat indikator dot diklik manual
+    const handleDotClick = (index: number) => {
+        setCurrentIndex(index);
+        scrollContainerRef.current?.scrollTo({
+            left: index * cardStepWidth,
+            behavior: 'smooth'
+        });
+    };
 
     if (featuredProducts.length === 0) {
         return null;
@@ -118,14 +149,16 @@ export const FeaturedProductsBanner = ({
 
     return (
         <div 
-            className="group overflow-hidden rounded-3xl transition-all duration-300 bg-slate-900/50 p-1"
+            className="overflow-hidden rounded-3xl transition-all duration-300 bg-slate-900/50 p-1"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onTouchStart={() => setIsHovered(true)}
+            onTouchEnd={() => setIsHovered(false)}
         >
             {/* HEADER */}
-            <div className="flex flex-wrap gap-3 items-center justify-between px-5 py-3">
+            <div className="flex flex-wrap gap-3 items-center justify-between px-5 py-3 select-none">
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="rounded-2xl bg-gradient-to-tr animate-pulse from-orange-500 to-amber-400 p-2.5 text-white shadow-md shadow-orange-500/20 transition-transform duration-300 group-hover:scale-110">
+                    <div className="rounded-2xl bg-gradient-to-tr animate-pulse from-orange-500 to-amber-400 p-2.5 text-white shadow-md shadow-orange-500/20">
                         <HandHeartIcon className="h-5 w-5" />
                     </div>
 
@@ -145,7 +178,7 @@ export const FeaturedProductsBanner = ({
                         {featuredProducts.map((_, index) => (
                             <button
                                 key={index}
-                                onClick={() => setCurrentIndex(index)}
+                                onClick={() => handleDotClick(index)}
                                 className={`h-1.5 rounded-full transition-all duration-300 ${
                                     currentIndex === index ? 'w-4 bg-orange-500' : 'w-1.5 bg-slate-600'
                                 }`}
@@ -159,16 +192,18 @@ export const FeaturedProductsBanner = ({
                 </div>
             </div>
 
-            {/* SLIDER WRAPPER */}
-            <div className="overflow-hidden px-5 pb-5 pt-2">
+            {/* SLIDER WRAPPER (Mendukung Scroll Manual via Trackpad / Mouse Wheel / Swipe) */}
+            <div className="px-5 pb-5 pt-2">
                 <div 
-                    className="flex gap-4 transition-transform duration-500 ease-out"
-                    style={{ transform: `translateX(-${currentIndex * 256}px)` }} // 240px (w-60) + 16px (gap-4) = 256px
+                    ref={scrollContainerRef}
+                    onScroll={handleScrollEvent}
+                    className="flex gap-4 overflow-x-auto snap-x custom-scrollbar snap-mandatory scroll-smooth no-scrollbar"
+                    style={{ WebkitOverflowScrolling: 'touch' }} // Optimasi kenyamanan swipe di iOS Safari
                 >
                     {featuredProducts.map((product) => (
                         <div
                             key={product.id}
-                            className="w-60 flex-shrink-0 transition-all duration-300 hover:-translate-y-1.5 hover:drop-shadow-xl"
+                            className="w-60 flex-shrink-0 snap-start transition-all duration-300 hover:-translate-y-1.5 hover:drop-shadow-xl pb-2"
                         >
                             <ProductCard product={product} />
                         </div>

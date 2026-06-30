@@ -534,6 +534,67 @@
   .tinymce-content > *:last-child {
     margin-bottom: 0 !important;
   }
+
+  /* ==========================================================================
+   CUSTOM ADVANCED SCROLLBAR (THEME-AWARE & ADAPTIVE)
+   ========================================================================== */
+
+  /* 1. Atur dimensi track scrollbar horizontal */
+  .custom-scrollbar::-webkit-scrollbar {
+      height: 6px; /* Sedikit lebih tebal agar nyaman disentuh di trackpad */
+      transition: all 0.3s ease;
+  }
+
+  /* 2. Track Otomatis Mengikuti Kepadatan Tema (Light/Dark) */
+  .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05); /* Halus di tema terang */
+      border-radius: 100px;
+  }
+  :is(.dark, [data-theme="dark"]) .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.03); /* Menyatu di tema gelap */
+      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2);
+  }
+
+  /* 3. Batang Penggeser (Thumb) yang Transparan & Membias Warna Tema */
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+      /* Menggunakan campuran warna fallback oranye dengan tingkat opacity adaptif */
+      background: var(--color-primary-500, rgba(249, 115, 22, 0.2)); 
+      background-image: linear-gradient(
+          to right, 
+          rgba(249, 115, 22, 0.25), 
+          rgba(251, 146, 60, 0.25)
+      );
+      border-radius: 100px;
+      border: 1px solid transparent;
+      background-clip: padding-box;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* 4. Efek 'Glow & Pop' Saat Area Slider Disentuh atau Di-hover */
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb,
+  .custom-scrollbar:focus-within::-webkit-scrollbar-thumb,
+  .custom-scrollbar:active::-webkit-scrollbar-thumb {
+      background-image: linear-gradient(
+          to right, 
+          rgba(249, 115, 22, 0.85), 
+          rgba(251, 146, 60, 0.95)
+      );
+      /* Efek bayangan halus shadow neon di sekitar bar penggeser */
+      box-shadow: 0 0 10px rgba(249, 115, 22, 0.35);
+  }
+
+  /* 5. Firefox Fallback Standardisation (Dukungan Lintas Browser) */
+  @supports (scrollbar-width: thin) {
+      .custom-scrollbar {
+          scrollbar-width: thin;
+          /* Urutan: Warna Thumb | Warna Track */
+          scrollbar-color: rgba(249, 115, 22, 0.3) rgba(0, 0, 0, 0.05);
+      }
+      
+      :is(.dark, [data-theme="dark"]) .custom-scrollbar {
+          scrollbar-color: rgba(249, 115, 22, 0.25) rgba(255, 255, 255, 0.03);
+      }
+  }
 }
 
 @keyframes marquee {
