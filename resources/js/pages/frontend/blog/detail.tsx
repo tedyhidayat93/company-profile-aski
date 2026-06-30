@@ -18,6 +18,7 @@ import {
 import { handleImageError } from '@/utils/image';
 import SeoHead from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
+import { FeaturedProductsBanner } from '../catalog';
 
 interface Article {
     id: number;
@@ -47,9 +48,10 @@ interface Article {
 interface BlogDetailProps {
     post: Article;
     related_posts?: Article[];
+    random_products: any[];
 }
 
-export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps) {
+export default function BlogDetail({ post, related_posts = [], random_products = [] }: BlogDetailProps) {
     const { getConfig } = useConfig();
     const formatDate = (date: string) =>
         new Date(date).toLocaleDateString('id-ID', {
@@ -285,7 +287,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                                                 onError={(e) => handleImageError(e, '/images/placeholder.png', item.title)}
                                                 alt={item.title}
                                             />
-                                            <>
+                                            <div className='flex flex-col'>
                                                 <h4 className="font-semibold text-sm group-hover:text-blue-600">
                                                     {item.title}
                                                 </h4>
@@ -293,7 +295,7 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                                                 <p className="text-xs text-gray-500 mt-1 line-clamp-2">
                                                     {item.excerpt}
                                                 </p>
-                                            </>
+                                            </div>
                                         </div>
                                     </Link>
 
@@ -303,6 +305,10 @@ export default function BlogDetail({ post, related_posts = [] }: BlogDetailProps
                         )}
                     </aside>
 
+                </div>
+
+                <div className='bg-gradient-to-br mt-20 from-slate-950 via-slate-300 to-slate-900 rounded-3xl'>
+                    <FeaturedProductsBanner products={random_products}/>
                 </div>
 
             </div>

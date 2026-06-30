@@ -241,7 +241,7 @@ class BlogController extends Controller
                 return $item;
             });
 
-        $products = $this->getRandomProducts(null, 5);
+        $products = $this->getRandomProducts(null, 8);
 
             
         return Inertia::render('frontend/blog/detail', [
@@ -306,51 +306,98 @@ class BlogController extends Controller
 
     private function getRandomProducts($slug = null, $show = 8)
     {
-        // Buat cache key dinamis berdasarkan slug agar data tidak saling menimpa
-        $cacheKey = 'products.random.' . ($slug ?? 'all');
-
-        // Cache disimpan selama 5 menit agar efek acak tetap terasa saat refresh berkala
-        return Cache::remember(
-            $cacheKey,
-            now()->addMinutes(5),
-            function () use ($slug, $show) {
-                $products = Product::query()
-                    ->published()
-                    ->with([
-                        'brand:id,name',
-                        'category:id,name,slug',
-                        'coverImage',
-                    ])
-                    // Jika slug diisi, filter berdasarkan slug milik relasi category
-                    ->when($slug, function ($query) use ($slug) {
-                        return $query->whereHas('category', function ($q) use ($slug) {
-                            $q->where('slug', $slug);
-                        });
-                    })
-                    ->inRandomOrder() // Acak data langsung dari database
-                    ->limit($show)
-                    ->get();
-
-                return $products->map(function ($product) {
-                    if (method_exists($this, 'transformProduct')) {
-                        return $this->transformProduct($product);
-                    }
-
-                    // Fallback mapper jika method transformProduct tidak tersedia
-                    return [
-                        'id'       => $product->id,
-                        'name'     => $product->name,
-                        'slug'     => $product->slug,
-                        'image'    => $product->coverImage ? resolve_image_path($product->coverImage->path) : '/images/placeholder.png',
-                        'brand'    => $product->brand ? $product->brand->name : null,
-                        'category' => $product->category ? [
-                            'id'   => $product->category->id,
-                            'name' => $product->category->name,
-                            'slug' => $product->category->slug,
-                        ] : null,
-                    ];
+        $products = Product::query()
+            ->published()
+            ->with([
+                'brand:id,name',
+                'category:id,name,slug',
+                'coverImage',
+            ])
+            // Jika slug diisi, filter berdasarkan slug milik relasi category
+            ->when($slug, function ($query) use ($slug) {
+                return $query->whereHas('category', function ($q) use ($slug) {
+                    $q->where('slug', $slug);
                 });
+            })
+            ->inRandomOrder() // Acak data langsung dari database
+            ->limit($show)
+            ->get();
+
+        return $products->map(function ($product) {
+            if (method_exists($this, 'transformProduct')) {
+                return $this->transformProduct($product);
             }
-        );
+
+            // Fallback mapper jika method transformProduct tidak tersedia
+            return [
+                'id'       => $product->id,
+                'name'     => $product->name,
+                'slug'     => $product->slug,
+                'image'    => $product->coverImage ? resolve_image_path($product->coverImage->path) : '/images/placeholder.png',
+                'brand'    => $product->brand ? $product->brand->name : null,
+                'category' => $product->category ? [
+                    'id'   => $product->category->id,
+                    'name' => $product->category->name,
+                    'slug' => $product->category->slug,
+                ] : null,
+            ];
+        });
+    }
+
+    private function transformProduct(
+        Product $product
+    ): array {
+
+        return [
+            'id' => $product->id,
+
+            'name' => $product->name,
+
+            'slug' => $product->slug,
+
+            'type' => $product->type,
+
+            'quantity' => $product->quantity,
+
+            'category' => $product->category,
+
+            'price' => $product->price,
+
+            'compare_at_price' =>
+                $product->compare_at_price,
+
+            'stock' =>
+                $product->quantity ?? 0,
+
+            'image' => resolve_image_path(
+                $product->coverImage?->image_path
+            ),
+
+            'description' =>
+                $product->short_description
+                ?? $product->description
+                ?? '',
+
+            'is_bestseller' =>
+                $product->is_bestseller ?? false,
+
+            'show_price' =>
+                $product->show_price,
+
+            'show_stock' =>
+                $product->show_stock,
+
+            'is_new' =>
+                $product->is_new ?? false,
+
+            'is_featured' =>
+                $product->is_featured ?? false,
+
+            'is_for_sell' =>
+                $product->is_for_sell ?? false,
+
+            'is_rent' =>
+                $product->is_rent ?? false,
+        ];
     }
 }
