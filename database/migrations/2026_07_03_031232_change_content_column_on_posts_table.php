@@ -8,15 +8,39 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('posts', function (Blueprint $table) {
+        Schema::table('articles', function (Blueprint $table) {
             $table->longText('content')->change();
+        });
+
+        Schema::table('services', function (Blueprint $table) {
+            $table->longText('description')->nullable()->change();
+        });
+
+        Schema::table('categories', function (Blueprint $table) {
+            $table->longText('description')->nullable()->change();
+        });
+
+        Schema::table('products', function (Blueprint $table) {
+            $table->longText('description')->nullable()->change();
         });
     }
 
     public function down(): void
     {
-        Schema::table('posts', function (Blueprint $table) {
+        Schema::table('articles', function (Blueprint $table) {
             $table->text('content')->change();
+        });
+
+        Schema::table('services', function (Blueprint $table) {
+            $table->text('description')->nullable()->change();
+        });
+
+        Schema::table('categories', function (Blueprint $table) {
+            $table->text('description')->nullable()->change();
+        });
+
+        Schema::table('products', function (Blueprint $table) {
+            $table->text('description')->nullable()->change();
         });
     }
 };
