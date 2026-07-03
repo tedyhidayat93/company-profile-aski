@@ -8,6 +8,8 @@ interface SubCategoryItem {
     name: string;
     slug?: string;
     description?: string;
+    meta_description?: string;
+    meta_title?: string;
     image?: string;
     href: string;
 }
@@ -16,6 +18,8 @@ interface RootCategory {
     title: string;
     slug: string;
     description: string;
+    meta_description?: string;
+    meta_title?: string;
     image?: string;
     items: SubCategoryItem[];
 }
@@ -103,10 +107,10 @@ export default function HomepageProductTabs() {
                     {currentCategory.description && (
                         <div className="bg-slate-50/80 backdrop-blur-xs p-6 rounded-2xl border border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <p className="text-slate-600 text-sm font-medium max-w-4xl leading-relaxed">
-                                {currentCategory.description}
+                                <div className="space-y-4" dangerouslySetInnerHTML={{ __html: currentCategory.meta_description || currentCategory.description || ''  }} />
                             </p>
                             <Link
-                                href={`/katalog?category=${currentCategory.slug}`}
+                                href={`/produk/${currentCategory.slug}`}
                                 className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 hover:text-orange-700 uppercase shrink-0 tracking-wider group"
                             >
                                 <span>Lihat Katalog</span>
@@ -159,23 +163,23 @@ export default function HomepageProductTabs() {
                                         {/* Sisi Kanan: Spesifikasi */}
                                         <div className="w-full sm:w-[62%] flex flex-col justify-between h-full min-h-[130px] pt-1">
                                             <div className="space-y-1.5">
-                                                <h3 className="text-base font-bold text-slate-950 tracking-tight group-hover:text-orange-600 transition-colors line-clamp-1">
+                                                <h3 className="text-lg font-bold text-slate-950 tracking-tight group-hover:text-orange-600 transition-colors line-clamp-1">
                                                     {item.name}
                                                 </h3>
-                                                <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed font-medium">
-                                                    {item.description || 'Spesifikasi unit kontainer standar tinggi dengan material Corten steel, sistem pengunci kokoh, tahan cuaca, serta siap dioperasikan.'}
+                                                <p className="text-sm text-slate-500 line-clamp-3 leading-relaxed font-medium">
+                                                    <div className="space-y-4" dangerouslySetInnerHTML={{ __html: item.meta_description || item.description || ''  }} />
                                                 </p>
                                             </div>
 
                                             {/* Footer Brosur */}
                                             <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                                                <div className="flex gap-1.5">
+                                                {/* <div className="flex gap-1.5">
                                                     <span className="text-[9px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
-                                                        ISO Standard
+                                                        ISO Standard & Support 24/7 & Terpercaya
                                                     </span>
-                                                </div>
+                                                </div> */}
                                                 <div className="inline-flex items-center text-xs font-bold text-slate-900 group-hover:text-orange-600 gap-1 transition-colors">
-                                                    <span>Buka Brosur</span>
+                                                    <span>Lihat Detail</span>
                                                     <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                                                 </div>
                                             </div>

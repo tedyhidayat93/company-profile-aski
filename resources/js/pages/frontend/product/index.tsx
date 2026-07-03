@@ -1,7 +1,6 @@
-import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { ArrowRight, FileDown, Layers, ShieldCheck } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import SeoHead from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
@@ -11,6 +10,8 @@ interface SubCategoryItem {
     name: string;
     slug?: string;
     description?: string;
+    meta_description?: string;
+    meta_title?: string;
     image?: string;
     href: string;
 }
@@ -19,6 +20,8 @@ interface RootCategory {
     title: string;
     slug: string;
     description: string;
+    meta_description?: string;
+    meta_title?: string;
     image?: string;
     items: SubCategoryItem[];
 }
@@ -72,11 +75,11 @@ export default function ProductIndex({ seo }: Props) {
                                     {/* Header Kategori Utama */}
                                     <div className="mb-12 border-l-4 border-orange-500 pl-5">
                                         <h2 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">
-                                            {rootCategory.title}
+                                            {rootCategory.meta_title || rootCategory.title}
                                         </h2>
-                                        {rootCategory.description && (
+                                        {rootCategory.meta_description && (
                                             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
-                                                {rootCategory.description}
+                                                <div className="space-y-4" dangerouslySetInnerHTML={{ __html: rootCategory.meta_description || rootCategory.description || ''  }} />
                                             </p>
                                         )}
                                     </div>
@@ -85,7 +88,7 @@ export default function ProductIndex({ seo }: Props) {
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
                                         {rootCategory.items.map((item, key) => {
                                             if (!item.image) return null;
-                                            const targetUrl = item.slug ? `/katalog/${item.slug}` : `/katalog/${rootCategory.slug}`;
+                                            const targetUrl = item.slug ? `/produk/${item.slug}` : `/produk/${rootCategory.slug}`;
 
                                             return (
                                                 <div 
@@ -106,21 +109,21 @@ export default function ProductIndex({ seo }: Props) {
                                                     {/* Sisi Kanan: Teks & Info Teknis */}
                                                     <div className="w-full sm:w-3/5 flex flex-col justify-between h-full space-y-4">
                                                         <div className="space-y-1.5">
-                                                            <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-orange-500 transition-colors">
+                                                            <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-orange-500 transition-colors">
                                                                 {item.name}
                                                             </h3>
-                                                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">
-                                                                {item.description || 'Unit kontainer standarisasi tinggi dengan proteksi penuh dan opsi modifikasi custom sesuai kebutuhan bisnis.'}
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-4 leading-relaxed">
+                                                                <div className="space-y-4" dangerouslySetInnerHTML={{ __html: item.meta_description || item.description || ''  }} />
                                                             </p>
                                                         </div>
 
                                                         {/* Badge Kecil Pengganti Bullet Point */}
                                                         <div className="flex flex-wrap gap-1.5 pt-1">
-                                                            <span className="inline-flex items-center text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded">
-                                                                ISO Standard
+                                                            <span className="inline-flex items-center text-[10px] font-bold bg-green-100 dark:bg-green-700 text-green-600 dark:text-slate-300 px-2 py-0.5 rounded">
+                                                                Support 24/7
                                                             </span>
                                                             <span className="inline-flex items-center text-[10px] font-bold bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded">
-                                                                Cargo Worthy
+                                                                Kirim Seluruh Indonesia
                                                             </span>
                                                         </div>
 
@@ -130,7 +133,7 @@ export default function ProductIndex({ seo }: Props) {
                                                                 href={targetUrl}
                                                                 className="inline-flex items-center text-xs font-bold text-slate-900 dark:text-white hover:text-orange-500 dark:hover:text-orange-400 gap-1 group/btn transition-colors"
                                                             >
-                                                                <span>Spesifikasi Unit</span>
+                                                                <span>Lihat Selengkapnya</span>
                                                                 <ArrowRight className="h-3 w-3 transition-transform group-hover/btn:translate-x-0.5" />
                                                             </Link>
                                                         </div>

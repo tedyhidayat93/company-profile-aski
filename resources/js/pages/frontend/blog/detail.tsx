@@ -112,7 +112,7 @@ export default function BlogDetail({ post, related_posts = [], random_products =
 
                         {/* Banner Gambar Utama */}
                         {post.featured_image && (
-                            <div className="mb-6 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800 aspect-video md:max-h-[440px] w-full">
+                            <div className="mb-6 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800 h-full w-full">
                                 <img
                                     src={post.featured_image.startsWith('http') ? post.featured_image : `/storage/${post.featured_image}`}
                                     className="w-full h-full object-cover"

@@ -17,12 +17,14 @@ interface MenuItem {
   name: string;
   href: string;
   description?: string;
+  meta_description?: string;
 }
 
 interface MenuCategory {
   title: string;
   slug: string;
   description?: string;
+  meta_description?: string;
   items: MenuItem[];
 }
 
@@ -253,9 +255,9 @@ export default function Header() {
                                 <div key={index} className="space-y-3 group p-4 rounded-xl hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                                   <div className="space-y-0.5">
                                     <Link href={`/produk/${cat.slug}`} className="flex items-center">
-                                      <h4 className="text-base font-black tracking-wider group-hover:text-orange-600 text-slate-900 dark:text-slate-100 uppercase text-orange-600">{cat.title}</h4>
+                                      <h4 className="text-base font-black italic tracking-wider group-hover:text-orange-600 text-slate-900 dark:text-slate-100 uppercase text-orange-600">{cat.title}</h4>
                                     </Link>
-                                    {cat.description && <p className="text-xs font-medium text-slate-500 line-clamp-2 leading-relaxed">{cat.description}</p>}
+                                    {cat.description && <div className="space-y-4 text-xs! text-slate-500! font-medium" dangerouslySetInnerHTML={{ __html: cat.meta_description || cat.description || ''  }} />}
                                   </div>
                                   <ul className="space-y-1.5 border-t border-slate-100 dark:border-slate-800/60 pt-2">
                                     {cat.items.map((item, i) => (

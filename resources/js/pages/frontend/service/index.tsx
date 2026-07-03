@@ -108,7 +108,7 @@ export default function ServiceIndex({ services = [], products = [], seo }: Prop
                                             {service.title}
                                         </h2>
                                         <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed">
-                                            {service.description}
+                                            <div className="tinymce-content" dangerouslySetInnerHTML={{ __html: service.description || ''  }} />
                                         </p>
                                         <div className="pt-2">
                                             <Link

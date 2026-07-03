@@ -158,7 +158,7 @@ export default function ProductDetail({ product, products = [], related_categori
                                 src={product.image} 
                                 alt={product.title} 
                                 onError={handleImageError}
-                                className="w-full h-full object-cover aspect-[16/10]"
+                                className="w-full h-full object-cover"
                             />
                             <div className="absolute top-6 left-6 z-20 bg-slate-950/90 text-white border border-orange-500/50 px-3 py-1.5 flex items-center gap-2 rounded-xl backdrop-blur-sm">
                                 <ShieldCheck className="w-3.5 h-3.5 text-orange-500" />
@@ -178,7 +178,7 @@ export default function ProductDetail({ product, products = [], related_categori
                                 </h2>
                             </div>
                             
-                            <div className="prose prose-slate dark:prose-invert max-w-none prose-p:text-slate-600 dark:prose-p:text-neutral-400 text-sm md:text-base font-medium">
+                            <div className="text-slate-700 dark:text-neutral-300 text-sm md:text-base leading-relaxed font-medium space-y-4">
                                 {product.content ? (
                                     <div className="space-y-4" dangerouslySetInnerHTML={{ __html: product.content }} />
                                 ) : (
