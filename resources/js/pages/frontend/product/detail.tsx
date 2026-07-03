@@ -61,7 +61,7 @@ export default function ProductDetail({ product, products = [], related_categori
             <SeoHead title={seo?.title || product?.title} description={seo?.description} />
 
             {/* --- 💥 HERO BANNER: UNIVERSAL INDUSTRIAL LOOK --- */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-orange-600 via-orange-500 to-amber-600 text-slate-950 border-b-8 border-slate-950 py-32 md:py-40 px-4">
+            <section className="relative overflow-hidden bg-gradient-to-br from-orange-600 via-orange-500 to-amber-600 text-slate-950 border-b-8 border-slate-950 py-20 md:py-40 px-4">
                 {/* Blueprint Pattern Overlay */}
                 <div className="absolute inset-0 opacity-15 bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] bg-[size:30px_30px]" />
                 <div className="absolute -bottom-24 -left-20 w-96 h-96 bg-white/20 rounded-full blur-[100px] pointer-events-none" />
@@ -98,7 +98,7 @@ export default function ProductDetail({ product, products = [], related_categori
                                 <Truck className="w-5 h-5 text-orange-500 animate-bounce" /> READY STOCK & SIAP KIRIM
                             </div>
                             
-                            <div className="space-y-2 text-xs font-semibold text-slate-300">
+                            <div className="space-y-2 text-[9px] md:text-xs font-semibold text-slate-300">
                                 {/* 3. KATA KUNCI: FLEKSIBEL & RESMI */}
                                 <div className="flex justify-between py-1 border-b border-white/10">
                                     <span>Metode Transaksi:</span> 
@@ -142,8 +142,8 @@ export default function ProductDetail({ product, products = [], related_categori
             </section>
 
             {/* --- 🛠️ MAIN TECHNICAL SPECS LAYOUT --- */}
-            <main className="max-w-7xl mx-auto md:px-4 xl:px-0 py-12 md:py-16 relative z-20">
-                <div className='-mt-52 bg-gradient-to-br from-slate-950 via-slate-300 to-slate-900 rounded-3xl'>
+            <main className="max-w-7xl mx-auto px-3 md:px-4 xl:px-0 py-12 md:py-16 relative z-20">
+                <div className='-mt-32 md:-mt-52 bg-gradient-to-br from-slate-950 via-slate-300 to-slate-900 rounded-3xl'>
                     <FeaturedProductsBanner products={products}/>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start mt-10">
