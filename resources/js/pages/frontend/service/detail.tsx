@@ -78,7 +78,7 @@ export default function ServiceDetail({ service, products = [], related_services
                                 src={service.image} 
                                 alt={service.title} 
                                 onError={handleImageError}
-                                className="w-full h-full object-cover aspect-5/3"
+                                className="w-full h-full"
                             />
                         </div>
 
