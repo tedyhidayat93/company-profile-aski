@@ -61,7 +61,7 @@ export default function Header() {
   }, [url]);
 
   const isHomepage = currentPathname === '/';
-  const logoImage = getConfig('/storage/site_logo', '/images/logo-main.png');
+  const logoImage = getConfig('site_logo', '/images/logo-main.png');
 
   const { footerServices = [], productCategories = [] } = usePage().props as any as {
     footerServices: any[]
@@ -171,7 +171,7 @@ export default function Header() {
               <Link href="/" className="flex-shrink-0 h-12 w-auto">
                 <img
                   src={logoImage}
-                  alt="Logo"
+                  alt={getConfig('site_name', 'Alumoda Sinergi Kontainer Indonesia')}
                   className="max-h-full max-w-full object-contain"
                   onError={(e) => handleImageError(e, '/images/logo-main.png', 'Logo')}
                 />
