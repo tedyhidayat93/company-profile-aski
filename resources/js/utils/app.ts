@@ -21,7 +21,7 @@ export function generateUrl(path: string, baseUrl?: string): string {
  */
 export function generateBlogUrl(slug: string, baseUrl?: string): string {
   const base = baseUrl || (usePage().props as any).appUrl || '';
-  return `${base}/articles/${slug}`;
+  return `${base}/${slug}`;
 }
 
 /**
