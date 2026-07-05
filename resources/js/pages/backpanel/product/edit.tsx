@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
+import { Head, Link, useForm} from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,11 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { formatPrice, parseCurrencyInput, formatCurrencyInput } from '@/utils/currency';
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Package, Tag as TagIcon, Plus, Trash2, ChevronDown, FormInput, Loader } from 'lucide-react';
+import { parseCurrencyInput, formatCurrencyInput } from '@/utils/currency';
+import { ArrowLeft, Save, X, Image as ImageIcon, Tag as TagIcon, Plus, Trash2, ChevronDown, FormInput, Loader } from 'lucide-react';
 import TreeSelect from '@/components/tree-select';
-import { flattenCategories } from '@/lib/utils';
-import { getContainerSpecs, type ContainerSpec } from '@/utils/product';
+import { getContainerSpecs } from '@/utils/product';
 import { Category } from '../category/create';
 import TinyMCEEditor from '@/components/TinyMCEEditor';
 import {
@@ -646,13 +645,13 @@ export default function ProductEdit({ product, brands, categories }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="short_description">Deskripsi Singkat</Label>
-                <Input
+                <Textarea
                   id="short_description"
                   name="short_description"
-                  type="text"
                   value={data.short_description}
                   onChange={handleInputChange}
-                  placeholder="Deskripsi singkat produk"
+                  placeholder="Deskripsi singkat (maks 500 karakter)"
+                  rows={2}
                   maxLength={500}
                 />
                 {errors.short_description && <p className="text-sm text-red-600">{errors.short_description}</p>}

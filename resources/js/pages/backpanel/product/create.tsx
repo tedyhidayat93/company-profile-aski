@@ -605,13 +605,13 @@ export default function ProductCreate({ brands, categories }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="short_description">Deskripsi Singkat</Label>
-                <Input
+                <Textarea
                   id="short_description"
                   name="short_description"
-                  type="text"
                   value={data.short_description}
                   onChange={handleInputChange}
-                  placeholder="Deskripsi singkat produk"
+                  placeholder="Deskripsi singkat (maks 500 karakter)"
+                  rows={2}
                   maxLength={500}
                 />
                 {errors.short_description && <p className="text-sm text-red-600">{errors.short_description}</p>}
