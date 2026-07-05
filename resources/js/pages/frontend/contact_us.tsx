@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import SeoHead from '@/components/seo-head';
+import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 // import { useConfig } from '@/utils/config';
 import { 
     Mail, 
@@ -18,9 +18,11 @@ import {
     Target,
     Compass
 } from 'lucide-react';
+import PageHeader from '@/components/page-header';
+import { useConfig } from '@/utils/config';
 
 interface Props {
-    seo: any;
+    seo: SeoHeadProps;
     data: {
         site_name: string;
         about_us: {
@@ -49,7 +51,7 @@ interface Props {
 }
 
 export default function ContactUs({ seo, data }: Props) {
-    // const { getConfig } = useConfig();
+    const { getConfig } = useConfig();
     const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
     const [activeTab, setActiveTab] = useState<'vision' | 'mission'>('vision');
     const [isExpanded, setIsExpanded] = useState(false);
@@ -71,27 +73,23 @@ export default function ContactUs({ seo, data }: Props) {
 
     return (
         <FrontendLayout>
-            <SeoHead title="Hubungi Kami" description={seo.description} />
+            <SeoHead
+                title={seo.title || 'Kontak Kami'}
+                description={seo.description}
+                image={seo.image}   
+                keywords={seo.keywords}
+                contentType={seo.contentType || 'website'}
+            />
 
             {/* --- HERO BANNER SECTION --- */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-black via-orange-950/70 to-slate-900 py-10 md:py-28 px-4 border-b border-orange-500/20">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-orange-500/10 rounded-full blur-[140px] pointer-events-none" />
-                
-                <div className="max-w-4xl mx-auto text-center relative z-10">
-                    <span className="inline-block px-3 py-1 text-xs font-bold tracking-wider text-orange-400 uppercase bg-orange-500/10 rounded-full mb-4 border border-orange-500/20">
-                        Get In Touch
-                    </span>
-                    <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter leading-[1.1] bg-gradient-to-b from-white via-slate-200 to-orange-400 bg-clip-text text-transparent drop-shadow-xl">
-                        Hubungi Tim Ahli Kami
-                    </h1>
-                    <div className="flex justify-center mb-6">
-                        <div className="h-1 w-20 bg-gradient-to-r from-transparent via-orange-500 to-transparent rounded-full" />
-                    </div>
-                    <p className="mx-auto max-w-2xl text-slate-300 text-sm md:text-base font-medium opacity-90 leading-relaxed">
-                        Kami siap membantu merealisasikan kebutuhan unit kontainer, modifikasi custom khusus, hingga solusi logistik korporasi Anda.
-                    </p>
-                </div>
-            </section>
+            <PageHeader 
+                badge="Hubungi Kami"
+                titleNormal="Diskusikan Kebutuhan Kontainer"
+                titleGradient="Bersama Tim Ahli Kami"
+                description="Kami siap membantu merealisasikan kebutuhan unit kontainer, modifikasi custom khusus, hingga solusi ruang kerja logistik korporasi Anda dengan standar kualitas terbaik."
+                imageSrc="/images/sketch-container.png"
+                imageAlt={getConfig('site_tagline', 'Alumoda') + ' - ' + getConfig('site_name', 'Alumoda') + ' - Kontainer Modifikasi & Solusi Ruang Kerja Logistik'}
+            />
 
             {/* --- MAIN GRID SECTION --- */}
             <main className="max-w-7xl mx-auto px-4 pt-10 md:pt-20 pb-3">

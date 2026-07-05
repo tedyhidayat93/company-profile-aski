@@ -2,9 +2,10 @@ import { Link, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { ArrowRight } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
-import SeoHead from '@/components/seo-head';
+import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import CtaSection from '@/components/cta-section';
+import PageHeader from '@/components/page-header';
 
 interface SubCategoryItem {
     name: string;
@@ -27,7 +28,7 @@ interface RootCategory {
 }
 
 interface Props {
-    seo: any;
+    seo: SeoHeadProps;
 }
 
 export default function ProductIndex({ seo }: Props) {
@@ -36,28 +37,23 @@ export default function ProductIndex({ seo }: Props) {
 
     return (
         <FrontendLayout>
-            <SeoHead title={seo?.title || 'Katalog Produk'} description={seo?.description} />
 
-            {/* Hero Header Section */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-black via-orange-950/80 to-slate-900 py-24 px-4 border-b border-orange-500/20">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] bg-orange-500/15 rounded-full blur-[120px] pointer-events-none" />
-                <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
-
-                <div className="max-w-7xl mx-auto text-center relative z-10">
-                    <span className="inline-block px-3 py-1 text-xs font-bold tracking-wider text-orange-400 uppercase bg-orange-500/10 rounded-full mb-4 border border-orange-500/20">
-                        Product Specification
-                    </span>
-                    <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
-                        {getConfig('product_title', 'Katalog')}{' '}
-                        <span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">
-                            Produk Kami
-                        </span>
-                    </h1>
-                    <p className="mx-auto max-w-2xl text-slate-200 text-base md:text-lg leading-relaxed font-medium">
-                        Eksplorasi lini produk kontainer terbaik kami. Dirancang dengan presisi dan standar inspeksi tinggi untuk kebutuhan industri Anda.
-                    </p>
-                </div>
-            </section>
+            <SeoHead
+                title={seo.title || getConfig('services_meta_title', 'Produk Kami')}
+                description={seo.description}
+                image={seo.image}   
+                keywords={seo.keywords}
+                contentType={seo.contentType || 'website'}
+            />
+    
+            <PageHeader 
+                badge={getConfig('site_name', 'Alumoda')}
+                titleNormal="Sewa Kontainer & Modifikasi"
+                titleGradient="Berkualitas & Terpercaya"
+                description="Menerima sewa kontainer tahunan & bulanan, modifikasi custom, dan solusi ruang kerja logistik dengan standar kualitas terbaik. Hubungi tim ahli kami untuk konsultasi dan penawaran terbaik."
+                imageSrc="/images/sketch-container.png"
+                imageAlt={getConfig('site_tagline', 'Alumoda') + ' - ' + getConfig('site_name', 'Alumoda') + ' - Kontainer Modifikasi & Solusi Ruang Kerja Logistik'}
+            />
 
             {/* Hybrid Brochure Grid Layout */}
             <div className="w-full">
@@ -70,7 +66,7 @@ export default function ProductIndex({ seo }: Props) {
 
                         return (
                             <section key={rootCategory.slug || index} className={`py-16 md:py-20 ${bgClass}`}>
-                                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                <div className="max-w-7xl mx-auto sm:px-2 lg:px-4">
                                     
                                     {/* Header Kategori Utama */}
                                     <div className="mb-12 border-l-4 border-orange-500 pl-5">
@@ -78,9 +74,9 @@ export default function ProductIndex({ seo }: Props) {
                                             {rootCategory.meta_title || rootCategory.title}
                                         </h2>
                                         {rootCategory.meta_description && (
-                                            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
+                                            <div className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
                                                 <div className="space-y-4" dangerouslySetInnerHTML={{ __html: rootCategory.meta_description || rootCategory.description || ''  }} />
-                                            </p>
+                                            </div>
                                         )}
                                     </div>
 
@@ -112,9 +108,9 @@ export default function ProductIndex({ seo }: Props) {
                                                             <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-orange-500 transition-colors">
                                                                 {item.name}
                                                             </h3>
-                                                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-4 leading-relaxed">
+                                                            <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-4 leading-relaxed">
                                                                 <div className="space-y-4" dangerouslySetInnerHTML={{ __html: item.meta_description || item.description || ''  }} />
-                                                            </p>
+                                                            </div>
                                                         </div>
 
                                                         {/* Badge Kecil Pengganti Bullet Point */}

@@ -5,7 +5,7 @@ import { Calendar, Eye, Search, Filter, Tag, TagIcon, Folder, Hash, ArrowRight, 
 import { handleImageError } from '@/utils/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import SeoHead from '@/components/seo-head';
+import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import { Pagination } from '@/components/ui/pagination';
 
@@ -29,6 +29,7 @@ type Props = {
     categories: Array<{ id: number; name: string; slug: string; type: string; }>;
     popular_tags: string[];
     filters?: { search?: string; category?: string; tag?: string; };
+    seo: SeoHeadProps;
 };
 
 export default function BlogIndex({ 
@@ -38,7 +39,8 @@ export default function BlogIndex({
     all_posts = { data: [], links: [] }, 
     categories = [], 
     popular_tags = [],
-    filters = {} 
+    filters = {},
+    seo
 }: Props) {
     const { getConfig } = useConfig();
     const { data, setData, get } = useForm({
@@ -96,15 +98,21 @@ export default function BlogIndex({
 
     return (
         <FrontendLayout>
-            <SeoHead title={getConfig('articles_title', 'Artikel & Info Terbaru')} />
-
+            <SeoHead
+                title={seo.title || getConfig('services_meta_title', 'Produk Kami')}
+                description={seo.description}
+                image={seo.image}   
+                keywords={seo.keywords}
+                contentType={seo.contentType || 'website'}
+            />
+    
             {/* --- MASTER CONTAINER --- */}
-            <div className="max-w-7xl mx-auto px-4 py-8 lg:py-12">
+            <div className="max-w-7xl mx-auto px-4 py-4 lg:py-12">
                 
                 {/* 🔥 1. HEADLINE UTAMA (Mencakup Lebar Penuh Atas) */}
                 {!isLoading && headline_posts[0] && (
                     <div className="mb-10 group relative rounded-2xl overflow-hidden border border-slate-200/60 shadow-md dark:border-slate-800">
-                        <Link href={`/${headline_posts[0].slug}`} className="block relative overflow-hidden aspect-[16/9] md:h-[520px] w-full">
+                        <Link href={`/${headline_posts[0].slug}`} className="block relative overflow-hidden aspect-[3/3] md:aspect-[16/9] md:h-[520px] w-full">
                             <img
                                 src={`/storage/${headline_posts[0].featured_image}`}
                                 onError={handleImageError}
@@ -291,7 +299,7 @@ export default function BlogIndex({
                     {/* ===================================================
                         KOLOM KANAN: STICKY UTILITY SIDEBAR (lg:col-span-4)
                        =================================================== */}
-                    <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
+                    <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6 hidden md:block">
                         
                         {/* BOX PANEL: FILTER & SEARCH */}
                         <div className="rounded-2xl border border-slate-100 bg-white shadow-sm p-5 space-y-5 dark:bg-slate-900 dark:border-slate-800">

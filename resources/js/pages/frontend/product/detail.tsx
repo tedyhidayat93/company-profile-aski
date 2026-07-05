@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { ArrowLeft, CheckCircle2, Layers, Package, PhoneCall, ChevronDown, Download, ShieldCheck, FileText, BadgeCheck, Truck, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Layers, PhoneCall, ChevronDown, Download, ShieldCheck, FileText, BadgeCheck, Truck } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import SeoHead from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import CtaSection from '@/components/cta-section';
-import ProductCard from '@/components/ProductCard';
 import { FeaturedProductsBanner } from '../catalog';
 
 interface Props {
@@ -15,9 +14,13 @@ interface Props {
         title: string;
         short_description: string;
         description: string;
+        meta_description?: string;
+        meta_title?: string;
         content?: string;
         image: string;
         slug: string;
+        created_at?: string;
+        updated_at?: string;
     };
     products: any[];
     related_categories: any[];
@@ -58,8 +61,15 @@ export default function ProductDetail({ product, products = [], related_categori
 
     return (
         <FrontendLayout>
-            <SeoHead title={seo?.title || product?.title} description={seo?.description} />
-
+            <SeoHead
+                title={seo.title || product.title || 'Produk Kami'}
+                description={seo.description || product.description || 'Deskripsi produk'}
+                image={seo.image || product.image}
+                keywords={seo.keywords || product.meta_description || 'keywords'}
+                contentType={seo.contentType || 'website'}
+                publishedAt={product.created_at}
+                updatedAt={product.updated_at}
+            />
             {/* --- 💥 HERO BANNER: UNIVERSAL INDUSTRIAL LOOK --- */}
             <section className="relative overflow-hidden bg-gradient-to-br from-orange-600 via-orange-500 to-amber-600 text-slate-950 border-b-8 border-slate-950 py-20 md:py-40 px-4">
                 {/* Blueprint Pattern Overlay */}

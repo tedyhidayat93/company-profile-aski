@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { usePage, Link } from '@inertiajs/react';
 import { ArrowRight, LayoutDashboard } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
@@ -47,7 +47,6 @@ export default function HomepageProductTabs() {
     return (
         <section className="relative py-24 bg-white text-slate-900 overflow-hidden border-t border-b border-slate-100">
             
-            {/* 🕸️ Efek Latar Belakang Jaring Kotak-Kotak Tipis */}
             <div 
                 className="absolute inset-0 opacity-[0.04] pointer-events-none" 
                 style={{
@@ -106,9 +105,9 @@ export default function HomepageProductTabs() {
                     {/* Deskripsi Atas Kategori Utama */}
                     {currentCategory.description && (
                         <div className="bg-slate-50/80 backdrop-blur-xs p-6 rounded-2xl border border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <p className="text-slate-600 text-sm font-medium max-w-4xl leading-relaxed">
+                            <div className="text-slate-600 text-sm font-medium max-w-4xl leading-relaxed">
                                 <div className="space-y-4" dangerouslySetInnerHTML={{ __html: currentCategory.meta_description || currentCategory.description || ''  }} />
-                            </p>
+                            </div>
                             <Link
                                 href={`/produk/${currentCategory.slug}`}
                                 className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 hover:text-orange-700 uppercase shrink-0 tracking-wider group"
@@ -166,9 +165,9 @@ export default function HomepageProductTabs() {
                                                 <h3 className="text-lg font-bold text-slate-950 tracking-tight group-hover:text-orange-600 transition-colors line-clamp-1">
                                                     {item.name}
                                                 </h3>
-                                                <p className="text-sm text-slate-500 line-clamp-3 leading-relaxed font-medium">
+                                                <div className="text-sm text-slate-500 line-clamp-3 leading-relaxed font-medium">
                                                     <div className="space-y-4" dangerouslySetInnerHTML={{ __html: item.meta_description || item.description || ''  }} />
-                                                </p>
+                                                </div>
                                             </div>
 
                                             {/* Footer Brosur */}

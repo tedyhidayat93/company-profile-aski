@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import SeoHead from '@/components/seo-head';
+import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import ProfileVideoHandler from '@/components/profile-video-handler';
 import { Link } from '@inertiajs/react'; // Import Link Inertia agar routing bekerja
 import { 
@@ -20,13 +20,7 @@ import { Service } from './service';
 import { handleImageError } from '@/utils/image';
 
 interface Props {
-    seo: {
-        title: string;
-        description: string;
-        keywords: string;
-        image: string;
-        type: string;
-    };
+    seo: SeoHeadProps
     data: {
         site_name: string;
         site_tagline: string;
@@ -62,7 +56,14 @@ export default function AboutUs({ seo, data }: Props) {
 
     return (
         <FrontendLayout>
-            <SeoHead title={seo.title} description={seo.description} />
+
+            <SeoHead
+                title={seo.title || 'Tentang Kami'}
+                description={seo.description}
+                image={seo.image}   
+                keywords={seo.keywords}
+                contentType={seo.contentType || 'website'}
+            />
 
             {/* --- 1. HERO BANNER SECTION --- */}
             <section className="relative bg-white dark:bg-slate-950 pt-16 pb-12 md:pt-24 md:pb-16 px-4">

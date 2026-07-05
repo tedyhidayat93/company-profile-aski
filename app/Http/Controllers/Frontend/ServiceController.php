@@ -172,7 +172,7 @@ class ServiceController extends Controller
             'image'       => !empty($seoConfigs['product_meta_image'])
                 ? asset('storage/' . $seoConfigs['product_meta_image'])
                 : asset('images/placeholder.png'),
-            'type'        => 'website',
+            'contentType'        => 'website',
         ];
 
         return Inertia::render('frontend/product/index', [
@@ -235,8 +235,8 @@ class ServiceController extends Controller
                     ? strip_tags($productCategory->meta_description) 
                     : str(strip_tags($productCategory->description))->limit(160),
                 'image'       => resolve_image_path($productCategory->image),
-                'keywords'    => $productCategory->meta_keywords ? strip_tags($productCategory->meta_keywords) : '',
-                'type'        => 'article',
+                'keywords'    => $productCategory->meta_keywords ? strip_tags($productCategory->meta_keywords) : $productCategory->meta_description,
+                'contentType' => 'article',
             ],
         ]);
     }

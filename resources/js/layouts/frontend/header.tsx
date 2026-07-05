@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { 
   Phone, Mail, X, Heart, Menu, LogInIcon, LayoutDashboardIcon, ChevronDown,
-  BoxIcon
+  BoxIcon,
+  LayoutDashboard
 } from 'lucide-react';
 
 import { useWishlist } from '@/hooks/useWishlist';
@@ -148,14 +149,14 @@ export default function Header() {
                 <Phone className="h-3 w-3 mr-1" />
                 <span className="inline text-sm">{getConfig('contact_phone', CONTACT_INFO.phone)}</span>
               </a>
-              <a href={`mailto:${getConfig('contact_email', CONTACT_INFO.email)}`} className="flex items-center text-white font-medium hover:text-slate-100 truncate max-w-16 md:max-w-full">
+              <a href={`mailto:${getConfig('contact_email', CONTACT_INFO.email)}`} className="flex items-center text-white font-medium hover:text-slate-100 truncate max-w-35 md:max-w-full">
                 <Mail className="h-3 w-3 mr-1" />
                 <span className="inline text-sm">{getConfig('contact_email', CONTACT_INFO.email)}</span>
               </a>
             </div>
             <div className="flex items-center gap-3">
               <Link aria-label='to login' href={auth?.user ? dashboard() : login()} className="md:px-6 py-1 hover:text-yellow-300 transition-colors">
-                {auth?.user ? 'Dashboard' : <LogInIcon className="h-4 w-4" />}
+                {auth?.user ? <LayoutDashboard className="h-4 w-4" /> : <LogInIcon className="h-4 w-4" />}
               </Link>
             </div>
           </div>
@@ -267,6 +268,11 @@ export default function Header() {
                                         </Link>
                                       </li>
                                     ))}
+                                    <li >
+                                      <Link href={`/produk/${cat.slug}`} className="flex border-t pt-2 items-center justify-between text-sm font-semibold text-orange-400  hover:text-orange-500 text-xs transition-colors">
+                                        <span>Selengkapnya →</span>
+                                      </Link>
+                                    </li>
                                   </ul>
                                 </div>
                               ))}

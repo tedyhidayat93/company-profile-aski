@@ -13,6 +13,8 @@ import {
     Mail,
     InfoIcon,
     MessageCircle,
+    ChevronDown, 
+    ChevronUp,
     Facebook,
     Twitter,
     Link2,
@@ -34,7 +36,7 @@ import { Input } from '@/components/ui/input';
 import SingleGalleryPreview from '@/components/single-gallery-preview';
 import { Product } from '@/types';
 import { generateRecaptcha } from '@/utils/google-recaptcha';
-import SeoHead from '@/components/seo-head';
+import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { toast } from "sonner"
 import {
     DropdownMenu,
@@ -56,6 +58,7 @@ type OrderFormData = {
 interface DetailProps {
     product: Product;
     relatedProducts: Product[];
+    seo: SeoHeadProps;
 }
 
 interface ImagesGalleryPreview {
@@ -63,9 +66,14 @@ interface ImagesGalleryPreview {
     thumbnail: string;
 }
 
-export default function Detail({ product, relatedProducts }: DetailProps) {
+export default function Detail({ product, relatedProducts, seo }: DetailProps) {
     const [quantity, setQuantity] = useState(1);
     const [productImages, setProductImages] = useState<ImagesGalleryPreview[]>([]);
+
+    const [activeTab, setActiveTab] = useState<'deskripsi' | 'spesifikasi'>('deskripsi');
+    const [isDescExpanded, setIsDescExpanded] = useState<boolean>(false);
+
+    const hasSpecsData = !!((product.specific_specs && product.specific_specs.length > 0));
     
     const [imageSrc, setImageSrc] = useState(() => {
         if (product.images && product.images.length > 0) {
@@ -255,12 +263,14 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
         <FrontendLayout>
 
             <SeoHead
-                title={product.meta_title || product.name}
-                description={
-                    product.meta_description || product.description || ''
-                }
-                image={product.image}
-                keywords={product.tags?.join(', ') || ''}
+                title={seo.title}
+                description={seo.description}
+                image={seo.image}   
+                keywords={seo.keywords}
+                robots={seo.robots || 'index,follow'}
+                contentType={seo.contentType || 'website'}
+                publishedAt={product.published_at} 
+                updatedAt={product.updated_at}
             />
 
             <div className='dark:bg-gray-800'>
@@ -524,67 +534,116 @@ export default function Detail({ product, relatedProducts }: DetailProps) {
                                 </div>
                             </div>
 
-                            {/* DESCRIPTION */}
-                            <div className="space-y-3 mt-6">
-                                {/* <div className="prose prose-lg max-w-none leading-relaxed prose-headings:text-black prose-p:text-black text-gray-800 dark:text-gray-100 prose-strong:text-black prose-li:text-black prose-p:mb-4 prose-headings:mb-4 prose-headings:mt-6 prose-ul:mb-4 prose-ol:mb-4 prose-blockquote:mb-4 prose-table:mb-4 [&_*]:!text-black [&_*]:!text-gray-800 dark:[&_*]:!text-gray-100 [&_*]:!border-black [&_*]:!border-gray-300 dark:[&_*]:!border-gray-600 [&_*]:!bg-transparent [&_*]:!bg-white dark:[&_*]:!bg-gray-800 [&_*]:!shadow-none [&_a]:!text-blue-600 [&_a]:!no-underline hover:[&_a]:!underline [&_img]:!max-w-full [&_img]:!h-auto [&_table]:!w-full [&_table]:!border-collapse [&_td]:!border [&_th]:!border [&_td]:!p-2 [&_th]:!p-2 [&_blockquote]:!border-l-4 [&_blockquote]:!border-gray-300 [&_blockquote]:!pl-4 [&_blockquote]:!italic [&_ul]:!list-disc [&_ol]:!list-decimal [&_ul]:!pl-5 [&_ol]:!pl-5 [&_ul_li]:!mb-2 [&_ol_li]:!mb-2 [&_code]:!bg-gray-100 [&_code]:!px-1 [&_code]:!rounded [&_pre]:!bg-gray-100 [&_pre]:!p-4 [&_pre]:!rounded [&_pre]:!overflow-x-auto [&_h1]:!text-3xl [&_h1]:!font-bold [&_h1]:!mb-4 [&_h1]:!mt-8 [&_h2]:!text-2xl [&_h2]:!font-bold [&_h2]:!mb-4 [&_h2]:!mt-6 [&_h3]:!text-xl [&_h3]:!font-bold [&_h3]:!mb-4 [&_h3]:!mt-6 [&_h4]:!text-lg [&_h4]:!font-bold [&_h4]:!mb-3 [&_h4]:!mt-4 [&_h5]:!text-base [&_h5]:!font-semibold [&_h5]:!mb-3 [&_h5]:!mt-4 [&_h6]:!text-sm [&_h6]:!font-semibold [&_h6]:!mb-3 [&_h6]:!mt-4 [&_p]:!text-base [&_p]:!leading-relaxed [&_p]:!mb-4 [&_p]:!mt-0 [&_div]:!mb-4 [&_div]:!mt-0">
-                                </div> */}
-                                <div className="tinymce-content" dangerouslySetInnerHTML={{ __html: product.description }} />
-                            </div>
+                            <div className="mt-8 space-y-6">
+                                {/* ================= TABS HEADER NAV ================= */}
+                                <div className="flex border-b border-gray-200 dark:border-gray-800">
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('deskripsi')}
+                                        className={`py-3 px-6 text-sm font-bold border-b-2 transition-all ${
+                                            activeTab === 'deskripsi'
+                                                ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                        }`}
+                                    >
+                                        Deskripsi Produk
+                                    </button>
 
-                            {/* ================= SPEC TABLE ================= */}
-                            <div className="mt-6 space-y-4">
-                                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                                    Spesifikasi Detail
-                                </h2>
+                                    {/* Hanya munculkan tab spesifikasi jika datanya ada */}
+                                    {hasSpecsData && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveTab('spesifikasi')}
+                                            className={`py-3 px-6 text-sm font-bold border-b-2 transition-all ${
+                                                activeTab === 'spesifikasi'
+                                                    ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                                                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                            }`}
+                                        >
+                                            Spesifikasi Detail
+                                        </button>
+                                    )}
+                                </div>
 
-                                <div className="border rounded-xl overflow-hidden">
-
-                                    <table className="w-full text-sm">
-
-                                    <tbody className="divide-y">
-
-                                        {/* BASIC INFO */}
-                                        {product.category && (
-                                        <tr>
-                                            <td className="px-4 py-3 text-gray-500">Kategori</td>
-                                            <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
-                                                {product.category?.name || '-'}
-                                            </td>
-                                        </tr>
-                                        )}
-                                        {product.brand && (
-                                            <tr>
-                                                <td className="px-4 py-3 text-gray-500">Merek</td>
-                                                <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
-                                                {product.brand.name}
-                                                </td>
-                                            </tr>
-                                        )}
-
-
-                                        {/* SPECIFICATIONS */}
-                                        {product?.specific_specs?.map((spec, index) => (
-                                        <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition">
-                                            <td className="px-4 py-3 text-gray-500">
-                                                {spec.label}
-                                            </td>
-                                            <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">
-                                                {spec.value}
-
-                                                {spec.note && (
-                                                    <>
-                                                        <br />
-                                                        *{spec.note}
-                                                    </>
+                                {/* ================= TABS CONTENT CONTENT ================= */}
+                                <div className="py-2">
+                                    
+                                    {/* PANEL 1: DESKRIPSI (DENGAN EXPAND/COLLAPSE MENDATANG) */}
+                                    {activeTab === 'deskripsi' && (
+                                        <div className="space-y-4">
+                                            <div className="relative">
+                                                <div 
+                                                    className={`tinymce-content transition-all duration-300 overflow-hidden ${
+                                                        !isDescExpanded ? 'max-h-lg' : 'max-h-none'
+                                                    }`}
+                                                    dangerouslySetInnerHTML={{ __html: product.description }} 
+                                                />
+                                                
+                                                {/* Gradien memudar jika deskripsi panjang dan sedang dalam posisi tertutup */}
+                                                {!isDescExpanded && (
+                                                    <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white dark:from-gray-900 to-transparent pointer-events-none" />
                                                 )}
-                                            </td>
-                                        </tr>
-                                        ))}
+                                            </div>
 
-                                    </tbody>
+                                            {/* Tombol pemicu Expand/Collapse */}
+                                            <div className="flex justify-center pt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsDescExpanded(!isDescExpanded)}
+                                                    className="inline-flex items-center gap-1.5 text-sm font-bold text-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition"
+                                                >
+                                                    <span>{isDescExpanded ? 'Sembunyikan' : 'Baca Selengkapnya'}</span>
+                                                    {isDescExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
 
-                                    </table>
+                                    {/* PANEL 2: SPESIFIKASI TABLE (Hanya dirender jika aktif & data ada) */}
+                                    {activeTab === 'spesifikasi' && hasSpecsData && (
+                                        <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-2xs">
+                                            <table className="w-full text-sm border-collapse bg-white dark:bg-transparent">
+                                                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                                                    {/* 1. Kategori */}
+                                                    {/* {product.category && (
+                                                        <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition">
+                                                            <td className="px-5 py-3.5 text-gray-500 dark:text-gray-400 w-1/3">Kategori</td>
+                                                            <td className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white">
+                                                                {product.category?.name || '-'}
+                                                            </td>
+                                                        </tr>
+                                                    )} */}
+                                                    
+                                                    {/* 2. Merek */}
+                                                    {/* {product.brand && (
+                                                        <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition">
+                                                            <td className="px-5 py-3.5 text-gray-500 dark:text-gray-400">Merek</td>
+                                                            <td className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white">
+                                                                {product.brand.name}
+                                                            </td>
+                                                        </tr>
+                                                    )} */}
 
+                                                    {/* 3. Spesifikasi Fleksibel Tambahan */}
+                                                    {product?.specific_specs?.map((spec, index) => (
+                                                        <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition">
+                                                            <td className="px-5 py-3.5 text-gray-500 dark:text-gray-400">
+                                                                {spec.label}
+                                                            </td>
+                                                            <td className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white">
+                                                                <div>{spec.value}</div>
+                                                                {spec.note && (
+                                                                    <div className="mt-1 text-xs font-medium text-slate-400 dark:text-slate-500 italic">
+                                                                        *{spec.note}
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

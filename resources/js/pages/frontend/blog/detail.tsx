@@ -16,7 +16,7 @@ import {
     Newspaper
 } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
-import SeoHead from '@/components/seo-head';
+import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import { FeaturedProductsBanner } from '../catalog';
 
@@ -28,6 +28,7 @@ interface Article {
     excerpt: string;
     featured_image?: string;
     published_at: string;
+    updated_at: string;
     meta_title?: string;
     meta_description?: string;
     meta_keywords?: string;
@@ -49,9 +50,10 @@ interface BlogDetailProps {
     post: Article;
     related_posts?: Article[];
     random_products: any[];
+    seo: SeoHeadProps;
 }
 
-export default function BlogDetail({ post, related_posts = [], random_products = [] }: BlogDetailProps) {
+export default function BlogDetail({ post, related_posts = [], random_products = [], seo }: BlogDetailProps) {
     const { getConfig } = useConfig();
     const formatDate = (date: string) =>
         new Date(date).toLocaleDateString('id-ID', {
@@ -66,10 +68,15 @@ export default function BlogDetail({ post, related_posts = [], random_products =
     return (
         <FrontendLayout>
             <SeoHead
-                title={post.meta_title || post.title}
-                description={post.meta_description || post.excerpt}
-                image={post.featured_image}
-                keywords={post.meta_keywords || post.tags?.join(', ') || ''}
+                title={seo.title || post.meta_title || post.title}
+                description={seo.description || post.meta_description || post.excerpt}
+                image={seo.image || post.featured_image}   
+                keywords={seo.keywords || post.meta_keywords}
+                url={shareUrl}
+                publishedAt={post.published_at} // Mengisi tanggal rilis untuk Schema JSON-LD
+                updatedAt={post.updated_at}
+                robots={seo.robots || 'index,follow'}
+                contentType={seo.contentType || 'website'}
             />
 
             {/* --- CONTAINER UTAMA --- */}

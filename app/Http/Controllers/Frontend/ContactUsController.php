@@ -22,13 +22,13 @@ class ContactUsController extends Controller
             ->pluck('value', 'key');
 
         $seo = [
-            'title'       => $getConfigs['site_name'] ?? 'Contact Us',
+            'title'       => $getConfigs['about_us_meta_title'] ?? 'Contact Us',
             'description' => $getConfigs['meta_description'] ?? 'Layanan terbaik dari Alumoda Sinergi Kontainer Indonesia.',
             'keywords'    => $getConfigs['meta_keywords'] ?? 'service container, modifikasi container',
             'image'       => !empty($getConfigs['homepage_meta_image'])
                 ? asset('storage/' . $getConfigs['homepage_meta_image'])
                 : asset('images/placeholder.png'),
-            'type'        => 'website',
+            'contentType' => 'website',
         ];
 
         $data = [
@@ -105,7 +105,7 @@ class ContactUsController extends Controller
                 default => asset('images/logo-main.png'),
             },
 
-            'type' => 'website',
+            'contentType' => 'website',
         ];
 
          /*

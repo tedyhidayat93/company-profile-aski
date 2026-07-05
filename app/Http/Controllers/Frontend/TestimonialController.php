@@ -67,7 +67,7 @@ class TestimonialController extends Controller
             'seo' => [
 
                 'title' =>
-                    'Testimoni Pelanggan',
+                    'Testimoni Customer - Alumoda Sinergi Kontainer Indonesia | Jual Beli, Modifikasi, dan Sewa Container Berkualitas',
 
                 'description' =>
                     'Lihat testimonial dan pengalaman pelanggan Alumoda Sinergi Kontainer Indonesia dalam layanan jual beli, modifikasi, dan sewa container berkualitas.',
@@ -79,7 +79,7 @@ class TestimonialController extends Controller
                     'images/logo-main.png'
                 ),
 
-                'type' => 'website',
+                'contentType' => 'website',
             ],
         ]);
     }

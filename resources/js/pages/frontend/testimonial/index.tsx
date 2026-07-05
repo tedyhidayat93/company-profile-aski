@@ -1,21 +1,29 @@
 import FrontendLayout from '@/layouts/frontend-layout';
 import TestimonialCard from '@/components/TestimonialCard';
-import SeoHead from '@/components/seo-head';
+import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import GoogleReviewsWidget from '@/components/google-reviews-widget';
 import { useConfig } from '@/utils/config';
 
 export default function TestimonialIndex({ 
     testimonials = [], 
+    seo
 }: { 
     testimonials?: any[];
     featuredTestimonial?: any;
     stats?: any;
+    seo: SeoHeadProps;
 }) {
     const { getConfig } = useConfig();
    
     return (
         <FrontendLayout>
-            <SeoHead title={'Ulasan'} />
+            <SeoHead
+                title={seo.title || 'Testimoni'}
+                description={seo.description}
+                image={seo.image}   
+                keywords={seo.keywords}
+                contentType={seo.contentType || 'website'}
+            />
 
             <div className="py-16 dark:bg-gray-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

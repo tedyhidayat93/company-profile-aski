@@ -57,7 +57,7 @@ class CatalogController extends Controller
         | Categories Hierarchy Default
         |--------------------------------------------------------------------------
         */
-        $categories = $this->getHierarchicalCategories();
+        $categories = $this->getHierarchicalCategoriesByProducts($filters['search']);
 
         $types = [
             'sell',
@@ -71,11 +71,16 @@ class CatalogController extends Controller
         |--------------------------------------------------------------------------
         */
         // Buat base query untuk mendasari pencarian facet
-        $baseFacetQuery = Product::query()->with([
-            'category' => function ($q) {
-                $q->where('type', 'product');
-            }
-        ])->published();
+        // $baseFacetQuery = Product::query()->with([
+        //     'category' => function ($q) {
+        //         $q->where('type', 'product');
+        //     }
+        // ])->published();
+        $baseFacetQuery = Product::query()
+            ->whereHas('category', function ($q) {
+                $q->where('type', 'product')->active(); // Pastikan hanya kategori product yang aktif
+            })
+            ->published();
         
         // Terapkan filter global seperti 'search' dan 'type' terlebih dahulu ke facet
         if ($filters['search']) {
@@ -90,7 +95,7 @@ class CatalogController extends Controller
         }
 
         /*
-        | 1. Perhitungan Facet Kategori (Mendukung Produk di Kategori Anak / Descendants)
+        | Perhitungan Facet Kategori (Mendukung Produk di Kategori Anak / Descendants)
         |--------------------------------------------------------------------------
         */
         $categoryFacets = clone $baseFacetQuery;
@@ -405,7 +410,7 @@ class CatalogController extends Controller
 
             'keywords' => is_array($product->tags)
                 ? implode(', ', $product->tags)
-                : '',
+                : $product->meta_description,
 
             'image' => resolve_image_path(
                 $product->coverImage?->image_path
@@ -600,7 +605,6 @@ class CatalogController extends Controller
         $query,
         array $filters
     ): void {
-        // Ambil nilai dengan fallback null jika key tidak tersedia di parameter array
         $search   = $filters['search'] ?? null;
         $type     = $filters['type'] ?? null;
         $category = $filters['category'] ?? null;
@@ -608,10 +612,16 @@ class CatalogController extends Controller
         $maxPrice = $filters['maxPrice'] ?? null;
 
         $query
+            /*
+            |--------------------------------------------------------------------------
+            | PERBAIKAN: Pencarian Berdasarkan Title, Short Description, & Description
+            |--------------------------------------------------------------------------
+            */
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%");
+                    $q->where('name', 'like', "%{$search}%") // Menggunakan 'title' sesuai request
+                        ->orWhere('short_description', 'like', "%{$search}%") // Tambahan short_description
+                        ->orWhere('description', 'like', "%{$search}%"); // Tetap menyisir full description
                 });
             })
 
@@ -638,15 +648,8 @@ class CatalogController extends Controller
                 };
             })
 
-            /*
-            |--------------------------------------------------------------------------
-            | MODIFIKASI: Mendukung Multi-Category Checklist Facet
-            |--------------------------------------------------------------------------
-            */
             ->when($category, function ($query, $category) {
-                // Pecah string "dry-container,reefer" menjadi array
                 $categoriesArray = is_string($category) ? explode(',', $category) : (array) $category;
-                
                 $allCategoryIds = [];
 
                 foreach ($categoriesArray as $catSlug) {
@@ -671,19 +674,11 @@ class CatalogController extends Controller
             })
 
             ->when($minPrice, function ($query, $minPrice) {
-                $query->where(
-                    'price',
-                    '>=',
-                    $minPrice
-                );
+                $query->where('price', '>=', $minPrice);
             })
 
             ->when($maxPrice, function ($query, $maxPrice) {
-                $query->where(
-                    'price',
-                    '<=',
-                    $maxPrice
-                );
+                $query->where('price', '<=', $maxPrice);
             });
     }
 
@@ -851,7 +846,7 @@ class CatalogController extends Controller
 
                 default => asset('images/logo-main.png'),
             },
-            'type' => 'website',
+            'contentType' => 'website',
         ];
     }
 
@@ -902,6 +897,77 @@ class CatalogController extends Controller
     | CATEGORIES
     |--------------------------------------------------------------------------
     */
+
+    private function getHierarchicalCategoriesByProducts(?string $search = null): array
+    {
+        $productCategoryQuery = Product::query()
+            ->published()
+            ->whereNotNull('category_id')
+            // Pastikan relasi kategorinya juga valid bertipe product
+            ->whereHas('category', function($q) {
+                $q->where('type', 'product')->active();
+            });
+
+        // Harus sama persis dengan match yang ada di applyProductFilters!
+        if ($search) {
+            $productCategoryQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                ->orWhere('short_description', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Ambil ID kategori yang benar-benar tersisa dari hasil pencarian produk
+        $activeCategoryIds = $productCategoryQuery->distinct()->pluck('category_id')->toArray();
+
+        if (empty($activeCategoryIds)) {
+            return [];
+        }
+
+        // ... (Sisa kode backtracking parent & mapping pohon ke bawahnya tetap sama)
+        $allNecessaryCategoryIds = [];
+        $categoriesToProcess = Category::ofType('product')->active()->whereIn('id', $activeCategoryIds)->get();
+
+        foreach ($categoriesToProcess as $cat) {
+            $allNecessaryCategoryIds[] = $cat->id;
+            $current = $cat;
+            while ($current && !is_null($current->parent_id)) {
+                if (!in_array($current->parent_id, $allNecessaryCategoryIds)) {
+                    $allNecessaryCategoryIds[] = $current->parent_id;
+                }
+                $current = Category::find($current->parent_id);
+            }
+        }
+
+        $allCategories = Category::query()
+            ->active()
+            ->ofType('product')
+            ->whereIn('id', array_unique($allNecessaryCategoryIds))
+            ->orderBy('parent_id')
+            ->orderBy('name')
+            ->get(['id', 'name', 'parent_id', 'slug']);
+
+        $categories = [];
+        $map = [];
+
+        foreach ($allCategories as $category) {
+            $map[$category->id] = [
+                'label' => $category->name,
+                'value' => $category->slug,
+                'subcategories' => [],
+            ];
+        }
+
+        foreach ($allCategories as $category) {
+            if (is_null($category->parent_id)) {
+                $categories[] = &$map[$category->id];
+            } elseif (isset($map[$category->parent_id])) {
+                $map[$category->parent_id]['subcategories'][] = &$map[$category->id];
+            }
+        }
+
+        return $categories;
+    }
 
     private function getHierarchicalCategories(): array
     {

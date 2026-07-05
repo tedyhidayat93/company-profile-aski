@@ -6,7 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import CategoryFilter from '@/components/CategoryFilter';
 import { useConfig } from '@/utils/config';
 import type { Product } from '@/types';
-import SeoHead from '@/components/seo-head';
+import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 
 interface CategoryOption {
     label: string;
@@ -63,6 +63,7 @@ interface CatalogProps {
     bestSellerProducts: Product[];
     categories: CategoryOption[];
     types: string[];
+    seo: SeoHeadProps;
     filters: {
         search?: string;
         type?: string;
@@ -214,25 +215,64 @@ export const FeaturedProductsBanner = ({
     );
 };
 
-function CatalogSidebarFacet({ categories, currentFilters, facets, products }: SidebarProps) {
-    // Ambil array kategori aktif dari string URL terpisah koma
+function CatalogSidebarFacet({ categories = [], currentFilters, facets }: SidebarProps) {
+    // 1. Ambil array kategori aktif dari string URL terpisah koma
     const activeCategories = currentFilters?.category 
         ? currentFilters.category.split(',').filter(Boolean) 
         : [];
 
     const activeMinPrice = currentFilters?.minPrice || '';
     const activeMaxPrice = currentFilters?.maxPrice || '';
+    
+    // 🔥 TAMBAHKAN INI: Tangkap query pencarian aktif dari filters backend atau parameter URL langsung
+    const currentSearchQuery = currentFilters?.search || '';
 
-    // Handler Filter via Inertia URL state (Mendukung Multi-Checkbox Kategori)
+    /* |--------------------------------------------------------------------------
+    | SINKRONISASI REAKTIF: Paksa Filter Kategori Menyusut Mengikuti Search Query
+    |--------------------------------------------------------------------------
+    */
+    const filteredCategories = categories.map((cat: any) => {
+        // Saring sub-kategori
+        const validSubcategories = (cat.subcategories || []).filter((child: any) => {
+            const childCount = facets?.categories?.[child.value] || 0;
+            const childIsChecked = activeCategories.includes(child.value);
+            
+            // Jika ada query search aktif, saring hanya yang count-nya > 0 atau sedang dicentang
+            if (currentSearchQuery) {
+                return childCount > 0 || childIsChecked;
+            }
+            return true; // Jika tidak ada search, tampilkan normal
+        });
+
+        const parentCount = facets?.categories?.[cat.value] || 0;
+        const parentIsChecked = activeCategories.includes(cat.value);
+
+        // Jika ada pencarian, bersihkan kategori induk yang kosong dari hasil filter
+        if (currentSearchQuery) {
+            if (parentCount > 0 || parentIsChecked || validSubcategories.length > 0) {
+                return {
+                    ...cat,
+                    subcategories: validSubcategories
+                };
+            }
+            return null;
+        }
+
+        // Kondisi default (tanpa search): Tampilkan seluruh struktur kategori utuh
+        return {
+            ...cat,
+            subcategories: validSubcategories
+        };
+    }).filter(Boolean);
+
+    // Handler Filter via Inertia URL state
     const handleCategoryCheck = (slug: string) => {
         const params = new URLSearchParams(window.location.search);
         let updatedCategories = [...activeCategories];
 
         if (updatedCategories.includes(slug)) {
-            // Uncheck: Hapus dari list array
             updatedCategories = updatedCategories.filter(item => item !== slug);
         } else {
-            // Check: Tambahkan ke list array
             updatedCategories.push(slug);
         }
 
@@ -242,10 +282,19 @@ function CatalogSidebarFacet({ categories, currentFilters, facets, products }: S
             params.delete('category');
         }
 
-        // Reset ke page 1 setiap kali filter berubah agar tidak offset-out-of-bounds
         params.delete('page');
 
-        router.get(`/katalog?${params.toString()}`, {}, { preserveState: true, replace: true });
+        // 🔥 TAMBAHKAN parameter search saat ini agar filter kategori tidak menghilangkan query pencarian
+        const currentSearch = currentFilters?.search || params.get('search');
+        if (currentSearch) {
+            params.set('search', currentSearch);
+        }
+
+        router.get(`/katalog?${params.toString()}`, {}, { 
+            preserveState: true, 
+            replace: true,
+            preserveScroll: true // Menjaga posisi scroll sidebar agar tidak melompat ke atas
+        });
     };
 
     // Handler Filter Harga Tunggal
@@ -260,11 +309,15 @@ function CatalogSidebarFacet({ categories, currentFilters, facets, products }: S
 
         params.delete('page');
 
-        router.get(`/katalog?${params.toString()}`, {}, { preserveState: true, replace: true });
+        // Pertahankan search query
+        const currentSearch = currentFilters?.search || params.get('search');
+        if (currentSearch) params.set('search', currentSearch);
+
+        router.get(`/katalog?${params.toString()}`, {}, { preserveState: true, replace: true, preserveScroll: true });
     };
 
     return (
-        <aside className="w-full bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-6 sticky top-24 dark:bg-slate-800 dark:border-slate-700">
+        <aside className="w-full bg-white border sticky top-24 border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-6 dark:bg-slate-800 dark:border-slate-700">
             
             {/* GROUP 1: LIST KATEGORI (CHECKLIST-BASED FACET) */}
             <div className="space-y-3">
@@ -273,92 +326,95 @@ function CatalogSidebarFacet({ categories, currentFilters, facets, products }: S
                     <h3 className="font-bold text-slate-800 dark:text-slate-200 text-xs tracking-wider uppercase">Kategori</h3>
                 </div>
 
-                <div className="flex flex-col gap-1 overflow-y-auto pr-1 custom-scrollbar">
-                    {/* Loop Kategori */}
-                    {categories.map((cat: any, key: any) => {
-                        // 🟢 Sesuaikan properti berdasar key error: {label, value, subcategories}
-                        const slug = cat.value;  // Menggantikan cat.slug / cat
-                        const name = cat.label;  // Menggantikan cat.name / cat
-                        const isChecked = activeCategories.includes(slug);
-                        
-                        // Mengambil nilai facet yang dihitung dari backend via slug (cat.value)
-                        const count = facets?.categories?.[slug] || 0;
+                <div className="flex flex-col gap-1 overflow-y-auto max-h-[350px] pr-1 custom-scrollbar">
+                    {/* Gunakan filteredCategories hasil saringan reaktif kita */}
+                    {filteredCategories.length > 0 ? (
+                        filteredCategories.map((cat: any, key: any) => {
+                            const slug = cat.value;  
+                            const name = cat.label;  
+                            const isChecked = activeCategories.includes(slug);
+                            const count = facets?.categories?.[slug] || 0;
 
-                        return (
-                            <div key={slug || key} className="flex flex-col gap-1">
-                                <label
-                                    className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all select-none ${
-                                        isChecked
-                                            ? 'bg-orange-50/70 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400'
-                                            : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2.5 truncate pr-2">
-                                        <div className="relative flex items-center justify-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={isChecked}
-                                                onChange={() => handleCategoryCheck(slug)}
-                                                className="sr-only"
-                                            />
-                                            <div className={`h-4 w-4 rounded-md border flex items-center justify-center transition-colors ${
-                                                isChecked 
-                                                    ? 'bg-orange-500 border-orange-500 text-white' 
-                                                    : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 group-hover:border-orange-400'
-                                            }`}>
-                                                {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
+                            return (
+                                <div key={slug || key} className="flex flex-col gap-1">
+                                    <label
+                                        className={`group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all select-none ${
+                                            isChecked
+                                                ? 'bg-orange-50/70 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400'
+                                                : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700/50'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-2.5 truncate pr-2">
+                                            <div className="relative flex items-center justify-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={() => handleCategoryCheck(slug)}
+                                                    className="sr-only"
+                                                />
+                                                <div className={`h-4 w-4 rounded-md border flex items-center justify-center transition-colors ${
+                                                    isChecked 
+                                                        ? 'bg-orange-500 border-orange-500 text-white' 
+                                                        : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 group-hover:border-orange-400'
+                                                }`}>
+                                                    {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
+                                                </div>
                                             </div>
+                                            <span className="truncate">{name}</span>
                                         </div>
-                                        <span className="truncate">{name}</span>
-                                    </div>
-                                    
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                        isChecked 
-                                            ? 'bg-orange-500 text-white' 
-                                            : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300'
-                                    }`}>
-                                        {count}
-                                    </span>
-                                </label>
+                                        
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                            isChecked 
+                                                ? 'bg-orange-500 text-white' 
+                                                : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300'
+                                        }`}>
+                                            {count}
+                                        </span>
+                                    </label>
 
-                                {/* 🟢 Render sub-kategori menggunakan key properti: subcategories */}
-                                {cat.subcategories && cat.subcategories.length > 0 && (
-                                    <div className="pl-2 flex flex-col gap-1 border-l border-slate-300 dark:border-slate-700 ml-5 mt-1 mb-2">
-                                        {cat.subcategories.map((child: any, key2: any) => {
-                                            const childSlug = child.value; // sub-category slug
-                                            const childName = child.label; // sub-category name
-                                            const childIsChecked = activeCategories.includes(childSlug);
-                                            const childCount = facets?.categories?.[childSlug] || 0;
-                                            
-                                            return (
-                                                <label 
-                                                    key={childSlug || `${key}-${key2}`} 
-                                                    className={`group flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] cursor-pointer transition-all ${
-                                                        childIsChecked ? 'text-orange-600 font-bold' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
-                                                    }`}
-                                                >
-                                                    <div className="flex items-center gap-2 truncate">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked={childIsChecked} 
-                                                            onChange={() => handleCategoryCheck(childSlug)} 
-                                                            className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-3 w-3"
-                                                        />
-                                                        <span className="truncate text-xs font-medium">{childName}</span>
-                                                    </div>
-                                                    <span className="text-xs text-slate-700 font-medium">({childCount})</span>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                                    {/* Render sub-kategori */}
+                                    {cat.subcategories && cat.subcategories.length > 0 && (
+                                        <div className="pl-2 flex flex-col gap-1 border-l border-slate-200 dark:border-slate-700 ml-5 mt-1 mb-2">
+                                            {cat.subcategories.map((child: any, key2: any) => {
+                                                const childSlug = child.value; 
+                                                const childName = child.label; 
+                                                const childIsChecked = activeCategories.includes(childSlug);
+                                                const childCount = facets?.categories?.[childSlug] || 0;
+                                                
+                                                return (
+                                                    <label 
+                                                        key={childSlug || `${key}-${key2}`} 
+                                                        className={`group flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] cursor-pointer transition-all ${
+                                                            childIsChecked ? 'text-orange-600 font-bold' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2 truncate">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={childIsChecked} 
+                                                                onChange={() => handleCategoryCheck(childSlug)} 
+                                                                className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-3 w-3"
+                                                            />
+                                                            <span className="truncate text-xs font-medium pl-1">{childName}</span>
+                                                        </div>
+                                                        <span className="text-[11px] text-slate-400 font-bold">({childCount})</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div className="text-[11px] text-slate-400 text-center py-4 font-medium">
+                            Tidak ada kategori yang cocok
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* GROUP 2: LIST RANGE HARGA (DINAMIS DARI BACKEND FACETS) */}
+            {/* GROUP 2: LIST RANGE HARGA */}
             <div className="space-y-3">
                 <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-700">
                     <CircleDollarSign className="h-4 w-4 text-orange-500" />
@@ -366,7 +422,6 @@ function CatalogSidebarFacet({ categories, currentFilters, facets, products }: S
                 </div>
 
                 <div className="flex flex-col gap-1">
-                    {/* Opsi Reset Harga */}
                     <button
                         onClick={() => handlePriceFilter('', '')}
                         className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all ${
@@ -385,7 +440,6 @@ function CatalogSidebarFacet({ categories, currentFilters, facets, products }: S
                         </div>
                     </button>
 
-                    {/* Loop Range Dinamis (Low, Mid, High) dari Backend */}
                     {facets?.price_ranges?.map((range, index) => {
                         const minStr = Math.round(range.min).toString();
                         const maxStr = Math.round(range.max).toString();
@@ -428,7 +482,7 @@ function CatalogSidebarFacet({ categories, currentFilters, facets, products }: S
     );
 }
 
-function Catalog({products: initialProducts, bestSellerProducts, categories, types, facets, ...props }: CatalogProps) {
+function Catalog({products: initialProducts, bestSellerProducts, categories, types, seo, facets, ...props }: CatalogProps) {
     const { filters: initialFilters } = usePage().props as any;
     
     const [filters, setFilters] = useState({
@@ -445,6 +499,8 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
     const [isLoading, setIsLoading] = useState(false);
     const [isMobileFilterOpen, setIsMobileFilterOpen] =
     useState(false);
+
+    const { getConfig } = useConfig();
 
     // Product Skeleton Component
     const ProductSkeleton = () => (
@@ -510,7 +566,7 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
         setHasChanges(false);
         router.get(`/katalog?${params.toString()}`, {}, {
             preserveState: true,
-            only: ['products', 'filters']
+            only: ['products', 'filters', 'categories', 'facets'],
         });
     };
 
@@ -531,17 +587,15 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
     };
 
     const renderDesktopFilters = () => {
-        const [isSticky, setIsSticky] = useState(false);
+        const [isSticky, setIsSticky] = useState(true);
         const observerRef = useRef<HTMLDivElement>(null);
 
         useEffect(() => {
             const observer = new IntersectionObserver(
                 ([entry]) => {
-                    // Jika elemen sentinel TIDAK terlihat di layar, berarti sudah masuk mode sticky
                     setIsSticky(!entry.isIntersecting);
                 },
                 { 
-                    // offset disesuaikan dengan nilai top-20 (80px) agar trigger deteksi presisi
                     rootMargin: '-80px 0px 0px 0px', 
                     threshold: [1] 
                 }
@@ -560,9 +614,7 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
         return (
             <>
                 {/* Element Sentinel kecil untuk memicu deteksi Intersection Observer */}
-                <div ref={observerRef} className="h-px w-full pointer-events-none absolute -mt-24" />
-
-                <div className={`sticky top-20 z-40 my-5 hidden rounded-2xl border bg-white p-5 shadow-sm transition-all duration-300 lg:block
+                <div className={`fixed w-full z-40 -top-2 hidden border bg-white p-5 shadow-sm transition-all duration-300 lg:block
                     ${isSticky 
                         ? 'border-slate-200 bg-white/90 backdrop-blur-md shadow-md rounded-t-none border-t-0' 
                         : 'border-slate-300/40 hover:shadow-md'
@@ -573,10 +625,10 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
                         
                         {/* TEXT KATALOG: Muncul otomatis dengan animasi transisi yang mulus hanya saat Sticky */}
                         <div className={`flex items-center transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap ${
-                            isSticky ? 'w-24 opacity-100' : 'w-0 opacity-0'
+                            isSticky ? 'w-35 opacity-100' : 'w-0 opacity-0'
                         }`}>
                             <span className="text-lg font-black tracking-tight text-slate-800 uppercase border-r-2 border-orange-500 pr-3">
-                                Katalog
+                                ASKI Katalog
                             </span>
                         </div>
                         
@@ -770,19 +822,56 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
     const renderMobileFilters = () => {
         return (
             <>
-                {/* BUTTON TRIGGER MOBILE */}
-                <div className="mb-4 flex items-center justify-between lg:hidden">
+                {/* STICKY CONTAINER FOR MOBILE ACTIVE CONTROLS */}
+                <div className="fixed top-0 z-40 w-full bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/80 px-4 py-3 lg:hidden flex items-center gap-3 transition-all duration-300">
+                    
+                    {/* 1. SEARCH FORM (Mengambil sisa ruang horizontal yang ada) */}
+                    <form 
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            applyFilters();
+                        }}
+                        className="flex flex-1 gap-2"
+                    >
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                            <input
+                                type="text"
+                                placeholder="Cari unit kontainer, tipe..."
+                                value={filters.search}
+                                onChange={(e) => {
+                                    setFilters(prev => ({ ...prev, search: e.target.value }));
+                                    setHasChanges(true);
+                                }}
+                                className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-4 text-sm font-semibold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-all shadow-2xs"
+                            />
+                        </div>
+                        
+                        <button
+                            type="submit"
+                            disabled={!filters.search && !hasChanges}
+                            className={`h-11 px-4 rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition-all active:scale-95 flex items-center gap-1.5 shrink-0 ${
+                                filters.search || hasChanges
+                                    ? 'bg-orange-500 text-white hover:bg-orange-600'
+                                    : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
+                            }`}
+                        >
+                            <span><SearchIcon className='w-4 h-4'/></span>
+                        </button>
+                    </form>
+
+                    {/* 2. VERTICAL DIVIDER (Garis pembatas halus di tengah) */}
+                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 shrink-0" />
+
+                    {/* 3. FILTER BUTTON TOGGLE (Tetap proporsional di sisi kanan) */}
                     <button
                         onClick={() => setIsMobileFilterOpen(true)}
-                        className="inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm active:scale-95 transition-transform"
+                        className="h-11 w-11 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 shadow-2xs active:scale-95 transition-all shrink-0"
+                        aria-label="Buka Filter"
                     >
                         <Filter className="h-4 w-4 text-orange-500" />
-                        <span>Filter & Urutkan</span>
                     </button>
-
-                    <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
-                        {pagination.total} Produk
-                    </span>
+                    
                 </div>
 
                 {/* DRAWER / SIDEBAR MOBILE */}
@@ -794,26 +883,26 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
                     {/* OVERLAY */}
                     <div
                         onClick={() => setIsMobileFilterOpen(false)}
-                        className={`absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 ${
+                        className={`absolute inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity duration-300 ${
                             isMobileFilterOpen ? 'opacity-100' : 'opacity-0'
                         }`}
                     />
 
                     {/* CONTENT SIDEBAR */}
                     <div
-                        className={`absolute right-0 top-0 flex h-full w-[85%] max-w-[360px] flex-col bg-white shadow-2xl transition-transform duration-300 ease-out ${
+                        className={`absolute right-0 top-0 flex h-full w-[85%] max-w-[360px] flex-col bg-white dark:bg-slate-900 shadow-2xl transition-transform duration-300 ease-out ${
                             isMobileFilterOpen ? 'translate-x-0' : 'translate-x-full'
                         }`}
                     >
-                        {/* HEADER (Fixed Top) */}
-                        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                        {/* HEADER (Fixed Top Inside Drawer) */}
+                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-5 py-4">
                             <div>
-                                <h2 className="text-base font-bold text-slate-900">Filter Produk</h2>
-                                <p className="text-xs text-slate-500">Temukan produk yang sesuai</p>
+                                <h2 className="text-base font-bold text-slate-900 dark:text-white">Filter Lanjutan</h2>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Sesuaikan spesifikasi kriteria</p>
                             </div>
                             <button
                                 onClick={() => setIsMobileFilterOpen(false)}
-                                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200"
                             >
                                 <X className="h-5 w-5" />
                             </button>
@@ -822,27 +911,9 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
                         {/* SCROLLABLE FILTER FORM */}
                         <div className="flex-1 overflow-y-auto p-5 space-y-6 pb-24">
                             
-                            {/* 1. SEARCH INPUT */}
+                            {/* 1. CATEGORY FILTER */}
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cari Kata Kunci</label>
-                                <div className="relative">
-                                    <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                                    <input
-                                        type="text"
-                                        placeholder="Nama produk, merk, dll..."
-                                        value={filters.search}
-                                        onChange={(e) => {
-                                            setFilters(prev => ({ ...prev, search: e.target.value }));
-                                            setHasChanges(true);
-                                        }}
-                                        className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 text-sm font-medium outline-none focus:border-orange-400 focus:bg-white"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* 2. CATEGORY FILTER */}
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Kategori</label>
+                                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Kategori Unit</label>
                                 <CategoryFilter
                                     categories={categories}
                                     selectedCategory={filters.category}
@@ -854,29 +925,29 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
                                 />
                             </div>
 
-                            {/* 3. TYPE FILTER */}
+                            {/* 2. TYPE FILTER */}
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tipe Transaksi</label>
+                                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Tipe Transaksi</label>
                                 <select
                                     value={filters.type || ''}
                                     onChange={(e) => {
                                         setFilters(prev => ({ ...prev, type: e.target.value }));
                                         setHasChanges(true);
                                     }}
-                                    className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none"
+                                    className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 text-sm font-medium text-slate-700 dark:text-slate-300 outline-none focus:border-orange-500"
                                 >
                                     <option value="">Semua Tipe</option>
                                     {types.map((type) => (
                                         <option key={type} value={type}>
-                                            {type === 'rent' ? '🏢 Disewakan' : type === 'sell' ? '🏷️ Dijual' : '🔄 Disewakan & Dijual'}
+                                            {type === 'rent' ? '🏢 Disewakan / Rent' : type === 'sell' ? '🏷️ Dijual / Outright Sale' : '🔄 Disewakan & Dijual'}
                                         </option>
                                     ))}
                                 </select>
                             </div>
 
-                            {/* 4. SORT FILTER */}
+                            {/* 3. SORT FILTER */}
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Urutan Harga & Nama</label>
+                                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Urutan Tampilan</label>
                                 <div className="relative">
                                     <select
                                         value={filters.sort || 'price-asc'}
@@ -884,20 +955,20 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
                                             setFilters(prev => ({ ...prev, sort: e.target.value }));
                                             setHasChanges(true);
                                         }}
-                                        className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm font-medium text-slate-700 outline-none"
+                                        className="h-11 w-full appearance-none rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 pr-10 text-sm font-medium text-slate-700 dark:text-slate-300 outline-none focus:border-orange-500"
                                     >
                                         <option value="price-asc">Harga Terendah</option>
                                         <option value="price-desc">Harga Tertinggi</option>
                                         <option value="name-asc">Nama A-Z</option>
                                         <option value="name-desc">Nama Z-A</option>
                                     </select>
-                                    <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                    <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
                                 </div>
                             </div>
 
-                            {/* 5. PRICE RANGE (MIN - MAX) */}
+                            {/* 4. PRICE RANGE (MIN - MAX) */}
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rentang Harga (Rp)</label>
+                                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Rentang Budget (Rp)</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     <input
                                         type="number"
@@ -907,7 +978,7 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
                                             setHasChanges(true);
                                         }}
                                         placeholder="Minimal"
-                                        className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm font-medium outline-none focus:border-orange-400"
+                                        className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 text-sm font-medium outline-none focus:border-orange-400 dark:text-white"
                                     />
                                     <input
                                         type="number"
@@ -917,58 +988,56 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
                                             setHasChanges(true);
                                         }}
                                         placeholder="Maksimal"
-                                        className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm font-medium outline-none focus:border-orange-400"
+                                        className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 text-sm font-medium outline-none focus:border-orange-400 dark:text-white"
                                     />
                                 </div>
                             </div>
 
-                            {/* 6. PER PAGE */}
+                            {/* 5. PER PAGE */}
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Jumlah Tampilan</label>
+                                <label className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Limit Muat Produk</label>
                                 <select
                                     value={String(filters.perPage || '12')}
                                     onChange={(e) => {
                                         setFilters(prev => ({ ...prev, perPage: e.target.value }));
                                         setHasChanges(true);
                                     }}
-                                    className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none"
+                                    className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 text-sm font-medium text-slate-700 dark:text-slate-300 outline-none focus:border-orange-500"
                                 >
-                                    <option value="12">Tampilkan 12 Produk</option>
-                                    <option value="24">Tampilkan 24 Produk</option>
-                                    <option value="48">Tampilkan 48 Produk</option>
+                                    <option value="12">Muat 12 Unit</option>
+                                    <option value="24">Muat 24 Unit</option>
+                                    <option value="48">Muat 48 Unit</option>
                                 </select>
                             </div>
                         </div>
 
-                        {/* STICKY BOTTOM ACTIONS (Fixed di bawah Drawer agar gampang di-klik jempol) */}
-                        <div className="absolute bottom-0 left-0 flex w-full gap-2 border-t border-slate-100 bg-white p-4">
-                            {/* Reset Button */}
+                        {/* STICKY BOTTOM ACTIONS */}
+                        <div className="absolute bottom-0 left-0 flex w-full gap-2 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
                             <button
                                 type="button"
                                 onClick={() => {
                                     resetFilters();
-                                    setIsMobileFilterOpen(false); // Otomatis tutup setelah reset (opsional)
+                                    setIsMobileFilterOpen(false);
                                 }}
-                                className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-500 active:bg-red-100"
+                                className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-950/20 text-red-500 active:bg-red-100 dark:active:bg-red-950/40 transition-colors"
                                 title="Reset Semua"
                             >
                                 <RotateCcw className="h-4 w-4" />
                             </button>
 
-                            {/* Apply Button */}
                             <button
                                 onClick={() => {
                                     applyFilters();
-                                    setIsMobileFilterOpen(false); // Tutup drawer setelah filter diterapkan
+                                    setIsMobileFilterOpen(false);
                                 }}
                                 disabled={!hasChanges}
                                 className={`flex-1 h-12 rounded-xl text-sm font-bold shadow-sm transition-all active:scale-[0.98] ${
                                     hasChanges
                                         ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
-                                        : 'cursor-not-allowed bg-slate-100 text-slate-400'
+                                        : 'cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
                                 }`}
                             >
-                                Terapkan Filter
+                                Terapkan Pencarian
                             </button>
                         </div>
                     </div>
@@ -978,14 +1047,66 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
     };
 
     return (
-        <div className="bg-white relative dark:bg-gray-800 mx-auto px-2 pb-7">
+        <div className="relative bg-white relative dark:bg-gray-800 mx-auto pb-7">
             
+            {renderDesktopFilters()}
+
+            {/* --- HERO HEADER SECTION --- */}
+            <div className="relative my-3 mx-2 overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-6 md:rounded-3xl md:p-10 lg:p-16">
+                {/* Dekorasi Grid Halus di Background */}
+                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                
+                {/* 
+                    CONDITIONAL GRID WRAPPER
+                    Jika ada best seller: gunakan grid 10 kolom di layar desktop (3 kolom untuk teks = 30%, 70% sisanya untuk banner)
+                    Jika tidak ada: biarkan flex/block biasa agar teks otomatis mengambil space 100%
+                */}
+                <div className={`relative z-10 w-full ${
+                    bestSellerProducts.length > 0 
+                        ? 'grid grid-cols-1 gap-8 lg:grid-cols-10 lg:items-center lg:gap-12' 
+                        : 'block'
+                }`}>
+                    
+                    {/* Konten Utama Header 
+                        Jika ada banner: mengambil 3 dari 10 kolom (30%)
+                        Jika tidak ada banner: mengambil 10 kolom penuh (100%)
+                    */}
+                    <div className={bestSellerProducts.length > 0 ? 'lg:col-span-4' : 'w-full max-w-4xl'}>
+                        <span className="inline-block text-xs xl:text-sm font-semibold tracking-wider text-orange-400 uppercase mb-3 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
+                            {getConfig('site_name', 'Alumoda Sinergi Kontainer Indonesia')}
+                        </span>
+                        
+                        <h1 className="text-2xl md:text-3xl xl:text-5xl font-extrabold tracking-tight mb-4 text-white drop-shadow-sm leading-tight">
+                            {getConfig('catalog_meta_title', 'Katalog Jual, Sewa & Custom Kontainer')}
+                        </h1>
+                        
+                        <div className="h-1 w-20 bg-gradient-to-r from-orange-500 to-amber-400 rounded-full mb-4"></div>
+                        
+                        <p className="text-xs md:text-sm lg:text-base text-slate-300 font-medium leading-relaxed">
+                            {getConfig('catalog_meta_description', 'Menyediakan berbagai unit kontainer berkualitas tinggi dari bermacam grade untuk kebutuhan bisnis, logistik, dan ruang modular Anda.')}
+                        </p>
+                    </div>
+
+                    {/* BANNER PRODUK UNGGULAN 
+                        Mengambil 7 dari 10 kolom sisanya (70%)
+                    */}
+                    {bestSellerProducts.length > 0 && (
+                        <div className="w-full lg:col-span-6">
+                            <FeaturedProductsBanner products={bestSellerProducts} />
+                        </div>
+                    )}
+                    
+                </div>
+                
+                {/* Efek Cahaya Dekoratif di Sudut Kanan Atas */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            </div>
+
             {/* Filter Drawer Khusus Mobile */}
             {renderMobileFilters()}
             
-            {renderDesktopFilters()}
             {/* CORE LAYOUT: SIDEBAR (KIRI) & GRID PRODUK (KANAN) */}
-            <div className="flex flex-col lg:flex-row gap-8 items-start">
+            <div className="flex px-2 flex-col lg:flex-row gap-4 items-start">
                 
                 {/* 1. SIDEBAR FACADE (Hanya muncul di Desktop) */}
                 <div className="hidden lg:block w-72 shrink-0">
@@ -1057,7 +1178,7 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
                         </div>
                     ) : (
                         <>
-                            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {products.map((product) => (
                                     <ProductCard key={product.slug} product={product} />
                                 ))}
@@ -1121,62 +1242,16 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
 
 
 
-export default function CatalogPage({ products, bestSellerProducts, categories, types, facets, filters }: CatalogProps) {
-    const { getConfig } = useConfig();
+export default function CatalogPage({ products, bestSellerProducts, categories, types, filters, seo, facets }: CatalogProps) {
     return (
         <FrontendLayout>
-            <SeoHead title={getConfig('catalog_meta_title', 'Katalog Jual & Sewa Kontainer Terbaik')} />
-
-            {/* --- HERO HEADER SECTION --- */}
-            <div className="relative mx-2 overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-6 shadow-xl shadow-slate-950/20 md:rounded-3xl md:p-10 lg:p-16">
-                {/* Dekorasi Grid Halus di Background */}
-                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                
-                {/* 
-                    CONDITIONAL GRID WRAPPER
-                    Jika ada best seller: gunakan grid 10 kolom di layar desktop (3 kolom untuk teks = 30%, 70% sisanya untuk banner)
-                    Jika tidak ada: biarkan flex/block biasa agar teks otomatis mengambil space 100%
-                */}
-                <div className={`relative z-10 w-full ${
-                    bestSellerProducts.length > 0 
-                        ? 'grid grid-cols-1 gap-8 lg:grid-cols-10 lg:items-center lg:gap-12' 
-                        : 'block'
-                }`}>
-                    
-                    {/* Konten Utama Header 
-                        Jika ada banner: mengambil 3 dari 10 kolom (30%)
-                        Jika tidak ada banner: mengambil 10 kolom penuh (100%)
-                    */}
-                    <div className={bestSellerProducts.length > 0 ? 'lg:col-span-4' : 'w-full max-w-4xl'}>
-                        <span className="inline-block text-xs xl:text-sm font-semibold tracking-wider text-orange-400 uppercase mb-3 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
-                            {getConfig('site_name', 'Alumoda Sinergi Kontainer Indonesia')}
-                        </span>
-                        
-                        <h1 className="text-2xl md:text-3xl xl:text-5xl font-extrabold tracking-tight mb-4 text-white drop-shadow-sm leading-tight">
-                            {getConfig('catalog_meta_title', 'Katalog Jual, Sewa & Custom Kontainer')}
-                        </h1>
-                        
-                        <div className="h-1 w-20 bg-gradient-to-r from-orange-500 to-amber-400 rounded-full mb-4"></div>
-                        
-                        <p className="text-xs md:text-sm lg:text-base text-slate-300 font-medium leading-relaxed">
-                            {getConfig('catalog_meta_description', 'Menyediakan berbagai unit kontainer berkualitas tinggi dari bermacam grade untuk kebutuhan bisnis, logistik, dan ruang modular Anda.')}
-                        </p>
-                    </div>
-
-                    {/* BANNER PRODUK UNGGULAN 
-                        Mengambil 7 dari 10 kolom sisanya (70%)
-                    */}
-                    {bestSellerProducts.length > 0 && (
-                        <div className="w-full lg:col-span-6">
-                            <FeaturedProductsBanner products={bestSellerProducts} />
-                        </div>
-                    )}
-                    
-                </div>
-                
-                {/* Efek Cahaya Dekoratif di Sudut Kanan Atas */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
-            </div>
+            <SeoHead
+                title={seo?.title}
+                description={seo?.description}
+                image={seo?.image}   
+                keywords={seo?.keywords}
+                contentType={seo.contentType || 'website'}
+            />
 
             {/* --- CORE CATALOG SECTION --- */}
             <Catalog 
@@ -1185,6 +1260,7 @@ export default function CatalogPage({ products, bestSellerProducts, categories, 
                 categories={categories} 
                 types={types} 
                 filters={filters} 
+                seo={seo}
                 facets={facets}
             />
         </FrontendLayout>

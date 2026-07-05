@@ -147,7 +147,7 @@ class BlogController extends Controller
                 ? asset('storage/' . $seoConfigs['article_meta_image'])
                 : asset('images/placeholder.png'),
 
-            'type' => 'website',
+            'contentType' => 'website',
         ];
 
         /*
@@ -234,6 +234,7 @@ class BlogController extends Controller
                 'featured_image',
                 'excerpt',
                 'published_at',
+                'updated_at',
             ])
             ->map(function ($item) {
                 $item->featured_image = resolve_image_path($item->featured_image);

@@ -8,7 +8,7 @@ import ProductCard from '@/components/ProductCard';
 import TestimonialCard from '@/components/TestimonialCard';
 import { handleImageError } from '@/utils/image';
 import { useConfig } from '@/utils/config';
-import SeoHead from '@/components/seo-head';
+import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import HeroHomepageSection from '@/components/hero-hompage-section';
 import GoogleReviewsWidget from '@/components/google-reviews-widget';
 import CtaSection from '@/components/cta-section';
@@ -21,7 +21,8 @@ export default function Homepage({
   clients = [], 
   faqs = [], 
   articles = [],
-  testimonials = []
+  testimonials = [],
+  seo
 }: { 
   products?: any[];
   services?: any[];
@@ -29,6 +30,7 @@ export default function Homepage({
   faqs?: any[];
   articles?: any[];
   testimonials?: any[];
+  seo: SeoHeadProps;
 }) {
   const { getConfig } = useConfig();
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,7 +86,13 @@ export default function Homepage({
 
   return (
     <FrontendLayout>
-      <SeoHead />
+      <SeoHead
+          title={seo.title || 'Sewa Kontainer Jakarta, Jual Beli, dan Modifikasi Kontainer - Alumoda Sinergi Kontainer Indonesia'}
+          description={seo.description}
+          image={seo.image}   
+          keywords={seo.keywords}
+          contentType={seo.contentType || 'website'}
+      />
 
       <main>
         <HeroHomepageSection 

@@ -2,10 +2,11 @@ import { Link } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { ArrowLeft, CheckCircle2, Layers, Package, PhoneCall } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
-import SeoHead from '@/components/seo-head';
+import SeoHead, {SeoHeadProps} from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import CtaSection from '@/components/cta-section';
 import ProductCard from '@/components/ProductCard';
+import PageHeader from '@/components/page-header';
 
 interface Props {
     service: {
@@ -15,10 +16,12 @@ interface Props {
         description: string;
         content?: string;
         image: string;
+        created_at?: string;
+        updated_at?: string;
     };
     products: any[];
     related_services: any[];
-    seo: any;
+    seo: SeoHeadProps;
 }
 
 export default function ServiceDetail({ service, products = [], related_services = [], seo }: Props) {
@@ -26,64 +29,35 @@ export default function ServiceDetail({ service, products = [], related_services
 
     return (
         <FrontendLayout>
-            <SeoHead title={service?.title} />
+            <SeoHead
+                title={seo.title}
+                description={seo.description}
+                image={seo.image}
+                keywords={seo.keywords}
+                contentType={seo.contentType}
+                publishedAt={service.created_at}
+                updatedAt={service.updated_at}
+            />
 
-            {/* --- HERO SECTION (Sama dengan Index untuk Konsistensi) --- */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-black via-orange-950/80 to-slate-900 py-52 px-4 border-b border-orange-500/20">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] bg-orange-500/15 rounded-full blur-[120px] pointer-events-none" />
-                
-                <div className="max-w-8xl mx-auto text-center relative z-10 -mt-10">
-                    <Link 
-                        href="/layanan"
-                        className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-orange-400 uppercase mb-6 hover:text-orange-300 transition group"
-                    >
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition" /> Kembali ke Layanan
-                    </Link>
-                    
-                    {/* --- H1 Estetik dengan Gradient Glossy --- */}
-                    <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter leading-[1.1] 
-                        bg-gradient-to-b from-white via-slate-100 to-orange-400 
-                        bg-clip-text text-transparent drop-shadow-xl">
-                        {service.title}
-                    </h1>
-                    
-                    {/* Dekorasi Garis Halus di bawah H1 */}
-                    <div className="flex justify-center mb-8">
-                        <div className="h-1 w-20 bg-gradient-to-r from-transparent via-orange-500 to-transparent rounded-full" />
-                    </div>
-                    
-                    <p className="mx-auto max-w-3xl text-white text-sm md:text-xl font-medium opacity-80 leading-relaxed">
-                        {
-                            !service.short_description ? (
-                                <>
-                                    {getConfig('service_description', 'Solusi kontainer terbaik, modifikasi custom, dan manajemen logistik andalan untuk bisnis Anda.')}
-                                </>
-                            ) : (
-                                service.short_description
-                            )
-                        }
-                    </p>
-                </div>
-            </section>
+            <PageHeader 
+                badge="Sewa Kontainer & Modifikasi Jakarta Berkualitas"
+                titleNormal={service.title}
+                titleGradient="Jabodetabek & Seluruh Indonesia"
+                description={service.short_description}
+                imageSrc={service.image || "/images/kontainer-illsutartion.png"}
+                imageAlt={service.title + ' - ' + getConfig('site_name', 'Alumoda') + ' - Kontainer Modifikasi & Solusi Ruang Kerja Logistik'}
+            />
+
 
             {/* --- MAIN CONTENT SECTION --- */}
-            <main className="max-w-7xl mx-auto px-4 py-16 -mt-42">
+            <main className="max-w-7xl mx-auto px-4 md:px-5 py-16">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                     
                     {/* SISI KIRI: KONTEN UTAMA (8 Kolom) */}
                     <div className="lg:col-span-8 space-y-10">
-                        {/* Gambar Utama Layanan */}
-                        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800">
-                            <img 
-                                src={service.image} 
-                                alt={service.title} 
-                                onError={handleImageError}
-                                className="w-full h-full"
-                            />
-                        </div>
 
                         {/* Deskripsi & Konten */}
-                        <article className="bg-white dark:bg-slate-900 rounded-3xl p-8 md:p-10 border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <article>
                             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-6">
                                 Mengenal {service.title}
                             </h2>

@@ -86,6 +86,12 @@ export interface Product {
   image?: string;
   image_path?: string;
   stock: number;
+  created_at?: string;
+  updated_at?: string;
+  published_at?: string;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
   views?:number;
   images: Array<{
     id: number;

@@ -182,12 +182,7 @@ class HomepageController extends Controller
         | Articles
         |--------------------------------------------------------------------------
         */
-        $articles = Cache::remember(
-            'homepage.articles',
-            now()->addMinutes(20),
-            function () {
-
-                return Article::query()
+        $articles = Article::query()
                     ->published()
                     ->headline()
                     ->with([
@@ -222,9 +217,6 @@ class HomepageController extends Controller
                             'slug' => $article->slug,
                         ];
                     });
-            }
-        );
-
         /*
         |--------------------------------------------------------------------------
         | Testimonials
@@ -444,7 +436,7 @@ class HomepageController extends Controller
                 default => asset('images/logo-main.png'),
             },
 
-            'type' => 'website',
+            'contentType' => 'website',
         ];
     }
 }
