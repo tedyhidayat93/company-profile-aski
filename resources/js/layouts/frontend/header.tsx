@@ -61,7 +61,7 @@ export default function Header() {
   }, [url]);
 
   const isHomepage = currentPathname === '/';
-  const logoImage = getConfig('site_logo', '/images/logo-main.png');
+  const logoImage = getConfig('site_logo', '') ? `/storage/${getConfig('site_logo', '')}` : '/images/logo-main.png';
 
   const { footerServices = [], productCategories = [] } = usePage().props as any as {
     footerServices: any[]
