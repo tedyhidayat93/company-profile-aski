@@ -134,9 +134,15 @@ class SitemapController extends Controller
         }
 
         // 5. ADD PRODUCT CATEGORIES (Rute: /produk/{category})
-        $categories = Category::ofType('product')->active()->get(['slug', 'updated_at']);
+        // 🛠️ PERBAIKAN: Tambahkan with('children') untuk mencegah N+1 Query
+        $categories = Category::ofType('product')
+            ->active()
+            ->with(['children' => function($q) {
+                $q->active(); // Pastikan anak kategori yang ditarik juga berstatus aktif
+            }])
+            ->get(['id', 'slug', 'updated_at']); 
+
         foreach ($categories as $category) {
-            // 2. Masukkan kategori utama (Parent)
             $sitemap .= '
                 <url>
                     <loc>' . $baseUrl . '/produk/' . $category->slug . '</loc>
@@ -145,14 +151,13 @@ class SitemapController extends Controller
                     <priority>0.8</priority>
                 </url>';
 
-            // 3. Loop langsung children-nya di sini agar hasilnya flat di XML
             foreach ($category->children as $child) {
                 $sitemap .= '
                     <url>
                         <loc>' . $baseUrl . '/produk/' . $child->slug . '</loc>
                         <lastmod>' . ($child->updated_at ? $child->updated_at->toAtomString() : now()->toAtomString()) . '</lastmod>
                         <changefreq>weekly</changefreq>
-                        <priority>0.7</priority> <!-- Opsional: menurunkan sedikit prioritas untuk sub-kategori -->
+                        <priority>0.7</priority>
                     </url>';
             }
         }
@@ -170,13 +175,13 @@ class SitemapController extends Controller
         }
         
         // 7. ADD ARTICLES LIST (Detail Blog - Mengikuti Catch-All Root Route: /{slug})
-        $articles = Article::where('status', 'published')->get(['slug', 'updated_at']);
+        $articles = Article::where('status', 'published')->latest()->get(['slug', 'updated_at']);
         foreach ($articles as $article) {
             $sitemap .= '
                 <url>
                     <loc>' . $baseUrl . '/' . $article->slug . '</loc>
                     <lastmod>' . ($article->updated_at ? $article->updated_at->toAtomString() : now()->toAtomString()) . '</lastmod>
-                    <changefreq>monthly</changefreq>
+                    <changefreq>weekly</changefreq>
                     <priority>0.7</priority>
                 </url>';
         }

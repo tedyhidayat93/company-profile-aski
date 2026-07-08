@@ -210,7 +210,7 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                             <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-orange-500/10 rounded-full blur-2xl pointer-events-none group-hover:bg-orange-500/15 transition duration-500" />
                             
                             {/* Icon dengan opacity yang diturunkan agar tenang */}
-                            <PhoneCall className="absolute -right-4 -bottom-4 w-32 h-32 text-orange-500/5 rotate-12 group-hover:scale-105 group-hover:text-orange-500/10 transition duration-500" />
+                            <PhoneCall className="absolute -right-4 -bottom-4 w-32 h-32 text-orange-500/30 rotate-12 group-hover:scale-105 group-hover:text-orange-500/80 transition duration-500" />
                             
                             {/* Judul menggunakan warna putih */}
                             <h3 className="text-xl font-bold mb-3 text-white relative z-10 tracking-tight">
@@ -228,7 +228,7 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                                 target="_blank"
                                 className="inline-flex w-full justify-center items-center bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-orange-500/10 hover:from-orange-600 hover:to-orange-700 transition duration-200 relative z-10 text-sm"
                             >
-                                Chat via WhatsApp
+                                Hubungi Tim Kami via WhatsApp
                             </a>
                         </div>
 
@@ -272,13 +272,13 @@ export default function BlogDetail({ post, related_posts = [], random_products =
 
                         {/* Box: Artikel Lainnya */}
                         {related_posts.length > 0 && (
-                            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-sm">
+                            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
                                 <div className="flex items-center gap-2 mb-6">
                                     <Newspaper className="w-5 h-5 text-orange-500" />
-                                    <h3 className="font-bold text-xl text-slate-900 dark:text-white">Artikel Lainnya</h3>
+                                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">Artikel Lainnya</h3>
                                 </div>
                                 
-                                <div className="space-y-5">
+                                <div className="space-y-5 dividide-y divide-slate-100 dark:divide-slate-800">
                                     {related_posts.map((item) => (
 
                                     <Link

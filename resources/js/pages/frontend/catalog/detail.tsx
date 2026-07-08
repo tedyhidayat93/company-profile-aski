@@ -19,9 +19,10 @@ import {
     Twitter,
     Link2,
     Instagram,
-    BadgeInfo
+    BadgeInfo,
+    MessageSquare
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useWishlist } from '@/hooks/useWishlist';
 import FrontendLayout from '@/layouts/frontend-layout';
@@ -44,6 +45,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useConfig } from '@/utils/config';
 
 
 type OrderFormData = {
@@ -67,14 +69,11 @@ interface ImagesGalleryPreview {
 }
 
 export default function Detail({ product, relatedProducts, seo }: DetailProps) {
+    const { getConfig } = useConfig();
     const [quantity, setQuantity] = useState(1);
     const [productImages, setProductImages] = useState<ImagesGalleryPreview[]>([]);
-
     const [activeTab, setActiveTab] = useState<'deskripsi' | 'spesifikasi'>('deskripsi');
-    const [isDescExpanded, setIsDescExpanded] = useState<boolean>(false);
-
     const hasSpecsData = !!((product.specific_specs && product.specific_specs.length > 0));
-    
     const [imageSrc, setImageSrc] = useState(() => {
         if (product.images && product.images.length > 0) {
             const coverImage = product.images.find(img => img.is_cover);
@@ -105,6 +104,18 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
     const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDescExpanded, setIsDescExpanded] = useState(false);
+    const [isOverflowing, setIsOverflowing] = useState(false);
+    const descRef = useRef<HTMLDivElement>(null);
+
+    // Effect untuk memantau apakah teks melebihi batas 200px
+    useEffect(() => {
+        if (descRef.current) {
+            // Jika tinggi asli element lebih besar dari 200px, set true
+            const hasOverflow = descRef.current.scrollHeight > 200;
+            setIsOverflowing(hasOverflow);
+        }
+    }, [product.description, activeTab]);
     
     const [formData, setFormData] = useState<OrderFormData>({
         companyName: '',
@@ -301,10 +312,38 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                     </nav>
 
                     {/* Product Section */}
-                    <div className="lg:flex lg:gap-12">
+                    <div className="lg:flex items-start lg:gap-12">
                         {/* Product Images - Sticky on scroll for better UX */}
-                        <div className="lg:w-1/2 lg:sticky lg:top-32 h-fit">
+                        <div className="lg:w-1/2 lg:sticky lg:top-32 h-fit sticky top-10">
                             <SingleGalleryPreview images={productImages} />
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-slate-50 border border-slate-200/60 rounded-xl dark:bg-slate-800/40 dark:border-slate-700/60">
+                                <div className="flex items-center gap-3 w-full sm:w-auto">
+                                    <div className="p-2 bg-green-500/10 rounded-lg text-green-600 dark:text-green-400 shrink-0">
+                                        <Phone className="h-5 w-5 animate-pulse" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        {/* 💡 Wording baru diletakkan di sini */}
+                                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                                            Punya Pertanyaan Mengenai Unit Ini?
+                                        </span>
+                                        <span className="text-sm font-extrabold text-slate-700 dark:text-slate-200 tracking-wide">
+                                            {getConfig('contact_phone', '081282336464')}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <button
+                                    onClick={() => {
+                                        const cleanPhone = getConfig('contact_whatsapp', '6281282336464').replace(/[^0-9]/g, '');
+                                        const message = encodeURIComponent(`Halo Sales, saya tertarik dengan produk kontainer ini:\n\n*${product.name}*\nLink: ${window.location.href}\n\nMohon informasi ketersediaan unit dan penawaran harganya.`);
+                                        window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+                                    }}
+                                    className="w-full sm:w-auto h-10 px-4 cursor-pointer inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all active:scale-[0.98]"
+                                >
+                                    <MessageSquare className="h-4 w-4" />
+                                    Tanya Sales via WA
+                                </button>
+                            </div>
                         </div>
 
                         {/* Product Info */}
@@ -407,129 +446,106 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                         )
                                     }
                                 </div>
-                                <div className="flex flex-col sm:flex-row sm:items-end gap-6">
-
-                                    {/* Primary Buttons */}
-                                    <div className="flex-1 flex gap-3">
-                                        <button
-                                            onClick={() => setIsOrderModalOpen(true)}
-                                            className="flex-1 h-12 cursor-pointer flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
-                                        >
-                                            <ShoppingCart className="h-5 w-5" />
-                                            Pesan Sekarang
-                                        </button>
-                                        <button
-                                            onClick={() => handleWishlistItem(product)}
-                                            className="hProduct12 w-12 cursor-pointer flex items-center justify-center rounded-lg border-2 border-gray-100 hover:bg-red-50 hover:border-red-100 transition-all group"
-                                        >
-                                            <Heart
-                                                className={`h-6 w-6 transition-colors ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400 group-hover:text-red-400'}`}
-                                            />
-                                        </button>
-                                        {/* SHARE BUTTON */}
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <button
-                                                    className="h-12 w-12 cursor-pointer flex items-center justify-center rounded-lg border-2 border-gray-100 transition-all hover:border-blue-100 hover:bg-blue-50 group"
-                                                >
-                                                    <Share2 className="h-5 w-5 text-gray-400 transition-colors group-hover:text-blue-500" />
-                                                </button>
-                                            </DropdownMenuTrigger>
-
-                                            <DropdownMenuContent
-                                                align="end"
-                                                className="w-52"
+                                <div className="flex flex-col gap-4 w-full">
+                                    
+                                    {/* BARIS UTAMA: PESAN, WISHLIST, SHARE */}
+                                    <div className="flex flex-col sm:flex-row sm:items-end gap-3 w-full">
+                                        <div className="flex-1 flex gap-3 w-full">
+                                            <button
+                                                onClick={() => setIsOrderModalOpen(true)}
+                                                className="flex-1 h-12 cursor-pointer flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
                                             >
-                                                {/* WHATSAPP */}
-                                                <DropdownMenuItem
-                                                    onClick={() => {
-                                                        const text = encodeURIComponent(
-                                                            `Lihat produk ${product.name}\n${window.location.href}`
-                                                        );
+                                                <ShoppingCart className="h-5 w-5" />
+                                                Pesan Sekarang
+                                            </button>
+                                            
+                                            <button
+                                                onClick={() => handleWishlistItem(product)}
+                                                className="h-12 w-12 shrink-0 cursor-pointer flex items-center justify-center rounded-lg border-2 border-gray-100 hover:bg-red-50 hover:border-red-100 transition-all group"
+                                            >
+                                                <Heart
+                                                    className={`h-6 w-6 transition-colors ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400 group-hover:text-red-400'}`}
+                                                />
+                                            </button>
+                                            
+                                            {/* SHARE BUTTON DROPDOWN */}
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button
+                                                        className="h-12 w-12 shrink-0 cursor-pointer flex items-center justify-center rounded-lg border-2 border-gray-100 transition-all hover:border-blue-100 hover:bg-blue-50 group"
+                                                    >
+                                                        <Share2 className="h-5 w-5 text-gray-400 transition-colors group-hover:text-blue-500" />
+                                                    </button>
+                                                </DropdownMenuTrigger>
 
-                                                        window.open(
-                                                            `https://wa.me/?text=${text}`,
-                                                            '_blank'
-                                                        );
-                                                    }}
-                                                    className="cursor-pointer"
-                                                >
-                                                    <MessageCircle className="mr-2 h-4 w-4 text-green-500" />
-                                                    WhatsApp
-                                                </DropdownMenuItem>
+                                                <DropdownMenuContent align="end" className="w-52">
+                                                    {/* WHATSAPP */}
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            const text = encodeURIComponent(`Lihat produk ${product.name}\n${window.location.href}`);
+                                                            window.open(`https://wa.me/?text=${text}`, '_blank');
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <MessageCircle className="mr-2 h-4 w-4 text-green-500" />
+                                                        WhatsApp
+                                                    </DropdownMenuItem>
 
-                                                {/* FACEBOOK */}
-                                                <DropdownMenuItem
-                                                    onClick={() => {
-                                                        const url = encodeURIComponent(window.location.href);
+                                                    {/* FACEBOOK */}
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            const url = encodeURIComponent(window.location.href);
+                                                            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <Facebook className="mr-2 h-4 w-4 text-blue-600" />
+                                                        Facebook
+                                                    </DropdownMenuItem>
 
-                                                        window.open(
-                                                            `https://www.facebook.com/sharer/sharer.php?u=${url}`,
-                                                            '_blank'
-                                                        );
-                                                    }}
-                                                    className="cursor-pointer"
-                                                >
-                                                    <Facebook className="mr-2 h-4 w-4 text-blue-600" />
-                                                    Facebook
-                                                </DropdownMenuItem>
+                                                    {/* TWITTER / X */}
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            const text = encodeURIComponent(`Lihat produk ${product.name}`);
+                                                            const url = encodeURIComponent(window.location.href);
+                                                            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <Twitter className="mr-2 h-4 w-4 text-sky-500" />
+                                                        Twitter / X
+                                                    </DropdownMenuItem>
 
-                                                {/* TWITTER / X */}
-                                                <DropdownMenuItem
-                                                    onClick={() => {
-                                                        const text = encodeURIComponent(
-                                                            `Lihat produk ${product.name}`
-                                                        );
+                                                    {/* INSTAGRAM */}
+                                                    <DropdownMenuItem
+                                                        onClick={async () => {
+                                                            await navigator.clipboard.writeText(window.location.href);
+                                                            toast.success("Link disalin", {
+                                                                description: "Tempel link di Instagram Story atau Bio",
+                                                            });
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <Instagram className="mr-2 h-4 w-4 text-pink-500" />
+                                                        Instagram
+                                                    </DropdownMenuItem>
 
-                                                        const url = encodeURIComponent(window.location.href);
-
-                                                        window.open(
-                                                            `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
-                                                            '_blank'
-                                                        );
-                                                    }}
-                                                    className="cursor-pointer"
-                                                >
-                                                    <Twitter className="mr-2 h-4 w-4 text-sky-500" />
-                                                    Twitter / X
-                                                </DropdownMenuItem>
-
-                                                {/* INSTAGRAM */}
-                                                <DropdownMenuItem
-                                                    onClick={async () => {
-                                                        await navigator.clipboard.writeText(
-                                                            window.location.href
-                                                        );
-
-                                                        toast.success("Link disalin", {
-                                                            description:
-                                                                "Tempel link di Instagram Story atau Bio",
-                                                        });
-                                                    }}
-                                                    className="cursor-pointer"
-                                                >
-                                                    <Instagram className="mr-2 h-4 w-4 text-pink-500" />
-                                                    Instagram
-                                                </DropdownMenuItem>
-
-                                                {/* COPY LINK */}
-                                                <DropdownMenuItem
-                                                    onClick={async () => {
-                                                        await navigator.clipboard.writeText(
-                                                            window.location.href
-                                                        );
-
-                                                        toast.success("Link berhasil disalin", {
-                                                            description: product.name,
-                                                        });
-                                                    }}
-                                                    className="cursor-pointer"
-                                                >
-                                                    <Link2 className="mr-2 h-4 w-4" />
-                                                    Salin Link
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                                    {/* COPY LINK */}
+                                                    <DropdownMenuItem
+                                                        onClick={async () => {
+                                                            await navigator.clipboard.writeText(window.location.href);
+                                                            toast.success("Link berhasil disalin", {
+                                                                description: product.name,
+                                                            });
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <Link2 className="mr-2 h-4 w-4" />
+                                                        Salin Link
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -560,7 +576,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                             }`}
                                         >
-                                            Spesifikasi Detail
+                                            Spesifikasi
                                         </button>
                                     )}
                                 </div>
@@ -573,29 +589,34 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                         <div className="space-y-4">
                                             <div className="relative">
                                                 <div 
-                                                    className={`tinymce-content transition-all duration-300 overflow-hidden ${
-                                                        !isDescExpanded ? 'max-h-lg' : 'max-h-none'
-                                                    }`}
+                                                    ref={descRef}
+                                                    className="tinymce-content transition-all duration-300 overflow-hidden"
+                                                    style={{
+                                                        // Jika teks panjang dan posisinya sedang tertutup, batasi 200px. Jika tidak, bebaskan.
+                                                        maxHeight: isOverflowing && !isDescExpanded ? '200px' : '9999px'
+                                                    }}
                                                     dangerouslySetInnerHTML={{ __html: product.description }} 
                                                 />
                                                 
-                                                {/* Gradien memudar jika deskripsi panjang dan sedang dalam posisi tertutup */}
-                                                {!isDescExpanded && (
-                                                    <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white dark:from-gray-900 to-transparent pointer-events-none" />
+                                                {/* Gradien memudar HANYA muncul jika teks panjang DAN sedang posisi tertutup */}
+                                                {isOverflowing && !isDescExpanded && (
+                                                    <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white dark:from-gray-900 to-transparent pointer-events-none" />
                                                 )}
                                             </div>
 
-                                            {/* Tombol pemicu Expand/Collapse */}
-                                            <div className="flex justify-center pt-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setIsDescExpanded(!isDescExpanded)}
-                                                    className="inline-flex items-center gap-1.5 text-sm font-bold text-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition"
-                                                >
-                                                    <span>{isDescExpanded ? 'Sembunyikan' : 'Baca Selengkapnya'}</span>
-                                                    {isDescExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                                                </button>
-                                            </div>
+                                            {/* Tombol pemicu Expand/Collapse HANYA muncul jika teks melebihi 200px */}
+                                            {isOverflowing && (
+                                                <div className="flex justify-center pt-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsDescExpanded(!isDescExpanded)}
+                                                        className="inline-flex items-center gap-1.5 text-sm font-bold text-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition"
+                                                    >
+                                                        <span>{isDescExpanded ? 'Sembunyikan' : 'Baca Selengkapnya'}</span>
+                                                        {isDescExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
