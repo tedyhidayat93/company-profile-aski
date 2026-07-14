@@ -80,9 +80,10 @@ class Service extends Model
             ->get()
             ->map(function ($service) {
                 return [
-                    'title'       => $service->name,
+                    'id'           => $service->slug,
+                    'name'       => $service->name,
                     'slug'        => $service->slug,
-                    'description' => $service->short_description ?? $service->description ?? '',
+                    'short_description' => $service->short_description ?? $service->description ?? '',
                     'image'       => resolve_image_path($service->image),
                 ];
             });
