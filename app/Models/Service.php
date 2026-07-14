@@ -78,7 +78,7 @@ class Service extends Model
             ->orderBy('sequence', 'asc')
             // ->orderBy('name', 'asc')
             ->get()
-            ->map(function ($q) {
+            ->map(function ($service) {
                 return [
                     'title'       => $service->name,
                     'slug'        => $service->slug,
