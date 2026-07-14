@@ -146,7 +146,7 @@ export default function CatalogHeroBanner() {
                                                     {item.name}
                                                 </h3>
                                                 <div className="text-[10px] text-slate-300 line-clamp-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
-                                                    <div dangerouslySetInnerHTML={{ __html: item.meta_description || item.description || ''  }} />
+                                                    <div dangerouslySetInnerHTML={{ __html: item.meta_description || ''  }} />
                                                 </div>
                                             </div>
 
