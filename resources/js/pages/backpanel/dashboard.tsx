@@ -357,176 +357,173 @@ export default function Dashboard({
           })}
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid gap-4 xl:grid-cols-3">
-          
-          {/* Table Section (Lebih Lebar) */}
-          <div className="xl:col-span-2 min-w-0">
-            <Card className="border-none gap-0 shadow-sm ring-1 ring-slate-200 min-h-[370px] p-0 overflow-hidden">
-              <CardHeader className="flex flex-col bg-slate-800 md:flex-row items-center justify-between space-y-0 py-4">
-                <div>
-                  <CardTitle className="text-lg font-bold text-orange-300">Daftar Pesanan Terbaru</CardTitle>
-                  <p className="text-sm text-slate-300">Pesanan terbaru 24 jam terakhir</p>
-                </div>
-                <div className="relative">
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/cpanel/crm/orders">Lihat Semua <ArrowRight className="h-4 w-4 ml-1 inline-block" /></Link>
-                </Button>
-                {recentOrdersStats.length > 0 && (
-                  <Badge className="absolute animate-pulse -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-600">
-                    {recentOrdersStats.length}
-                  </Badge>
-                )}
-              </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="w-full overflow-x-auto">
-                  <Table className="w-full min-w-[200px] -mt-2">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="pt-7 pb-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>
-                        <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Pelanggan</TableHead>
-                        <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Detail Produk</TableHead>
-                        <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Status</TableHead>
-                        <TableHead className="pt-7 pb-4 text-right pr-6 text-xs uppercase tracking-wider font-semibold">Total Nilai</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    
-                    <TableBody>
-                      {recentOrdersStats.length > 0 ? (
-                        recentOrdersStats.map((order: any) => (
-                          <TableRow 
-                            key={order.id} 
-                            onClick={() => window.location.href = `/cpanel/crm/orders/${order.id}`} 
-                            className="group hover:bg-slate-50/80 transition-all cursor-pointer border-b"
-                          >
-                            {/* ID Pesanan */}
-                            <TableCell className="pl-6 space-y-2">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700">
-                                #{order.order_number}
-                              </span>
-                              <span className="text-xs pl-1 text-slate-400 flex items-center gap-1">
-                                <Calendar1 className="h-3 w-3 ml-1" /> {formatDate(order.created_at)}
-                              </span>
-                            </TableCell>
+        <Card className="border-none gap-0 shadow-sm ring-1 ring-slate-200 min-h-[370px] p-0 overflow-hidden">
+          <CardHeader className="flex flex-col bg-slate-800 md:flex-row items-center justify-between space-y-0 py-4">
+            <div>
+              <CardTitle className="text-lg font-bold text-orange-300">Daftar Pesanan Terbaru</CardTitle>
+              <p className="text-sm text-slate-300">Pesanan terbaru 24 jam terakhir</p>
+            </div>
+            <div className="relative">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/cpanel/crm/orders">Lihat Semua <ArrowRight className="h-4 w-4 ml-1 inline-block" /></Link>
+            </Button>
+            {recentOrdersStats.length > 0 && (
+              <Badge className="absolute animate-pulse -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-600">
+                {recentOrdersStats.length}
+              </Badge>
+            )}
+          </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="w-full overflow-x-auto">
+              <Table className="w-full min-w-[200px] -mt-2">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pt-7 pb-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>
+                    <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Pelanggan</TableHead>
+                    <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Detail Produk</TableHead>
+                    <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Status</TableHead>
+                    <TableHead className="pt-7 pb-4 text-right pr-6 text-xs uppercase tracking-wider font-semibold">Total Nilai</TableHead>
+                  </TableRow>
+                </TableHeader>
+                
+                <TableBody>
+                  {recentOrdersStats.length > 0 ? (
+                    recentOrdersStats.map((order: any) => (
+                      <TableRow 
+                        key={order.id} 
+                        onClick={() => window.location.href = `/cpanel/crm/orders/${order.id}`} 
+                        className="group hover:bg-slate-50/80 transition-all cursor-pointer border-b"
+                      >
+                        {/* ID Pesanan */}
+                        <TableCell className="pl-6 space-y-2">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700">
+                            #{order.order_number}
+                          </span>
+                          <span className="text-xs pl-1 text-slate-400 flex items-center gap-1">
+                            <Calendar1 className="h-3 w-3 ml-1" /> {formatDate(order.created_at)}
+                          </span>
+                        </TableCell>
 
-                            {/* Pelanggan */}
-                            <TableCell>
-                              <div className="flex items-start gap-3">
-                                <div className="flex flex-col">
-                                  <span className="font-semibold text-slate-900 leading-none mb-1">{order.company_name}</span>
-                                  <div className="flex flex-col gap-0.5">
-                                    <span className="text-xs text-slate-500 flex items-center gap-1">
-                                      <User className="h-3 w-3" /> {order.pic_name}
-                                    </span>
-                                    <span className="text-[11px] text-slate-400 italic font-light">{order.phone}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </TableCell>
-
-                            {/* Produk & Catatan */}
-                            <TableCell className="max-w-[250px]">
-                              <div className="flex flex-col">
-                                <span className="font-medium text-slate-800">{order.product_name}</span>
-                                <span className="text-xs text-slate-500">
-                                  {order.quantity} Unit &times; {formatCurrencyDisplay(order.product_price)}
+                        {/* Pelanggan */}
+                        <TableCell>
+                          <div className="flex items-start gap-3">
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-slate-900 leading-none mb-1">{order.company_name}</span>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-xs text-slate-500 flex items-center gap-1">
+                                  <User className="h-3 w-3" /> {order.pic_name}
                                 </span>
-                                
-                                {order.notes && (
-                                  <div className="mt-2 text-wrap p-1 bg-amber-50/50 border-l-2 border-amber-200 rounded text-[11px] text-amber-800 leading-relaxed italic">
-                                    &ldquo;{order.notes}&rdquo;
-                                  </div>
-                                )}
-                              </div>
-                            </TableCell>
-
-                            {/* Status */}
-                            <TableCell>
-                              <OrderStatusBadge status={order.status} />
-                            </TableCell>
-
-                            {/* Total Harga */}
-                            <TableCell className="text-right pr-6">
-                              <div className="flex flex-col items-end">
-                                <span className="font-bold text-slate-900 text-base">
-                                  {formatCurrencyDisplay(order.total_price)}
-                                </span>
-                                {/* <span className="text-[10px] text-slate-400 uppercase font-medium">Pembayaran Selesai</span> */}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={5} className="h-64 text-center">
-                            <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
-                              <div className="p-4 rounded-full bg-slate-50">
-                                <ShoppingBag className="h-8 w-8 text-slate-300" />
-                              </div>
-                              <div>
-                                <p className="text-base font-semibold text-slate-900">Belum Ada Pesanan</p>
-                                <p className="text-sm text-slate-500">Daftar transaksi pelanggan akan tampil di sini.</p>
+                                <span className="text-[11px] text-slate-400 italic font-light">{order.phone}</span>
                               </div>
                             </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                          </div>
+                        </TableCell>
 
-          {/* Sidebar Content: Top Searched & Latest */}
-          <div className="space-y-6">
-            <Card className="border-none shadow-sm ring-1 ring-slate-200">
-              <CardHeader>
-                <CardTitle className="text-base font-bold">Produk Paling Banyak Dilihat</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 min-h-67">
-                {topSearchedProducts.length > 0 ? (
-                  topSearchedProducts.map((product) => (
-                    <div onClick={() => window.location.href = `/cpanel/cms/product/${product.id}`} key={product.id} className="flex items-center justify-between group pb-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded bg-slate-100 flex items-center justify-center overflow-hidden">
-                          {product.image_path ? (
-                            <img 
-                              src={product.image_path} 
-                              alt={product.name}
-                              className="h-12 w-12 rounded object-cover"
-                            />
-                          ) : (
-                            <span className="font-bold text-slate-400 text-xs">IMG</span>
-                          )}
+                        {/* Produk & Catatan */}
+                        <TableCell className="max-w-[250px]">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-slate-800">{order.product_name}</span>
+                            <span className="text-xs text-slate-500">
+                              {order.quantity} Unit &times; {formatCurrencyDisplay(order.product_price)}
+                            </span>
+                            
+                            {order.notes && (
+                              <div className="mt-2 text-wrap p-1 bg-amber-50/50 border-l-2 border-amber-200 rounded text-[11px] text-amber-800 leading-relaxed italic">
+                                &ldquo;{order.notes}&rdquo;
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        {/* Status */}
+                        <TableCell>
+                          <OrderStatusBadge status={order.status} />
+                        </TableCell>
+
+                        {/* Total Harga */}
+                        <TableCell className="text-right pr-6">
+                          <div className="flex flex-col items-end">
+                            <span className="font-bold text-slate-900 text-base">
+                              {formatCurrencyDisplay(order.total_price)}
+                            </span>
+                            {/* <span className="text-[10px] text-slate-400 uppercase font-medium">Pembayaran Selesai</span> */}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-64 text-center">
+                        <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
+                          <div className="p-4 rounded-full bg-slate-50">
+                            <ShoppingBag className="h-8 w-8 text-slate-300" />
+                          </div>
+                          <div>
+                            <p className="text-base font-semibold text-slate-900">Belum Ada Pesanan</p>
+                            <p className="text-sm text-slate-500">Daftar transaksi pelanggan akan tampil di sini.</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-semibold group-hover:text-primary transition-colors cursor-pointer">{product.name}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase">{product.searches} Dilihat</p>
-                        </div>
-                      </div>
-                      {/* <div className={`text-xs font-bold ${product.change.startsWith('+') ? 'text-green-600' : 'text-red-500'}`}>
-                        {product.change}
-                      </div> */}
-                    </div>
-                  ))
-                ) : (
-                  <div className="flex flex-col min-h-52 items-center justify-center py-8 text-center">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
-                      <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                    <p className="text-sm text-slate-500 font-medium">Belum ada data pencarian</p>
-                    <p className="text-xs text-slate-400 mt-1">Produk yang dicari akan muncul di sini</p>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm ring-1 ring-slate-200">
+          <CardHeader>
+            <CardTitle className="text-base font-bold">Produk Paling Banyak Dilihat</CardTitle>
+          </CardHeader>
+          {/* Mengubah container menjadi Grid Responsif (1 kolom di HP, 2 di tablet, 4 di desktop) */}
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 min-h-67">
+            {topSearchedProducts.length > 0 ? (
+              topSearchedProducts.map((product) => (
+                <div 
+                  onClick={() => window.location.href = `/cpanel/cms/product/${product.id}`} 
+                  key={product.id} 
+                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-orange-500/20 hover:bg-slate-50/50 transition-all cursor-pointer group"
+                >
+                  {/* Foto Produk */}
+                  <div className="w-12 h-12 shrink-0 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200/60">
+                    {product.image_path ? (
+                      <img 
+                        src={product.image_path} 
+                        alt={product.name}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <span className="font-bold text-slate-400 text-[10px]">NO IMG</span>
+                    )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
 
-        </div>
+                  {/* Detail Produk */}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-slate-800 group-hover:text-orange-500 transition-colors truncate">
+                      {product.name}
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+                      {product.searches} Dilihat
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              /* State Kosong (col-span-full agar memenuhi seluruh lebar grid) */
+              <div className="col-span-full flex flex-col min-h-52 items-center justify-center py-8 text-center">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <p className="text-sm text-slate-500 font-medium">Belum ada data pencarian</p>
+                <p className="text-xs text-slate-400 mt-1">Produk yang dicari akan muncul di sini</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* traffic Visitors */}
         <TrafficVisitorCharts

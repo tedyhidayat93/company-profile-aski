@@ -36,7 +36,7 @@ class DashboardController extends Controller
         return [
             [
                 'name' => 'Total Produk',
-                'value' => Product::count(),
+                'value' => Product::published()->count(),
                 'icon' => 'Package',
                 'change' => '+12%',
                 'changeType' => 'increase',
@@ -114,7 +114,7 @@ class DashboardController extends Controller
             ->where('views', '>', 0)
             ->where('status', 'published')
             ->orderByDesc('views')
-            ->take(10)
+            ->take(12)
             ->get();
 
         if ($products->every(fn ($p) => $p->views == 0)) {

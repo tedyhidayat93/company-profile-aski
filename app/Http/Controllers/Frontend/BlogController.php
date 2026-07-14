@@ -18,7 +18,7 @@ class BlogController extends Controller
 
     public function index(Request $request)
     {
-        $this->trackPageVisit($request, 'Blog Index');
+        // $this->trackPageVisit($request, 'Blog Index');
 
         $filters = [
             'search' => $request->string('search')->toString(),
@@ -26,42 +26,43 @@ class BlogController extends Controller
             'tag' => $request->string('tag')->toString(),
         ];
 
-        /*
-        |--------------------------------------------------------------------------
-        | Categories
-        |--------------------------------------------------------------------------
-        */
-        $categories = Category::query()
-            ->where('type', 'blog')
-            ->where('is_active', true)
-            ->with('children')
-            ->get();
+        // Cek apakah user sedang melakukan pencarian / filter
+        $isFiltered = !empty($filters['search']) || !empty($filters['category']) || !empty($filters['tag']);
 
         /*
         |--------------------------------------------------------------------------
-        | Popular Tags
+        | Categories (Cached - Berubah jarang, hemat 1 query)
         |--------------------------------------------------------------------------
         */
-        $popularTags = Article::published()
-            ->whereNotNull('tags')
-            ->pluck('tags')
-            ->flatMap(function ($tags) {
-                if (is_array($tags)) {
-                    return $tags;
-                }
+        $categories = Cache::remember('blog_categories', now()->addDays(1), function () {
+            return Category::query()
+                ->where('type', 'blog')
+                ->where('is_active', true)
+                ->with('children')
+                ->get();
+        });
 
-                if (is_string($tags)) {
-                    return json_decode($tags, true) ?? [];
-                }
-
-                return [];
-            })
-            ->filter()
-            ->countBy()
-            ->sortDesc()
-            ->take(10)
-            ->keys()
-            ->values();
+        /*
+        |--------------------------------------------------------------------------
+        | Popular Tags (Cached - Diarsip 6 jam, MENGHENTIKAN kebocoran memori PHP)
+        |--------------------------------------------------------------------------
+        */
+        $popularTags = Cache::remember('blog_popular_tags', now()->addHours(6), function () {
+            return Article::published()
+                ->whereNotNull('tags')
+                ->pluck('tags')
+                ->flatMap(function ($tags) {
+                    if (is_array($tags)) return $tags;
+                    if (is_string($tags)) return json_decode($tags, true) ?? [];
+                    return [];
+                })
+                ->filter()
+                ->countBy()
+                ->sortDesc()
+                ->take(10)
+                ->keys()
+                ->values();
+        });
 
         /*
         |--------------------------------------------------------------------------
@@ -76,6 +77,7 @@ class BlogController extends Controller
             ])
             ->when($filters['search'], function ($query, $search) {
                 $query->where(function ($q) use ($search) {
+                    // Catatan: Jika artikel sudah ribuan, pertimbangkan Full-Text Index ketimbang LIKE %%
                     $q->where('title', 'like', "%{$search}%")
                         ->orWhere('excerpt', 'like', "%{$search}%")
                         ->orWhere('content', 'like', "%{$search}%");
@@ -92,61 +94,56 @@ class BlogController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Homepage Sections
+        | Homepage Sections (Optimized Queries)
         |--------------------------------------------------------------------------
         */
-        $headlinePosts = (clone $baseQuery)
-            ->headline()
-            ->latest('published_at')
-            ->limit(5)
-            ->get();
-
-        $mostReadPosts = (clone $baseQuery)
-            ->orderByDesc('views_count')
-            ->limit(5)
-            ->get();
-
-        $recentPosts = (clone $baseQuery)
-            ->latest('published_at')
-            ->limit(5)
-            ->get();
-
+        
+        // 1. Ambil All Posts Utama terlebih dahulu
         $allPosts = (clone $baseQuery)
             ->latest('published_at')
             ->paginate(12)
             ->withQueryString();
 
+        // OPTIMASI: Recent posts diambil langsung dari 5 item pertama allPosts (Hemat 1 Query Besar!)
+        $recentPosts = $allPosts->getCollection()->take(5)->values();
+
+        // 2. Kondisional Cache untuk Headline dan Most Read
+        if ($isFiltered) {
+            // Jika user sedang mencari sesuatu, jalankan query dinamis tanpa cache
+            $headlinePosts = (clone $baseQuery)->headline()->latest('published_at')->limit(5)->get();
+            $mostReadPosts = (clone $baseQuery)->orderByDesc('views_count')->limit(5)->get();
+        } else {
+            // Jika halaman depan normal (tanpa filter), ambil dari Cache (Hemat 2 Query Berat!)
+            $headlinePosts = Cache::remember('blog_headline_posts_default', now()->addMinutes(10), function () {
+                return Article::query()->published()->with(['author:id,name', 'category:id,name,slug'])->headline()->latest('published_at')->limit(5)->get();
+            });
+
+            $mostReadPosts = Cache::remember('blog_most_read_posts_default', now()->addMinutes(10), function () {
+                return Article::query()->published()->with(['author:id,name', 'category:id,name,slug'])->orderByDesc('views_count')->limit(5)->get();
+            });
+        }
+
        /*
         |--------------------------------------------------------------------------
-        | SEO Config
+        | SEO Config (Cached - Berubah sangat jarang, hemat 1 query)
         |--------------------------------------------------------------------------
         |*/
-        $seoConfigs = Configuration::query()
-            ->whereIn('key', [
-                'article_meta_image',
-                'article_meta_title',
-                'article_meta_description',
-                'meta_keywords',
-            ])
-            ->pluck('value', 'key');
+        $seoConfigs = Cache::remember('blog_seo_configs', now()->addDays(1), function () {
+            return Configuration::query()
+                ->whereIn('key', [
+                    'article_meta_image',
+                    'article_meta_title',
+                    'article_meta_description',
+                    'meta_keywords',
+                ])
+                ->pluck('value', 'key');
+        });
 
         $seo = [
-            'title' => !empty($seoConfigs['article_meta_title']) 
-                ? strip_tags($seoConfigs['article_meta_title']) 
-                : 'Blog & Artikel',
-
-            'description' => !empty($seoConfigs['article_meta_description']) 
-                ? strip_tags($seoConfigs['article_meta_description']) 
-                : 'Artikel terbaru seputar container, office container, reefer, logistik, modifikasi container, dan tips industri dari Alumoda Sinergi Kontainer Indonesia.',
-
-            'keywords' => !empty($seoConfigs['meta_keywords']) 
-                ? strip_tags($seoConfigs['meta_keywords']) 
-                : 'blog container, artikel container, office container, reefer container, modifikasi container',
-
-            'image' => !empty($seoConfigs['article_meta_image'])
-                ? asset('storage/' . $seoConfigs['article_meta_image'])
-                : asset('images/placeholder.png'),
-
+            'title' => !empty($seoConfigs['article_meta_title']) ? strip_tags($seoConfigs['article_meta_title']) : 'Blog & Artikel',
+            'description' => !empty($seoConfigs['article_meta_description']) ? strip_tags($seoConfigs['article_meta_description']) : 'Artikel terbaru seputar container...',
+            'keywords' => !empty($seoConfigs['meta_keywords']) ? strip_tags($seoConfigs['meta_keywords']) : 'blog container, artikel container',
+            'image' => !empty($seoConfigs['article_meta_image']) ? asset('storage/' . $seoConfigs['article_meta_image']) : asset('images/placeholder.png'),
             'contentType' => 'website',
         ];
 
@@ -156,32 +153,24 @@ class BlogController extends Controller
         |--------------------------------------------------------------------------
         |*/
         if (!empty($filters['category'])) {
-            $category = $categories->firstWhere(
-                'slug',
-                $filters['category']
-            );
-
+            $category = $categories->firstWhere('slug', $filters['category']);
             if ($category) {
                 $categoryName = strip_tags($category->name);
                 $seo['title'] = "{$categoryName} | Artikel";
-                $seo['description'] = "Artikel dan informasi terbaru tentang {$categoryName} dari Alumoda Sinergi Kontainer Indonesia.";
+                $seo['description'] = "Artikel dan informasi terbaru tentang {$categoryName}.";
             }
         }
 
         if (!empty($filters['search'])) {
-            // Sanitize input search untuk mencegah XSS di Meta Tag
             $cleanSearch = strip_tags($filters['search']);
-            
             $seo['title'] = 'Pencarian "' . $cleanSearch . '" | Artikel';
-            $seo['description'] = 'Hasil pencarian artikel untuk "' . $cleanSearch . '" di blog Alumoda Sinergi Kontainer Indonesia.';
+            $seo['description'] = 'Hasil pencarian artikel untuk "' . $cleanSearch . '"';
         }
 
         if (!empty($filters['tag'])) {
-            // Sanitize input tag untuk mencegah XSS di Meta Tag
             $cleanTag = strip_tags($filters['tag']);
-            
             $seo['title'] = 'Tag "' . $cleanTag . '" | Artikel';
-            $seo['description'] = 'Artikel dengan tag "' . $cleanTag . '" di blog Alumoda Sinergi Kontainer Indonesia.';
+            $seo['description'] = 'Artikel dengan tag "' . $cleanTag . '"';
         }
 
         return Inertia::render('frontend/blog/index', [

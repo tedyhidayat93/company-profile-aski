@@ -7,6 +7,7 @@ import CategoryFilter from '@/components/CategoryFilter';
 import { useConfig } from '@/utils/config';
 import type { Product } from '@/types';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
+import CatalogHeroBanner from '@/components/catalog-hero-banner';
 
 interface CategoryOption {
     label: string;
@@ -1104,9 +1105,11 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
 
             {/* Filter Drawer Khusus Mobile */}
             {renderMobileFilters()}
+
+            <CatalogHeroBanner/>
             
             {/* CORE LAYOUT: SIDEBAR (KIRI) & GRID PRODUK (KANAN) */}
-            <div className="flex px-2 flex-col lg:flex-row gap-4 items-start">
+            <div className="flex px-2 flex-col lg:flex-row gap-4 items-start mt-3">
                 
                 {/* 1. SIDEBAR FACADE (Hanya muncul di Desktop) */}
                 <div className="hidden lg:block w-72 shrink-0">
@@ -1119,7 +1122,7 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
                 </div>
                 
                 {/* 2. AREA GRID PRODUK */}
-                <div className="flex-1 w-full">
+                <div className="flex-1 w-full" id="catalog-product-list">
 
                     {/* META BAR: INFORMASI STOK & DROPDOWN PER PAGE */}
                         
@@ -1239,8 +1242,6 @@ function Catalog({products: initialProducts, bestSellerProducts, categories, typ
         </div>
     );
 }
-
-
 
 export default function CatalogPage({ products, bestSellerProducts, categories, types, filters, seo, facets }: CatalogProps) {
     return (

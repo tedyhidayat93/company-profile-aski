@@ -275,37 +275,35 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
                                 <div className="flex items-center gap-2 mb-6">
                                     <Newspaper className="w-5 h-5 text-orange-500" />
-                                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">Artikel Lainnya</h3>
+                                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">Baca Artikel Lainnya</h3>
                                 </div>
                                 
-                                <div className="space-y-5 dividide-y divide-slate-100 dark:divide-slate-800">
+                                <div className="flex flex-col gap-1">
                                     {related_posts.map((item) => (
+                                        <Link
+                                            key={item.id}
+                                            href={`/${item.slug}`}
+                                            className="group py-1 border-b"
+                                        >
 
-                                    <Link
-                                        key={item.id}
-                                        href={`/${item.slug}`}
-                                        className="group"
-                                    >
+                                            <div className="flex gap-4">
+                                                <img
+                                                    src={`${item.featured_image}`}
+                                                    className="w-10 md:w-28 h-15 md:h-24 object-cover rounded"
+                                                    onError={(e) => handleImageError(e, '/images/placeholder.png', item.title)}
+                                                    alt={item.title}
+                                                />
+                                                <div className='flex flex-col'>
+                                                    <h4 className="font-semibold text-sm group-hover:text-blue-600">
+                                                        {item.title}
+                                                    </h4>
 
-                                        <div className="flex gap-4">
-                                            <img
-                                                src={`${item.featured_image}`}
-                                                className="w-28 h-24 object-cover rounded"
-                                                onError={(e) => handleImageError(e, '/images/placeholder.png', item.title)}
-                                                alt={item.title}
-                                            />
-                                            <div className='flex flex-col'>
-                                                <h4 className="font-semibold text-sm group-hover:text-blue-600">
-                                                    {item.title}
-                                                </h4>
-
-                                                <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                                                    {item.excerpt}
-                                                </p>
+                                                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                                        {item.excerpt}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </Link>
-
+                                        </Link>
                                     ))}
                                 </div>
                             </div>

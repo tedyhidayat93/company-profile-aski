@@ -267,7 +267,7 @@ class OrderController extends Controller
         $order = Order::find($id);
         $order->delete();
 
-        return redirect()->route('orders.index')
+        return redirect()->back()
             ->with('success', 'Pesanan berhasil dihapus.');
     }
 
