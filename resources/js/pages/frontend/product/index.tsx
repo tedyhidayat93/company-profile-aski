@@ -56,7 +56,7 @@ export default function ProductIndex({ seo }: Props) {
             />
 
             {/* Hybrid Brochure Grid Layout */}
-            <div className="w-full">
+            <div className="w-full px-3">
                 {productCategories && productCategories.length > 0 ? (
                     productCategories.map((rootCategory, index) => {
                         const isEven = index % 2 === 0;
@@ -81,7 +81,7 @@ export default function ProductIndex({ seo }: Props) {
                                     </div>
 
                                     {/* GRID BROSUR 2 KOLOM (Memotong panjang halaman hingga 50%) */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-14">
                                         {rootCategory.items.map((item, key) => {
                                             if (!item.image) return null;
                                             const targetUrl = item.slug ? `/produk/${item.slug}` : `/produk/${rootCategory.slug}`;

@@ -68,13 +68,15 @@ export default function CatalogHeroBanner() {
                 {/* 1. SEKSYEN TAB DI ATAS */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
                     <div className="border-l-2 border-orange-500 pl-3">
-                        <span className="text-[10px] font-bold tracking-widest text-orange-600 uppercase block">
+                        <span className="text-xl font-black tracking-widest text-orange-600 uppercase block">
                             Mau Cari Apa?
                         </span>
-                        <h3 className="text-sm font-black text-slate-950 tracking-tight uppercase">
-                            Pilihan Model Unit
+                        <h3 className="text-lg font-medium text-slate-950">
+                            Pilihan lengkap Unit Kontainer yang kamu butuhkan ada di sini
                         </h3>
                     </div>
+
+                    <div className="hidden md:block flex-1 h-px bg-orange-400/40 rounded-xl mx-10"></div>
 
                     {/* Tab Navigation */}
                     <div className="flex overflow-x-auto p-1 bg-slate-50 rounded-xl border border-slate-200/60 gap-1 scrollbar-none">
@@ -142,11 +144,11 @@ export default function CatalogHeroBanner() {
 
                                         <div className="absolute inset-0 flex flex-col justify-end p-4 text-white z-10 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                                             <div className="space-y-0.5">
-                                                <h3 className="text-sm font-bold tracking-tight text-white group-hover:text-orange-400 transition-colors line-clamp-1">
+                                                <h3 className="text-xl font-bold tracking-tight text-white group-hover:text-orange-400 transition-colors line-clamp-1">
                                                     {item.name}
                                                 </h3>
-                                                <div className="text-[10px] text-slate-300 line-clamp-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
-                                                    <div dangerouslySetInnerHTML={{ __html: item.meta_description || ''  }} />
+                                                <div className="text-sm text-slate-100 line-clamp-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                                                    <div dangerouslySetInnerHTML={{ __html: item.meta_description || item.description || ''  }} />
                                                 </div>
                                             </div>
 
@@ -171,7 +173,10 @@ export default function CatalogHeroBanner() {
                                     rel="noopener noreferrer"
                                     className="relative flex flex-col justify-between p-6 aspect-[4/3] w-full overflow-hidden bg-emerald-600 hover:bg-emerald-700 text-white transition-colors duration-200 cursor-pointer border border-white group"
                                 >
-                                    <div className="flex items-start justify-between">
+                                    {/* 🌟 WATERMARK IKON DI BELAKANG (Hoverable & Aesthetic) */}
+                                    <MessageSquare className="absolute -right-4 -bottom-4 h-42 w-42 text-white opacity-10 pointer-events-none transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-12" />
+
+                                    <div className="relative z-10 flex items-start justify-between">
                                         <div className="p-3 rounded-xl bg-white/10 text-white border border-white/20 group-hover:scale-110 transition-transform duration-300 shadow-inner">
                                             <MessageSquare className="h-6 w-6 fill-white/10" />
                                         </div>
@@ -180,16 +185,16 @@ export default function CatalogHeroBanner() {
                                         </span>
                                     </div>
                                     
-                                    <div className="space-y-1 mt-auto">
-                                        <h3 className="text-base font-black tracking-tight leading-tight text-white">
+                                    <div className="relative z-10 space-y-1 mt-auto">
+                                        <h3 className="text-lg md:text-xl font-black tracking-tight leading-tight text-white">
                                             Hubungi WhatsApp <br />Tim Ahli Kami
                                         </h3>
-                                        <p className="text-xs text-emerald-100/90 font-medium">
+                                        <p className="text-sm text-emerald-100/90 font-medium">
                                             Tekan di sini untuk tanya-tanya langsung
                                         </p>
                                     </div>
 
-                                    <div className="pt-3 mt-3 border-t border-white/20 flex items-center justify-between font-bold text-xs text-white">
+                                    <div className="relative z-10 pt-3 mt-3 border-t border-white/20 flex items-center justify-between font-bold text-xs text-white">
                                         <span>Respon Cepat</span>
                                         <div className="inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                                             <span>Buka WA</span>
@@ -199,13 +204,16 @@ export default function CatalogHeroBanner() {
                                 </a>
                             )}
 
-                            {/* DYNAMIC CTA 2: RFQ - Oranye Kontras Tinggi */}
+                            {/* DYNAMIC CTA 2: RFQ - Oranye dengan Ikon Raksasa di Background */}
                             {emptySlotsCount >= 2 && (
                                 <Link
                                     href="/kontak"
                                     className="relative flex flex-col justify-between p-6 aspect-[4/3] w-full overflow-hidden bg-orange-500 hover:bg-orange-600 text-white transition-colors duration-200 cursor-pointer border border-white group"
                                 >
-                                    <div className="flex items-start justify-between">
+                                    {/* 🌟 WATERMARK IKON DI BELAKANG (Hoverable & Aesthetic) */}
+                                    <FileText className="absolute -right-4 -bottom-4 h-42 w-42 text-white opacity-10 pointer-events-none transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-12" />
+
+                                    <div className="relative z-10 flex items-start justify-between">
                                         <div className="p-3 rounded-xl bg-white/10 text-white border border-white/20 group-hover:scale-110 transition-transform duration-300 shadow-inner">
                                             <FileText className="h-6 w-6" />
                                         </div>
@@ -214,16 +222,16 @@ export default function CatalogHeroBanner() {
                                         </span>
                                     </div>
 
-                                    <div className="space-y-1 mt-auto">
-                                        <h3 className="text-base font-black tracking-tight leading-tight text-white">
+                                    <div className="relative z-10 space-y-1 mt-auto">
+                                        <h3 className="text-lg md:text-xl font-black tracking-tight leading-tight text-white">
                                             Minta Penawaran <br />& Brosur Harga
                                         </h3>
-                                        <p className="text-xs text-orange-100/90 font-medium">
+                                        <p className="text-sm text-orange-100/90 font-medium">
                                             Tekan untuk estimasi biaya pembuatan
                                         </p>
                                     </div>
 
-                                    <div className="pt-3 mt-3 border-t border-white/20 flex items-center justify-between font-bold text-xs text-white">
+                                    <div className="relative z-10 pt-3 mt-3 border-t border-white/20 flex items-center justify-between font-bold text-xs text-white">
                                         <span>Gratis Estimasi</span>
                                         <div className="inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                                             <span>Minta Harga</span>
@@ -233,14 +241,17 @@ export default function CatalogHeroBanner() {
                                 </Link>
                             )}
 
-                            {/* DYNAMIC CTA 3: INTERAKTIF SCROLL DOWN KE LIST PRODUK - Biru Informasi Ke bawah */}
+                            {/* DYNAMIC CTA 3: INTERAKTIF SCROLL DOWN - Biru dengan Ikon Raksasa di Background */}
                             {emptySlotsCount >= 3 && (
                                 <button
                                     type="button"
                                     onClick={scrollToCatalog}
                                     className="relative flex flex-col justify-between p-6 aspect-[4/3] w-full overflow-hidden bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200 cursor-pointer border border-white text-left outline-hidden group"
                                 >
-                                    <div className="flex items-start justify-between">
+                                    {/* 🌟 WATERMARK IKON DI BELAKANG (Hoverable & Aesthetic) */}
+                                    <Search className="absolute -right-4 -bottom-4 h-42 w-42 text-white opacity-10 pointer-events-none transition-transform duration-500 ease-out group-hover:scale-110 group-hover:rotate-12" />
+
+                                    <div className="relative z-10 flex items-start justify-between">
                                         <div className="p-3 rounded-xl bg-white/10 text-white border border-white/20 group-hover:scale-110 transition-transform duration-300 shadow-inner">
                                             <Search className="h-6 w-6" />
                                         </div>
@@ -249,16 +260,16 @@ export default function CatalogHeroBanner() {
                                         </span>
                                     </div>
 
-                                    <div className="space-y-1 mt-auto">
-                                        <h3 className="text-base font-black tracking-tight leading-tight text-white">
+                                    <div className="relative z-10 space-y-1 mt-auto">
+                                        <h3 className="text-lg md:text-xl font-black tracking-tight leading-tight text-white">
                                             Cari Produk Lebih <br />Lengkap di Bawah
                                         </h3>
-                                        <p className="text-xs text-blue-100/90 font-medium">
+                                        <p className="text-sm text-blue-100/90 font-medium">
                                             Tekan untuk geser otomatis ke daftar produk
                                         </p>
                                     </div>
 
-                                    <div className="pt-3 mt-3 border-t border-white/20 flex items-center justify-between font-bold text-xs text-white">
+                                    <div className="relative z-10 pt-3 mt-3 border-t border-white/20 flex items-center justify-between font-bold text-xs text-white">
                                         <span>Gunakan Filter Pencarian</span>
                                         <div className="inline-flex items-center gap-1 animate-bounce">
                                             <span>Geser</span>

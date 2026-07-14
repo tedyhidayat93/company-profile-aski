@@ -167,20 +167,20 @@ export default function HomepageProductTabs() {
 
                                             <div className="absolute inset-0 flex flex-col justify-end p-5 text-white z-10 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
                                                 <div className="space-y-1">
-                                                    <h3 className="text-base font-bold tracking-tight text-white group-hover:text-orange-400 transition-colors line-clamp-1">
+                                                    <h3 className="text-lg font-bold tracking-tight text-white group-hover:text-orange-400 transition-colors line-clamp-1">
                                                         {item.name}
                                                     </h3>
-                                                    <div className="text-[11px] text-slate-300 line-clamp-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
-                                                        <div dangerouslySetInnerHTML={{ __html: item.meta_description || ''  }} />
+                                                    <div className="text-sm text-slate-100 line-clamp-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                                                        <div dangerouslySetInnerHTML={{ __html: item.meta_description || item.description || ''  }} />
                                                     </div>
                                                 </div>
 
                                                 <div className="pt-2.5 mt-2.5 border-t border-white/10 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-                                                    <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">
+                                                    <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">
                                                         Klik untuk detail
                                                     </span>
                                                     <div className="inline-flex items-center text-xs font-bold text-orange-400 gap-1">
-                                                        <ArrowRight className="h-3.5 w-3.5" />
+                                                        <ArrowRight className="h-4 w-4" />
                                                     </div>
                                                 </div>
                                             </div>

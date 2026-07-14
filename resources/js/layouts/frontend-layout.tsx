@@ -5,6 +5,7 @@ import React, { ReactNode, useEffect } from 'react';
 import Header from '@/layouts/frontend/header';
 import Footer from '@/layouts/frontend/footer';
 import { Toaster } from "@/components/ui/sonner";
+import FloatingWhatsAppCTA from '@/components/floating-whatsapp-cta';
 
 declare global {
   interface Window {
@@ -69,6 +70,8 @@ export default function FrontendLayout({
       <main className="grow bg-white">
         {children}
       </main>
+
+      <FloatingWhatsAppCTA/>
 
       <Footer />
     </div>

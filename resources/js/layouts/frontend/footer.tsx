@@ -230,11 +230,34 @@ export default function Footer() {
 
         {/* Bottom */}
         <div className="mt-12 flex flex-col gap-3 border-t border-gray-800 pt-6 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
-          <p>
-            © {new Date().getFullYear()} {getConfig('site_name', 'Your Company')}
-          </p>
+          <div className="">
+            <p className='text-orange-300'>
+              © {new Date().getFullYear()} {getConfig('site_name', 'Your Company')}
+            </p>
+            <p className="text-[11px] text-zinc-500 max-w-md leading-relaxed font-normal">
+                Situs ini dilindungi oleh reCAPTCHA. Hubungan keamanan latar belakang tunduk pada{' '}
+                <a 
+                    href="https://policies.google.com/privacy" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-zinc-400 hover:text-orange-400 underline transition-colors"
+                >
+                    Kebijakan Privasi
+                </a>{' '}
+                dan{' '}
+                <a 
+                    href="https://policies.google.com/terms" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-zinc-400 hover:text-orange-400 underline transition-colors"
+                >
+                    Persyaratan Layanan
+                </a>{' '}
+                Google.
+            </p>
+          </div>
 
-          <p>
+          <p className='text-zinc-300'>
             {getConfig('site_tagline', 'Tagline')}
           </p>
         </div>

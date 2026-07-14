@@ -77,6 +77,11 @@ class Service extends Model
         return self::where('is_active', true)
             ->orderBy('sequence', 'asc')
             // ->orderBy('name', 'asc')
-            ->get();
+            ->get()
+            ->map(function ($q) {
+                return [
+                    'image'       => resolve_image_path($q->image),
+                ];
+            });
     }
 }

@@ -203,17 +203,49 @@ export default function Header() {
                           ${isServicesDropdownOpen ? 'opacity-100 scale-y-100 pointer-events-auto visible' : 'opacity-0 scale-y-95 pointer-events-none invisible'}`}
                         >
                           <div className="container mx-auto grid grid-cols-12 gap-6">
+                            {/* Kolom Kiri: Informasi Singkat Kategori */}
                             <div className="col-span-4 border-r border-slate-100 dark:border-slate-800 pr-6 space-y-2">
-                              <div className="inline-flex items-center justify-center p-2 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600"><BoxIcon className="h-5 w-5" /></div>
-                              <h4 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wider text-orange-500">{getConfig('services_meta_title', 'Layanan Kami')}</h4>
-                              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">{getConfig('services_meta_description', 'Kami melayani fabrikasi kustom, modifikasi arsitektural, hingga penyediaan unit tangguh untuk operasional logistik berskala nasional.')}</p>
-                              <Link href="/layanan" className="text-sm font-bold text-orange-500 hover:underline">Lihat Semua Layanan →</Link>
+                              <div className="inline-flex items-center justify-center p-2 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600">
+                                <BoxIcon className="h-5 w-5" />
+                              </div>
+                              <h4 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wider text-orange-500">
+                                {getConfig('services_meta_title', 'Layanan Kami')}
+                              </h4>
+                              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                                {getConfig('services_meta_description', 'Kami melayani fabrikasi kustom, modifikasi arsitektural, hingga penyediaan unit tangguh untuk operasional logistik berskala nasional.')}
+                              </p>
+                              <Link href="/layanan" className="text-sm font-bold text-orange-500 hover:underline">
+                                Lihat Semua Layanan →
+                              </Link>
                             </div>
-                            <div className="col-span-8 grid grid-cols-2 gap-4">
+
+                            {/* Kolom Kanan: Grid Item Layanan dengan Gambar di Sampingnya */}
+                            <div className="col-span-8 grid grid-cols-2 gap-4 divide">
                               {footerServices.map((item, key) => (
-                                <Link key={key} href={`/layanan/${item.slug}`} className="group p-3 rounded-xl  hover:border-l-4 hover:border-orange-400 hover:bg-orange-50/50 dark:hover:bg-slate-800 transition-colors">
-                                  <span className="block text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-orange-500">{item.name}</span>
-                                  <span className="block text-xs text-slate-500 mt-0.5 font-medium">{item.short_description}</span>
+                                <Link 
+                                  key={key} 
+                                  href={`/layanan/${item.slug}`} 
+                                  className="group flex gap-4 p-3 rounded-xl hover:border-l-4 hover:border-orange-400 hover:bg-orange-50/50 dark:hover:bg-slate-800 transition-all items-center"
+                                >
+                                  {/* 📸 FOTO LAYANAN DI SAMPING TEKS */}
+                                  <div className="w-16 h-16 shrink-0 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200/60 dark:border-slate-700">
+                                    <img
+                                      src={item.image}
+                                      alt={item.name}
+                                      onError={handleImageError}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                                    />
+                                  </div>
+
+                                  {/* TEKS DETAIL LAYANAN */}
+                                  <div className="min-w-0 flex-1">
+                                    <span className="block text-base font-bold text-slate-800 dark:text-slate-100 group-hover:text-orange-500 transition-colors truncate">
+                                      {item.name}
+                                    </span>
+                                    <p className="block text-sm text-slate-500 dark:text-slate-400 line-clamp-[calc(var(--characters)/100)]  mt-0.5 font-medium  leading-relaxed">
+                                      {item.short_description}
+                                    </p>
+                                  </div>
                                 </Link>
                               ))}
                             </div>
@@ -316,7 +348,7 @@ export default function Header() {
                     <a href={whatsappUrl}><Phone className="h-4 w-4" />Hubungi Kami</a>
                   </Button>
                   <Link href="/katalog" className="flex h-10 items-center px-5 rounded-full border border-slate-700 bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 transition-colors gap-2">
-                    <LayoutDashboardIcon className="h-4 w-4" />Katalog
+                    <LayoutDashboardIcon className="h-4 w-4" />Katalog Unit
                   </Link>
                 </div>
 
@@ -428,7 +460,7 @@ export default function Header() {
                 
                 <Link 
                   href="/katalog" 
-                  className="w-full flex h-10 items-center justify-center px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors gap-2"
+                  className="w-full flex h-10 items-center text-nowrap justify-center px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm font-bold shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors gap-2"
                 >
                   <LayoutDashboardIcon className="h-4 w-4 text-amber-600 shrink-0" />
                   Katalog Unit

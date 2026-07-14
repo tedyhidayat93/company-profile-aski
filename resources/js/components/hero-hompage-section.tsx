@@ -259,7 +259,7 @@ export default function HeroSection({
               </div>
             ) : (
               /* --- FALLBACK: Animasi Kontainer 3D Mengambang (Jika data produk kosong) --- */
-              <div className="relative w-full max-w-sm flex flex-col items-center justify-center py-10 text-center text-white bg-white/10 backdrop-blur-md rounded-3xl border border-white/10 p-8 shadow-xl">
+              <div className="relative w-full max-w-sm flex flex-col items-center justify-center py-10 text-center text-white bg-white/10 backdrop-blur-sm rounded-3xl border border-white/10 p-8 shadow-xl">
                 <div className="absolute w-40 h-40 bg-orange-400/30 rounded-full blur-3xl animate-pulse -z-10" />
                 
                 <div className="relative animate-bounce [animation-duration:3s] flex items-center justify-center mb-6">

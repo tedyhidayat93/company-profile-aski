@@ -710,3 +710,8 @@ body[data-radix-pointer-selection-disabled] .tox-dialog-wrap,
 body[data-radix-pointer-selection-disabled] .tox-dialog {
     pointer-events: auto !important;
 }
+
+/* Menyembunyikan badge reCAPTCHA melayang */
+.grecaptcha-badge { 
+    visibility: hidden !important; 
+}
