@@ -107,7 +107,7 @@ class AppServiceProvider extends ServiceProvider
                     ->orderBy('lft')
                     ->select(['id', 'name', 'slug', 'image', 'description', 'meta_title', 'meta_description'])
                     ->with(['children' => function($query) {
-                        $query->select(['id', 'parent_id', 'name', 'slug', 'image', 'description'])->active()->orderBy('lft');
+                        $query->select(['id', 'parent_id', 'name', 'slug', 'image', 'description', 'meta_title', 'meta_description'])->active()->orderBy('lft');
                     }])
                     ->get()
                     ->map(function ($rootCategory) {
