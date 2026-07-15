@@ -313,5 +313,28 @@ Route::prefix('info')->name('article.')->group(function () {
     Route::get('/tag/{slug}', [BlogController::class, 'tag'])->name('tag');
 });
 
+Route::get('/cc/{token}', function (string $token) {
+    $secureToken = env('ROUTE_CLEAR_TOKEN');
+
+    if (empty($secureToken) || $token !== $secureToken) {
+        abort(404);
+    }
+
+    try {
+        // Eksekusi pembersihan & caching optimal
+        Artisan::call('optimize:clear');
+        Artisan::call('config:cache');
+        Artisan::call('route:cache');
+        Artisan::call('view:cache');
+
+        return redirect('/')
+            ->with('success', 'Sistem berhasil dioptimasi dan cache telah dibersihkan!');
+
+    } catch (\Exception $e) {
+        return redirect('/')
+            ->with('error', 'Gagal memproses pembersihan.');
+    }
+});
 // --- CATCH-ALL ROUTE FOR BLOG DETAIL (Wajib paling bawah) ---
 Route::get('/{slug}', [BlogController::class, 'show'])->name('show');
+

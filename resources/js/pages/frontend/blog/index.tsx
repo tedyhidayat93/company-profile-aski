@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useForm, router, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { Eye, Filter, Tag, ChevronRight, BoxIcon, Layers, ChevronLeft } from 'lucide-react';
@@ -219,6 +219,40 @@ export default function BlogIndex({
     const [isSearching, setIsSearching] = useState(false);
     const isLoading = !headline_posts || !most_read_posts || !recent_posts;
 
+    // 1. Simpan state index berita utama yang aktif
+    const [activeIndex, setActiveIndex] = useState(0);
+    // State untuk memicu animasi transisi (fade-in)
+    const [isFading, setIsFading] = useState(false);
+
+    const hasMultiplePosts = headline_posts.length > 1;
+
+    useEffect(() => {
+        // Jika berita kurang dari atau sama dengan 1, tidak perlu ada interval acak
+        if (!hasMultiplePosts) return;
+
+        // Atur interval pergantian (7000ms = 7 detik)
+        const interval = setInterval(() => {
+            setIsFading(true); // Mulai transisi keluar (fade out)
+
+            setTimeout(() => {
+                // Pilih index acak yang berbeda dari index saat ini
+                setActiveIndex((prevIndex) => {
+                    let nextIndex = prevIndex;
+                    while (nextIndex === prevIndex) {
+                        nextIndex = Math.floor(Math.random() * headline_posts.length);
+                    }
+                    return nextIndex;
+                });
+                setIsFading(false); // Akhiri transisi (fade in konten baru)
+            }, 300); // Durasi delay transisi (sesuai dengan durasi CSS transition)
+
+        }, 7000); 
+
+        return () => clearInterval(interval);
+    }, [headline_posts, hasMultiplePosts]);
+
+    const activePost = headline_posts[activeIndex];
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setIsSearching(true);
@@ -263,23 +297,27 @@ export default function BlogIndex({
             />
     
             {/* 🌟 1. BERITA UTAMA (HEADLINE) - Full Width Dioptimasi untuk 1024px (lg) ke atas */}
-            {!isLoading && headline_posts[0] && (
-                <div className="w-full bg-zinc-950 text-white border-b border-zinc-900">
-                    <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-0">
+            {!isLoading && activePost && (
+                <div className="w-full bg-zinc-950 text-white border-b border-zinc-900 overflow-hidden">
+                    {/* Efek transisi opacity halus saat terjadi perpindahan data */}
+                    <div 
+                        className={`w-full grid grid-cols-1 lg:grid-cols-12 gap-0 transition-opacity duration-300 ease-in-out ${
+                            isFading ? 'opacity-20' : 'opacity-100'
+                        }`}
+                    >
                         
                         {/* 📸 KOLOM GAMBAR (MOBILE: Tampil di atas, DESKTOP: Tampil di kanan) */}
-                        {/* Menggunakan order-first untuk mobile, lalu lg:order-last untuk mengembalikannya ke sisi kanan di desktop */}
-                        <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-auto lg:min-h-full bg-zinc-950 overflow-hidden">
+                        <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-auto lg:min-h-full bg-zinc-955 overflow-hidden">
                             <img
-                                src={`/storage/${headline_posts[0].featured_image}`}
+                                key={activePost.featured_image} // Key memaksa browser merefresh render image jika berganti
+                                src={`/storage/${activePost.featured_image}`}
                                 onError={handleImageError}
-                                // object-cover menjamin gambar selalu penuh tanpa distorsi dan tidak menyisakan background kosong
-                                className="absolute inset-0 w-full h-full object-cover"
-                                alt={headline_posts[0].title}
+                                className="absolute inset-0 w-full h-full object-cover transition-all duration-700"
+                                alt={activePost.title}
                                 loading="eager"
                             />
-                            {/* Overlay gradasi gelap halus di mobile (bawah) dan desktop (kiri) agar transisi ke teks lebih mulus */}
-                            <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-zinc-950 via-transparent to-transparent opacity-80" />
+                            {/* Overlay gradasi gelap */}
+                            <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-zinc-950 via-transparent to-transparent opacity-85" />
                         </div>
 
                         {/* ✍️ KOLOM TEKS (MOBILE: Tampil di bawah gambar, DESKTOP: Tampil di kiri) */}
@@ -292,27 +330,27 @@ export default function BlogIndex({
                             </div>
 
                             {/* Judul: Fleksibel dan responsif */}
-                            <Link href={`/${headline_posts[0].slug}`} className="block group">
+                            <Link href={`/${activePost.slug}`} className="block group">
                                 <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200">
-                                    {headline_posts[0].title}
+                                    {activePost.title}
                                 </h1>
                             </Link>
 
-                            {/* Deskripsi Singkat: Sangat mudah dibaca */}
+                            {/* Deskripsi Singkat */}
                             <p className="text-zinc-200 text-base sm:text-lg lg:text-lg xl:text-xl leading-relaxed border-l-4 border-orange-500 pl-4 font-medium line-clamp-3 lg:line-clamp-none">
-                                {headline_posts[0].excerpt}
+                                {activePost.excerpt}
                             </p>
 
                             {/* Info Penulis & Tombol Baca */}
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pt-6 border-t border-zinc-900 text-base font-semibold text-zinc-450">
                                 <div className="text-sm sm:text-base">
-                                    Oleh: <strong className="text-white font-black">{headline_posts[0].author?.name || 'Tim Redaksi'}</strong>
+                                    Oleh: <strong className="text-white font-black">{activePost.author?.name || 'Tim Redaksi'}</strong>
                                     <span className="mx-2 text-zinc-700">•</span>
-                                    <span className="text-zinc-300">{formatDate(headline_posts[0].published_at)}</span>
+                                    <span className="text-zinc-300">{formatDate(activePost.published_at)}</span>
                                 </div>
                                 
                                 <Link 
-                                    href={`/${headline_posts[0].slug}`} 
+                                    href={`/${activePost.slug}`} 
                                     className="inline-flex h-12 sm:h-14 items-center justify-center gap-2 bg-orange-500 text-white px-6 sm:px-8 rounded-xl font-black uppercase text-sm sm:text-base hover:bg-orange-650 active:scale-98 transition-all duration-200 shadow-lg shadow-orange-950/20"
                                 >
                                     BACA SEKARANG
