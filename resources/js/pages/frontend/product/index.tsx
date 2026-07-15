@@ -17,7 +17,7 @@ interface SubCategoryItem {
     href: string;
 }
 
-interface RootCategory {
+export interface RootCategory {
     title: string;
     slug: string;
     description: string;

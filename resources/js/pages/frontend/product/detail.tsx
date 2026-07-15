@@ -31,7 +31,7 @@ export default function ProductDetail({ product, products = [], related_categori
     const { getConfig } = useConfig();
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const defaultVisibleCount = 5;
+    const defaultVisibleCount = 8;
     const hasMoreCategories = related_categories.length > defaultVisibleCount;
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);

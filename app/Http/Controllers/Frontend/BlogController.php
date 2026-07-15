@@ -101,7 +101,7 @@ class BlogController extends Controller
         // 1. Ambil All Posts Utama terlebih dahulu
         $allPosts = (clone $baseQuery)
             ->latest('published_at')
-            ->paginate(12)
+            ->paginate(10)
             ->withQueryString();
 
         // OPTIMASI: Recent posts diambil langsung dari 5 item pertama allPosts (Hemat 1 Query Besar!)
