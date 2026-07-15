@@ -173,7 +173,10 @@ class BlogController extends Controller
             $seo['description'] = 'Artikel dengan tag "' . $cleanTag . '"';
         }
 
+        $products = $this->getRandomProducts(null, 20);
+        
         return Inertia::render('frontend/blog/index', [
+            'random_products' => $products,
             'headline_posts' => $headlinePosts,
             'most_read_posts' => $mostReadPosts,
             'recent_posts' => $recentPosts,

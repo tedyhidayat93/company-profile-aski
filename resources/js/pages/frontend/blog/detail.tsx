@@ -13,7 +13,8 @@ import {
     PhoneCall, 
     Tag,
     CheckCircle,
-    Newspaper
+    Newspaper,
+    Sparkles
 } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
@@ -82,7 +83,7 @@ export default function BlogDetail({ post, related_posts = [], random_products =
 
             <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen">
                 
-                {/* 🗺️ 1. NAVIGASI BREADCRUMB - Dibuat lebih besar dan kontras */}
+                {/* 🗺️ 1. NAVIGASI BREADCRUMB */}
                 <div className="w-full bg-white dark:bg-zinc-900 border-b border-zinc-300 dark:border-zinc-800 text-sm text-zinc-600 dark:text-zinc-400 py-4 font-semibold">
                     <div className="max-w-7xl mx-auto px-4 flex items-center gap-2 overflow-x-auto scrollbar-none whitespace-nowrap">
                         <Link href="/" className="hover:text-orange-600 hover:underline transition-colors">Beranda</Link>
@@ -102,13 +103,19 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                 </div>
 
                 {/* --- CONTAINER UTAMA --- */}
-                <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+                <div className="max-w-7xl mx-auto px-2 md:px-4 py-5">
+                    {random_products.length > 0 && (
+                        <div className="block lg:hidden mb-3 bg-slate-900 rounded-2xl overflow-hidden">
+                            <FeaturedProductsBanner products={random_products} />
+                        </div>
+                    )}
+                    
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         
                         {/* ===================================================
-                            KOLOM KIRI: KONTEN UTAMA (Fokus Keterbacaan Maksimal)
+                            KOLOM KIRI: KONTEN UTAMA
                            =================================================== */}
-                        <article className="lg:col-span-8 bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 p-6 sm:p-10 rounded-2xl shadow-sm">
+                        <article className="lg:col-span-8 bg-white dark:bg-zinc-900 p-6 sm:p-10 rounded-2xl shadow-sm">
                             
                             {/* Judul & Info Kategori */}
                             <div className="space-y-4 mb-6">
@@ -118,12 +125,11 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                                     </span>
                                 )}
                                 
-                                {/* Ukuran judul diperbesar untuk keterbacaan prima */}
                                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-zinc-950 dark:text-white leading-tight">
                                     {post.title}
                                 </h1>
 
-                                {/* Meta Informasi - Font dinaikkan ke text-sm & warna lebih gelap */}
+                                {/* Meta Informasi */}
                                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-zinc-600 dark:text-zinc-400 font-medium pt-4 border-t border-zinc-200 dark:border-zinc-850">
                                     <span>Ditulis oleh: <strong className="text-zinc-900 dark:text-zinc-100">{post.author?.name || 'Tim Redaksi'}</strong></span>
                                     <span>•</span>
@@ -135,7 +141,7 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                                 </div>
                             </div>
 
-                            {/* Gambar Utama - Dibuat besar dan jelas */}
+                            {/* Gambar Utama */}
                             {post.featured_image && (
                                 <div className="mb-8 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
                                     <img
@@ -147,10 +153,10 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                                 </div>
                             )}
 
-                            {/* Isi Konten Artikel - menggunakan kelas prose-lg, teks tebal/gelap, dan leading-loose */}
+                            {/* Isi Konten Artikel */}
                             <div
                                 className="tinymce-content prose prose-zinc prose-lg max-w-none text-zinc-950 dark:text-zinc-100 leading-loose font-normal"
-                                style={{ fontSize: '1.15rem' }} // Mengamankan ukuran font agar nyaman dibaca tanpa kacamata dekat
+                                style={{ fontSize: '1.15rem' }}
                                 dangerouslySetInnerHTML={{ __html: post.content }}
                             />
 
@@ -170,7 +176,7 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                                 </div>
                             )}
 
-                            {/* Bagikan Artikel - Tombol dibuat besar agar mudah ditekan */}
+                            {/* Bagikan Artikel */}
                             <div className="mt-10 pt-8 border-t border-zinc-200 dark:border-zinc-800">
                                 <h3 className="font-bold text-zinc-900 dark:text-white text-sm uppercase tracking-wider mb-4">Bagikan Informasi Ini Ke Keluarga & Teman:</h3>
                                 <div className="flex gap-3 flex-wrap">
@@ -210,11 +216,11 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                         </article>
 
                         {/* ===================================================
-                            KOLOM KANAN: SIDEBAR (Simpel, Informatif, & Jelas)
+                            KOLOM KANAN: SIDEBAR
                            =================================================== */}
                         <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6 w-full">
                             
-                            {/* Kotak Hubungi Konsultasi WA (Ukuran Teks & Tombol Besar) */}
+                            {/* Kotak Hubungi Konsultasi WA */}
                             <div className="bg-zinc-900 text-white border border-zinc-800 p-8 rounded-2xl shadow-xl relative overflow-hidden">
                                 <div className="space-y-4">
                                     <h3 className="text-2xl font-bold tracking-tight text-white leading-snug">
@@ -232,6 +238,12 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                                     </a>
                                 </div>
                             </div>
+
+                            {random_products.length > 0 && (
+                                <div className="hidden lg:block bg-slate-900 rounded-2xl overflow-hidden">
+                                    <FeaturedProductsBanner products={random_products} />
+                                </div>
+                            )}
 
                             {/* Kotak Unduh Profil Perusahaan */}
                             {getConfig('company_profile_pdf') && (
@@ -315,13 +327,6 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                             )}
                         </aside>
 
-                    </div>
-                </div>
-
-                {/* Banner Rekomendasi Produk */}
-                <div className="max-w-7xl mx-auto px-4 pb-16">
-                    <div className="bg-zinc-700 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
-                        <FeaturedProductsBanner products={random_products}/>
                     </div>
                 </div>
 

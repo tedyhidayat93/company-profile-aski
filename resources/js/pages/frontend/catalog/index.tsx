@@ -1,4 +1,4 @@
-import { router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { Filter, Search, ArrowUpDown, ChevronDown, X, ArrowRight, ArrowLeft, HandHeartIcon, LayoutDashboard, RotateCcw, SlidersHorizontal, Layers, ChevronRight, CircleDollarSign, CheckIcon, Check, FilterIcon, SearchIcon } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import FrontendLayout from '@/layouts/frontend-layout';
@@ -151,7 +151,7 @@ export const FeaturedProductsBanner = ({
 
     return (
         <div 
-            className="overflow-hidden rounded-3xl transition-all duration-300 bg-slate-900/50 p-1"
+            className="overflow-hidden rounded-3xl transition-all duration-300 p-1"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onTouchStart={() => setIsHovered(true)}
@@ -164,12 +164,12 @@ export const FeaturedProductsBanner = ({
                         <HandHeartIcon className="h-5 w-5" />
                     </div>
 
-                    <div>
-                        <h3 className="bg-gradient-to-r from-blue-50 via-slate-200 to-amber-500 bg-clip-text text-sm 2xl:text-base font-bold text-transparent">
+                    <div className="select-none">
+                        <h3 className="text-sm 2xl:text-lg font-extrabold text-slate-100 mix-blend-difference">
                             Direkomendasikan Untukmu
                         </h3>
-                        <p className="text-xs font-medium text-slate-300">
-                            Produk terbaik yang dipilih khusus untuk Anda
+                        <p className="text-xs font-semibold text-slate-300 mix-blend-difference">
+                            Unit terbaik yang dipilih khusus untuk Anda
                         </p>
                     </div>
                 </div>
@@ -211,6 +211,9 @@ export const FeaturedProductsBanner = ({
                         </div>
                     ))}
                 </div>
+            </div>
+            <div className="flex w-ful px-5 justify-end pb-5">
+                <Link className="text-xs font-bold hover:underline" href='/katalog'>Lihat Unit Lainnya </Link>
             </div>
         </div>
     );

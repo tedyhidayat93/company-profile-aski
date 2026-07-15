@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import { Pagination } from '@/components/ui/pagination';
+import { FeaturedProductsBanner } from '../catalog';
 
 type BlogPost = {
     id: number;
@@ -23,6 +24,7 @@ type BlogPost = {
 
 type Props = {
     headline_posts: BlogPost[];
+    random_products: any[];
     most_read_posts: BlogPost[];
     recent_posts: BlogPost[];
     all_posts: { data: BlogPost[]; links: any; };
@@ -34,7 +36,8 @@ type Props = {
 };
 
 export default function BlogIndex({ 
-    headline_posts = [], 
+    headline_posts = [],
+    random_products = [], 
     most_read_posts = [], 
     recent_posts = [], 
     all_posts = { data: [], links: [] }, 
@@ -100,7 +103,7 @@ export default function BlogIndex({
             {/* 🌟 1. BERITA UTAMA / HEADLINE: DESAIN EDITORIAL ELEGAN & KONTRAS TINGGI */}
             {!isLoading && headline_posts[0] && (
                 <div className="w-full bg-zinc-950 text-white relative overflow-hidden font-sans select-none border-b border-zinc-800">
-                    <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 min-h-[60vh] lg:min-h-[500px]">
+                    <div className="mx-auto grid grid-cols-1 lg:grid-cols-12 min-h-[60vh] lg:min-h-[500px]">
                         
                         {/* KOLOM KIRI: TEKS JUDUL YANG JELAS & RINGKASAN BESAR */}
                         <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-10 lg:p-14 relative z-10 bg-zinc-950">
@@ -162,7 +165,10 @@ export default function BlogIndex({
             )}
 
             {/* --- KONTEN CONTAINER UTAMA --- */}
-            <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-zinc-50 dark:bg-zinc-950">
+            <main className="mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-zinc-50 dark:bg-zinc-950">
+                <div className="shadow rounded-xl mb-8 border">
+                    <FeaturedProductsBanner products={random_products}/>
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     
                     {/* ===================================================
@@ -268,7 +274,7 @@ export default function BlogIndex({
                             <div className="border-b border-zinc-300 dark:border-zinc-800 pb-3 mb-6">
                                 <h2 id="section-arsip" className="text-lg font-bold uppercase tracking-wide text-zinc-900 dark:text-white flex items-center gap-2">
                                     <span className="w-1.5 h-5 bg-orange-500 inline-block rounded-full"></span>
-                                    Daftar Artikel Lengkap
+                                    Baca Artikel Lainnya
                                 </h2>
                             </div>
                             
