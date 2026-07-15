@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Link, useForm, router, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { Eye, Filter, Tag, ChevronRight, BoxIcon, Layers, BadgeCheck, ChevronDown, ChevronLeft } from 'lucide-react';
+import { Eye, Filter, Tag, ChevronRight, BoxIcon, Layers, ChevronLeft } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
-import { Pagination } from '@/components/ui/pagination';
 import { FeaturedProductsBanner } from '../catalog';
 import { RootCategory } from '../product';
 
@@ -107,9 +106,7 @@ export function FlatCategoryList({ items }: { items: FlatCategoryItem[] }) {
                                     </h3>
                                     
                                     {item.description && (
-                                        <p className="text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm leading-relaxed font-medium line-clamp-3">
-                                            {item.description}
-                                        </p>
+                                        <div className="text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm leading-relaxed font-medium line-clamp-3" dangerouslySetInnerHTML={{ __html: item.description || ''  }} />
                                     )}
                                 </div>
 
@@ -213,7 +210,7 @@ export default function BlogIndex({
             parentSlug: category.slug,   // Menyimpan slug utama untuk keperluan routing
             name: item.name,
             slug: item.slug,
-            description: item.description || category.description, // Fallback ke deskripsi utama jika kosong
+            description: item.meta_description || item.description || category.description, // Fallback ke deskripsi utama jika kosong
             image: item.image || category.image, // Fallback ke gambar utama jika sub-item tidak punya gambar
             href: item.href || `/produk/${category.slug}/${item.slug}`
         }))

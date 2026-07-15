@@ -6,6 +6,7 @@ import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
+    const isProduction = mode === 'production';
     
     return {
         plugins: [
@@ -24,9 +25,31 @@ export default defineConfig(({ mode }) => {
                 formVariants: true,
             }),
         ],
+        
+        // ⚡ OPTIMASI BUILD PRODUKSI
+        build: {
+            // Memastikan CSS dikompresi maksimal menggunakan Lightningcss bawaan Vite baru
+            cssMinify: true,
+            // Mengurangi beban overhead memori saat rendering sourcemap di production
+            sourcemap: !isProduction,
+            // Optimasi chunking agar browser tidak memuat satu file JS raksasa yang bikin lag
+            rollupOptions: {
+                output: {
+                    manualChunks: {
+                        'vendor-react': ['react', 'react-dom'],
+                        'vendor-icons': ['lucide-react'],
+                    }
+                }
+            }
+        },
+
+        // 🧹 MEMBERSIHKAN CONSOLE.LOG PADA MODE PRODUKSI
         esbuild: {
             jsx: 'automatic',
+            // Jika dalam mode production, drop semua console dan debugger agar menghemat RAM & CPU browser
+            drop: isProduction ? ['console', 'debugger'] : [],
         },
+
         optimizeDeps: {
             exclude: ['react-image-gallery'],
             include: ['react', 'react-dom'],
