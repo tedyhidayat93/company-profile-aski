@@ -100,12 +100,13 @@ export default function BlogIndex({
                 contentType={seo.contentType || 'website'}
             />
     
-            {/* 🌟 1. BERITA UTAMA / HEADLINE: DESAIN EDITORIAL ELEGAN & KONTRAS TINGGI */}
+            {/* 🌟 1. BERITA UTAMA / HEADLINE */}
+            {/* OPTIMASI: Menghapus select-none raksasa yang membebani scroll engine browser */}
             {!isLoading && headline_posts[0] && (
-                <div className="w-full bg-zinc-950 text-white relative overflow-hidden font-sans select-none border-b border-zinc-800">
+                <div className="w-full bg-zinc-950 text-white relative overflow-hidden font-sans border-b border-zinc-800">
                     <div className="mx-auto grid grid-cols-1 lg:grid-cols-12 min-h-[60vh] lg:min-h-[500px]">
                         
-                        {/* KOLOM KIRI: TEKS JUDUL YANG JELAS & RINGKASAN BESAR */}
+                        {/* KOLOM KIRI: TEKS JUDUL */}
                         <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-10 lg:p-14 relative z-10 bg-zinc-950">
                             <div className="flex items-center justify-between border-b border-zinc-800 pb-4 w-full">
                                 <div className="flex items-center gap-2">
@@ -121,11 +122,10 @@ export default function BlogIndex({
 
                             <div className="my-8 lg:my-auto space-y-4">
                                 <Link href={`/${headline_posts[0].slug}`} className="block group">
-                                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight transition-colors duration-300 group-hover:text-orange-400 break-words">
+                                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight transition-colors duration-305 group-hover:text-orange-400 break-words">
                                         {headline_posts[0].title}
                                     </h1>
                                 </Link>
-                                {/* Ukuran font ringkasan dinaikkan agar mudah dibaca tanpa kacamata dekat */}
                                 <p className="text-zinc-300 text-base md:text-lg leading-relaxed border-l-4 border-orange-500 pl-4 font-normal">
                                     {headline_posts[0].excerpt}
                                 </p>
@@ -136,7 +136,6 @@ export default function BlogIndex({
                                     <span>Penulis:</span>
                                     <span className="text-zinc-100 font-bold">{headline_posts[0].author?.name || 'Tim Redaksi'}</span>
                                 </div>
-                                {/* Tombol dibuat tebal, melengkung wajar, dan berukuran pas untuk jari tangan */}
                                 <Link 
                                     href={`/${headline_posts[0].slug}`} 
                                     className="inline-flex h-12 items-center gap-2 bg-orange-500 text-white px-6 rounded-xl font-bold uppercase text-sm hover:bg-orange-650 transition-colors duration-300 shadow-sm"
@@ -147,14 +146,16 @@ export default function BlogIndex({
                             </div>
                         </div>
 
-                        {/* KOLOM KANAN: GAMBAR NATURAL (TIDAK GRAYSCALE) */}
-                        <div className="lg:col-span-5 relative min-h-[300px] lg:min-h-full bg-zinc-900">
+                        {/* KOLOM KANAN: GAMBAR */}
+                        {/* OPTIMASI: Menambahkan 'will-change-transform' & 'translate-z-0' untuk memaksa akselerasi GPU pada animasi scale gambar */}
+                        <div className="lg:col-span-5 relative min-h-[300px] lg:min-h-full bg-zinc-900 group overflow-hidden">
                             <div className="absolute inset-0 z-0 overflow-hidden">
                                 <img
                                     src={`/storage/${headline_posts[0].featured_image}`}
                                     onError={handleImageError}
-                                    className="w-full h-full object-cover opacity-95 group-hover:scale-102 transition-transform duration-500"
+                                    className="w-full h-full object-cover opacity-95 transition-transform duration-500 will-change-transform [transform:translateZ(0)] group-hover:scale-105"
                                     alt={headline_posts[0].title}
+                                    loading="eager"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent opacity-80 lg:hidden" />
                             </div>
@@ -166,17 +167,20 @@ export default function BlogIndex({
 
             {/* --- KONTEN CONTAINER UTAMA --- */}
             <main className="mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-zinc-50 dark:bg-zinc-950">
-                <div className="shadow rounded-xl mb-8 border">
+                
+                {/* OPTIMASI: Mengunci rasio aspek container agar layout tidak melompat ketika banner produk ter-render */}
+                <div className="shadow rounded-xl mb-8 border overflow-hidden min-h-[120px]">
                     <FeaturedProductsBanner products={random_products}/>
                 </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     
                     {/* ===================================================
-                        KOLOM KIRI: UTAMA (DAFTAR ARTIKEL & REKOMENDASI)
+                        KOLOM KIRI: UTAMA
                        =================================================== */}
                     <div className="lg:col-span-8 space-y-10">
                         
-                        {/* SEKSI: INFORMASI PILIHAN (KARTU LEBIH HALUS) */}
+                        {/* SEKSI: INFORMASI PILIHAN */}
                         {headline_posts.length > 1 && (
                             <section aria-labelledby="section-sorotan">
                                 <div className="border-b border-zinc-300 dark:border-zinc-800 pb-3 mb-6">
@@ -188,12 +192,14 @@ export default function BlogIndex({
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     {headline_posts.slice(1, 4).map((post) => (
                                         <article key={post.id} className="group flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow">
-                                            <Link href={`/${post.slug}`} className="aspect-[16/10] w-full overflow-hidden bg-zinc-100 relative">
+                                            {/* OPTIMASI: Menggunakan 'aspect-video' solid agar tinggi card stabil sejak awal */}
+                                            <Link href={`/${post.slug}`} className="aspect-video w-full overflow-hidden bg-zinc-150 dark:bg-zinc-800 relative block">
                                                 <img 
                                                     src={`/storage/${post.featured_image}`} 
-                                                    className="w-full h-full object-cover"
+                                                    className="w-full h-full object-cover transition-transform duration-300 will-change-transform group-hover:scale-105"
                                                     onError={handleImageError}
                                                     alt={post.title}
+                                                    loading="lazy"
                                                 />
                                             </Link>
                                             <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
@@ -213,7 +219,7 @@ export default function BlogIndex({
                             </section>
                         )}
 
-                        {/* SEKSI: POPULER & TERBARU (DUA KOLOM BERSIH) */}
+                        {/* SEKSI: POPULER & TERBARU */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-zinc-300 dark:border-zinc-800 pt-8">
                             
                             {/* Paling Banyak Dibaca */}
@@ -224,8 +230,8 @@ export default function BlogIndex({
                                 <div className="space-y-4 divide-y divide-zinc-200 dark:divide-zinc-800">
                                     {most_read_posts.slice(0, 4).map((post, i) => (
                                         <article key={post.id} className="group flex gap-4 pt-4 first:pt-0 items-center">
-                                            <Link href={`/${post.slug}`} className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 dark:border-zinc-800">
-                                                <img src={`/storage/${post.featured_image}`} className="w-full h-full object-cover" onError={handleImageError} alt={post.title} />
+                                            <Link href={`/${post.slug}`} className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 block relative">
+                                                <img src={`/storage/${post.featured_image}`} className="w-full h-full object-cover" onError={handleImageError} alt={post.title} loading="lazy" />
                                             </Link>
                                             <div className="space-y-1 min-w-0">
                                                 <Link href={`/${post.slug}`}>
@@ -250,8 +256,8 @@ export default function BlogIndex({
                                 <div className="space-y-4 divide-y divide-zinc-200 dark:divide-zinc-800">
                                     {recent_posts.slice(0, 4).map((post) => (
                                         <article key={post.id} className="group flex gap-4 pt-4 first:pt-0 items-center">
-                                            <Link href={`/${post.slug}`} className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 dark:border-zinc-800">
-                                                <img src={`/storage/${post.featured_image}`} className="w-full h-full object-cover" onError={handleImageError} alt={post.title} />
+                                            <Link href={`/${post.slug}`} className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 block relative">
+                                                <img src={`/storage/${post.featured_image}`} className="w-full h-full object-cover" onError={handleImageError} alt={post.title} loading="lazy" />
                                             </Link>
                                             <div className="space-y-1 min-w-0">
                                                 <Link href={`/${post.slug}`}>
@@ -269,7 +275,7 @@ export default function BlogIndex({
                             </section>
                         </div>
 
-                        {/* SEKSI UTAMA: DAFATAR SEMUA ARSIP ARTIKEL BERGAYA DAFTAR LEBAR */}
+                        {/* SEKSI UTAMA: DAFTAR SEMUA ARSIP ARTIKEL */}
                         <section aria-labelledby="section-arsip" className="border-t border-zinc-300 dark:border-zinc-800 pt-8">
                             <div className="border-b border-zinc-300 dark:border-zinc-800 pb-3 mb-6">
                                 <h2 id="section-arsip" className="text-lg font-bold uppercase tracking-wide text-zinc-900 dark:text-white flex items-center gap-2">
@@ -286,8 +292,8 @@ export default function BlogIndex({
                                 ) : (
                                     all_posts.data.map((post) => (
                                         <article key={post.id} className="group flex flex-col md:flex-row gap-6 p-5 sm:p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm items-center">
-                                            <Link href={`/${post.slug}`} className="w-full md:w-56 aspect-[16/10] shrink-0 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50">
-                                                <img src={`/storage/${post.featured_image}`} className="w-full h-full object-cover" onError={handleImageError} alt={post.title} />
+                                            <Link href={`/${post.slug}`} className="w-full md:w-56 aspect-[16/10] shrink-0 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 block relative">
+                                                <img src={`/storage/${post.featured_image}`} className="w-full h-full object-cover transition-transform duration-300 will-change-transform group-hover:scale-103" onError={handleImageError} alt={post.title} loading="lazy" />
                                             </Link>
                                             <div className="flex-1 space-y-3 w-full">
                                                 <div className="flex items-center gap-3 flex-wrap">
@@ -305,7 +311,6 @@ export default function BlogIndex({
                                                         {post.title}
                                                     </h3>
                                                 </Link>
-                                                {/* Text Excerpt Dibuat text-base agar mudah dibaca lansia */}
                                                 <p className="text-base text-zinc-700 dark:text-zinc-300 font-normal line-clamp-2 leading-relaxed">
                                                     {post.excerpt}
                                                 </p>
@@ -329,7 +334,7 @@ export default function BlogIndex({
                     </div>
 
                     {/* ===================================================
-                        KOLOM KANAN: SIDEBAR PENCARIAN & LAYANAN (KOTAK BULAT HALUS)
+                        KOLOM KANAN: SIDEBAR PENCARIAN & LAYANAN
                        =================================================== */}
                     <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6 w-full">
                         
@@ -446,6 +451,7 @@ export default function BlogIndex({
                                                         alt={item.name}
                                                         onError={handleImageError}
                                                         className="w-full h-full object-cover"
+                                                        loading="lazy"
                                                     />
                                                 ) : (
                                                     <span className="font-bold text-zinc-400 text-[10px] uppercase">Unit</span>
