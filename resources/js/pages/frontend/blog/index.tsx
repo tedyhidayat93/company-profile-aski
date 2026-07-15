@@ -390,10 +390,13 @@ export default function BlogIndex({
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     {headline_posts.slice(1, 4).map((post) => (
                                         <article key={post.id} className="flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-850 rounded-xl overflow-hidden">
-                                            <Link href={`/${post.slug}`} className="w-full overflow-hidden bg-zinc-200 dark:bg-zinc-800 block relative">
+                                            <Link 
+                                                href={`/${post.slug}`} 
+                                                className="w-full aspect-[4/3] overflow-hidden bg-zinc-200 dark:bg-zinc-800 block relative"
+                                            >
                                                 <img 
                                                     src={`/storage/${post.featured_image}`} 
-                                                    className="w-full h-full object-cover"
+                                                    className="absolute inset-0 w-full h-full object-cover"
                                                     onError={handleImageError}
                                                     alt={post.title}
                                                     loading="lazy"
