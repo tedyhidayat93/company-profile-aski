@@ -29,7 +29,6 @@ import {
   Image as ImageIcon,
   Eye
 } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
 import { handleImageError } from '@/utils/image';
 
 interface Client {
@@ -310,6 +309,21 @@ export default function ClientIndex({ clients, filters }: Props) {
                                 </Link>
                             </div>
                         </div>
+                    )}
+
+
+                    {clients.last_page > 1 && (
+                        <Pagination
+                        currentPage={clients.current_page}
+                        totalPages={clients.last_page}
+                        total={clients.total}
+                        perPage={clients.per_page}
+                        onPageChange={(page) => {
+                            const url = new URL(window.location.href);
+                            url.searchParams.set('page', page.toString());
+                            router.get(url.toString());
+                        }}
+                        />
                     )}
                 </CardContent>
             </Card>
