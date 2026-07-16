@@ -48,7 +48,7 @@ export default function RolePermissions({ role, permissions }: Props) {
     },
   ];
 
-  const { data, setData, post, processing } = useForm({
+  const { data, setData, post, transform, processing } = useForm({
     permissions: role.permissions.map(p => p.id),
   });
 
@@ -75,6 +75,11 @@ export default function RolePermissions({ role, permissions }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    transform((data) => ({
+      ...data,
+      _method: 'PUT',
+    }));
     
     post(`/cpanel/authorization/roles/${role.id}/permissions`);
   };

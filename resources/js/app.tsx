@@ -29,7 +29,17 @@ createInertiaApp({
     );
   },
   progress: {
-    color: '#ed8f2a',
+    // Warna garis loader (bisa disesuaikan dengan tema, misalnya Orange #f97316)
+    color: '#f97316',
+
+    // Apakah ingin menampilkan spinner putar di pojok kanan atas? (true/false)
+    showSpinner: true,
+
+    // Waktu tunggu (dalam ms) sebelum loader muncul saat loading terasa lambat
+    delay: 250,
+
+    // Apakah garis loader akan kembali berjalan dari awal jika ada request baru?
+    includeCSS: true,
   },
 });
 

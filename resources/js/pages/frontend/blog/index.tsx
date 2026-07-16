@@ -9,6 +9,7 @@ import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import { FeaturedProductsBanner } from '../catalog';
 import { RootCategory } from '../product';
+import CtaSection from '@/components/cta-section';
 
 type BlogPost = {
     id: number;
@@ -298,64 +299,70 @@ export default function BlogIndex({
     
             {/* 🌟 1. BERITA UTAMA (HEADLINE) - Full Width Dioptimasi untuk 1024px (lg) ke atas */}
             {!isLoading && activePost && (
-                <div className="w-full bg-zinc-950 text-white border-b border-zinc-900 overflow-hidden">
-                    {/* Efek transisi opacity halus saat terjadi perpindahan data */}
-                    <div 
-                        className={`w-full grid grid-cols-1 lg:grid-cols-12 gap-0 transition-opacity duration-300 ease-in-out ${
-                            isFading ? 'opacity-20' : 'opacity-100'
-                        }`}
-                    >
+                <div className="w-full bg-gradient-to-br from-zinc-950 via-slate-900 to-zinc-950 text-white border-b border-zinc-900 overflow-hidden">
+                    {/* max-h dikunci ketat di desktop, tinggi minimal disesuaikan agar compact */}
+                    <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[420px] lg:min-h-[350px] lg:px-2 xl:px-5">
                         
-                        {/* 📸 KOLOM GAMBAR (MOBILE: Tampil di atas, DESKTOP: Tampil di kanan) */}
-                        <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[16/10] sm:aspect-[16/9] lg:aspect-auto lg:min-h-full bg-zinc-955 overflow-hidden">
-                            <img
-                                key={activePost.featured_image} // Key memaksa browser merefresh render image jika berganti
-                                src={`/storage/${activePost.featured_image}`}
-                                onError={handleImageError}
-                                className="absolute inset-0 w-full h-full object-cover transition-all duration-700"
-                                alt={activePost.title}
-                                loading="eager"
-                            />
-                            {/* Overlay gradasi gelap */}
-                            <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-zinc-950 via-transparent to-transparent opacity-85" />
-                        </div>
-
-                        {/* ✍️ KOLOM TEKS (MOBILE: Tampil di bawah gambar, DESKTOP: Tampil di kiri) */}
-                        <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-10 lg:p-12 xl:p-20 bg-zinc-955 space-y-6">
+                        {/* ✍️ KOLOM KIRI: TEKS (Porsi 7 kolom agar teks mengalir horizontal, tidak memakan space vertikal) */}
+                        <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-8 lg:p-10 xl:p-12 space-y-4 z-10 my-auto">
                             
                             {/* Tag Kategori / Headline */}
-                            <div className="flex items-center gap-3 text-xs sm:text-sm text-orange-400 font-black tracking-widest uppercase">
-                                <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
+                            <div className="flex items-center gap-2 text-xs text-orange-400 font-black tracking-widest uppercase">
+                                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-md shadow-orange-500/50" />
                                 <span>BERITA UTAMA HARI INI</span>
                             </div>
 
-                            {/* Judul: Fleksibel dan responsif */}
+                            {/* Judul: Diturunkan ukurannya agar lebih compact namun tetap tegas */}
                             <Link href={`/${activePost.slug}`} className="block group">
-                                <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200">
+                                <h1 className="text-xl sm:text-2xl lg:text-2xl xl:text-4xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200 line-clamp-2">
                                     {activePost.title}
                                 </h1>
                             </Link>
 
-                            {/* Deskripsi Singkat */}
-                            <p className="text-zinc-200 text-base sm:text-lg lg:text-lg xl:text-xl leading-relaxed border-l-4 border-orange-500 pl-4 font-medium line-clamp-3 lg:line-clamp-none">
+                            {/* Deskripsi Singkat: Dikunci maksimal 2 baris agar tidak memakan tinggi kontainer */}
+                            <p className="text-zinc-300 text-xs sm:text-sm lg:text-base leading-relaxed border-l-4 border-orange-500 pl-3 font-medium line-clamp-2">
                                 {activePost.excerpt}
                             </p>
 
-                            {/* Info Penulis & Tombol Baca */}
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pt-6 border-t border-zinc-900 text-base font-semibold text-zinc-450">
-                                <div className="text-sm sm:text-base">
+                            {/* Info Penulis & Tombol Baca: Dibuat lebih padat */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-zinc-900 text-sm font-semibold text-zinc-400">
+                                <div className="text-xs sm:text-sm text-zinc-450">
                                     Oleh: <strong className="text-white font-black">{activePost.author?.name || 'Tim Redaksi'}</strong>
-                                    <span className="mx-2 text-zinc-700">•</span>
+                                    <span className="mx-2 text-zinc-800">•</span>
                                     <span className="text-zinc-300">{formatDate(activePost.published_at)}</span>
                                 </div>
                                 
                                 <Link 
                                     href={`/${activePost.slug}`} 
-                                    className="inline-flex h-12 sm:h-14 items-center justify-center gap-2 bg-orange-500 text-white px-6 sm:px-8 rounded-xl font-black uppercase text-sm sm:text-base hover:bg-orange-650 active:scale-98 transition-all duration-200 shadow-lg shadow-orange-950/20"
+                                    className="inline-flex h-10 sm:h-11 items-center justify-center gap-1.5 bg-orange-500 text-white px-5 rounded-lg font-black uppercase text-xs sm:text-sm hover:bg-orange-650 active:scale-98 transition-all duration-200 shadow-lg shadow-orange-950/20 shrink-0 self-start sm:self-auto"
                                 >
                                     BACA SEKARANG
-                                    <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+                                    <ChevronRight className="w-4 h-4 stroke-[3]" />
                                 </Link>
+                            </div>
+                        </div>
+
+                        {/* 📸 KOLOM KANAN: GAMBAR DENGAN FRAME COMPACT (Porsi 5 kolom) */}
+                        {/* Menggunakan p-4 hingga p-6 agar ukuran bingkai mengecil mengikuti batas tinggi 380px */}
+                        <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[5/3] lg:aspect-[3/2] lg:h-full p-0 sm:p-6 lg:p-6 xl:p-8 flex items-center justify-center bg-zinc-950/20">
+                            
+                            {/* Efek Glow Bayangan Lembut di Belakang Frame Gambar */}
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 h-4/5 bg-orange-500/5 blur-[60px] rounded-full pointer-events-none hidden lg:block" />
+
+                            <div className="w-full h-full sm:rounded-xl overflow-hidden relative shadow-xl sm:border border-zinc-900/60 bg-slate-950">
+                                <img
+                                    key={activePost.featured_image}
+                                    src={`/storage/${activePost.featured_image}`}
+                                    onError={handleImageError}
+                                    className={`w-full h-full object-cover transition-all duration-500 ease-in-out ${
+                                        isFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                                    }`}
+                                    alt={activePost.title}
+                                    loading="eager"
+                                />
+                                
+                                {/* ✨ OVERLAY SMOOTH DALAM FRAME */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/40 via-transparent to-transparent pointer-events-none" />
                             </div>
                         </div>
 
@@ -420,11 +427,11 @@ export default function BlogIndex({
                         )}
 
                         {/* SEKSI UTAMA: ARSIP DAFTAR ARTIKEL */}
-                        <section aria-labelledby="section-arsip" className="border-t-2 border-zinc-200 dark:border-zinc-850 pt-8">
-                            <div className="border-b border-zinc-300 dark:border-zinc-800 pb-3 mb-6">
+                        <section aria-labelledby="section-arsip" className=" border-zinc-200 dark:border-zinc-850 pt-8">
+                            <div className="border-b-2 border-zinc-300 dark:border-zinc-800 pb-3 mb-6">
                                 <h2 id="section-arsip" className="text-xl font-extrabold uppercase text-zinc-900 dark:text-white flex items-center gap-2.5">
                                     <span className="w-2 h-6 bg-orange-500 inline-block rounded-full"></span>
-                                    Daftar Artikel Lengkap
+                                    Baca Artikel Lainnya
                                 </h2>
                             </div>
                             
@@ -436,7 +443,7 @@ export default function BlogIndex({
                                 ) : (
                                     all_posts.data.map((post) => (
                                         <article key={post.id} className="flex flex-col md:flex-row gap-6 p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl items-start">
-                                            <Link href={`/${post.slug}`} className="w-full md:w-64 aspect-[16/10] shrink-0 overflow-hidden rounded-xl bg-zinc-200 dark:bg-zinc-800 block relative">
+                                            <Link href={`/${post.slug}`} className="w-full md:w-64 aspect-[16/11] shrink-0 overflow-hidden rounded-xl bg-zinc-200 dark:bg-zinc-800 block relative">
                                                 <img 
                                                     src={`/storage/${post.featured_image}`} 
                                                     className="w-full h-full object-cover" 
@@ -470,9 +477,9 @@ export default function BlogIndex({
 
                                                 <div className="flex items-center justify-between text-sm font-bold text-zinc-600 dark:text-zinc-400 pt-4 border-t border-zinc-150 dark:border-zinc-800">
                                                     <span className="flex items-center gap-1.5"><Eye className="w-4 h-4" /> {post.views_count} kali dibaca</span>
-                                                    <span className="inline-flex items-center gap-1 text-orange-600 text-base font-extrabold">
+                                                    <Link href={`/${post.slug}`}  className="inline-flex hover:underline items-center gap-1 text-orange-600 text-base font-extrabold">
                                                         Buka Artikel ➔
-                                                    </span>
+                                                    </Link>
                                                 </div>
                                             </div>
                                         </article>
@@ -637,6 +644,7 @@ export default function BlogIndex({
                     </aside>
                 </div>
             </main>
+            <CtaSection />
         </FrontendLayout>
     );
 }

@@ -715,3 +715,15 @@ body[data-radix-pointer-selection-disabled] .tox-dialog {
 .grecaptcha-badge { 
     visibility: hidden !important; 
 }
+
+/* Custom tampilan Inertia Progress Bar */
+#nprogress .bar {
+    background: #230a00 !important; /* Ganti ke warna brand Anda */
+    height: 5px !important;
+}
+
+/* Jika Anda mengaktifkan spinner dan ingin mengubah warnanya */
+#nprogress .spinner-icon {
+    border-top-color: #f97316 !important;
+    border-left-color: #f97316 !important;
+}

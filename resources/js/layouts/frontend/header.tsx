@@ -142,7 +142,7 @@ export default function Header() {
       <header className={`sticky top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'shadow-md' : ''}`}>
         
         {/* Top Bar */}
-        <div className="bg-gradient-to-l from-orange-400 via-orange-500 to-black text-white py-1">
+        <div className="bg-gradient-to-tr from-orange-600 via-amber-500 to-orange-500 text-white py-1">
           <div className="container mx-auto px-4 flex justify-between items-center text-sm">
             <div className="flex items-center space-x-2 overflow-hidden">
               <a href={`tel:${getConfig('contact_phone', CONTACT_INFO.phone).replace(/\D/g, '')}`} className="flex items-center text-white font-medium hover:text-slate-100 truncate">
