@@ -321,18 +321,37 @@ Route::get('/cc/{token}', function (string $token) {
     }
 
     try {
-        // Eksekusi pembersihan & caching optimal
         Artisan::call('optimize:clear');
-        Artisan::call('config:cache');
-        Artisan::call('route:cache');
-        Artisan::call('view:cache');
+        Artisan::call('view:clear');
+        Artisan::call('cache:clear');
 
         return redirect('/')
-            ->with('success', 'Sistem berhasil dioptimasi dan cache telah dibersihkan!');
+            ->with('success', '200 ok');
 
     } catch (\Exception $e) {
         return redirect('/')
             ->with('error', 'Gagal memproses pembersihan.');
+    }
+});
+
+Route::get('/cfgc/{token}', function (string $token) {
+    $secureToken = env('ROUTE_CLEAR_TOKEN');
+
+    if (empty($secureToken) || $token !== $secureToken) {
+        abort(404);
+    }
+
+    try {
+        Artisan::call('optimize:clear');
+        Artisan::call('config:cache');
+        Artisan::call('config:clear');
+
+        return redirect('/')
+            ->with('success', '200 ok');
+
+    } catch (\Exception $e) {
+        return redirect('/')
+            ->with('error', 'Gagal memproses.');
     }
 });
 // --- CATCH-ALL ROUTE FOR BLOG DETAIL (Wajib paling bawah) ---

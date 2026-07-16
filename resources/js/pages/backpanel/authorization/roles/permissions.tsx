@@ -48,7 +48,7 @@ export default function RolePermissions({ role, permissions }: Props) {
     },
   ];
 
-  const { data, setData, put, processing } = useForm({
+  const { data, setData, post, processing } = useForm({
     permissions: role.permissions.map(p => p.id),
   });
 

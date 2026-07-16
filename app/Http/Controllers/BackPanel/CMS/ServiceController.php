@@ -193,8 +193,11 @@ class ServiceController extends Controller
             $image = $request->file('image');
             $path = $image->store('services', 'public');
             $validated['image'] = $path;
+        } else {
+            // hapus key 'image' dari array $validated agar data lama di database TIDAK tertimpa/terhapus!
+            unset($validated['image']);
         }
-
+        
         $validated['is_featured'] = isset($validated['is_featured']) 
             ? (bool) $validated['is_featured'] 
             : $service->is_featured;

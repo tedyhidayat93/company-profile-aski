@@ -198,6 +198,9 @@ class CategoryController extends Controller
             $image = $request->file('image');
             $path = $image->store('categories', 'public');
             $validated['image'] = $path;
+        } else {
+            // hapus key 'image' dari array $validated agar data lama di database TIDAK tertimpa/terhapus!
+            unset($validated['image']);
         }
 
         // Handle is_active field properly

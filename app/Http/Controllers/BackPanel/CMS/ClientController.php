@@ -130,6 +130,10 @@ class ClientController extends Controller
             $path = $image->store('clients', 'public');
             $validated['image'] = $path;
         }
+         else {
+            // hapus key 'image' dari array $validated agar data lama di database TIDAK tertimpa/terhapus!
+            unset($validated['image']);
+        }
 
         // Handle image removal
         if ($request->input('remove_image') && $client->image) {

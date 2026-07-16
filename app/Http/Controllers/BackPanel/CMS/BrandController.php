@@ -75,6 +75,9 @@ class BrandController extends Controller
             $logo = $request->file('logo');
             $path = $logo->store('brands', 'public');
             $validated['logo'] = $path;
+        }  else {
+            // hapus key 'image' dari array $validated agar data lama di database TIDAK tertimpa/terhapus!
+            unset($validated['logo']);
         }
 
         $validated['is_active'] = $validated['is_active'] ?? true;
