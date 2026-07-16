@@ -76,7 +76,8 @@ class ArticleController extends Controller
                 }
             }, function ($query) {
                 // Default sorting if no sort is specified
-                return $query->orderBy('created_at', 'desc');
+                return $query->orderBy('is_headline', 'desc')
+                    ->orderBy('created_at', 'desc');
             })
             ->with(['author', 'category'])
             ->paginate($request->per_page ?? 15);
