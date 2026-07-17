@@ -354,6 +354,7 @@ Route::get('/cfgc/{token}', function (string $token) {
             ->with('error', 'Gagal memproses.');
     }
 });
+
 // --- CATCH-ALL ROUTE FOR BLOG DETAIL (Wajib paling bawah) ---
 Route::get('/{slug}', [BlogController::class, 'show'])->name('show');
 

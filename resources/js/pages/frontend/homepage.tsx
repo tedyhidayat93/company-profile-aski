@@ -13,6 +13,7 @@ import HeroHomepageSection from '@/components/hero-hompage-section';
 import GoogleReviewsWidget from '@/components/google-reviews-widget';
 import CtaSection from '@/components/cta-section';
 import HomepageProductTabs from '@/components/homepage-product-tabs';
+import { SocialProfileEmbed } from '@/components/social-profile-embed';
 
 
 export default function Homepage({ 
@@ -527,6 +528,66 @@ export default function Homepage({
             </div>
           </section>
         )}
+
+        <section id="medsos" className="w-full border-t border-zinc-200 dark:border-zinc-800 py-6">
+          <div className="max-w-7xl mx-auto px-4">
+              
+              {/* Kontainer Grid Utama - dipaksa sejajar tinggi kolomnya */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                  
+                  {/* 📱 KOLOM KIRI: TIKTOK */}
+                  <div className="flex flex-col p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                      <div className="mb-4">
+                          <span className="text-[11px] font-black uppercase tracking-widest text-orange-500 block mb-1">
+                              Aktivitas Digital
+                          </span>
+                          <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                              Ikuti Kami di TikTok
+                          </h3>
+                      </div>
+                      
+                      {/* Area Render Embed TikTok */}
+                      <div className="w-full flex-1 bg-zinc-50 dark:bg-zinc-950/40 rounded-xl overflow-hidden p-2 flex items-center justify-center">
+                          <SocialProfileEmbed 
+                              platform="tiktok" 
+                              urlConfig={getConfig("social_tiktok", "https://www.tiktok.com/@alumodakontainer")} 
+                          />
+                      </div>
+                  </div>
+
+                  {/* 📺 KOLOM KANAN: YOUTUBE */}
+                  <div className="flex flex-col p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                      <div className="mb-4">
+                          <span className="text-[11px] font-black uppercase tracking-widest text-red-500 block mb-1">
+                              Dokumentasi Proyek
+                          </span>
+                          <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                              Tonton Video Terbaru
+                          </h3>
+                      </div>
+                      
+                      {/* 
+                        Area YouTube dibuat flex-1 & justify-center agar video 
+                        otomatis mengisi ruang kosong di bawah dan sejajar secara presisi dengan batas bawah TikTok 
+                      */}
+                      <div className="w-full flex-1 bg-zinc-50 dark:bg-zinc-950/40 rounded-xl overflow-hidden p-3 flex flex-col justify-center">
+                          <div className="w-full aspect-video rounded-lg overflow-hidden border border-zinc-200/60 dark:border-zinc-800 shadow-inner">
+                              <SocialProfileEmbed 
+                                  platform="youtube" 
+                                  urlConfig="UCKxrMhKnI0z-dQt0JhtukWg" 
+                                  youtubeType="latest-video" 
+                              />
+                          </div>
+                          <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 text-center mt-3">
+                              Pembaruan seputar modifikasi, rental, dan fabrikasi kontainer secara berkala.
+                          </p>
+                      </div>
+                  </div>
+
+              </div>
+
+          </div>
+      </section>
 
         {/* CTA Section */}
         <CtaSection />

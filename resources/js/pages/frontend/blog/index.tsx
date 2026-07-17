@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useForm, router, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { Eye, Filter, Tag, ChevronRight, BoxIcon, Layers, ChevronLeft } from 'lucide-react';
+import { Eye, Filter, Tag, ChevronRight, BoxIcon, Layers, ChevronLeft, RotateCcw, Search, Flame } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { useConfig } from '@/utils/config';
 import { FeaturedProductsBanner } from '../catalog';
 import { RootCategory } from '../product';
 import CtaSection from '@/components/cta-section';
+import { SocialProfileEmbed } from '@/components/social-profile-embed';
 
 type BlogPost = {
     id: number;
@@ -216,7 +217,9 @@ export default function BlogIndex({
             href: item.href || `/produk/${category.slug}/${item.slug}`
         }))
     );
-    
+
+    const isFilteringActive = data.search || data.category || data.tag;
+
     const [isSearching, setIsSearching] = useState(false);
     const isLoading = !headline_posts || !most_read_posts || !recent_posts;
 
@@ -297,85 +300,215 @@ export default function BlogIndex({
                 contentType={seo.contentType || 'website'}
             />
     
-            {/* 🌟 1. BERITA UTAMA (HEADLINE) - Full Width Dioptimasi untuk 1024px (lg) ke atas */}
-            {!isLoading && activePost && (
-                <div className="w-full bg-gradient-to-br from-zinc-950 via-slate-900 to-zinc-950 text-white border-b border-zinc-900 overflow-hidden">
-                    {/* max-h dikunci ketat di desktop, tinggi minimal disesuaikan agar compact */}
-                    <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[420px] lg:min-h-[350px] lg:px-2 xl:px-5">
+            <div className="w-full xl:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-3">
+        
+                {/* ========================================================================= */}
+                {/* 🔍 Bagian 1: BAR PENCARIAN UTAMA & TOMBOL RESET */}
+                {/* ========================================================================= */}
+                <div className="flex flex-col md:flex-row gap-3 items-center w-full">
+                    <form onSubmit={handleSearch} className="w-full relative flex-1">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                            <Search className="h-5 w-5 text-zinc-400 dark:text-zinc-500" />
+                        </div>
                         
-                        {/* ✍️ KOLOM KIRI: TEKS (Porsi 7 kolom agar teks mengalir horizontal, tidak memakan space vertikal) */}
-                        <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-8 lg:p-10 xl:p-12 space-y-4 z-10 my-auto">
-                            
-                            {/* Tag Kategori / Headline */}
-                            <div className="flex items-center gap-2 text-xs text-orange-400 font-black tracking-widest uppercase">
-                                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-md shadow-orange-500/50" />
-                                <span>BERITA UTAMA HARI INI</span>
-                            </div>
+                        <input
+                            type="text"
+                            placeholder="Cari artikel atau topik berita hari ini..."
+                            value={data.search}
+                            onChange={(e) => setData('search', e.target.value)}
+                            className="w-full h-12 pl-12 pr-20 text-base font-medium text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 bg-zinc-100 dark:bg-zinc-900/50 hover:bg-zinc-200/50 dark:hover:bg-zinc-900 focus:bg-white dark:focus:bg-zinc-950 border border-transparent focus:border-orange-500/50 dark:focus:border-orange-500/50 rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 transition-all duration-200"
+                        />
+                        
+                        <button 
+                            type="submit" 
+                            disabled={isSearching}
+                            className="absolute right-2 top-1.5 h-9 px-4 rounded-xl bg-zinc-900 dark:bg-zinc-800 hover:bg-orange-500 dark:hover:bg-orange-500 text-white text-xs font-bold transition-all duration-200"
+                        >
+                            {isSearching ? '...' : 'Cari'}
+                        </button>
+                    </form>
 
-                            {/* Judul: Diturunkan ukurannya agar lebih compact namun tetap tegas */}
-                            <Link href={`/${activePost.slug}`} className="block group">
-                                <h1 className="text-xl sm:text-2xl lg:text-2xl xl:text-4xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200 line-clamp-2">
-                                    {activePost.title}
-                                </h1>
-                            </Link>
-
-                            {/* Deskripsi Singkat: Dikunci maksimal 2 baris agar tidak memakan tinggi kontainer */}
-                            <p className="text-zinc-300 text-xs sm:text-sm lg:text-base leading-relaxed border-l-4 border-orange-500 pl-3 font-medium line-clamp-2">
-                                {activePost.excerpt}
-                            </p>
-
-                            {/* Info Penulis & Tombol Baca: Dibuat lebih padat */}
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-zinc-900 text-sm font-semibold text-zinc-400">
-                                <div className="text-xs sm:text-sm text-zinc-450">
-                                    Oleh: <strong className="text-white font-black">{activePost.author?.name || 'Tim Redaksi'}</strong>
-                                    <span className="mx-2 text-zinc-800">•</span>
-                                    <span className="text-zinc-300">{formatDate(activePost.published_at)}</span>
-                                </div>
-                                
-                                <Link 
-                                    href={`/${activePost.slug}`} 
-                                    className="inline-flex h-10 sm:h-11 items-center justify-center gap-1.5 bg-orange-500 text-white px-5 rounded-lg font-black uppercase text-xs sm:text-sm hover:bg-orange-650 active:scale-98 transition-all duration-200 shadow-lg shadow-orange-950/20 shrink-0 self-start sm:self-auto"
-                                >
-                                    BACA SEKARANG
-                                    <ChevronRight className="w-4 h-4 stroke-[3]" />
-                                </Link>
-                            </div>
-                        </div>
-
-                        {/* 📸 KOLOM KANAN: GAMBAR DENGAN FRAME COMPACT (Porsi 5 kolom) */}
-                        {/* Menggunakan p-4 hingga p-6 agar ukuran bingkai mengecil mengikuti batas tinggi 380px */}
-                        <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[5/3] lg:aspect-[3/2] lg:h-full p-0 sm:p-6 lg:p-6 xl:p-8 flex items-center justify-center bg-zinc-950/20">
-                            
-                            {/* Efek Glow Bayangan Lembut di Belakang Frame Gambar */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 h-4/5 bg-orange-500/5 blur-[60px] rounded-full pointer-events-none hidden lg:block" />
-
-                            <div className="w-full h-full sm:rounded-xl overflow-hidden relative shadow-xl sm:border border-zinc-900/60 bg-slate-950">
-                                <img
-                                    key={activePost.featured_image}
-                                    src={`/storage/${activePost.featured_image}`}
-                                    onError={handleImageError}
-                                    className={`w-full h-full object-cover transition-all duration-500 ease-in-out ${
-                                        isFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-                                    }`}
-                                    alt={activePost.title}
-                                    loading="eager"
-                                />
-                                
-                                {/* ✨ OVERLAY SMOOTH DALAM FRAME */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/40 via-transparent to-transparent pointer-events-none" />
-                            </div>
-                        </div>
-
-                    </div>
+                    {/* Tombol Reset (Hanya muncul jika filter sedang aktif) */}
+                    {isFilteringActive && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setData({ search: '', category: '', tag: '' });
+                                router.get('/info', {}, { preserveState: true, preserveScroll: true });
+                            }}
+                            className="w-full md:w-auto h-12 px-5 inline-flex items-center justify-center gap-2 rounded-2xl bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 text-sm font-bold transition-all duration-200 shrink-0"
+                        >
+                            <RotateCcw className="h-4 w-4" />
+                            <span>Reset</span>
+                        </button>
+                    )}
                 </div>
-            )}
+
+                {/* ========================================================================= */}
+                {/* 📰 Bagian 2: BANNER BERITA UTAMA (HERO BANNER) */}
+                {/* ========================================================================= */}
+                {!isLoading && activePost && (
+                    <div className="w-full bg-gradient-to-br from-zinc-950 via-slate-900 to-zinc-950 text-white rounded-2xl overflow-hidden shadow-2xl">
+                        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[420px] lg:min-h-[350px] lg:px-2 xl:px-5">
+                            
+                            {/* ✍️ KOLOM KIRI: DETAIL TEKS */}
+                            <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-8 lg:p-10 xl:p-12 space-y-4 z-10 my-auto">
+                                
+                                {/* Tag Headline */}
+                                <div className="flex items-center gap-2 text-xs text-orange-400 font-black tracking-widest uppercase">
+                                    <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-md shadow-orange-500/50" />
+                                    <span>BERITA UTAMA HARI INI</span>
+                                </div>
+
+                                {/* Judul Artikel */}
+                                <Link href={`/${activePost.slug}`} className="block group">
+                                    <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200 line-clamp-2">
+                                        {activePost.title}
+                                    </h1>
+                                </Link>
+
+                                {/* Ringkasan/Excerpt Deskripsi */}
+                                <p className="text-zinc-300 text-xs sm:text-sm lg:text-base leading-relaxed border-l-4 border-orange-500 pl-3 font-medium line-clamp-2">
+                                    {activePost.excerpt}
+                                </p>
+
+                                {/* Info Author & CTA Button */}
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-zinc-900 text-sm font-semibold text-zinc-400">
+                                    <div className="text-xs sm:text-sm text-zinc-400">
+                                        Oleh: <strong className="text-white font-black">{activePost.author?.name || 'Tim Redaksi'}</strong>
+                                        <span className="mx-2 text-zinc-800">•</span>
+                                        <span className="text-zinc-350">{formatDate(activePost.published_at)}</span>
+                                    </div>
+                                    
+                                    <Link 
+                                        href={`/${activePost.slug}`} 
+                                        className="inline-flex h-10 sm:h-11 items-center justify-center gap-1.5 bg-orange-500 text-white px-5 rounded-lg font-black uppercase text-xs sm:text-sm hover:bg-orange-650 active:scale-98 transition-all duration-200 shadow-lg shadow-orange-950/20 shrink-0 self-start sm:self-auto"
+                                    >
+                                        BACA SEKARANG
+                                        <ChevronRight className="w-4 h-4 stroke-[3]" />
+                                    </Link>
+                                </div>
+                            </div>
+
+                            {/* 📸 KOLOM KANAN: FRAME VISUAL GAMBAR */}
+                            <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[5/3] lg:aspect-[3/2] lg:h-full p-0 sm:p-6 lg:p-6 xl:p-8 flex items-center justify-center bg-zinc-950/20">
+                                {/* Glow Effect di Belakang Gambar */}
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 h-4/5 bg-orange-500/5 blur-[60px] rounded-full pointer-events-none hidden lg:block" />
+
+                                <div className="w-full h-full sm:rounded-xl overflow-hidden relative shadow-xl bg-slate-950">
+                                    <img
+                                        key={activePost.featured_image}
+                                        src={`/storage/${activePost.featured_image}`}
+                                        onError={handleImageError}
+                                        className={`w-full h-full object-cover transition-all duration-500 ease-in-out ${
+                                            isFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                                        }`}
+                                        alt={activePost.title}
+                                        loading="eager"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/40 via-transparent to-transparent pointer-events-none" />
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                )}
+
+                {/* ========================================================================= */}
+                {/* 🏷️ Bagian 3: PILIHAN FILTER HORIZONTAL (TOPIK & TRENDING TAGS) */}
+                {/* ========================================================================= */}
+                <div className="w-full space-y-4 pb-5 border-b border-zinc-200 dark:border-zinc-800">
+                    
+                    {/* 🏷️ BARIS 1: KATEGORI UTAMA (HORIZONTAL SCROLL) */}
+                    <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-900/20 p-2 rounded-2xl">
+                        {/* Penanda Label Kiri */}
+                        <div className="flex items-center gap-1.5 text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-r border-zinc-250 dark:border-zinc-800 pr-4 shrink-0 select-none">
+                            <Filter className="h-3.5 w-3.5 text-orange-500" />
+                            <span className="hidden sm:inline">Topik</span>
+                        </div>
+
+                        {/* Container List Kategori */}
+                        <div className="flex-1 overflow-x-auto no-scrollbar mask-gradient-r">
+                            <div className="flex items-center gap-2 pb-0.5">
+                                <button
+                                    type="button"
+                                    onClick={() => handleCategoryChange('')}
+                                    className={`rounded-xl px-4 py-1.5 text-xs sm:text-sm font-extrabold border transition-all duration-200 whitespace-nowrap ${
+                                        !data.category 
+                                            ? 'bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/10' 
+                                            : 'bg-transparent text-zinc-600 dark:text-zinc-400 border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
+                                    }`}
+                                >
+                                    Semua Berita
+                                </button>
+
+                                {categories
+                                    .filter(cat => cat.type === 'blog')
+                                    .map((category) => {
+                                        const isCatActive = data.category === category.slug;
+                                        return (
+                                            <button
+                                                key={category.id}
+                                                type="button"
+                                                onClick={() => handleCategoryChange(category.slug)}
+                                                className={`rounded-xl px-4 py-1.5 text-xs sm:text-sm font-extrabold border transition-all duration-200 whitespace-nowrap ${
+                                                    isCatActive 
+                                                        ? 'bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/10' 
+                                                        : 'bg-transparent text-zinc-600 dark:text-zinc-400 border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
+                                                }`}
+                                            >
+                                                {category.name}
+                                            </button>
+                                        );
+                                    })
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 🔥 BARIS 2: TRENDING TAGS (HORIZONTAL SCROLL) */}
+                    {popular_tags.length > 0 && (
+                        <div className="flex items-center gap-4 px-2">
+                            {/* Penanda Label Kiri */}
+                            <div className="flex items-center gap-1.5 text-xs font-black text-orange-500 uppercase tracking-widest shrink-0 select-none">
+                                <Flame className="h-3.5 w-3.5 fill-orange-500/10 animate-pulse" />
+                                <span>Trending:</span>
+                            </div>
+
+                            {/* Container List Tags */}
+                            <div className="flex-1 overflow-x-auto no-scrollbar">
+                                <div className="flex items-center gap-1.5 pb-0.5">
+                                    {popular_tags.map((tag, index) => {
+                                        const isTagActive = data.tag === tag;
+                                        return (
+                                            <button
+                                                key={index}
+                                                type="button"
+                                                onClick={() => handleTagClick(tag)}
+                                                className={`px-3 py-1 rounded-full text-xs font-bold border transition-all duration-150 whitespace-nowrap ${
+                                                    isTagActive 
+                                                        ? 'bg-orange-500/10 border-orange-500 text-orange-600 dark:text-orange-400' 
+                                                        : 'bg-zinc-100 dark:bg-zinc-900 border-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800'
+                                                }`}
+                                            >
+                                                #{tag}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            </div>
 
             {/* --- CONTAINER KONTEN UTAMA - Menggunakan w-full & px-4/px-6/px-8 saja --- */}
-            <main className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8 bg-zinc-50 dark:bg-zinc-950">
+            <main className="w-full xl:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 
                 {/* Banner Rekomendasi Produk */}
                 <div className="w-full mb-10 bg-white dark:bg-slate-950 border border-zinc-200 rounded-2xl overflow-hidden">
-                    <FeaturedProductsBanner products={random_products}/>
+                    <FeaturedProductsBanner products={random_products} autoScroll={false} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -443,7 +576,7 @@ export default function BlogIndex({
                                 ) : (
                                     all_posts.data.map((post) => (
                                         <article key={post.id} className="flex flex-col md:flex-row gap-6 p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl items-start">
-                                            <Link href={`/${post.slug}`} className="w-full md:w-64 aspect-[16/11] shrink-0 overflow-hidden rounded-xl bg-zinc-200 dark:bg-zinc-800 block relative">
+                                            <Link href={`/${post.slug}`} className="w-full md:w-42 xl:w-64 aspect-[16/11] shrink-0 overflow-hidden rounded-xl bg-zinc-200 dark:bg-zinc-800 block relative">
                                                 <img 
                                                     src={`/storage/${post.featured_image}`} 
                                                     className="w-full h-full object-cover" 
@@ -454,7 +587,7 @@ export default function BlogIndex({
                                             </Link>
                                             
                                             <div className="flex-1 space-y-3.5 w-full">
-                                                <div className="flex items-center gap-3 flex-wrap text-sm font-bold">
+                                                <div className="flex items-center gap-3 flex-wrap text-xs xl:text-sm font-bold">
                                                     {post.category && (
                                                         <span className="uppercase tracking-wider text-orange-700 bg-orange-100 dark:text-orange-400 dark:bg-orange-950 px-3 py-1 rounded-md">
                                                             {post.category.name}
@@ -478,7 +611,7 @@ export default function BlogIndex({
                                                 <div className="flex items-center justify-between text-sm font-bold text-zinc-600 dark:text-zinc-400 pt-4 border-t border-zinc-150 dark:border-zinc-800">
                                                     <span className="flex items-center gap-1.5"><Eye className="w-4 h-4" /> {post.views_count} kali dibaca</span>
                                                     <Link href={`/${post.slug}`}  className="inline-flex hover:underline items-center gap-1 text-orange-600 text-base font-extrabold">
-                                                        Buka Artikel ➔
+                                                        Baca Selengkapnya ➔
                                                     </Link>
                                                 </div>
                                             </div>
@@ -498,97 +631,57 @@ export default function BlogIndex({
                         KOLOM KANAN: SIDEBAR PENCARIAN & LAYANAN (Full Width Adaptif)
                        =================================================== */}
                     <aside className="lg:col-span-4 space-y-6 w-full">
-                        
-                        {/* BOX PANEL: FORM PENCARIAN */}
-                        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-5">
-                            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3">
-                                <div className="flex items-center gap-2">
-                                    <Filter className="h-5 w-5 text-orange-500" />
-                                    <h2 className="text-base font-extrabold uppercase text-zinc-900 dark:text-white">
-                                        Pencarian Artikel
-                                    </h2>
-                                </div>
-                                {(data.search || data.category || data.tag) && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setData({ search: '', category: '', tag: '' });
-                                            router.get('/info', {}, { preserveState: true, preserveScroll: true });
-                                        }}
-                                        className="text-xs font-bold bg-red-100 text-red-700 px-3 py-1.5 rounded-md hover:bg-red-200 transition-colors"
-                                    >
-                                        Atur Ulang
-                                    </button>
-                                )}
-                            </div>
 
-                            <form onSubmit={handleSearch} className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-extrabold text-zinc-800 dark:text-zinc-200 block uppercase tracking-wider">KATA KUNCI</label>
-                                    <Input
-                                        type="text"
-                                        placeholder="Tulis judul yang ingin dicari..."
-                                        value={data.search}
-                                        onChange={(e) => setData('search', e.target.value)}
-                                        className="h-12 text-base rounded-xl border-zinc-300 dark:border-zinc-700 font-semibold focus-visible:ring-2 focus-visible:ring-orange-500"
+                        {/* ========================================================================= */}
+                        {/* 📱 SECTION: SOCIAL MEDIA FEEDS (PALING ATAS SIDEBAR) */}
+                        {/* ========================================================================= */}
+                        <div className="space-y-4">
+                            
+                            {/* 1. Card TikTok */}
+                            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+                                <div className="mb-3">
+                                    <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                                        Ikuti Kami di TikTok
+                                    </h3>
+                                </div>
+                                
+                                {/* Wrapper area embed TikTok */}
+                                <div className="w-full bg-zinc-50 dark:bg-zinc-950/40 rounded-xl overflow-hidden p-2 flex items-center justify-center min-h-[300px]">
+                                    <SocialProfileEmbed 
+                                        platform="tiktok" 
+                                        urlConfig={getConfig("social_tiktok", "https://www.tiktok.com/@alumodakontainer")} 
                                     />
                                 </div>
+                            </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-xs font-extrabold text-zinc-800 dark:text-zinc-200 block uppercase tracking-wider">PILIH KATEGORI</label>
-                                    <select
-                                        value={data.category}
-                                        onChange={(e) => handleCategoryChange(e.target.value)}
-                                        className="h-12 w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-850 px-3 text-base font-bold text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                    >
-                                        <option value="">Semua Kategori</option>
-                                        {categories
-                                            .filter(cat => cat.type === 'blog')
-                                            .map((category) => (
-                                                <option key={category.id} value={category.slug}>
-                                                    {category.name}
-                                                </option>
-                                            ))
-                                        }
-                                    </select>
+                            {/* 2. Card YouTube */}
+                            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+                                <div className="mb-3">
+                                    <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                                        Video Terbaru YouTube
+                                    </h3>
                                 </div>
-
-                                <Button type="submit" disabled={isSearching} className="w-full h-12 rounded-xl text-base bg-zinc-950 hover:bg-orange-500 hover:text-white dark:bg-zinc-800 text-white font-extrabold transition-colors">
-                                    {isSearching ? 'Mencari...' : 'Terapkan Pencarian'}
-                                </Button>
-                            </form>
-
-                            {/* Pilihan Tag Terpopuler */}
-                            {popular_tags.length > 0 && (
-                                <div className="space-y-3 border-t border-zinc-100 dark:border-zinc-800 pt-4">
-                                    <div className="flex items-center gap-2 text-xs font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
-                                        <Tag className="h-4 w-4 text-orange-500" />
-                                        <span>TOPIK POPULER</span>
+                                
+                                {/* Wrapper area embed YouTube video */}
+                                <div className="w-full bg-zinc-50 dark:bg-zinc-950/40 rounded-xl overflow-hidden p-3 space-y-2">
+                                    <div className="w-full aspect-video rounded-lg overflow-hidden border border-zinc-200/60 dark:border-zinc-800 shadow-inner">
+                                        <SocialProfileEmbed 
+                                            platform="youtube" 
+                                            urlConfig="UCKxrMhKnI0z-dQt0JhtukWg" 
+                                            youtubeType="latest-video" 
+                                        />
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {popular_tags.map((tag, index) => {
-                                            const isActive = data.tag === tag;
-                                            return (
-                                                <button
-                                                    key={index}
-                                                    type="button"
-                                                    onClick={() => handleTagClick(tag)}
-                                                    className={`rounded-lg px-3.5 py-2 text-xs font-bold border transition-colors ${
-                                                        isActive 
-                                                            ? 'bg-orange-500 border-orange-600 text-white shadow-xs' 
-                                                            : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200'
-                                                    }`}
-                                                >
-                                                    #{tag}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
+                                    <p className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 text-center pt-1">
+                                        Update seputar modifikasi & sewa kontainer.
+                                    </p>
                                 </div>
-                            )}
+                            </div>
+
                         </div>
 
-                        {/* BOX PANEL: HUBUNGAN LAYANAN UNIT */}
+                        {/* ========================================================================= */}
+                        {/* 📦 BOX PANEL: HUBUNGAN LAYANAN UNIT */}
+                        {/* ========================================================================= */}
                         {footerServices.length > 0 && (
                             <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4">
                                 <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-3">
@@ -630,15 +723,18 @@ export default function BlogIndex({
                                         </Link>
                                     ))}
                                 </div>
+                                
                                 <div className="pt-3 text-center border-t border-zinc-150 dark:border-zinc-800">
                                     <Link href="/layanan" className="inline-flex items-center gap-1 text-base font-black text-zinc-950 dark:text-white hover:text-orange-600">
                                         Lihat Semua Unit Layanan ➔
                                     </Link>
                                 </div>
                             </div>
-
                         )}
 
+                        {/* ========================================================================= */}
+                        {/* 🏷️ FILTER KATEGORI */}
+                        {/* ========================================================================= */}
                         <FlatCategoryList items={flattenedCategories} />
 
                     </aside>

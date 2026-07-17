@@ -85,11 +85,15 @@ interface CatalogProps {
     };
 }
 
+interface FeaturedProductsBannerProps {
+    products: Product[];
+    autoScroll?: boolean;
+}
+
 export const FeaturedProductsBanner = ({
     products,
-}: {
-    products: Product[];
-}) => {
+    autoScroll = true,
+}: FeaturedProductsBannerProps) => {
     const featuredProducts = products.filter(
         (product) => product.is_featured
     );
@@ -97,19 +101,37 @@ export const FeaturedProductsBanner = ({
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
+    
+    // ⏱️ State penanda apakah jeda awal 3 detik sudah selesai
+    const [isReady, setIsReady] = useState(false);
 
     // Lebar card produk (w-60 = 240px) + Gap (gap-4 = 16px) = 256px
-    const cardStepWidth = 256; 
+    const cardStepWidth = 150; 
 
-    // 1. Efek Otomatis Slide Terjaga (Akan dijeda saat user melakukan hover/touch)
+    // 1. EFEK JEDA AWAL (Delay 3 detik sebelum autoscroll aktif)
     useEffect(() => {
-        if (featuredProducts.length <= 1 || isHovered) return;
+        // Jika autoscroll mati atau sedang di-hover, reset status ready ke false
+        if (!autoScroll || isHovered) {
+            setIsReady(false);
+            return;
+        }
+
+        // Berikan jeda 3 detik sebelum mengizinkan interval berjalan
+        const delayTimeout = setTimeout(() => {
+            setIsReady(true);
+        }, 5000);
+
+        return () => clearTimeout(delayTimeout);
+    }, [isHovered, autoScroll]);
+
+    // 2. EFEK AUTOMATIC SLIDE (Hanya jalan jika isReady bernilai true)
+    useEffect(() => {
+        if (!isReady || featuredProducts.length <= 1) return;
 
         const interval = setInterval(() => {
             setCurrentIndex((prevIndex) => {
                 const nextIndex = prevIndex >= featuredProducts.length - 1 ? 0 : prevIndex + 1;
                 
-                // Eksekusi pergerakan scroll secara native halus
                 scrollContainerRef.current?.scrollTo({
                     left: nextIndex * cardStepWidth,
                     behavior: 'smooth'
@@ -117,17 +139,16 @@ export const FeaturedProductsBanner = ({
 
                 return nextIndex;
             });
-        }, 3000);
+        }, 5000); // Interval perpindahan antar slide (3 detik)
 
         return () => clearInterval(interval);
-    }, [featuredProducts.length, isHovered]);
+    }, [isReady, featuredProducts.length]);
 
-    // 2. Handler untuk mendeteksi perubahan index saat di-scroll MANUAL via trackpad/touch
+    // 3. Handler untuk mendeteksi perubahan index saat di-scroll MANUAL
     const handleScrollEvent = () => {
         const container = scrollContainerRef.current;
         if (!container) return;
 
-        // Hitung posisi indeks terdekat berdasarkan koordinat gulir saat ini
         const scrolledPosition = container.scrollLeft;
         const calculatedIndex = Math.round(scrolledPosition / cardStepWidth);
         
@@ -136,7 +157,7 @@ export const FeaturedProductsBanner = ({
         }
     };
 
-    // 3. Handler saat indikator dot diklik manual
+    // 4. Handler saat indikator dot diklik manual
     const handleDotClick = (index: number) => {
         setCurrentIndex(index);
         scrollContainerRef.current?.scrollTo({
@@ -174,7 +195,7 @@ export const FeaturedProductsBanner = ({
                     </div>
                 </div>
 
-                {/* Indikator Dots Posisi Slide Aktif */}
+                {/* Indikator Dots */}
                 <div className="flex items-center gap-3">
                     <div className="flex gap-1">
                         {featuredProducts.map((_, index) => (
@@ -194,13 +215,13 @@ export const FeaturedProductsBanner = ({
                 </div>
             </div>
 
-            {/* SLIDER WRAPPER (Mendukung Scroll Manual via Trackpad / Mouse Wheel / Swipe) */}
+            {/* SLIDER WRAPPER */}
             <div className="px-5 pb-5 pt-2">
                 <div 
                     ref={scrollContainerRef}
                     onScroll={handleScrollEvent}
                     className="flex gap-4 overflow-x-auto snap-x custom-scrollbar snap-mandatory scroll-smooth no-scrollbar"
-                    style={{ WebkitOverflowScrolling: 'touch' }} // Optimasi kenyamanan swipe di iOS Safari
+                    style={{ WebkitOverflowScrolling: 'touch' }}
                 >
                     {featuredProducts.map((product) => (
                         <div
@@ -212,8 +233,10 @@ export const FeaturedProductsBanner = ({
                     ))}
                 </div>
             </div>
-            <div className="flex w-ful px-5 justify-end pb-5">
-                <Link className="text-xs font-bold hover:underline" href='/katalog'>Lihat Unit Lainnya </Link>
+            <div className="flex w-full px-5 justify-end pb-5">
+                <Link className="text-xs font-bold hover:underline" href="/katalog">
+                    Lihat Unit Lainnya
+                </Link>
             </div>
         </div>
     );

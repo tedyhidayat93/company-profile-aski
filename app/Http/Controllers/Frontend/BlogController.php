@@ -265,14 +265,14 @@ class BlogController extends Controller
 
     public function category(string $slug)
     {
-        return redirect()->route('blog.index', [
+        return redirect()->route('article.index', [
             'category' => $slug,
         ]);
     }
 
     public function tag(string $slug)
     {
-        return redirect()->route('blog.index', [
+        return redirect()->route('article.index', [
             'tag' => $slug,
         ]);
     }
