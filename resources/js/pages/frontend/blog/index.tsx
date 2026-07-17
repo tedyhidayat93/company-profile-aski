@@ -603,7 +603,7 @@ export default function BlogIndex({
                                 ) : (
                                     all_posts.data.map((post) => (
                                         <article key={post.id} className="flex flex-col md:flex-row gap-6 p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl items-start">
-                                            <Link href={`/${post.slug}`} className="w-full md:w-42 xl:w-64 aspect-[16/11] shrink-0 overflow-hidden rounded-xl bg-zinc-200 dark:bg-zinc-800 block relative">
+                                            {/* <Link href={`/${post.slug}`} className="w-full md:w-42 xl:w-64 aspect-[16/11] shrink-0 overflow-hidden rounded-xl bg-zinc-200 dark:bg-zinc-800 block relative">
                                                 <img 
                                                     src={`/storage/${post.featured_image}`} 
                                                     className="w-full h-full object-cover transform-gpu" 
@@ -611,7 +611,7 @@ export default function BlogIndex({
                                                     alt={post.title} 
                                                     loading="lazy" 
                                                 />
-                                            </Link>
+                                            </Link> */}
                                             
                                             <div className="flex-1 space-y-3.5 w-full">
                                                 <div className="flex items-center gap-3 flex-wrap text-xs xl:text-sm font-bold">
