@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, lazy, useState, Suspense } from 'react';
 import { Link, useForm, router, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { Eye, Filter, Tag, ChevronRight, BoxIcon, Layers, ChevronLeft, RotateCcw, Search, Flame, Package } from 'lucide-react';
+import { Eye, Filter, ChevronRight, BoxIcon, Layers, ChevronLeft, RotateCcw, Search, Flame, Package } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
-import { FeaturedProductsBanner } from '../catalog';
 import { RootCategory } from '../product';
 import CtaSection from '@/components/cta-section';
 import { SocialProfileEmbed } from '@/components/social-profile-embed';
 import ProductCard from '@/components/ProductCard';
+import "react-image-gallery/styles/image-gallery.css";
+
+const ImageGallery = lazy(() => import("react-image-gallery"));
 
 type BlogPost = {
     id: number;
@@ -132,6 +134,18 @@ interface PaginationProps {
     }>;
 }
 
+interface HeadlinePostProps {
+    headline_posts: BlogPost[];
+    isLoading: boolean;
+}
+
+interface CustomGalleryItem {
+    original: string;
+    originalAlt?: string;
+    description?: string;
+    postData: BlogPost;
+}
+
 export function SimpleArrowPagination({ links }: PaginationProps) {
     // Laravel mengembalikan link "Previous" di indeks pertama (0) 
     // dan link "Next" di indeks terakhir (links.length - 1)
@@ -179,90 +193,79 @@ export function SimpleArrowPagination({ links }: PaginationProps) {
     );
 }
 
-export function HeadlinePost({ headline_posts, isLoading }: {
-    headline_posts: BlogPost[];
-    isLoading: boolean;
-}) {
+export function HeadlinePost({ headline_posts, isLoading }: HeadlinePostProps) {
     if (isLoading || !headline_posts?.length) return null;
 
-    const totalPosts = headline_posts.length;
+    // 1. Transformasi data posts menjadi format item yang dikenali react-image-gallery
+    // Kita selipkan objek asli 'post' di dalamnya untuk digunakan saat kustom render
+    const galleryItems = headline_posts.map((post) => ({
+        original: `/storage/${post.featured_image}`,
+        originalAlt: post.title,
+        description: post.excerpt,
+        // Properti kustom tambahan kita sendiri
+        postData: post 
+    }));
 
-    return (
-        <div className="w-full bg-gradient-to-br from-zinc-950 via-slate-900 to-zinc-950 text-white rounded-2xl overflow-hidden shadow-2xl relative">
-            
-            {/* 🌟 WRAPPER DENGAN ANIMASI GERAK CSS MURNI */}
-            <div className="w-full overflow-hidden relative">
-                <div 
-                    className="flex transition-transform duration-500 ease-in-out"
-                    style={{
-                        width: `${totalPosts * 100}%`,
-                        animation: totalPosts > 1 ? `headlineSlider ${totalPosts * 7}s infinite steps(1, end)` : 'none'
-                    }}
-                >
-                    {headline_posts.map((post, idx) => (
-                        <div 
-                            key={post.id || idx} 
-                            style={{ width: `${150 / totalPosts}%` }} // Membagi porsi lebar grid secara merata
-                            className="shrink-0 grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[420px] lg:min-h-[400px] lg:px-2 xl:px-0"
-                        >
-                            {/* ✍️ KOLOM KIRI: DETAIL TEKS */}
-                            <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-8 lg:p-10 xl:p-12 space-y-4 z-10 my-auto">
-                                <div className="flex items-center gap-2 text-xs text-orange-400 font-black tracking-widest uppercase">
-                                    <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                                    <span>BERITA UTAMA HARI INI</span>
-                                </div>
+    // 2. Fungsi Kustom untuk me-render seluruh layout (Teks + Gambar) per item slide
+    const renderCustomItem = (item: any) => {
+        // Cast ke tipe kustom kita di dalam fungsi
+        const customItem = item as CustomGalleryItem;
+        const post = customItem.postData;
+        
+        return (
+            <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[420px] lg:min-h-[400px] lg:px-2 xl:px-0 text-left">
+                {/* ✍️ KOLOM KIRI: DETAIL TEKS */}
+                <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-8 lg:p-10 xl:p-12 space-y-4 z-10 my-auto">
+                    <div className="flex items-center gap-2 text-xs text-orange-400 font-black tracking-widest uppercase">
+                        <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                        <span>BERITA UTAMA HARI INI</span>
+                    </div>
 
-                                <Link href={`/${post.slug}`} className="block group">
-                                    <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-4xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200 line-clamp-3">
-                                        {post.title}
-                                    </h1>
-                                </Link>
+                    <Link href={`/${post.slug}`} className="block group">
+                        <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-4xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200 line-clamp-3">
+                            {post.title}
+                        </h1>
+                    </Link>
 
-                                <p className="text-zinc-300 text-xs sm:text-sm lg:text-base leading-relaxed border-l-4 border-orange-500 pl-3 font-medium line-clamp-2">
-                                    {post.excerpt}
-                                </p>
-                            </div>
+                    <p className="text-zinc-300 text-xs sm:text-sm lg:text-base leading-relaxed border-l-4 border-orange-500 pl-3 font-medium line-clamp-2">
+                        {post.excerpt}
+                    </p>
+                </div>
 
-                            {/* 📸 KOLOM KANAN: VISUAL GAMBAR */}
-                            <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[5/3] lg:aspect-[3/2] lg:h-full p-0 sm:p-6 lg:p-6 xl:p-8 flex items-center justify-center bg-zinc-950/20">
-                                <div className="w-full h-full sm:rounded-xl overflow-hidden relative shadow-xl bg-slate-950">
-                                    <img
-                                        src={`/storage/${post.featured_image}`}
-                                        className="w-full h-full object-cover"
-                                        alt={post.title}
-                                        loading={idx === 0 ? "eager" : "lazy"}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                {/* 📸 KOLOM KANAN: VISUAL GAMBAR */}
+                <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[5/3] lg:aspect-[3/2] lg:h-full p-0 sm:p-6 lg:p-6 xl:p-8 flex items-center justify-center bg-zinc-950/20">
+                    <div className="w-full h-full sm:rounded-xl overflow-hidden relative shadow-xl bg-slate-950">
+                        <img
+                            src={customItem.original}
+                            alt={customItem.originalAlt}
+                            className="w-full h-full object-cover"
+                            loading="eager"
+                            decoding="async"
+                        />
+                    </div>
                 </div>
             </div>
+        );
+    };
 
-            {/* 🛑 INJECT KEYFRAMES SECARA DINAMIS (Anti-Freeze 100%) */}
-            {totalPosts > 1 && (
-                <style dangerouslySetInnerHTML={{__html: generateSliderKeyframes(totalPosts)}} />
-            )}
+    return (
+        <div className="w-full bg-gradient-to-br from-zinc-950 via-slate-900 to-zinc-950 text-white rounded-2xl overflow-hidden shadow-2xl relative custom-headline-gallery">
+            <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center text-zinc-400">Memuat Berita...</div>}>
+                <ImageGallery
+                    items={galleryItems}
+                    renderItem={renderCustomItem}
+                    showPlayButton={false}       // Matikan tombol play bawaan
+                    showFullscreenButton={false} // Matikan tombol fullscreen bawaan
+                    showThumbnails={false}       // Matikan gambar thumbnail bawah
+                    showNav={false}              // Matikan panah kiri/kanan bawaan (opsional)
+                    showBullets={headline_posts.length > 1} // Indikator titik aktif otomatis
+                    autoPlay={headline_posts.length > 1}    // Otomatis jalan
+                    slideInterval={7000}         // Durasi antar slide (7 detik)
+                    slideDuration={450}          // Kecepatan transisi slide (ms)
+                />
+            </Suspense>
         </div>
     );
-}
-
-function generateSliderKeyframes(total: number): string {
-    let keyframes = `@keyframes headlineSlider {`;
-    const step = 100 / total;
-    
-    for (let i = 0; i < total; i++) {
-        const startPercentage = i * step;
-        const endPercentage = (i + 1) * step;
-        const translateX = -(i * (100 / total));
-        
-        keyframes += `
-            ${startPercentage}% { transform: translateX(${translateX}%); }
-            ${endPercentage - 0.01}% { transform: translateX(${translateX}%); }
-        `;
-    }
-    keyframes += ` 100% { transform: translateX(0%); } }`;
-    return keyframes;
 }
 
 export default function BlogIndex({ 
@@ -351,30 +354,43 @@ export default function BlogIndex({
                 {/* ========================================================================= */}
                 {/* 🔍 Bagian 1: BAR PENCARIAN UTAMA & TOMBOL RESET */}
                 {/* ========================================================================= */}
-                <div className="flex flex-col md:flex-row gap-3 items-center w-full">
-                    <form onSubmit={handleSearch} className="w-full relative flex-1">
-                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-zinc-400 dark:text-zinc-500" />
+                <div className="flex flex-col md:flex-row gap-4 items-center w-full max-w-7xl mx-auto">
+                    <form onSubmit={handleSearch} className="w-full relative flex-1 group">
+                        {/* 🌟 Efek ambient glow di belakang input saat hover/focus */}
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-600 rounded-2xl opacity-0 group-hover:opacity-10 dark:group-hover:opacity-5 focus-within:opacity-20 dark:focus-within:opacity-10 transition duration-300 blur-sm pointer-events-none" />
+                        
+                        <div className="relative">
+                            {/* 🔍 Ikon Pencarian dengan indikator aktif warna */}
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                <Search className="h-5 w-5 text-zinc-400 group-focus-within:text-orange-500 transition-colors duration-200" />
+                            </div>
+                            
+                            <input
+                                type="text"
+                                placeholder="Cari artikel atau topik berita hari ini..."
+                                value={data.search}
+                                onChange={(e) => setData('search', e.target.value)}
+                                className="w-full h-13 pl-12 pr-24 text-base font-semibold text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 bg-zinc-100 dark:bg-zinc-900/60 hover:bg-zinc-200/40 dark:hover:bg-zinc-900/80 focus:bg-white dark:focus:bg-zinc-950 border border-zinc-200/20 dark:border-zinc-800/50 focus:border-orange-500 dark:focus:border-orange-500 rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all duration-200"
+                            />
+                            
+                            {/* 🚀 Tombol Cari yang Lebih Bold & Eye-Catching */}
+                            <button 
+                                type="submit" 
+                                disabled={isSearching}
+                                className="absolute right-2 top-2 h-9 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-orange-500/20 active:scale-95 disabled:opacity-50 transition-all duration-200"
+                            >
+                                {isSearching ? (
+                                    <span className="flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />
+                                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
+                                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.4s]" />
+                                    </span>
+                                ) : 'Cari'}
+                            </button>
                         </div>
-                        
-                        <input
-                            type="text"
-                            placeholder="Cari artikel atau topik berita hari ini..."
-                            value={data.search}
-                            onChange={(e) => setData('search', e.target.value)}
-                            className="w-full h-12 pl-12 pr-20 text-base font-medium text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 bg-zinc-100 dark:bg-zinc-900/50 hover:bg-zinc-200/50 dark:hover:bg-zinc-900 focus:bg-white dark:focus:bg-zinc-950 border border-transparent focus:border-orange-500/50 dark:focus:border-orange-500/50 rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 transition-all duration-200"
-                        />
-                        
-                        <button 
-                            type="submit" 
-                            disabled={isSearching}
-                            className="absolute right-2 top-1.5 h-9 px-4 rounded-xl bg-zinc-900 dark:bg-zinc-800 hover:bg-orange-500 dark:hover:bg-orange-500 text-white text-xs font-bold transition-all duration-200"
-                        >
-                            {isSearching ? '...' : 'Cari'}
-                        </button>
                     </form>
 
-                    {/* Tombol Reset (Hanya muncul jika filter sedang aktif) */}
+                    {/* 🛑 Tombol Reset dengan Desain Clean-Premium */}
                     {isFilteringActive && (
                         <button
                             type="button"
@@ -382,9 +398,9 @@ export default function BlogIndex({
                                 setData({ search: '', category: '', tag: '' });
                                 router.get('/info', {}, { preserveState: true, preserveScroll: true });
                             }}
-                            className="w-full md:w-auto h-12 px-5 inline-flex items-center justify-center gap-2 rounded-2xl bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 text-sm font-bold transition-all duration-200 shrink-0"
+                            className="w-full md:w-auto h-13 px-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 hover:border-transparent text-sm font-black uppercase tracking-wide transition-all duration-200 shadow-sm active:scale-95 shrink-0"
                         >
-                            <RotateCcw className="h-4 w-4" />
+                            <RotateCcw className="h-4 w-4 stroke-[2.5]" />
                             <span>Reset</span>
                         </button>
                     )}
@@ -500,8 +516,8 @@ export default function BlogIndex({
                                 Rekomendasi Unit Kontainer Untukmu
                             </h2>
                         </div>
-                        <Link href="/katalog" className="text-orange-500 font-bold text-sm hover:underline">
-                            Lihat Semua Katalog
+                        <Link href="/katalog" className="text-orange-500 font-bold text-sm underline pl-4">
+                            Lihat Unit Lainnya
                         </Link>
                     </div>
 
