@@ -1,7 +1,7 @@
-import { useEffect, useRef, lazy, useState, Suspense } from 'react';
+import { lazy, useState, Suspense, useMemo, memo } from 'react';
 import { Link, useForm, router, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { Eye, Filter, ChevronRight, BoxIcon, Layers, ChevronLeft, RotateCcw, Search, Flame, Package } from 'lucide-react';
+import { Eye, Filter, ChevronRight, BoxIcon, Layers, ChevronLeft, RotateCcw, Search, Flame } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
@@ -48,24 +48,17 @@ interface FlatCategoryItem {
     href: string;
 }
 
-export function FlatCategoryList({ items }: { items: FlatCategoryItem[] }) {
+export const FlatCategoryList = memo(function FlatCategoryList({ items }: { items: FlatCategoryItem[] }) {
     return (
         <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3">
-            
-            {/* Header Card: Icon, Judul & Informasi Total Item */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-5">
                 <div className="flex items-center gap-3">
                     <Layers className="w-5 h-5 text-orange-600 stroke-[2.5]" />
-                    <div>
-                        <h2 className="text-base font-extrabold uppercase tracking-wide text-zinc-950 dark:text-white">
-                            Daftar Layanan & Jenis Produk
-                        </h2>
-                    </div>
+                    <h2 className="text-base font-extrabold uppercase tracking-wide text-zinc-950 dark:text-white">
+                        Daftar Layanan & Jenis Produk
+                    </h2>
                 </div>
-            
             </div>
-
-            {/* 📝 DAFTAR ITEM (Menggunakan Style Card Dalam yang Seragam & Rapi) */}
             <div className="space-y-3">
                 {items.map((item, index) => (
                     <a 
@@ -73,58 +66,31 @@ export function FlatCategoryList({ items }: { items: FlatCategoryItem[] }) {
                         href={item.href}
                         className="group flex gap-4 p-4 bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl items-center justify-between transition-all hover:border-orange-500 dark:hover:border-orange-500"
                     >
-                        
-                        {/* Sisi Kiri: Gambar Mini + Informasi Teks */}
                         <div className="flex gap-4 items-center min-w-0 flex-1">
-                            
-                            {/* Thumbnail Gambar: Bentuk Kotak Rounded Elegan */}
                             <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl bg-zinc-100 dark:bg-zinc-800 overflow-hidden relative border border-zinc-200/60 dark:border-zinc-700 flex items-center justify-center">
                                 {item.image ? (
-                                    <img 
-                                        src={item.image} 
-                                        alt={item.name}
-                                        className="w-full h-full object-cover"
-                                        loading="lazy"
-                                    />
+                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover transform-gpu" loading="lazy" decoding="async" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-zinc-405 dark:text-zinc-500 uppercase tracking-widest">
-                                        No Img
-                                    </div>
+                                    <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">No Img</div>
                                 )}
                             </div>
-
-                            {/* Detail Teks: Jelas & Rapi */}
                             <div className="min-w-0 flex-1 space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <span className="inline-block text-[10px] font-black uppercase tracking-wider text-orange-650 dark:text-orange-400">
-                                        {item.parentTitle}
-                                    </span>
-                                </div>
-                                
-                                <h3 className="text-base sm:text-lg font-extrabold text-zinc-900 dark:text-white group-hover:text-orange-600 transition-colors leading-tight">
-                                    {item.name}
-                                </h3>
-                                
-                                {item.description && (
-                                    <div className="text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm leading-relaxed font-medium line-clamp-3" dangerouslySetInnerHTML={{ __html: item.description || ''  }} />
-                                )}
+                                <span className="inline-block text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400">{item.parentTitle}</span>
+                                <h3 className="text-base sm:text-lg font-extrabold text-zinc-900 dark:text-white group-hover:text-orange-600 transition-colors leading-tight">{item.name}</h3>
+                                {item.description && <div className="text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm leading-relaxed font-medium line-clamp-3" dangerouslySetInnerHTML={{ __html: item.description }} />}
                             </div>
-
                         </div>
-
-                        {/* Sisi Kanan: Tombol Buka Detail (Chevron Minimalis) */}
                         <div className="shrink-0 pl-2 hidden md:block">
-                            <div className="w-9 h-9 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-405 group-hover:bg-orange-500 group-hover:text-white flex items-center justify-center transition-all">
+                            <div className="w-9 h-9 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 text-zinc-500 group-hover:bg-orange-500 group-hover:text-white flex items-center justify-center transition-all">
                                 <ChevronRight className="w-5 h-5 stroke-[2.5]" />
                             </div>
                         </div>
-
                     </a>
                 ))}
             </div>
         </div>
     );
-}
+});
 
 interface PaginationProps {
     links: Array<{
@@ -282,27 +248,31 @@ export default function BlogIndex({
 }: Props) {
     const { getConfig } = useConfig();
     const { productCategories } = usePage().props as unknown as { productCategories: RootCategory[] };
+    
     const { data, setData, get } = useForm({
         search: filters.search || '',
         category: filters.category || '',
         tag: filters.tag || '',
     });
     
-    // Proses pemetaan menjadi satu tingkat (Flat Array)
-    const flattenedCategories: FlatCategoryItem[] = productCategories.flatMap((category) => 
-        category.items.map((item) => ({
-            parentTitle: category.title, // Menyimpan nama kategori utama sebagai penanda
-            parentSlug: category.slug,   // Menyimpan slug utama untuk keperluan routing
-            name: item.name,
-            slug: item.slug,
-            description: item.meta_description || item.description || category.description, // Fallback ke deskripsi utama jika kosong
-            image: item.image || category.image, // Fallback ke gambar utama jika sub-item tidak punya gambar
-            href: item.href || `/produk/${category.slug}/${item.slug}`
-        }))
-    );
+    // 🌟 PERBAIKAN 1: Bungkus proses flatMap dengan useMemo agar HANYA dieksekusi 
+    // ketika data `productCategories` dari backend benar-benar berubah!
+    const flattenedCategories = useMemo<FlatCategoryItem[]>(() => {
+        if (!productCategories) return [];
+        return productCategories.flatMap((category) => 
+            category.items.map((item) => ({
+                parentTitle: category.title,
+                parentSlug: category.slug,
+                name: item.name,
+                slug: item.slug,
+                description: item.meta_description || item.description || category.description,
+                image: item.image || category.image,
+                href: item.href || `/produk/${category.slug}/${item.slug}`
+            }))
+        );
+    }, [productCategories]); // Hanya hitung ulang jika array ini berubah
 
     const isFilteringActive = data.search || data.category || data.tag;
-
     const [isSearching, setIsSearching] = useState(false);
     const isLoading = !headline_posts || !most_read_posts || !recent_posts;
 
@@ -316,20 +286,18 @@ export default function BlogIndex({
         });
     };
 
+    // 🌟 PERBAIKAN 2: Keluarkan router.get dari dalam updater state setData
     const handleCategoryChange = (slug: string) => {
-        setData(slice => {
-            const updated = { ...slice, category: slug, tag: '' };
-            router.get('/info', updated, { preserveState: true, preserveScroll: true });
-            return updated;
-        });
+        const updated = { ...data, category: slug, tag: '' };
+        setData(updated);
+        router.get('/info', updated, { preserveState: true, preserveScroll: true });
     };
 
+    // 🌟 PERBAIKAN 3: Samakan penanganan dengan handleCategoryChange
     const handleTagClick = (tag: string) => {
-        setData(slice => {
-            const updated = { ...slice, tag: tag, category: '' };
-            router.get('/info', updated, { preserveState: true, preserveScroll: true });
-            return updated;
-        });
+        const updated = { ...data, tag: tag, category: '' };
+        setData(updated);
+        router.get('/info', updated, { preserveState: true, preserveScroll: true });
     };
 
     const formatDate = (date: string) =>
