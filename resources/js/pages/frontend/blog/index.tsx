@@ -80,7 +80,7 @@ export const FlatCategoryList = memo(function FlatCategoryList({ items }: { item
                         <div className="flex gap-3 sm:gap-4 items-center min-w-0 flex-1">
                             
                             {/* Ukuran Gambar Mini Adaptif: Mengecil di HP, Proporsional di Tablet/Laptop */}
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 shrink-0 rounded-xl bg-zinc-100 dark:bg-zinc-800 overflow-hidden relative border border-zinc-200/65 dark:border-zinc-700 flex items-center justify-center shadow-inner">
+                            {/* <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 shrink-0 rounded-xl bg-zinc-100 dark:bg-zinc-800 overflow-hidden relative border border-zinc-200/65 dark:border-zinc-700 flex items-center justify-center shadow-inner">
                                 {item.image ? (
                                     <img 
                                         src={item.image} 
@@ -94,7 +94,7 @@ export const FlatCategoryList = memo(function FlatCategoryList({ items }: { item
                                         No Img
                                     </div>
                                 )}
-                            </div>
+                            </div> */}
 
                             {/* Info Teks: Penanganan Fleksibel untuk Judul & Deskripsi Panjang */}
                             <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
@@ -606,7 +606,7 @@ export default function BlogIndex({
                                             <Link href={`/${post.slug}`} className="w-full md:w-42 xl:w-64 aspect-[16/11] shrink-0 overflow-hidden rounded-xl bg-zinc-200 dark:bg-zinc-800 block relative">
                                                 <img 
                                                     src={`/storage/${post.featured_image}`} 
-                                                    className="w-full h-full object-cover" 
+                                                    className="w-full h-auto object-cover" 
                                                     onError={handleImageError} 
                                                     alt={post.title} 
                                                     loading="lazy" 
@@ -678,7 +678,7 @@ export default function BlogIndex({
                                             href={`/layanan/${item.slug}`} 
                                             className="group flex flex-wrap md:flex-nowrap gap-3.5 p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-850 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors items-center"
                                         >
-                                            <div className="w-14 h-14 shrink-0 rounded-lg bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center overflow-hidden">
+                                            {/* <div className="w-14 h-14 shrink-0 rounded-lg bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center overflow-hidden">
                                                 {item.image ? (
                                                     <img
                                                         src={item.image}
@@ -690,7 +690,7 @@ export default function BlogIndex({
                                                 ) : (
                                                     <span className="font-bold text-zinc-400 text-[10px] uppercase">Unit</span>
                                                 )}
-                                            </div>
+                                            </div> */}
 
                                             <div className="min-w-0 flex-1">
                                                 <span className="block text-base font-extrabold text-zinc-900 dark:text-white group-hover:text-orange-600 transition-colors">
