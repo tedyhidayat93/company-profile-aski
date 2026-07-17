@@ -1,10 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 
 interface SocialProfileEmbedProps {
     platform: 'tiktok' | 'youtube';
-    urlConfig: string; // 👈 Bisa diisi URL penuh atau langsung string Channel ID / Username
+    urlConfig: string;
     youtubeType?: 'subscribe' | 'latest-video';
 }
+
+// 🌟 Pindahkan fungsi ekstraksi ke luar komponen agar tidak dibuat ulang tiap render
+const getTargetId = (input: string, type: 'tiktok' | 'youtube') => {
+    if (!input) return '';
+    const cleanInput = input.trim();
+
+    if (type === 'tiktok') {
+        const match = cleanInput.match(/@([a-zA-Z0-9_\-\.]+)/);
+        return match ? match[1] : cleanInput.replace('@', '');
+    }
+
+    if (type === 'youtube') {
+        const idMatch = cleanInput.match(/(UC[a-zA-Z0-0_\-]{22})/);
+        if (idMatch) return idMatch[1];
+
+        const handleMatch = cleanInput.match(/@([a-zA-Z0-9_\-\.]+)/);
+        if (handleMatch) return handleMatch[1];
+    }
+
+    return cleanInput;
+};
 
 export const SocialProfileEmbed = ({
     platform,
@@ -12,54 +33,37 @@ export const SocialProfileEmbed = ({
     youtubeType = 'subscribe',
 }: SocialProfileEmbedProps) => {
     const [isMounted, setIsMounted] = useState(false);
-
-    // 🛠️ Fungsi pengekstrak cerdas untuk mengambil ID atau Username
-    const getTargetId = (input: string, type: 'tiktok' | 'youtube') => {
-        if (!input) return '';
-        const cleanInput = input.trim();
-
-        // 1. Jika untuk TikTok
-        if (type === 'tiktok') {
-            const match = cleanInput.match(/@([a-zA-Z0-9_\-\.]+)/);
-            return match ? match[1] : cleanInput.replace('@', '');
-        }
-
-        // 2. Jika untuk YouTube
-        if (type === 'youtube') {
-            // Cek apakah input mengandung Channel ID langsung (Pattern: UC + 22 karakter alfanumerik)
-            const idMatch = cleanInput.match(/(UC[a-zA-Z0-0_\-]{22})/);
-            if (idMatch) return idMatch[1];
-
-            // Jika tidak ada Channel ID, cek apakah menggunakan handle username (@name)
-            const handleMatch = cleanInput.match(/@([a-zA-Z0-9_\-\.]+)/);
-            if (handleMatch) return handleMatch[1];
-        }
-
-        // Jika input dikirim dalam bentuk teks ID polos (bukan URL)
-        return cleanInput;
-    };
-
-    const targetId = getTargetId(urlConfig, platform);
     
-    // Cek apakah string targetId berupa Channel ID resmi YouTube (berawalan 'UC')
+    // 🌟 Menggunakan useRef untuk menandai apakah script eksternal sudah pernah dimuat
+    const scriptLoadedRef = useRef<Record<string, boolean>>({ tiktok: false, youtube: false });
+
+    // 🌟 OPTIMASI 1: Bungkus dengan useMemo agar Regex hanya berjalan saat input berubah
+    const targetId = useMemo(() => {
+        return getTargetId(urlConfig, platform);
+    }, [urlConfig, platform]);
+    
     const isYoutubeChannelId = platform === 'youtube' && targetId.startsWith('UC');
 
     useEffect(() => {
         setIsMounted(true);
 
-        if (platform === 'tiktok' && targetId) {
+        // 🌟 OPTIMASI 2: Cek dulu di useRef, jika script sudah ada di halaman, jangan disuntik ulang!
+        if (platform === 'tiktok' && targetId && !scriptLoadedRef.current.tiktok) {
             const script = document.createElement('script');
             script.src = 'https://www.tiktok.com/embed.js';
             script.async = true;
             document.body.appendChild(script);
-            return () => { document.body.removeChild(script); };
-        } else if (platform === 'youtube' && youtubeType === 'subscribe' && targetId) {
+            scriptLoadedRef.current.tiktok = true;
+        } else if (platform === 'youtube' && youtubeType === 'subscribe' && targetId && !scriptLoadedRef.current.youtube) {
             const script = document.createElement('script');
             script.src = 'https://apis.google.com/js/platform.js';
             script.async = true;
             document.body.appendChild(script);
-            return () => { document.body.removeChild(script); };
+            scriptLoadedRef.current.youtube = true;
         }
+        
+        // Cukup hapus efek pembersihan (cleanup) append/remove script yang brutal tadi.
+        // Biarkan script berada di global window demi performa optimal.
     }, [platform, youtubeType, targetId]);
 
     if (!isMounted || !targetId) return null;
@@ -89,7 +93,6 @@ export const SocialProfileEmbed = ({
                     {youtubeType === 'subscribe' ? (
                         <div 
                             className="g-ytsubscribe" 
-                            // 💡 Otomatis pakai atribut yang tepat sesuai tipe ID-nya
                             {...(isYoutubeChannelId ? { 'data-channelid': targetId } : { 'data-channel': targetId })}
                             data-layout="default" 
                             data-count="default"
@@ -97,12 +100,12 @@ export const SocialProfileEmbed = ({
                     ) : (
                         <div className="w-full aspect-video">
                             <iframe
-                                // 💡 Query list parameter akan mendeteksi apakah itu ID ('UC...') atau user biasa
                                 src={`https://www.youtube.com/embed?listType=${isYoutubeChannelId ? 'playlist' : 'user_uploads'}&list=${isYoutubeChannelId ? targetId.replace('UC', 'UU') : targetId}`}
                                 title="YouTube Feed"
-                                className="w-full h-full border-0"
+                                className="w-full h-full border-0 transform-gpu" // 🌟 Tambahkan akselerasi hardware GPU
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen
+                                loading="lazy" // 🌟 Pastikan iframe di-load malas-malasan (hanya saat mau terlihat di layar)
                             />
                         </div>
                     )}
