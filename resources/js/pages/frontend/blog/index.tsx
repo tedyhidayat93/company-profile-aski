@@ -183,98 +183,86 @@ export function HeadlinePost({ headline_posts, isLoading }: {
     headline_posts: BlogPost[];
     isLoading: boolean;
 }) {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [activeIndex, setActiveIndex] = useState(0);
-
-    useEffect(() => {
-        if (!headline_posts || headline_posts.length <= 1) return;
-
-        const interval = setInterval(() => {
-            if (containerRef.current) {
-                const container = containerRef.current;
-                const nextIndex = (activeIndex + 1) % headline_posts.length;
-                
-                // Memicu scroll horizontal secara smooth bawaan browser
-                container.scrollTo({
-                    left: nextIndex * container.clientWidth,
-                    behavior: 'smooth'
-                });
-                
-                setActiveIndex(nextIndex);
-            }
-        }, 7000);
-
-        return () => clearInterval(interval);
-    }, [activeIndex, headline_posts]);
-
     if (isLoading || !headline_posts?.length) return null;
+
+    const totalPosts = headline_posts.length;
 
     return (
         <div className="w-full bg-gradient-to-br from-zinc-950 via-slate-900 to-zinc-950 text-white rounded-2xl overflow-hidden shadow-2xl relative">
             
-            {/* 🌟 KEY UTAMA: snap-x snap-mandatory & overflow-x-auto */}
-            <div 
-                ref={containerRef}
-                className="w-full flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
-                onScroll={() => {
-                    // Update index secara pasif saat user swipe manual
-                    if (containerRef.current) {
-                        const index = Math.round(containerRef.current.scrollLeft / containerRef.current.clientWidth);
-                        if (index !== activeIndex) setActiveIndex(index);
-                    }
-                }}
-            >
-                {headline_posts.map((post, idx) => (
-                    <div 
-                        key={post.id || idx} 
-                        className="w-full shrink-0 snap-start grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[420px] lg:min-h-[400px] lg:px-2 xl:px-0"
-                    >
-                        {/* ✍️ KOLOM KIRI: DETAIL TEKS */}
-                        <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-8 lg:p-10 xl:p-12 space-y-4 z-10 my-auto">
-                            <div className="flex items-center gap-2 text-xs text-orange-400 font-black tracking-widest uppercase">
-                                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                                <span>BERITA UTAMA HARI INI</span>
-                            </div>
-
-                            <Link href={`/${post.slug}`} className="block group">
-                                <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-4xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200 line-clamp-3">
-                                    {post.title}
-                                </h1>
-                            </Link>
-
-                            <p className="text-zinc-300 text-xs sm:text-sm lg:text-base leading-relaxed border-l-4 border-orange-500 pl-3 font-medium line-clamp-2">
-                                {post.excerpt}
-                            </p>
-                        </div>
-
-                        {/* 📸 KOLOM KANAN: VISUAL GAMBAR */}
-                        <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[5/3] lg:aspect-[3/2] lg:h-full p-0 sm:p-6 lg:p-6 xl:p-8 flex items-center justify-center bg-zinc-950/20">
-                            <div className="w-full h-full sm:rounded-xl overflow-hidden relative shadow-xl bg-slate-950">
-                                <img
-                                    src={`/storage/${post.featured_image}`}
-                                    className="w-full h-full object-cover"
-                                    alt={post.title}
-                                    loading={idx === 0 ? "eager" : "lazy"}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* 🛑 INDIKATOR DOTS MINI */}
-            {/* {headline_posts.length > 1 && (
-                <div className="absolute bottom-4 left-6 flex gap-1.5 z-25">
-                    {headline_posts.map((_, idx) => (
+            {/* 🌟 WRAPPER DENGAN ANIMASI GERAK CSS MURNI */}
+            <div className="w-full overflow-hidden relative">
+                <div 
+                    className="flex transition-transform duration-500 ease-in-out"
+                    style={{
+                        width: `${totalPosts * 100}%`,
+                        animation: totalPosts > 1 ? `headlineSlider ${totalPosts * 7}s infinite steps(1, end)` : 'none'
+                    }}
+                >
+                    {headline_posts.map((post, idx) => (
                         <div 
-                            key={idx} 
-                            className={`h-1.5 rounded-full transition-all duration-300 ${activeIndex === idx ? 'w-6 bg-orange-500' : 'w-1.5 bg-zinc-650'}`} 
-                        />
+                            key={post.id || idx} 
+                            style={{ width: `${150 / totalPosts}%` }} // Membagi porsi lebar grid secara merata
+                            className="shrink-0 grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[420px] lg:min-h-[400px] lg:px-2 xl:px-0"
+                        >
+                            {/* ✍️ KOLOM KIRI: DETAIL TEKS */}
+                            <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-8 lg:p-10 xl:p-12 space-y-4 z-10 my-auto">
+                                <div className="flex items-center gap-2 text-xs text-orange-400 font-black tracking-widest uppercase">
+                                    <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                                    <span>BERITA UTAMA HARI INI</span>
+                                </div>
+
+                                <Link href={`/${post.slug}`} className="block group">
+                                    <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-4xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200 line-clamp-3">
+                                        {post.title}
+                                    </h1>
+                                </Link>
+
+                                <p className="text-zinc-300 text-xs sm:text-sm lg:text-base leading-relaxed border-l-4 border-orange-500 pl-3 font-medium line-clamp-2">
+                                    {post.excerpt}
+                                </p>
+                            </div>
+
+                            {/* 📸 KOLOM KANAN: VISUAL GAMBAR */}
+                            <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[5/3] lg:aspect-[3/2] lg:h-full p-0 sm:p-6 lg:p-6 xl:p-8 flex items-center justify-center bg-zinc-950/20">
+                                <div className="w-full h-full sm:rounded-xl overflow-hidden relative shadow-xl bg-slate-950">
+                                    <img
+                                        src={`/storage/${post.featured_image}`}
+                                        className="w-full h-full object-cover"
+                                        alt={post.title}
+                                        loading={idx === 0 ? "eager" : "lazy"}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     ))}
                 </div>
-            )} */}
+            </div>
+
+            {/* 🛑 INJECT KEYFRAMES SECARA DINAMIS (Anti-Freeze 100%) */}
+            {totalPosts > 1 && (
+                <style dangerouslySetInnerHTML={{__html: generateSliderKeyframes(totalPosts)}} />
+            )}
         </div>
     );
+}
+
+function generateSliderKeyframes(total: number): string {
+    let keyframes = `@keyframes headlineSlider {`;
+    const step = 100 / total;
+    
+    for (let i = 0; i < total; i++) {
+        const startPercentage = i * step;
+        const endPercentage = (i + 1) * step;
+        const translateX = -(i * (100 / total));
+        
+        keyframes += `
+            ${startPercentage}% { transform: translateX(${translateX}%); }
+            ${endPercentage - 0.01}% { transform: translateX(${translateX}%); }
+        `;
+    }
+    keyframes += ` 100% { transform: translateX(0%); } }`;
+    return keyframes;
 }
 
 export default function BlogIndex({ 
