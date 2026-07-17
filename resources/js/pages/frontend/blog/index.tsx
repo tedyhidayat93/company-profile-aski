@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useForm, router, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { Eye, Filter, Tag, ChevronRight, BoxIcon, Layers, ChevronLeft, RotateCcw, Search, Flame } from 'lucide-react';
+import { Eye, Filter, Tag, ChevronRight, BoxIcon, Layers, ChevronLeft, RotateCcw, Search, Flame, Package } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
@@ -9,6 +9,7 @@ import { FeaturedProductsBanner } from '../catalog';
 import { RootCategory } from '../product';
 import CtaSection from '@/components/cta-section';
 import { SocialProfileEmbed } from '@/components/social-profile-embed';
+import ProductCard from '@/components/ProductCard';
 
 type BlogPost = {
     id: number;
@@ -47,82 +48,77 @@ interface FlatCategoryItem {
 
 export function FlatCategoryList({ items }: { items: FlatCategoryItem[] }) {
     return (
-        <div className="w-full bg-zinc-50 dark:bg-zinc-950 py-6">
+        <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3">
             
-            {/* 📦 SATU CARD UTAMA (Bentuk Luar & Padding Meniru Sempurna Card Atas) */}
-            <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3">
-                
-                {/* Header Card: Icon, Judul & Informasi Total Item */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-5">
-                    <div className="flex items-center gap-3">
-                        <Layers className="w-5 h-5 text-orange-600 stroke-[2.5]" />
-                        <div>
-                            <h2 className="text-base font-extrabold uppercase tracking-wide text-zinc-950 dark:text-white">
-                                Daftar Layanan & Jenis Produk
-                            </h2>
-                        </div>
+            {/* Header Card: Icon, Judul & Informasi Total Item */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-5">
+                <div className="flex items-center gap-3">
+                    <Layers className="w-5 h-5 text-orange-600 stroke-[2.5]" />
+                    <div>
+                        <h2 className="text-base font-extrabold uppercase tracking-wide text-zinc-950 dark:text-white">
+                            Daftar Layanan & Jenis Produk
+                        </h2>
                     </div>
-                
                 </div>
+            
+            </div>
 
-                {/* 📝 DAFTAR ITEM (Menggunakan Style Card Dalam yang Seragam & Rapi) */}
-                <div className="space-y-3">
-                    {items.map((item, index) => (
-                        <a 
-                            key={item.slug || index}
-                            href={item.href}
-                            className="group flex gap-4 p-4 bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl items-center justify-between transition-all hover:border-orange-500 dark:hover:border-orange-500"
-                        >
+            {/* 📝 DAFTAR ITEM (Menggunakan Style Card Dalam yang Seragam & Rapi) */}
+            <div className="space-y-3">
+                {items.map((item, index) => (
+                    <a 
+                        key={item.slug || index}
+                        href={item.href}
+                        className="group flex gap-4 p-4 bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl items-center justify-between transition-all hover:border-orange-500 dark:hover:border-orange-500"
+                    >
+                        
+                        {/* Sisi Kiri: Gambar Mini + Informasi Teks */}
+                        <div className="flex gap-4 items-center min-w-0 flex-1">
                             
-                            {/* Sisi Kiri: Gambar Mini + Informasi Teks */}
-                            <div className="flex gap-4 items-center min-w-0 flex-1">
-                                
-                                {/* Thumbnail Gambar: Bentuk Kotak Rounded Elegan */}
-                                <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl bg-zinc-100 dark:bg-zinc-800 overflow-hidden relative border border-zinc-200/60 dark:border-zinc-700 flex items-center justify-center">
-                                    {item.image ? (
-                                        <img 
-                                            src={item.image} 
-                                            alt={item.name}
-                                            className="w-full h-full object-cover"
-                                            loading="lazy"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-zinc-405 dark:text-zinc-500 uppercase tracking-widest">
-                                            No Img
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Detail Teks: Jelas & Rapi */}
-                                <div className="min-w-0 flex-1 space-y-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="inline-block text-[10px] font-black uppercase tracking-wider text-orange-650 dark:text-orange-400">
-                                            {item.parentTitle}
-                                        </span>
+                            {/* Thumbnail Gambar: Bentuk Kotak Rounded Elegan */}
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl bg-zinc-100 dark:bg-zinc-800 overflow-hidden relative border border-zinc-200/60 dark:border-zinc-700 flex items-center justify-center">
+                                {item.image ? (
+                                    <img 
+                                        src={item.image} 
+                                        alt={item.name}
+                                        className="w-full h-full object-cover"
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-zinc-405 dark:text-zinc-500 uppercase tracking-widest">
+                                        No Img
                                     </div>
-                                    
-                                    <h3 className="text-base sm:text-lg font-extrabold text-zinc-900 dark:text-white group-hover:text-orange-600 transition-colors leading-tight">
-                                        {item.name}
-                                    </h3>
-                                    
-                                    {item.description && (
-                                        <div className="text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm leading-relaxed font-medium line-clamp-3" dangerouslySetInnerHTML={{ __html: item.description || ''  }} />
-                                    )}
-                                </div>
-
+                                )}
                             </div>
 
-                            {/* Sisi Kanan: Tombol Buka Detail (Chevron Minimalis) */}
-                            <div className="shrink-0 pl-2 hidden md:block">
-                                <div className="w-9 h-9 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-405 group-hover:bg-orange-500 group-hover:text-white flex items-center justify-center transition-all">
-                                    <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+                            {/* Detail Teks: Jelas & Rapi */}
+                            <div className="min-w-0 flex-1 space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="inline-block text-[10px] font-black uppercase tracking-wider text-orange-650 dark:text-orange-400">
+                                        {item.parentTitle}
+                                    </span>
                                 </div>
+                                
+                                <h3 className="text-base sm:text-lg font-extrabold text-zinc-900 dark:text-white group-hover:text-orange-600 transition-colors leading-tight">
+                                    {item.name}
+                                </h3>
+                                
+                                {item.description && (
+                                    <div className="text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm leading-relaxed font-medium line-clamp-3" dangerouslySetInnerHTML={{ __html: item.description || ''  }} />
+                                )}
                             </div>
 
-                        </a>
-                    ))}
-                </div>
+                        </div>
 
+                        {/* Sisi Kanan: Tombol Buka Detail (Chevron Minimalis) */}
+                        <div className="shrink-0 pl-2 hidden md:block">
+                            <div className="w-9 h-9 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-405 group-hover:bg-orange-500 group-hover:text-white flex items-center justify-center transition-all">
+                                <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+                            </div>
+                        </div>
+
+                    </a>
+                ))}
             </div>
         </div>
     );
@@ -241,7 +237,7 @@ export function HeadlinePost({ headline_posts, isLoading }: {
                             </div>
 
                             <Link href={`/${post.slug}`} className="block group">
-                                <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-4xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200 line-clamp-2">
+                                <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-4xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200 line-clamp-3">
                                     {post.title}
                                 </h1>
                             </Link>
@@ -504,11 +500,36 @@ export default function BlogIndex({
             <main className="w-full xl:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 
                 {/* Banner Rekomendasi Produk */}
-                <div className="w-full mb-10 bg-white dark:bg-slate-950 border border-zinc-200 rounded-2xl overflow-hidden">
+                {/* <div className="w-full mb-10 bg-white dark:bg-slate-950 border border-zinc-200 rounded-2xl overflow-hidden">
                     <FeaturedProductsBanner products={random_products} autoScroll={false} />
-                </div>
+                </div> */}
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                 <section className='mb-10'>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-1 mb-4 border-b-2 border-zinc-300 dark:border-zinc-800 pb-3 mb-6">
+                        <div className="space-y-2">
+                            <h2 id="section-sorotan" className="text-xl font-extrabold uppercase text-zinc-900 dark:text-white flex items-center gap-2.5">
+                                <span className="w-2 h-6 bg-orange-500 inline-block rounded-full"></span>
+                                Rekomendasi Unit Kontainer Untukmu
+                            </h2>
+                        </div>
+                        <Link href="/katalog" className="text-orange-500 font-bold text-sm hover:underline">
+                            Lihat Semua Katalog
+                        </Link>
+                    </div>
+
+                    <div className="flex gap-4 overflow-x-auto snap-x custom-scrollbar snap-mandatory scroll-smooth no-scrollbar">
+                        {random_products.map((product) => (
+                            <div
+                                key={product.id}
+                                className="w-60 flex-shrink-0 snap-start transition-all duration-300 hover:-translate-y-1.5 hover:drop-shadow-xl p-1"
+                            >
+                                <ProductCard product={product} />
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     
                     {/* ===================================================
                         KOLOM KIRI: ARSIP ARTIKEL (Lebar Lebih Luas)
@@ -735,7 +756,7 @@ export default function BlogIndex({
                         <FlatCategoryList items={flattenedCategories} />
 
                     </aside>
-                </div>
+                </section>
             </main>
             <CtaSection />
         </FrontendLayout>

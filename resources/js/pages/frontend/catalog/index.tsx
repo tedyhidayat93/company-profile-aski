@@ -220,7 +220,7 @@ export const FeaturedProductsBanner = ({
                 <div 
                     ref={scrollContainerRef}
                     onScroll={handleScrollEvent}
-                    className="flex gap-4 overflow-x-auto snap-x custom-scrollbar snap-mandatory scroll-smooth no-scrollbar"
+                    className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
                     style={{ WebkitOverflowScrolling: 'touch' }}
                 >
                     {featuredProducts.map((product) => (
