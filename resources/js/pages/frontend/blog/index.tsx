@@ -241,7 +241,7 @@ export function HeadlinePost({ headline_posts, isLoading }: HeadlinePostProps) {
                         <img
                             src={customItem.original}
                             alt={customItem.originalAlt}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover transform-gpu"
                             loading="eager"
                             decoding="async"
                         />
@@ -606,7 +606,7 @@ export default function BlogIndex({
                                             <Link href={`/${post.slug}`} className="w-full md:w-42 xl:w-64 aspect-[16/11] shrink-0 overflow-hidden rounded-xl bg-zinc-200 dark:bg-zinc-800 block relative">
                                                 <img 
                                                     src={`/storage/${post.featured_image}`} 
-                                                    className="w-full h-auto object-cover" 
+                                                    className="w-full h-full object-cover transform-gpu" 
                                                     onError={handleImageError} 
                                                     alt={post.title} 
                                                     loading="lazy" 
@@ -684,7 +684,7 @@ export default function BlogIndex({
                                                         src={item.image}
                                                         alt={item.name}
                                                         onError={handleImageError}
-                                                        className="w-full h-full object-cover"
+                                                        className="w-full h-full object-cover transform-gpu"
                                                         loading="lazy"
                                                     />
                                                 ) : (
