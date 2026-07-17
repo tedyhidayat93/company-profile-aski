@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useForm, router, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { Eye, Filter, Tag, ChevronRight, BoxIcon, Layers, ChevronLeft, RotateCcw, Search, Flame } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import { FeaturedProductsBanner } from '../catalog';
@@ -185,6 +183,104 @@ export function SimpleArrowPagination({ links }: PaginationProps) {
     );
 }
 
+export function HeadlinePost({ headline_posts, isLoading }: {
+    headline_posts: BlogPost[];
+    isLoading: boolean;
+}) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    useEffect(() => {
+        if (!headline_posts || headline_posts.length <= 1) return;
+
+        const interval = setInterval(() => {
+            if (containerRef.current) {
+                const container = containerRef.current;
+                const nextIndex = (activeIndex + 1) % headline_posts.length;
+                
+                // Memicu scroll horizontal secara smooth bawaan browser
+                container.scrollTo({
+                    left: nextIndex * container.clientWidth,
+                    behavior: 'smooth'
+                });
+                
+                setActiveIndex(nextIndex);
+            }
+        }, 7000);
+
+        return () => clearInterval(interval);
+    }, [activeIndex, headline_posts]);
+
+    if (isLoading || !headline_posts?.length) return null;
+
+    return (
+        <div className="w-full bg-gradient-to-br from-zinc-950 via-slate-900 to-zinc-950 text-white rounded-2xl overflow-hidden shadow-2xl relative">
+            
+            {/* 🌟 KEY UTAMA: snap-x snap-mandatory & overflow-x-auto */}
+            <div 
+                ref={containerRef}
+                className="w-full flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
+                onScroll={() => {
+                    // Update index secara pasif saat user swipe manual
+                    if (containerRef.current) {
+                        const index = Math.round(containerRef.current.scrollLeft / containerRef.current.clientWidth);
+                        if (index !== activeIndex) setActiveIndex(index);
+                    }
+                }}
+            >
+                {headline_posts.map((post, idx) => (
+                    <div 
+                        key={post.id || idx} 
+                        className="w-full shrink-0 snap-start grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[420px] lg:min-h-[400px] lg:px-2 xl:px-0"
+                    >
+                        {/* ✍️ KOLOM KIRI: DETAIL TEKS */}
+                        <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-8 lg:p-10 xl:p-12 space-y-4 z-10 my-auto">
+                            <div className="flex items-center gap-2 text-xs text-orange-400 font-black tracking-widest uppercase">
+                                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                                <span>BERITA UTAMA HARI INI</span>
+                            </div>
+
+                            <Link href={`/${post.slug}`} className="block group">
+                                <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-4xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200 line-clamp-2">
+                                    {post.title}
+                                </h1>
+                            </Link>
+
+                            <p className="text-zinc-300 text-xs sm:text-sm lg:text-base leading-relaxed border-l-4 border-orange-500 pl-3 font-medium line-clamp-2">
+                                {post.excerpt}
+                            </p>
+                        </div>
+
+                        {/* 📸 KOLOM KANAN: VISUAL GAMBAR */}
+                        <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[5/3] lg:aspect-[3/2] lg:h-full p-0 sm:p-6 lg:p-6 xl:p-8 flex items-center justify-center bg-zinc-950/20">
+                            <div className="w-full h-full sm:rounded-xl overflow-hidden relative shadow-xl bg-slate-950">
+                                <img
+                                    src={`/storage/${post.featured_image}`}
+                                    className="w-full h-full object-cover"
+                                    alt={post.title}
+                                    loading={idx === 0 ? "eager" : "lazy"}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* 🛑 INDIKATOR DOTS MINI */}
+            {/* {headline_posts.length > 1 && (
+                <div className="absolute bottom-4 left-6 flex gap-1.5 z-25">
+                    {headline_posts.map((_, idx) => (
+                        <div 
+                            key={idx} 
+                            className={`h-1.5 rounded-full transition-all duration-300 ${activeIndex === idx ? 'w-6 bg-orange-500' : 'w-1.5 bg-zinc-650'}`} 
+                        />
+                    ))}
+                </div>
+            )} */}
+        </div>
+    );
+}
+
 export default function BlogIndex({ 
     headline_posts = [],
     random_products = [], 
@@ -222,40 +318,6 @@ export default function BlogIndex({
 
     const [isSearching, setIsSearching] = useState(false);
     const isLoading = !headline_posts || !most_read_posts || !recent_posts;
-
-    // 1. Simpan state index berita utama yang aktif
-    const [activeIndex, setActiveIndex] = useState(0);
-    // State untuk memicu animasi transisi (fade-in)
-    const [isFading, setIsFading] = useState(false);
-
-    const hasMultiplePosts = headline_posts.length > 1;
-
-    useEffect(() => {
-        // Jika berita kurang dari atau sama dengan 1, tidak perlu ada interval acak
-        if (!hasMultiplePosts) return;
-
-        // Atur interval pergantian (7000ms = 7 detik)
-        const interval = setInterval(() => {
-            setIsFading(true); // Mulai transisi keluar (fade out)
-
-            setTimeout(() => {
-                // Pilih index acak yang berbeda dari index saat ini
-                setActiveIndex((prevIndex) => {
-                    let nextIndex = prevIndex;
-                    while (nextIndex === prevIndex) {
-                        nextIndex = Math.floor(Math.random() * headline_posts.length);
-                    }
-                    return nextIndex;
-                });
-                setIsFading(false); // Akhiri transisi (fade in konten baru)
-            }, 300); // Durasi delay transisi (sesuai dengan durasi CSS transition)
-
-        }, 7000); 
-
-        return () => clearInterval(interval);
-    }, [headline_posts, hasMultiplePosts]);
-
-    const activePost = headline_posts[activeIndex];
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -347,72 +409,7 @@ export default function BlogIndex({
                 {/* ========================================================================= */}
                 {/* 📰 Bagian 2: BANNER BERITA UTAMA (HERO BANNER) */}
                 {/* ========================================================================= */}
-                {!isLoading && activePost && (
-                    <div className="w-full bg-gradient-to-br from-zinc-950 via-slate-900 to-zinc-950 text-white rounded-2xl overflow-hidden shadow-2xl">
-                        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-[420px] lg:min-h-[350px] lg:px-2 xl:px-5">
-                            
-                            {/* ✍️ KOLOM KIRI: DETAIL TEKS */}
-                            <div className="lg:col-span-7 flex flex-col justify-center p-6 sm:p-8 lg:p-10 xl:p-12 space-y-4 z-10 my-auto">
-                                
-                                {/* Tag Headline */}
-                                <div className="flex items-center gap-2 text-xs text-orange-400 font-black tracking-widest uppercase">
-                                    <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-md shadow-orange-500/50" />
-                                    <span>BERITA UTAMA HARI INI</span>
-                                </div>
-
-                                {/* Judul Artikel */}
-                                <Link href={`/${activePost.slug}`} className="block group">
-                                    <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white leading-tight group-hover:text-orange-400 group-hover:underline decoration-2 transition-colors duration-200 line-clamp-2">
-                                        {activePost.title}
-                                    </h1>
-                                </Link>
-
-                                {/* Ringkasan/Excerpt Deskripsi */}
-                                <p className="text-zinc-300 text-xs sm:text-sm lg:text-base leading-relaxed border-l-4 border-orange-500 pl-3 font-medium line-clamp-2">
-                                    {activePost.excerpt}
-                                </p>
-
-                                {/* Info Author & CTA Button */}
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-zinc-900 text-sm font-semibold text-zinc-400">
-                                    <div className="text-xs sm:text-sm text-zinc-400">
-                                        Oleh: <strong className="text-white font-black">{activePost.author?.name || 'Tim Redaksi'}</strong>
-                                        <span className="mx-2 text-zinc-800">•</span>
-                                        <span className="text-zinc-350">{formatDate(activePost.published_at)}</span>
-                                    </div>
-                                    
-                                    <Link 
-                                        href={`/${activePost.slug}`} 
-                                        className="inline-flex h-10 sm:h-11 items-center justify-center gap-1.5 bg-orange-500 text-white px-5 rounded-lg font-black uppercase text-xs sm:text-sm hover:bg-orange-650 active:scale-98 transition-all duration-200 shadow-lg shadow-orange-950/20 shrink-0 self-start sm:self-auto"
-                                    >
-                                        BACA SEKARANG
-                                        <ChevronRight className="w-4 h-4 stroke-[3]" />
-                                    </Link>
-                                </div>
-                            </div>
-
-                            {/* 📸 KOLOM KANAN: FRAME VISUAL GAMBAR */}
-                            <div className="order-first lg:order-last lg:col-span-5 relative w-full aspect-[5/3] lg:aspect-[3/2] lg:h-full p-0 sm:p-6 lg:p-6 xl:p-8 flex items-center justify-center bg-zinc-950/20">
-                                {/* Glow Effect di Belakang Gambar */}
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 h-4/5 bg-orange-500/5 blur-[60px] rounded-full pointer-events-none hidden lg:block" />
-
-                                <div className="w-full h-full sm:rounded-xl overflow-hidden relative shadow-xl bg-slate-950">
-                                    <img
-                                        key={activePost.featured_image}
-                                        src={`/storage/${activePost.featured_image}`}
-                                        onError={handleImageError}
-                                        className={`w-full h-full object-cover transition-all duration-500 ease-in-out ${
-                                            isFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-                                        }`}
-                                        alt={activePost.title}
-                                        loading="eager"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/40 via-transparent to-transparent pointer-events-none" />
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                )}
+                <HeadlinePost headline_posts={headline_posts} isLoading={isLoading} />
 
                 {/* ========================================================================= */}
                 {/* 🏷️ Bagian 3: PILIHAN FILTER HORIZONTAL (TOPIK & TRENDING TAGS) */}
