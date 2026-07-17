@@ -114,13 +114,9 @@ class BlogController extends Controller
             $mostReadPosts = (clone $baseQuery)->orderByDesc('views_count')->limit(5)->get();
         } else {
             // Jika halaman depan normal (tanpa filter), ambil dari Cache (Hemat 2 Query Berat!)
-            $headlinePosts = Cache::remember('blog_headline_posts_default', now()->addMinutes(10), function () {
-                return Article::query()->published()->with(['author:id,name', 'category:id,name,slug'])->headline()->latest('published_at')->limit(5)->get();
-            });
+            $headlinePosts = Article::query()->published()->with(['author:id,name', 'category:id,name,slug'])->headline()->latest('published_at')->limit(5)->get();
 
-            $mostReadPosts = Cache::remember('blog_most_read_posts_default', now()->addMinutes(10), function () {
-                return Article::query()->published()->with(['author:id,name', 'category:id,name,slug'])->orderByDesc('views_count')->limit(5)->get();
-            });
+            $mostReadPosts = Article::query()->published()->with(['author:id,name', 'category:id,name,slug'])->orderByDesc('views_count')->limit(5)->get();
         }
 
        /*
@@ -299,24 +295,33 @@ class BlogController extends Controller
 
     private function getRandomProducts($slug = null, $show = 8)
     {
-        $products = Product::query()
-            ->published()
-            ->with([
-                'brand:id,name',
-                'category:id,name,slug',
-                'coverImage',
-            ])
-            // Jika slug diisi, filter berdasarkan slug milik relasi category
-            ->when($slug, function ($query) use ($slug) {
-                return $query->whereHas('category', function ($q) use ($slug) {
-                    $q->where('slug', $slug);
-                });
-            })
-            ->inRandomOrder() // Acak data langsung dari database
-            ->limit($show)
-            ->get();
+        // 1. Buat Unique Cache Key berdasarkan slug agar tidak tercampur antar kategori
+        $cacheKey = 'random_products_' . ($slug ?? 'all');
 
-        return $products->map(function ($product) {
+        // 2. Simpan/Ambil data mentah dari Cache selama 10 menit (600 detik)
+        $products = Cache::remember($cacheKey, 600, function () use ($slug) {
+            return Product::query()
+                ->published()
+                ->with([
+                    'brand:id,name',
+                    'category:id,name,slug',
+                    'coverImage',
+                ])
+                ->when($slug, function ($query) use ($slug) {
+                    return $query->whereHas('category', function ($q) use ($slug) {
+                        $q->where('slug', $slug);
+                    });
+                })
+                // JANGAN gunakan ->inRandomOrder() di sini agar cache tidak mengunci 1 variasi acak saja
+                ->get();
+        });
+
+        // 3. Lakukan pengacakan di level PHP (Collection) dan batasi jumlahnya
+        // Ini menjamin setiap page di-refresh, item yang muncul TETAP ACAK & DINAMIS
+        $randomizedProducts = $products->shuffle()->take($show);
+
+        // 4. Proses Mapping Data
+        return $randomizedProducts->map(function ($product) {
             if (method_exists($this, 'transformProduct')) {
                 return $this->transformProduct($product);
             }
@@ -336,7 +341,7 @@ class BlogController extends Controller
             ];
         });
     }
-
+    
     private function transformProduct(
         Product $product
     ): array {
