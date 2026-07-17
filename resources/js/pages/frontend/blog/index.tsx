@@ -50,39 +50,76 @@ interface FlatCategoryItem {
 
 export const FlatCategoryList = memo(function FlatCategoryList({ items }: { items: FlatCategoryItem[] }) {
     return (
-        <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-5">
-                <div className="flex items-center gap-3">
-                    <Layers className="w-5 h-5 text-orange-600 stroke-[2.5]" />
-                    <h2 className="text-base font-extrabold uppercase tracking-wide text-zinc-950 dark:text-white">
-                        Daftar Layanan & Jenis Produk
+        <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 lg:p-6 shadow-xs">
+            
+            {/* 📋 Header Section: Responsif padding & text size */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-4 mb-4">
+                <div className="flex items-center gap-2.5">
+                    <Layers className="w-5 h-5 text-orange-600 stroke-[2.5] shrink-0" />
+                    <h2 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-zinc-950 dark:text-white">
+                        Temukan yang kamu butuhkan
                     </h2>
                 </div>
             </div>
-            <div className="space-y-3">
+
+            {/* 🛠️ RESPONSIVE GRID SYSTEM:
+                - HP (Default): 1 Kolom (List Vertikal)
+                - Tablet (sm): 2 Kolom berdampingan
+                - Laptop Kecil (md): Tetap 2 Kolom dengan penyesuaian padding
+                - Laptop Besar/Desktop (lg/xl): Kembali ke 1 Kolom jika ditaruh di Sidebar, 
+                  atau bisa disesuaikan ke md:grid-cols-2 / xl:grid-cols-3 jika ditaruh di area konten utama.
+            */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-1 gap-3 sm:gap-4">
                 {items.map((item, index) => (
                     <a 
                         key={item.slug || index}
                         href={item.href}
-                        className="group flex gap-4 p-4 bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl items-center justify-between transition-all hover:border-orange-500 dark:hover:border-orange-500"
+                        className="group flex gap-3 sm:gap-4 p-3.5 sm:p-4 bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl items-center justify-between transition-all duration-200 hover:border-orange-500 dark:hover:border-orange-500 hover:shadow-md hover:shadow-orange-500/5 hover:-translate-y-0.5 transform-gpu"
                     >
-                        <div className="flex gap-4 items-center min-w-0 flex-1">
-                            <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl bg-zinc-100 dark:bg-zinc-800 overflow-hidden relative border border-zinc-200/60 dark:border-zinc-700 flex items-center justify-center">
+                        {/* Konten Kiri: Gambar + Teks */}
+                        <div className="flex gap-3 sm:gap-4 items-center min-w-0 flex-1">
+                            
+                            {/* Ukuran Gambar Mini Adaptif: Mengecil di HP, Proporsional di Tablet/Laptop */}
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 shrink-0 rounded-xl bg-zinc-100 dark:bg-zinc-800 overflow-hidden relative border border-zinc-200/65 dark:border-zinc-700 flex items-center justify-center shadow-inner">
                                 {item.image ? (
-                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover transform-gpu" loading="lazy" decoding="async" />
+                                    <img 
+                                        src={item.image} 
+                                        alt={item.name} 
+                                        className="w-full h-full object-cover transform-gpu group-hover:scale-105 transition-transform duration-300" 
+                                        loading="lazy" 
+                                        decoding="async" 
+                                    />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">No Img</div>
+                                    <div className="w-full h-full flex items-center justify-center text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        No Img
+                                    </div>
                                 )}
                             </div>
-                            <div className="min-w-0 flex-1 space-y-1">
-                                <span className="inline-block text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400">{item.parentTitle}</span>
-                                <h3 className="text-base sm:text-lg font-extrabold text-zinc-900 dark:text-white group-hover:text-orange-600 transition-colors leading-tight">{item.name}</h3>
-                                {item.description && <div className="text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm leading-relaxed font-medium line-clamp-3" dangerouslySetInnerHTML={{ __html: item.description }} />}
+
+                            {/* Info Teks: Penanganan Fleksibel untuk Judul & Deskripsi Panjang */}
+                            <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
+                                <span className="inline-block text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400">
+                                    {item.parentTitle}
+                                </span>
+                                
+                                <h3 className="text-sm sm:text-base font-extrabold text-zinc-900 dark:text-white group-hover:text-orange-600 transition-colors leading-tight truncate sm:whitespace-normal sm:line-clamp-2">
+                                    {item.name}
+                                </h3>
+                                
+                                {item.description && (
+                                    <div 
+                                        className="text-zinc-500 dark:text-zinc-400 text-xs leading-relaxed font-medium line-clamp-2 sm:line-clamp-3 opacity-90" 
+                                        dangerouslySetInnerHTML={{ __html: item.description }} 
+                                    />
+                                )}
                             </div>
+
                         </div>
-                        <div className="shrink-0 pl-2 hidden md:block">
-                            <div className="w-9 h-9 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 text-zinc-500 group-hover:bg-orange-500 group-hover:text-white flex items-center justify-center transition-all">
-                                <ChevronRight className="w-5 h-5 stroke-[2.5]" />
+
+                        {/* Konten Kanan: Tombol Indikator Panah (Sembunyi di HP kecil, Muncul dari Tablet ke Atas) */}
+                        <div className="shrink-0 pl-1 hidden sm:block">
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 text-zinc-400 group-hover:bg-orange-500 group-hover:text-white flex items-center justify-center transition-all duration-200">
+                                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
                             </div>
                         </div>
                     </a>
@@ -621,53 +658,6 @@ export default function BlogIndex({
                         KOLOM KANAN: SIDEBAR PENCARIAN & LAYANAN (Full Width Adaptif)
                        =================================================== */}
                     <aside className="lg:col-span-4 space-y-6 w-full">
-
-                        {/* ========================================================================= */}
-                        {/* 📱 SECTION: SOCIAL MEDIA FEEDS (PALING ATAS SIDEBAR) */}
-                        {/* ========================================================================= */}
-                        <div className="space-y-4">
-                            
-                            {/* 1. Card TikTok */}
-                            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-                                <div className="mb-3">
-                                    <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-                                        Ikuti Kami di TikTok
-                                    </h3>
-                                </div>
-                                
-                                {/* Wrapper area embed TikTok */}
-                                <div className="w-full bg-zinc-50 dark:bg-zinc-950/40 rounded-xl overflow-hidden p-2 flex items-center justify-center min-h-[300px]">
-                                    <SocialProfileEmbed 
-                                        platform="tiktok" 
-                                        urlConfig={getConfig("social_tiktok", "https://www.tiktok.com/@alumodakontainer")} 
-                                    />
-                                </div>
-                            </div>
-
-                            {/* 2. Card YouTube */}
-                            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-                                <div className="mb-3">
-                                    <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-                                        Video Terbaru YouTube
-                                    </h3>
-                                </div>
-                                
-                                {/* Wrapper area embed YouTube video */}
-                                <div className="w-full bg-zinc-50 dark:bg-zinc-950/40 rounded-xl overflow-hidden p-3 space-y-2">
-                                    <div className="w-full aspect-video rounded-lg overflow-hidden border border-zinc-200/60 dark:border-zinc-800 shadow-inner">
-                                        <SocialProfileEmbed 
-                                            platform="youtube" 
-                                            urlConfig="UCKxrMhKnI0z-dQt0JhtukWg" 
-                                            youtubeType="latest-video" 
-                                        />
-                                    </div>
-                                    <p className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 text-center pt-1">
-                                        Update seputar modifikasi & sewa kontainer.
-                                    </p>
-                                </div>
-                            </div>
-
-                        </div>
 
                         {/* ========================================================================= */}
                         {/* 📦 BOX PANEL: HUBUNGAN LAYANAN UNIT */}
