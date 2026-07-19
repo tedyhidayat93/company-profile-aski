@@ -65,7 +65,7 @@ export default function Sitemap({
                     </div>
 
                     {/* Mengubah col-grid agar seimbang menampung 5 Box Informasi Utama */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                    <div className="grid grid-cols-1 gap-6">
                         
                         {/* 1. Navigation Section */}
                         <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100 flex flex-col justify-between">
@@ -101,7 +101,7 @@ export default function Sitemap({
                                     </h2>
                                 </div>
                                 {services && services.length > 0 ? (
-                                    <ul className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                                    <ul className="space-y-2 pr-1">
                                         {services.map((service) => (
                                             <li key={service.id}>
                                                 <Link
@@ -137,7 +137,7 @@ export default function Sitemap({
                                     </h2>
                                 </div>
                                 {product_categories && product_categories.length > 0 ? (
-                                    <ul className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                                    <ul className="space-y-2 pr-1">
                                         {product_categories.map((category) => (
                                             <li key={category.id}>
                                                 <Link
@@ -173,7 +173,7 @@ export default function Sitemap({
                                     </h2>
                                 </div>
                                 {products && products.length > 0 ? (
-                                    <ul className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                                    <ul className="space-y-2 pr-1">
                                         {products.map((product) => (
                                             <li key={product.id}>
                                                 <Link
@@ -209,7 +209,7 @@ export default function Sitemap({
                                     </h2>
                                 </div>
                                 {articles && articles.length > 0 ? (
-                                    <ul className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                                    <ul className="space-y-2 pr-1">
                                         {articles.map((article) => (
                                             <li key={article.id}>
                                                 <Link

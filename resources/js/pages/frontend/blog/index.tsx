@@ -1,7 +1,7 @@
 import { lazy, useState, Suspense, useMemo, memo } from 'react';
 import { Link, useForm, router, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { Eye, Filter, ChevronRight, BoxIcon, Layers, ChevronLeft, RotateCcw, Search, Flame } from 'lucide-react';
+import { Eye, Filter, ChevronRight, BoxIcon, Layers, ChevronLeft, RotateCcw, Search, Flame, Container, Send, User } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
@@ -48,87 +48,6 @@ interface FlatCategoryItem {
     href: string;
 }
 
-export const FlatCategoryList = memo(function FlatCategoryList({ items }: { items: FlatCategoryItem[] }) {
-    return (
-        <div className="w-full bg-white dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 lg:p-6 shadow-xs">
-            
-            {/* 📋 Header Section: Responsif padding & text size */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-4 mb-4">
-                <div className="flex items-center gap-2.5">
-                    <Layers className="w-5 h-5 text-orange-600 stroke-[2.5] shrink-0" />
-                    <h2 className="text-sm sm:text-base font-extrabold uppercase tracking-wide text-zinc-950 dark:text-white">
-                        Temukan yang kamu butuhkan
-                    </h2>
-                </div>
-            </div>
-
-            {/* 🛠️ RESPONSIVE GRID SYSTEM:
-                - HP (Default): 1 Kolom (List Vertikal)
-                - Tablet (sm): 2 Kolom berdampingan
-                - Laptop Kecil (md): Tetap 2 Kolom dengan penyesuaian padding
-                - Laptop Besar/Desktop (lg/xl): Kembali ke 1 Kolom jika ditaruh di Sidebar, 
-                  atau bisa disesuaikan ke md:grid-cols-2 / xl:grid-cols-3 jika ditaruh di area konten utama.
-            */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-1 gap-3 sm:gap-4">
-                {items.map((item, index) => (
-                    <a 
-                        key={item.slug || index}
-                        href={item.href}
-                        className="group flex gap-3 sm:gap-4 p-3.5 sm:p-4 bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl items-center justify-between transition-all duration-200 hover:border-orange-500 dark:hover:border-orange-500 hover:shadow-md hover:shadow-orange-500/5 hover:-translate-y-0.5 transform-gpu"
-                    >
-                        {/* Konten Kiri: Gambar + Teks */}
-                        <div className="flex gap-3 sm:gap-4 items-center min-w-0 flex-1">
-                            
-                            {/* Ukuran Gambar Mini Adaptif: Mengecil di HP, Proporsional di Tablet/Laptop */}
-                            {/* <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 shrink-0 rounded-xl bg-zinc-100 dark:bg-zinc-800 overflow-hidden relative border border-zinc-200/65 dark:border-zinc-700 flex items-center justify-center shadow-inner">
-                                {item.image ? (
-                                    <img 
-                                        src={item.image} 
-                                        alt={item.name} 
-                                        className="w-full h-full object-cover transform-gpu group-hover:scale-105 transition-transform duration-300" 
-                                        loading="lazy" 
-                                        decoding="async" 
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-                                        No Img
-                                    </div>
-                                )}
-                            </div> */}
-
-                            {/* Info Teks: Penanganan Fleksibel untuk Judul & Deskripsi Panjang */}
-                            <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
-                                <span className="inline-block text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400">
-                                    {item.parentTitle}
-                                </span>
-                                
-                                <h3 className="text-sm sm:text-base font-extrabold text-zinc-900 dark:text-white group-hover:text-orange-600 transition-colors leading-tight truncate sm:whitespace-normal sm:line-clamp-2">
-                                    {item.name}
-                                </h3>
-                                
-                                {item.description && (
-                                    <div 
-                                        className="text-zinc-500 dark:text-zinc-400 text-xs leading-relaxed font-medium line-clamp-2 sm:line-clamp-3 opacity-90" 
-                                        dangerouslySetInnerHTML={{ __html: item.description }} 
-                                    />
-                                )}
-                            </div>
-
-                        </div>
-
-                        {/* Konten Kanan: Tombol Indikator Panah (Sembunyi di HP kecil, Muncul dari Tablet ke Atas) */}
-                        <div className="shrink-0 pl-1 hidden sm:block">
-                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-50 dark:bg-zinc-800/80 text-zinc-400 group-hover:bg-orange-500 group-hover:text-white flex items-center justify-center transition-all duration-200">
-                                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
-                            </div>
-                        </div>
-                    </a>
-                ))}
-            </div>
-        </div>
-    );
-});
-
 interface PaginationProps {
     links: Array<{
         url: string | null;
@@ -148,6 +67,7 @@ interface CustomGalleryItem {
     description?: string;
     postData: BlogPost;
 }
+
 
 export function SimpleArrowPagination({ links }: PaginationProps) {
     // Laravel mengembalikan link "Previous" di indeks pertama (0) 
@@ -272,455 +192,442 @@ export function HeadlinePost({ headline_posts, isLoading }: HeadlinePostProps) {
 }
 
 export default function BlogIndex({ 
-    headline_posts = [],
-    random_products = [], 
-    most_read_posts = [], 
-    recent_posts = [], 
-    all_posts = { data: [], links: [] }, 
-    categories = [], 
-    popular_tags = [],
-    footerServices = [],
-    filters = {},
-    seo
+  headline_posts = [],
+  random_products = [], 
+  most_read_posts = [], 
+  recent_posts = [], 
+  all_posts = { data: [], links: [] }, 
+  categories = [], 
+  popular_tags = [],
+  filters = {},
+  seo
 }: Props) {
-    const { getConfig } = useConfig();
-    const { productCategories } = usePage().props as unknown as { productCategories: RootCategory[] };
-    
-    const { data, setData, get } = useForm({
-        search: filters.search || '',
-        category: filters.category || '',
-        tag: filters.tag || '',
-    });
-    
-    // 🌟 PERBAIKAN 1: Bungkus proses flatMap dengan useMemo agar HANYA dieksekusi 
-    // ketika data `productCategories` dari backend benar-benar berubah!
-    const flattenedCategories = useMemo<FlatCategoryItem[]>(() => {
-        if (!productCategories) return [];
-        return productCategories.flatMap((category) => 
-            category.items.map((item) => ({
-                parentTitle: category.title,
-                parentSlug: category.slug,
-                name: item.name,
-                slug: item.slug,
-                description: item.meta_description || item.description || category.description,
-                image: item.image || category.image,
-                href: item.href || `/produk/${category.slug}/${item.slug}`
-            }))
-        );
-    }, [productCategories]); // Hanya hitung ulang jika array ini berubah
+  const { getConfig } = useConfig();
+  const { productCategories } = usePage().props as any;
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [isSearching, setIsSearching] = useState(false);
+  
+  const { data, setData, get } = useForm({
+    search: filters.search || '',
+    category: filters.category || '',
+    tag: filters.tag || '',
+  });
 
-    const isFilteringActive = data.search || data.category || data.tag;
-    const [isSearching, setIsSearching] = useState(false);
-    const isLoading = !headline_posts || !most_read_posts || !recent_posts;
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSearching(true);
-        get('/info', {
-            preserveState: true,
-            preserveScroll: true,
-            onFinish: () => setIsSearching(false)
-        });
-    };
-
-    // 🌟 PERBAIKAN 2: Keluarkan router.get dari dalam updater state setData
-    const handleCategoryChange = (slug: string) => {
-        const updated = { ...data, category: slug, tag: '' };
-        setData(updated);
-        router.get('/info', updated, { preserveState: true, preserveScroll: true });
-    };
-
-    // 🌟 PERBAIKAN 3: Samakan penanganan dengan handleCategoryChange
-    const handleTagClick = (tag: string) => {
-        const updated = { ...data, tag: tag, category: '' };
-        setData(updated);
-        router.get('/info', updated, { preserveState: true, preserveScroll: true });
-    };
-
-    const formatDate = (date: string) =>
-        new Date(date).toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-        });
-
-    return (
-        <FrontendLayout>
-            <SeoHead
-                title={seo.title || getConfig('services_meta_title', 'Berita & Informasi')}
-                description={seo.description}
-                image={seo.image}   
-                keywords={seo.keywords}
-                contentType={seo.contentType || 'website'}
-            />
-    
-            <div className="w-full xl:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-3">
-        
-                {/* ========================================================================= */}
-                {/* 🔍 Bagian 1: BAR PENCARIAN UTAMA & TOMBOL RESET */}
-                {/* ========================================================================= */}
-                <div className="flex flex-col md:flex-row gap-4 items-center w-full max-w-7xl mx-auto">
-                    <form onSubmit={handleSearch} className="w-full relative flex-1 group">
-                        {/* 🌟 Efek ambient glow di belakang input saat hover/focus */}
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-600 rounded-2xl opacity-0 group-hover:opacity-10 dark:group-hover:opacity-5 focus-within:opacity-20 dark:focus-within:opacity-10 transition duration-300 blur-sm pointer-events-none" />
-                        
-                        <div className="relative">
-                            {/* 🔍 Ikon Pencarian dengan indikator aktif warna */}
-                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                <Search className="h-5 w-5 text-zinc-400 group-focus-within:text-orange-500 transition-colors duration-200" />
-                            </div>
-                            
-                            <input
-                                type="text"
-                                placeholder="Cari artikel atau topik berita hari ini..."
-                                value={data.search}
-                                onChange={(e) => setData('search', e.target.value)}
-                                className="w-full h-13 pl-12 pr-24 text-base font-semibold text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 bg-zinc-100 dark:bg-zinc-900/60 hover:bg-zinc-200/40 dark:hover:bg-zinc-900/80 focus:bg-white dark:focus:bg-zinc-950 border border-zinc-200/20 dark:border-zinc-800/50 focus:border-orange-500 dark:focus:border-orange-500 rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all duration-200"
-                            />
-                            
-                            {/* 🚀 Tombol Cari yang Lebih Bold & Eye-Catching */}
-                            <button 
-                                type="submit" 
-                                disabled={isSearching}
-                                className="absolute right-2 top-2 h-9 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-orange-500/20 active:scale-95 disabled:opacity-50 transition-all duration-200"
-                            >
-                                {isSearching ? (
-                                    <span className="flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />
-                                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
-                                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.4s]" />
-                                    </span>
-                                ) : 'Cari'}
-                            </button>
-                        </div>
-                    </form>
-
-                    {/* 🛑 Tombol Reset dengan Desain Clean-Premium */}
-                    {isFilteringActive && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setData({ search: '', category: '', tag: '' });
-                                router.get('/info', {}, { preserveState: true, preserveScroll: true });
-                            }}
-                            className="w-full md:w-auto h-13 px-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 hover:border-transparent text-sm font-black uppercase tracking-wide transition-all duration-200 shadow-sm active:scale-95 shrink-0"
-                        >
-                            <RotateCcw className="h-4 w-4 stroke-[2.5]" />
-                            <span>Reset</span>
-                        </button>
-                    )}
-                </div>
-
-                {/* ========================================================================= */}
-                {/* 📰 Bagian 2: BANNER BERITA UTAMA (HERO BANNER) */}
-                {/* ========================================================================= */}
-                <HeadlinePost headline_posts={headline_posts} isLoading={isLoading} />
-
-                {/* ========================================================================= */}
-                {/* 🏷️ Bagian 3: PILIHAN FILTER HORIZONTAL (TOPIK & TRENDING TAGS) */}
-                {/* ========================================================================= */}
-                <div className="w-full space-y-4 pb-5 border-b border-zinc-200 dark:border-zinc-800">
-                    
-                    {/* 🏷️ BARIS 1: KATEGORI UTAMA (HORIZONTAL SCROLL) */}
-                    <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-900/20 p-2 rounded-2xl">
-                        {/* Penanda Label Kiri */}
-                        <div className="flex items-center gap-1.5 text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest border-r border-zinc-250 dark:border-zinc-800 pr-4 shrink-0 select-none">
-                            <Filter className="h-3.5 w-3.5 text-orange-500" />
-                            <span className="hidden sm:inline">Topik</span>
-                        </div>
-
-                        {/* Container List Kategori */}
-                        <div className="flex-1 overflow-x-auto no-scrollbar mask-gradient-r">
-                            <div className="flex items-center gap-2 pb-0.5">
-                                <button
-                                    type="button"
-                                    onClick={() => handleCategoryChange('')}
-                                    className={`rounded-xl px-4 py-1.5 text-xs sm:text-sm font-extrabold border transition-all duration-200 whitespace-nowrap ${
-                                        !data.category 
-                                            ? 'bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/10' 
-                                            : 'bg-transparent text-zinc-600 dark:text-zinc-400 border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
-                                    }`}
-                                >
-                                    Semua Berita
-                                </button>
-
-                                {categories
-                                    .filter(cat => cat.type === 'blog')
-                                    .map((category) => {
-                                        const isCatActive = data.category === category.slug;
-                                        return (
-                                            <button
-                                                key={category.id}
-                                                type="button"
-                                                onClick={() => handleCategoryChange(category.slug)}
-                                                className={`rounded-xl px-4 py-1.5 text-xs sm:text-sm font-extrabold border transition-all duration-200 whitespace-nowrap ${
-                                                    isCatActive 
-                                                        ? 'bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/10' 
-                                                        : 'bg-transparent text-zinc-600 dark:text-zinc-400 border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
-                                                }`}
-                                            >
-                                                {category.name}
-                                            </button>
-                                        );
-                                    })
-                                }
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 🔥 BARIS 2: TRENDING TAGS (HORIZONTAL SCROLL) */}
-                    {popular_tags.length > 0 && (
-                        <div className="flex items-center gap-4 px-2">
-                            {/* Penanda Label Kiri */}
-                            <div className="flex items-center gap-1.5 text-xs font-black text-orange-500 uppercase tracking-widest shrink-0 select-none">
-                                <Flame className="h-3.5 w-3.5 fill-orange-500/10 animate-pulse" />
-                                <span>Trending:</span>
-                            </div>
-
-                            {/* Container List Tags */}
-                            <div className="flex-1 overflow-x-auto no-scrollbar">
-                                <div className="flex items-center gap-1.5 pb-0.5">
-                                    {popular_tags.map((tag, index) => {
-                                        const isTagActive = data.tag === tag;
-                                        return (
-                                            <button
-                                                key={index}
-                                                type="button"
-                                                onClick={() => handleTagClick(tag)}
-                                                className={`px-3 py-1 rounded-full text-xs font-bold border transition-all duration-150 whitespace-nowrap ${
-                                                    isTagActive 
-                                                        ? 'bg-orange-500/10 border-orange-500 text-orange-600 dark:text-orange-400' 
-                                                        : 'bg-zinc-100 dark:bg-zinc-900 border-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800'
-                                                }`}
-                                            >
-                                                #{tag}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                </div>
-            </div>
-
-            {/* --- CONTAINER KONTEN UTAMA - Menggunakan w-full & px-4/px-6/px-8 saja --- */}
-            <main className="w-full xl:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                
-                {/* Banner Rekomendasi Produk */}
-                {/* <div className="w-full mb-10 bg-white dark:bg-slate-950 border border-zinc-200 rounded-2xl overflow-hidden">
-                    <FeaturedProductsBanner products={random_products} autoScroll={false} />
-                </div> */}
-
-                 <section className='mb-10'>
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-1 mb-4 border-b-2 border-zinc-300 dark:border-zinc-800 pb-3 mb-6">
-                        <div className="space-y-2">
-                            <h2 id="section-sorotan" className="text-xl font-extrabold uppercase text-zinc-900 dark:text-white flex items-center gap-2.5">
-                                <span className="w-2 h-6 bg-orange-500 inline-block rounded-full"></span>
-                                Rekomendasi Unit Kontainer Untukmu
-                            </h2>
-                        </div>
-                        <Link href="/katalog" className="text-orange-500 font-bold text-sm underline pl-4">
-                            Lihat Unit Lainnya
-                        </Link>
-                    </div>
-
-                    <div className="flex gap-4 overflow-x-auto snap-x custom-scrollbar snap-mandatory scroll-smooth no-scrollbar">
-                        {random_products.map((product) => (
-                            <div
-                                key={product.id}
-                                className="w-60 flex-shrink-0 snap-start transition-all duration-300 hover:-translate-y-1.5 hover:drop-shadow-xl p-1"
-                            >
-                                <ProductCard product={product} />
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    
-                    {/* ===================================================
-                        KOLOM KIRI: ARSIP ARTIKEL (Lebar Lebih Luas)
-                       =================================================== */}
-                    <div className="lg:col-span-8 space-y-12">
-                        
-                        {/* SEKSI: INFORMASI PILIHAN */}
-                        {headline_posts.length > 1 && (
-                            <section aria-labelledby="section-sorotan">
-                                <div className="border-b-2 border-zinc-300 dark:border-zinc-800 pb-3 mb-6">
-                                    <h2 id="section-sorotan" className="text-xl font-extrabold uppercase text-zinc-900 dark:text-white flex items-center gap-2.5">
-                                        <span className="w-2 h-6 bg-orange-500 inline-block rounded-full"></span>
-                                        Informasi Pilihan Pembaca
-                                    </h2>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    {headline_posts.slice(1, 4).map((post) => (
-                                        <article key={post.id} className="flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-850 rounded-xl overflow-hidden">
-                                            <Link 
-                                                href={`/${post.slug}`} 
-                                                className="w-full aspect-[4/3] overflow-hidden bg-zinc-200 dark:bg-zinc-800 block relative"
-                                            >
-                                                <img 
-                                                    src={`/storage/${post.featured_image}`} 
-                                                    className="absolute inset-0 w-full h-full object-cover"
-                                                    onError={handleImageError}
-                                                    alt={post.title}
-                                                    loading="lazy"
-                                                />
-                                            </Link>
-                                            <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                                                <Link href={`/${post.slug}`} className="group">
-                                                    <h3 className="font-extrabold text-lg text-zinc-950 dark:text-white leading-snug group-hover:text-orange-600 group-hover:underline">
-                                                        {post.title}
-                                                    </h3>
-                                                </Link>
-                                                <div className="text-sm font-semibold text-zinc-600 dark:text-zinc-400 flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-3">
-                                                    <span>{formatDate(post.published_at)}</span>
-                                                    <span className="flex items-center gap-1"><Eye className="w-4 h-4" /> {post.views_count}</span>
-                                                </div>
-                                            </div>
-                                        </article>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* SEKSI UTAMA: ARSIP DAFTAR ARTIKEL */}
-                        <section aria-labelledby="section-arsip" className=" border-zinc-200 dark:border-zinc-850 pt-8">
-                            <div className="border-b-2 border-zinc-300 dark:border-zinc-800 pb-3 mb-6">
-                                <h2 id="section-arsip" className="text-xl font-extrabold uppercase text-zinc-900 dark:text-white flex items-center gap-2.5">
-                                    <span className="w-2 h-6 bg-orange-500 inline-block rounded-full"></span>
-                                    Baca Artikel Lainnya
-                                </h2>
-                            </div>
-                            
-                            <div className="space-y-8">
-                                {all_posts.data.length === 0 ? (
-                                    <div className="text-center py-16 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl">
-                                        <p className="text-base font-bold text-zinc-600 dark:text-zinc-400">Tidak ada artikel yang cocok dengan pencarian Anda.</p>
-                                    </div>
-                                ) : (
-                                    all_posts.data.map((post) => (
-                                        <article key={post.id} className="flex flex-col md:flex-row gap-6 p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl items-start">
-                                            {/* <Link href={`/${post.slug}`} className="w-full md:w-42 xl:w-64 aspect-[16/11] shrink-0 overflow-hidden rounded-xl bg-zinc-200 dark:bg-zinc-800 block relative">
-                                                <img 
-                                                    src={`/storage/${post.featured_image}`} 
-                                                    className="w-full h-full object-cover transform-gpu" 
-                                                    onError={handleImageError} 
-                                                    alt={post.title} 
-                                                    loading="lazy" 
-                                                />
-                                            </Link> */}
-                                            
-                                            <div className="flex-1 space-y-3.5 w-full">
-                                                <div className="flex items-center gap-3 flex-wrap text-xs xl:text-sm font-bold">
-                                                    {post.category && (
-                                                        <span className="uppercase tracking-wider text-orange-700 bg-orange-100 dark:text-orange-400 dark:bg-orange-950 px-3 py-1 rounded-md">
-                                                            {post.category.name}
-                                                        </span>
-                                                    )}
-                                                    <span className="text-zinc-600 dark:text-zinc-400">
-                                                        {formatDate(post.published_at)}
-                                                    </span>
-                                                </div>
-
-                                                <Link href={`/${post.slug}`} className="block group">
-                                                    <h3 className="font-black text-2xl md:text-3xl text-zinc-950 dark:text-white leading-snug group-hover:text-orange-600 group-hover:underline">
-                                                        {post.title}
-                                                    </h3>
-                                                </Link>
-
-                                                <p className="text-zinc-800 dark:text-zinc-200 text-lg md:text-xl leading-relaxed font-normal line-clamp-3">
-                                                    {post.excerpt}
-                                                </p>
-
-                                                <div className="flex items-center justify-between text-sm font-bold text-zinc-600 dark:text-zinc-400 pt-4 border-t border-zinc-150 dark:border-zinc-800">
-                                                    <span className="flex items-center gap-1.5"><Eye className="w-4 h-4" /> {post.views_count} kali dibaca</span>
-                                                    <Link href={`/${post.slug}`}  className="inline-flex hover:underline items-center gap-1 text-orange-600 text-base font-extrabold">
-                                                        Baca Selengkapnya ➔
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        </article>
-                                    ))
-                                )}
-                            </div>
-
-                            <div className="mt-10 pt-6 border-t border-zinc-200 dark:border-zinc-800">
-                                <SimpleArrowPagination links={all_posts.links} />
-                            </div>
-                        </section>
-
-                    </div>
-
-                    {/* ===================================================
-                        KOLOM KANAN: SIDEBAR PENCARIAN & LAYANAN (Full Width Adaptif)
-                       =================================================== */}
-                    <aside className="lg:col-span-4 space-y-6 w-full">
-
-                        {/* ========================================================================= */}
-                        {/* 📦 BOX PANEL: HUBUNGAN LAYANAN UNIT */}
-                        {/* ========================================================================= */}
-                        {footerServices.length > 0 && (
-                            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4">
-                                <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-3">
-                                    <BoxIcon className="h-5 w-5 text-orange-500" />
-                                    <h2 className="text-base font-extrabold uppercase text-zinc-900 dark:text-white">
-                                        Layanan Utama Kami
-                                    </h2>
-                                </div>
-
-                                <div className="space-y-3">
-                                    {footerServices.map((item, key) => (
-                                        <Link 
-                                            key={key} 
-                                            href={`/layanan/${item.slug}`} 
-                                            className="group flex flex-wrap md:flex-nowrap gap-3.5 p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-850 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors items-center"
-                                        >
-                                            {/* <div className="w-14 h-14 shrink-0 rounded-lg bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center overflow-hidden">
-                                                {item.image ? (
-                                                    <img
-                                                        src={item.image}
-                                                        alt={item.name}
-                                                        onError={handleImageError}
-                                                        className="w-full h-full object-cover transform-gpu"
-                                                        loading="lazy"
-                                                    />
-                                                ) : (
-                                                    <span className="font-bold text-zinc-400 text-[10px] uppercase">Unit</span>
-                                                )}
-                                            </div> */}
-
-                                            <div className="min-w-0 flex-1">
-                                                <span className="block text-base font-extrabold text-zinc-900 dark:text-white group-hover:text-orange-600 transition-colors">
-                                                    {item.name}
-                                                </span>
-                                                <span className="block text-sm text-zinc-600 dark:text-zinc-400 mt-1 font-medium line-clamp-3">
-                                                    {item.short_description}
-                                                </span>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-                                
-                                <div className="pt-3 text-center border-t border-zinc-150 dark:border-zinc-800">
-                                    <Link href="/layanan" className="inline-flex items-center gap-1 text-base font-black text-zinc-950 dark:text-white hover:text-orange-600">
-                                        Lihat Semua Unit Layanan ➔
-                                    </Link>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ========================================================================= */}
-                        {/* 🏷️ FILTER KATEGORI */}
-                        {/* ========================================================================= */}
-                        <FlatCategoryList items={flattenedCategories} />
-
-                    </aside>
-                </section>
-            </main>
-            <CtaSection />
-        </FrontendLayout>
+  const flattenedCategories = useMemo(() => {
+    if (!productCategories) return [];
+    return productCategories.flatMap((category: any) => 
+      category.items.map((item: any) => ({
+        parentTitle: category.title,
+        parentSlug: category.slug,
+        name: item.name,
+        slug: item.slug,
+        description: item.meta_description || item.description || category.description,
+        image: item.image || category.image,
+        href: item.href || `/produk/${category.slug}/${item.slug}`
+      }))
     );
+  }, [productCategories]);
+
+  const isFilteringActive = data.search || data.category || data.tag;
+  const isLoading = !headline_posts || !most_read_posts || !recent_posts;
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSearching(true);
+    get('/info', {
+      preserveState: true,
+      preserveScroll: true,
+      onFinish: () => setIsSearching(false)
+    });
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // 1. Ambil nomor WhatsApp dan bersihkan karakter non-digit
+    const whatsappNumber = getConfig('contact_whatsapp', '').replace(/\D/g, '');
+
+    // 2. Susun template pesan promosi dengan rapi (mendukung baris baru / enter)
+    const messageTemplate = 
+    `Halo Marketing Alumoda,
+
+    Nama saya: ${form.name}
+    Saya ingin tanya harga: ${form.subject}
+
+    Catatan tambahan:
+    ${form.message || '-'}`;
+
+    // 3. Encode seluruh pesan sekaligus agar format spasi dan enter tidak rusak
+    const encodedMessage = encodeURIComponent(messageTemplate);
+
+    // 4. Gabungkan menjadi URL utama
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+
+    // 5. Buka tab baru
+    window.open(whatsappUrl, '_blank');
+    };
+
+  const handleCategoryChange = (slug: string) => {
+    const updated = { ...data, category: slug, tag: '' };
+    setData(updated);
+    router.get('/info', updated, { preserveState: true, preserveScroll: true });
+  };
+
+  const handleTagClick = (tag: string) => {
+    const updated = { ...data, tag: tag, category: '' };
+    setData(updated);
+    router.get('/info', updated, { preserveState: true, preserveScroll: true });
+  };
+
+  const formatDate = (date: string) =>
+    new Date(date).toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+
+  return (
+    <FrontendLayout>
+      <SeoHead
+        title={seo.title || getConfig('services_meta_title', 'Inspirasi & Promo Kontainer Custom')}
+        description={seo.description}
+        image={seo.image}   
+        keywords={seo.keywords}
+        contentType={seo.contentType || 'website'}
+      />
+
+      {/* Main Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        
+        {/* SECTION 1: SEARCH BAR */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center w-full">
+          <form onSubmit={handleSearch} className="w-full relative flex-1 group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl opacity-0 group-hover:opacity-5 focus-within:opacity-10 transition duration-300 blur-sm pointer-events-none" />
+            <div className="relative">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-zinc-400 group-focus-within:text-orange-500 transition-colors" />
+              </div>
+              <input
+                type="text"
+                placeholder="Cari info modifikasi, ukuran, atau harga kontainer..."
+                value={data.search}
+                onChange={(e) => setData('search', e.target.value)}
+                className="w-full h-14 pl-12 pr-28 text-base font-medium text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 bg-zinc-100 dark:bg-zinc-900/40 focus:bg-white dark:focus:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 focus:border-orange-500 rounded-xl outline-none transition-all"
+              />
+              <button 
+                type="submit" 
+                disabled={isSearching}
+                className="absolute right-2 top-2 h-10 px-5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold shadow-sm transition active:scale-95 disabled:opacity-50"
+              >
+                {isSearching ? '...' : 'Cari'}
+              </button>
+            </div>
+          </form>
+
+          {isFilteringActive && (
+            <button
+              type="button"
+              onClick={() => {
+                setData({ search: '', category: '', tag: '' });
+                router.get('/info', {}, { preserveState: true, preserveScroll: true });
+              }}
+              className="w-full sm:w-auto h-14 px-6 inline-flex items-center justify-center gap-2 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 text-sm font-bold uppercase tracking-wider transition shrink-0"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span>Reset</span>
+            </button>
+          )}
+        </div>
+
+        {/* SECTION 2: HERO BANNER */}
+        <HeadlinePost headline_posts={headline_posts} isLoading={isLoading} />
+
+        {/* SECTION 3: FILTER CATEGORIES & TAGS */}
+        <div className="space-y-4 pb-6 border-b border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900/30 p-2 rounded-xl">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-500 uppercase tracking-wider pl-2 pr-3 border-r border-zinc-200 dark:border-zinc-800 shrink-0 select-none">
+              <Filter className="h-3.5 w-3.5 text-orange-500" />
+              <span className="hidden sm:inline">Kategori</span>
+            </div>
+            <div className="flex-1 overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-2 pb-0.5">
+                <button
+                  type="button"
+                  onClick={() => handleCategoryChange('')}
+                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition whitespace-nowrap ${
+                    !data.category 
+                      ? 'bg-orange-500 text-white shadow-sm' 
+                      : 'text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100'
+                  }`}
+                >
+                  Semua Artikel & Promo
+                </button>
+                {categories.filter(cat => cat.type === 'blog').map((category) => {
+                  const isCatActive = data.category === category.slug;
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => handleCategoryChange(category.slug)}
+                      className={`rounded-lg px-4 py-2 text-sm font-semibold transition whitespace-nowrap ${
+                        isCatActive 
+                          ? 'bg-orange-500 text-white shadow-sm' 
+                          : 'text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100'
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 4: PRODUCT RECOMMENDATIONS */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3">
+            <h2 className="text-base font-bold uppercase text-zinc-900 dark:text-white tracking-wider flex items-center gap-2.5">
+              <span className="w-2 h-5 bg-orange-500 inline-block rounded-full"></span>
+              Pilihan Unit Kontainer Terlaris (Siap Modifikasi)
+            </h2>
+            <Link href="/katalog" className="text-orange-500 hover:text-orange-600 font-bold text-sm transition underline">
+              Lihat Katalog Unit &rarr;
+            </Link>
+          </div>
+          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-3 no-scrollbar">
+            {random_products.map((product) => (
+              <div key={product.id} className="w-64 flex-shrink-0 snap-start transition hover:-translate-y-1 p-0.5">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION 5: TWO COLUMNS CONTENT */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* LEFT COLUMN: ARTICLES */}
+          <main className="order-2 lg:order-1 lg:col-span-8 space-y-12">
+            
+            {/* SUB-SECTION: LATEST POSTS */}
+            {headline_posts.length > 1 && (
+              <section className="space-y-4">
+                <div className="border-b border-zinc-200 dark:border-zinc-800 pb-2">
+                  <h2 className="text-base font-bold uppercase text-zinc-900 dark:text-white tracking-wider flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-orange-500 inline-block rounded-full"></span>
+                    Panduan & Rekomendasi Container Untuk Anda
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  {headline_posts.slice(1, 4).map((post) => (
+                    <article key={post.id} className="flex flex-col bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+                      <Link href={`/${post.slug}`} className="w-full aspect-[4/3] overflow-hidden bg-zinc-100 dark:bg-zinc-800 block relative">
+                        <img 
+                          src={`/storage/${post.featured_image}`} 
+                          className="absolute inset-0 w-full h-full object-cover"
+                          onError={handleImageError}
+                          alt={post.title}
+                          loading="lazy"
+                        />
+                      </Link>
+                      <div className="p-5 flex-1 flex flex-col justify-between gap-4">
+                        <div className="flex items-center gap-1 text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                            <User className="w-3.5 h-3.5 text-zinc-400" />
+                            <span>By {post.author?.name || 'Admin Alumoda'}</span>
+                        </div>
+                        <Link href={`/${post.slug}`} className="group block">
+                          {/* FONT DIPERBESAR (text-base) */}
+                          <h3 className="font-bold md:text-base xl:text-lg text-zinc-900 dark:text-white group-hover:text-orange-500 transition-colors leading-snug">
+                            {post.title}
+                          </h3>
+                        </Link>
+                        
+                        {/* PENULIS & TANGGAL */}
+                        <div className="space-y-1 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span>{formatDate(post.published_at)}</span>
+                            <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {post.views_count}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* MAIN ARCHIVE LIST */}
+            <section className="space-y-6">
+              <div className="border-b border-zinc-200 dark:border-zinc-800 pb-2">
+                <h2 className="text-base font-bold uppercase text-zinc-900 dark:text-white tracking-wider flex items-center gap-2">
+                  <span className="w-1.5 h-4 bg-orange-500 inline-block rounded-full"></span>
+                  Semua Berita & Tips Industri Kontainer
+                </h2>
+              </div>
+              
+              <div className="space-y-6">
+                {all_posts.data.length === 0 ? (
+                  <div className="text-center py-16 bg-zinc-50 dark:bg-zinc-900/20 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
+                    <p className="text-base text-zinc-500">Tidak ada artikel yang cocok dengan pencarian Anda.</p>
+                  </div>
+                ) : (
+                  all_posts.data.map((post) => (
+                    <article key={post.id} className="flex flex-col md:flex-row gap-6 p-5 bg-white dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-800 rounded-xl items-start hover:border-zinc-300 dark:hover:border-zinc-700 transition shadow-sm">
+                      <div className="w-full md:w-56 lg:w-64 aspect-[16/10] shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800 relative">
+                        <img 
+                          src={`/storage/${post.featured_image}`} 
+                          className="w-full h-full object-cover" 
+                          onError={handleImageError} 
+                          alt={post.title} 
+                          loading="lazy" 
+                        />
+                      </div>
+                      
+                      <div className="flex-1 space-y-3 w-full">
+                        <Link href={`/${post.slug}`} className="block group">
+                          {/* JUDUL DIPERBESAR AGAR NYAMAN DI MATA (text-xl md:text-2xl) */}
+                          <h3 className="font-black text-xl md:text-2xl text-zinc-950 dark:text-white leading-snug group-hover:text-orange-500 transition-colors">
+                            {post.title}
+                          </h3>
+                        </Link>
+                        <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold">
+                            <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
+                                {post.category && (
+                                    <span className="uppercase text-orange-700 bg-orange-50 dark:bg-orange-950/50 px-2.5 py-1 rounded">
+                                    {post.category.name}
+                                    </span>
+                                )}
+                                
+                                {/* CREATOR BY / PENULIS DI DAFTAR UTAMA */}
+                                <span className="text-zinc-600 dark:text-zinc-300 flex items-center gap-1 font-bold">
+                                    By {post.author?.name || 'Admin'}
+                                </span>
+                            </div> 
+                          
+                            <span className="text-zinc-400">
+                                {formatDate(post.published_at)}
+                            </span>
+                        </div>
+
+
+                        {/* DESKRIPSI SINGKAT LEBIH BESAR & JELAS (text-sm md:text-base) */}
+                        <p className="text-zinc-600 dark:text-zinc-300 text-sm md:text-base leading-relaxed line-clamp-2">
+                          {post.excerpt}
+                        </p>
+
+                        <div className="flex items-center justify-between text-xs text-zinc-400 pt-3 border-t border-zinc-100 dark:border-zinc-850">
+                          <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {post.views_count} kali dilihat</span>
+                          {/* LINK BACA SELENGKAPNYA LEBIH BESAR */}
+                          <Link href={`/${post.slug}`} className="text-orange-500 font-bold hover:underline text-sm md:text-base">
+                            Baca Selengkapnya &rarr;
+                          </Link>
+                        </div>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+
+              <div className="mt-8">
+                <SimpleArrowPagination links={all_posts.links} />
+              </div>
+            </section>
+          </main>
+
+          {/* RIGHT COLUMN: STICKY ASIDE - WORDING PROMOSI KONTAINER */}
+          <aside className="order-1 lg:order-2 lg:col-span-4 sticky top-6 w-full space-y-6">
+            <div className="bg-slate-900 dark:bg-zinc-900 rounded-xl p-6 border border-slate-800 dark:border-zinc-800 shadow-xl space-y-6">
+              
+              {/* Header Form Wording Promosi Jual-Beli-Sewa & Modifikasi */}
+                <div className="space-y-2 border-b border-slate-800 dark:border-zinc-800 pb-4">
+                <div className="flex items-center gap-2 text-orange-500">
+                    <Container className="w-5 h-5 animate-bounce" />
+                    <span className="text-xs font-black tracking-widest uppercase text-orange-600 dark:text-orange-400">
+                    Dapatkan Penawaran
+                    </span>
+                </div>
+                <h3 className="text-xl font-black text-white dark:text-white tracking-tight">
+                    Konsultasi & Cek Harga Kontainer
+                </h3>
+                <p className="text-slate-300 dark:text-zinc-300 text-sm leading-relaxed">
+                    Ingin <strong>jual, beli, sewa, atau modifikasi container</strong>? Hubungi marketing kami sekarang untuk mendapatkan penawaran harga terbaik kami.
+                </p>
+                </div>
+              <form onSubmit={handleFormSubmit} className="space-y-4">
+                {/* Nama */}
+                <div className="flex flex-col gap-1 mb-5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
+                    Nama Lengkap Anda
+                  </label>
+                  <input 
+                    type="text" 
+                    required
+                    value={form.name}
+                    onChange={e => setForm({...form, name: e.target.value})}
+                    className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
+                    placeholder="Contoh: Bpk. Bambang"
+                  />
+                </div>
+
+                {/* Kontak / Email */}
+                <div className="flex flex-col gap-1 mb-5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
+                    Nomor WhatsApp / Email
+                  </label>
+                  <input 
+                    type="text" 
+                    required
+                    value={form.email}
+                    onChange={e => setForm({...form, email: e.target.value})}
+                    className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
+                    placeholder="Contoh: 081234xxxx / nama@email.com"
+                  />
+                </div>
+
+                {/* Jenis Kontainer */}
+                <div className="flex flex-col gap-1 mb-5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
+                    Tipe Kontainer Yang Dibutuhkan
+                  </label>
+                  <input 
+                    type="text" 
+                    required
+                    value={form.subject}
+                    onChange={e => setForm({...form, subject: e.target.value})}
+                    className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
+                    placeholder="Contoh: Office Container 20 Feet / Direksi Keet"
+                  />
+                </div>
+
+                {/* Catatan / Pesan */}
+                <div className="flex flex-col gap-1 mb-5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
+                    Rencana Penggunaan / Spesifikasi Kustom
+                  </label>
+                  <textarea 
+                    rows={3}
+                    value={form.message}
+                    onChange={e => setForm({...form, message: e.target.value})}
+                    className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
+                    placeholder="Sampaikan spesifikasi sesuai kebuthanmu... "
+                  />
+                </div>
+
+                {/* CTA Button Lebih Besar & Menonjol */}
+                <button 
+                  type="submit"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-black py-3.5 px-5 rounded-xl shadow-lg shadow-orange-500/20 transition text-sm uppercase tracking-wide mt-3 active:scale-95"
+                >
+                  <Send className="w-4 h-4" /> Kirim Permintaan Penawaran
+                </button>
+              </form>
+            </div>
+          </aside>
+
+        </div>
+      </div>
+      <CtaSection />
+    </FrontendLayout>
+  );
 }

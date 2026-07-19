@@ -21,7 +21,7 @@ interface MenuItem {
   meta_description?: string;
 }
 
-interface MenuCategory {
+export interface MenuCategory {
   title: string;
   slug: string;
   description?: string;

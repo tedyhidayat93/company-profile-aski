@@ -20,10 +20,7 @@ import {
     Link2,
     Instagram,
     BadgeInfo,
-    MessageSquare,
-    Send,
-    Container,
-    FileText
+    MessageSquare
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
@@ -109,7 +106,6 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDescExpanded, setIsDescExpanded] = useState(false);
     const [isOverflowing, setIsOverflowing] = useState(false);
-    const [isQuoteFormOpen, setIsQuoteFormOpen] = useState(false);
     const descRef = useRef<HTMLDivElement>(null);
 
     // Effect untuk memantau apakah teks melebihi batas 200px
@@ -237,33 +233,6 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
             }, 2000);
         }
     };
-
-    // // State untuk Form Penawaran Baru
-    const [quoteForm, setQuoteForm] = useState({
-        name: '',
-        contact: '',
-        message: ''
-    });
-
-    const handleQuoteSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
-        e.preventDefault();
-        
-        const cleanPhone = getConfig('contact_whatsapp', '6281282336464').replace(/[^0-9]/g, '');
-        
-        // Format teks WhatsApp otomatis rapi
-        const waMessage = encodeURIComponent(
-            `Halo Sales, saya ingin meminta Penawaran Resmi untuk produk berikut:\n\n` +
-            `*PRODUK:* ${product.name}\n` +
-            `*Link:* ${window.location.href}\n\n` +
-            `*DATA PEMOHON:*\n` +
-            `• Nama: ${quoteForm.name}\n` +
-            `• Kontak (WA/Email): ${quoteForm.contact}\n` +
-            `• Detail Pesanan: ${quoteForm.message}\n\n` +
-            `Mohon segera kirimkan estimasi harga dan ketersediaan unitnya. Terima kasih.`
-        );
-
-        window.open(`https://wa.me/${cleanPhone}?text=${waMessage}`, '_blank');
-    };
     
     // Get wishlist state and actions
     const { isInWishlist, toggleWishlistItem } = useWishlist();
@@ -315,52 +284,49 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                 updatedAt={product.updated_at}
             />
 
-            <div className='dark:bg-zinc-950 bg-white min-h-screen antialiased transition-colors duration-200'>
+            <div className='dark:bg-gray-800'>
                 <div className="container mx-auto px-4 py-8">
-                    
-                    {/* 🗺️ Breadcrumb */}
+                    {/* Breadcrumb */}
                     <nav className="mb-6 flex max-w-xl md:max-w-full overflow-auto" aria-label="Breadcrumb">
-                        <ol className="inline-flex flex-nowrap text-nowrap items-center space-x-1 md:space-x-2 text-sm font-medium">
+                        <ol className="inline-flex flex-nowrap text-nowrap items-center space-x-1 md:space-x-2">
                             <li className="inline-flex items-center">
-                                <Link href="/" className="text-zinc-600 hover:text-orange-500 dark:text-zinc-400">
+                                <Link href="/" className="text-gray-700 hover:text-primary">
                                     Beranda
                                 </Link>
                             </li>
                             <li>
                                 <div className="flex items-center">
-                                    <span className="mx-2 text-zinc-400 dark:text-zinc-600">/</span>
-                                    <Link href="/katalog" className="text-zinc-600 hover:text-orange-500 dark:text-zinc-400">
+                                    <span className="mx-2 text-gray-500">/</span>
+                                    <Link href="/katalog" className="text-gray-700 hover:text-primary">
                                         Katalog
                                     </Link>
                                 </div>
                             </li>
                             <li aria-current="page">
                                 <div className="flex items-center">
-                                    <span className="mx-2 text-zinc-400 dark:text-zinc-600">/</span>
-                                    <span className="text-zinc-500 dark:text-zinc-400 truncate max-w-[200px]">{product.name}</span>
+                                    <span className="mx-2 text-gray-500">/</span>
+                                    <span className="text-gray-500">{product.name}</span>
                                 </div>
                             </li>
                         </ol>
                     </nav>
 
-                    {/* Layout Awal: 2 Kolom Kiri Kanan */}
+                    {/* Product Section */}
                     <div className="lg:flex items-start lg:gap-12">
-                        
-                        {/* KOLOM KIRI: Galeri Gambar */}
-                        <div className="lg:w-1/2 lg:sticky lg:top-32 h-fit sticky top-10 space-y-4">
+                        {/* Product Images - Sticky on scroll for better UX */}
+                        <div className="lg:w-1/2 lg:sticky lg:top-32 h-fit sticky top-10">
                             <SingleGalleryPreview images={productImages} />
-                            
-                            {/* Hubungi Sales Kontak Bar Cepat */}
-                            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-zinc-50 border border-zinc-200/60 rounded-xl dark:bg-zinc-900/40 dark:border-zinc-800">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-slate-50 border border-slate-200/60 rounded-xl dark:bg-slate-800/40 dark:border-slate-700/60">
                                 <div className="flex items-center gap-3 w-full sm:w-auto">
                                     <div className="p-2 bg-green-500/10 rounded-lg text-green-600 dark:text-green-400 shrink-0">
                                         <Phone className="h-5 w-5 animate-pulse" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                                        {/* 💡 Wording baru diletakkan di sini */}
+                                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                                             Punya Pertanyaan Mengenai Unit Ini?
                                         </span>
-                                        <span className="text-sm font-extrabold text-zinc-700 dark:text-zinc-200 tracking-wide">
+                                        <span className="text-sm font-extrabold text-slate-700 dark:text-slate-200 tracking-wide">
                                             {getConfig('contact_phone', '081282336464')}
                                         </span>
                                     </div>
@@ -380,27 +346,29 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                             </div>
                         </div>
 
-                        {/* KOLOM KANAN: Detail & Informasi Bisnis */}
-                        <div className="mt-8 lg:mt-0 lg:w-1/2 flex flex-col space-y-6">
-                            
-                            {/* Header Badge & Judul */}
+                        {/* Product Info */}
+                        <div className="mt-8 lg:mt-0 lg:w-1/2 flex flex-col">
+                            {/* Header: Badge & Title */}
                             <div className="space-y-3">
-                                <h1 className="text-2xl xl:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white leading-tight">
+                               
+                                
+                                <h1 className="text-2xl xl:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                                     {product.name}
                                 </h1>
                                 
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 divide-x">
+                                    {/* Badge */}
                                     {product.is_new && (
-                                        <span className="rounded-full bg-emerald-100 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-400">
-                                            Baru
+                                        <span className="rounded-full bg-emerald-100 border border-emerald-200 px-2 py-1 text-[10px] font-bold text-emerald-800">
+                                        Baru
                                         </span>
                                     )}
                                     {product.is_bestseller && (
-                                        <span className="rounded-full bg-orange-100 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 px-2.5 py-0.5 text-[10px] font-bold text-orange-800 dark:text-orange-400">
-                                            Terlaris
-                                            </span>
+                                        <span className="rounded-full bg-orange-100 border border-orange-200 px-2 py-1 text-[10px] font-bold text-orange-800">
+                                        Terlaris
+                                        </span>
                                     )}
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900">
+                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
                                         {getProductTypeText({
                                             is_for_sell: product.is_for_sell || false,
                                             is_rent: product.is_rent || false
@@ -410,210 +378,194 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                             </div>
 
                             {/* Pricing Card */}
-                            <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                            <div className="mt-6 p-4 bg-gray-50 dark:bg-slate-900/90 rounded-xl">
                                 {product.show_price ? (
                                     <div className="flex flex-col">
-                                        <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mb-1">Harga Terbaik</span>
+                                        <span className="text-xs font-bold text-gray-900 mb-1">Harga Terbaik</span>
                                         <div className="flex items-baseline gap-3">
-                                            <span className="text-xl xl:text-2xl font-black text-orange-600 dark:text-orange-400">
+                                            <span className="text-xl xl:text-2xl font-black text-primary dark:text-orange-400">
                                                 {formatPrice(product.price)}
                                             </span>
                                             {product.compare_at_price && Number(product.compare_at_price) > Number(product.price) && (
-                                                <span className="text-lg text-zinc-400 line-through decoration-red-400">
+                                                <span className="text-lg text-gray-400 line-through decoration-red-400">
                                                     {formatPrice(product.compare_at_price)}
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="mt-4 flex items-start gap-2 text-zinc-500 dark:text-zinc-400">
+                                        <div className="mt-4 flex items-start gap-2 text-gray-500 dark:text-gray-300">
                                             <InfoIcon className="h-4 w-4 mt-0.5 shrink-0" />
                                             <p className="text-xs leading-normal">
-                                                Harga tidak mengikat. Dapatkan estimasi biaya resmi dan jadwal ketersediaan dengan mengeklik <span className="text-orange-600 font-semibold italic">"Pesan Sekarang"</span>.
+                                                Harga tidak mengikat. Dapatkan estimasi biaya resmi dan jadwal ketersediaan dengan mengeklik <span className="text-primary font-semibold italic">"Pesan Sekarang"</span>.
                                             </p>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col gap-2 text-zinc-600 dark:text-zinc-400">
-                                        <span className="text-base font-bold text-zinc-900 dark:text-white">
-                                            Hubungi Tim Sales untuk Harga Terbaik
-                                        </span>
-                                        <p className="text-xs sm:text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                                            Klik <span className="font-semibold text-orange-600">"Pesan Sekarang"</span> untuk mendapatkan penawaran harga, ketersediaan unit, dan konsultasi langsung dari tim kami.
+                                    <div className="flex flex-col gap-2 text-gray-600 dark:text-gray-300">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg font-bold text-black dark:text-white">
+                                                Hubungi Tim Sales untuk Harga Terbaik
+                                            </span>
+                                        </div>
+
+                                        <p className="text-sm leading-relaxed text-gray-500 dark:text-gray-200">
+                                            Klik <span className="font-semibold text-primary">"Pesan Sekarang"</span> untuk mendapatkan 
+                                            penawaran harga, ketersediaan unit, dan konsultasi langsung dari tim kami.
                                         </p>
                                     </div>
                                 )}
                             </div>
 
                             {/* Selection & Actions */}
-                            <div className="space-y-4">
+                            <div className="mt-3 border-gray-100">
                                 {/* Quantity */}
-                                <div className="flex gap-3 items-center">
+                                <div className="flex gap-3 items-center mb-4">
                                     <div className="w-32">
-                                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Jumlah</label>
-                                        <div className="flex bg-white dark:bg-zinc-900 items-center border border-zinc-300 dark:border-zinc-800 rounded-lg overflow-hidden">
+                                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Jumlah</label>
+                                        <div className="flex bg-white items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary/20">
                                             <button 
                                                 onClick={() => handleQuantityChange(-1)}
-                                                className="w-10 h-10 bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 transition-colors font-bold"
+                                                className="w-10 h-10 cursor-pointer bg-white hover:bg-gray-50 text-gray-600 transition-colors"
                                             >-</button>
                                             <input 
                                                 type="text" 
                                                 value={quantity} 
                                                 readOnly 
-                                                className="w-12 h-10 border-x border-zinc-300 dark:border-zinc-800 text-center font-bold text-zinc-900 dark:text-white bg-transparent"
+                                                className="w-12 h-10 border-x border-gray-300 text-center font-bold text-gray-900 bg-white"
                                             />
                                             <button 
                                                 onClick={() => handleQuantityChange(1)}
-                                                className="w-10 h-10 bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 transition-colors font-bold"
+                                                className="w-10 h-10 cursor-pointer bg-white hover:bg-gray-50 text-gray-600 transition-colors"
                                             >+</button>
                                         </div>
                                     </div>
-                                    {product.show_stock && (
-                                        <span className={`text-sm mt-6 font-semibold ${product.stock > 0 ? 'text-zinc-600 dark:text-zinc-400' : 'text-red-500'}`}>
-                                            {product.stock > 0 ? `Stok: ${product.stock} unit` : 'Stok Habis'}
-                                        </span>
-                                    )}
+                                    {
+                                        product.show_stock && (
+                                            <span className={`text-sm mt-6 ${product.stock > 0 ? 'text-gray-700' : 'text-red-500 font-medium'}`}>
+                                                {product.stock > 0 ? `Stok :  ${product.stock} unit` : 'Stok Habis'}
+                                            </span>
+                                        )
+                                    }
                                 </div>
+                                <div className="flex flex-col gap-4 w-full">
+                                    
+                                    {/* BARIS UTAMA: PESAN, WISHLIST, SHARE */}
+                                    <div className="flex flex-col sm:flex-row sm:items-end gap-3 w-full">
+                                        <div className="flex-1 flex gap-3 w-full">
+                                            <button
+                                                onClick={() => setIsOrderModalOpen(true)}
+                                                className="flex-1 h-12 cursor-pointer flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                                            >
+                                                <ShoppingCart className="h-5 w-5" />
+                                                Pesan Sekarang
+                                            </button>
+                                            
+                                            <button
+                                                onClick={() => handleWishlistItem(product)}
+                                                className="h-12 w-12 shrink-0 cursor-pointer flex items-center justify-center rounded-lg border-2 border-gray-100 hover:bg-red-50 hover:border-red-100 transition-all group"
+                                            >
+                                                <Heart
+                                                    className={`h-6 w-6 transition-colors ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400 group-hover:text-red-400'}`}
+                                                />
+                                            </button>
+                                            
+                                            {/* SHARE BUTTON DROPDOWN */}
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button
+                                                        className="h-12 w-12 shrink-0 cursor-pointer flex items-center justify-center rounded-lg border-2 border-gray-100 transition-all hover:border-blue-100 hover:bg-blue-50 group"
+                                                    >
+                                                        <Share2 className="h-5 w-5 text-gray-400 transition-colors group-hover:text-blue-500" />
+                                                    </button>
+                                                </DropdownMenuTrigger>
 
-                                {/* BARIS UTAMA UTK TOMBOL CTA (Sampingan) */}
-                                <div className="flex flex-col sm:flex-row gap-3 w-full">
-                                    <button
-                                        onClick={() => setIsOrderModalOpen(true)}
-                                        className="flex-1 h-12 cursor-pointer flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg shadow-md transition-all active:scale-[0.98] text-sm uppercase tracking-wider"
-                                    >
-                                        <ShoppingCart className="h-5 w-5" />
-                                        Pesan Sekarang
-                                    </button>
-                                    
-                                    {/* ✨ NEW BUTTON: Dapatkan Penawaran Toggle */}
-                                    <button
-                                        onClick={() => setIsQuoteFormOpen(!isQuoteFormOpen)}
-                                        className={`flex-1 h-12 cursor-pointer flex items-center justify-center gap-2 font-bold rounded-lg transition-all active:scale-[0.98] text-sm uppercase tracking-wider border-2 ${
-                                            isQuoteFormOpen 
-                                            ? 'bg-zinc-900 border-zinc-900 text-white dark:bg-zinc-800 dark:border-zinc-800' 
-                                            : 'bg-white border-orange-600 text-orange-600 hover:bg-orange-50 dark:bg-transparent dark:hover:bg-zinc-900'
-                                        }`}
-                                    >
-                                        <FileText className="h-5 w-5" />
-                                        {isQuoteFormOpen ? 'Tutup Formulir' : 'Dapatkan Penawaran'}
-                                    </button>
-                                    
-                                    {/* Wishlist & Share */}
-                                    <div className="flex gap-2 justify-end sm:justify-start">
-                                        <button
-                                            onClick={() => handleWishlistItem(product)}
-                                            className="h-12 w-12 shrink-0 cursor-pointer flex items-center justify-center rounded-lg border-2 border-zinc-200 dark:border-zinc-800 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all group"
-                                        >
-                                            <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-zinc-400'}`} />
-                                        </button>
-                                        
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <button className="h-12 w-12 shrink-0 cursor-pointer flex items-center justify-center rounded-lg border-2 border-zinc-200 dark:border-zinc-800 transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
-                                                    <Share2 className="h-5 w-5 text-zinc-400" />
-                                                </button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="w-52">
-                                                <DropdownMenuItem onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Lihat produk ${product.name}\n${window.location.href}`)}`, '_blank')} className="cursor-pointer">
-                                                    <MessageCircle className="mr-2 h-4 w-4 text-green-500" /> WhatsApp
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank')} className="cursor-pointer">
-                                                    <Facebook className="mr-2 h-4 w-4 text-blue-600" /> Facebook
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Lihat produk ${product.name}`)}&url=${encodeURIComponent(window.location.href)}`, '_blank')} className="cursor-pointer">
-                                                    <Twitter className="mr-2 h-4 w-4 text-sky-500" /> Twitter / X
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={async () => { await navigator.clipboard.writeText(window.location.href); toast.success("Link disalin"); }} className="cursor-pointer">
-                                                    <Instagram className="mr-2 h-4 w-4 text-pink-500" /> Instagram
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={async () => { await navigator.clipboard.writeText(window.location.href); toast.success("Link disalin"); }} className="cursor-pointer border-t mt-1">
-                                                    <Link2 className="mr-2 h-4 w-4" /> Salin Link
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                                <DropdownMenuContent align="end" className="w-52">
+                                                    {/* WHATSAPP */}
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            const text = encodeURIComponent(`Lihat produk ${product.name}\n${window.location.href}`);
+                                                            window.open(`https://wa.me/?text=${text}`, '_blank');
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <MessageCircle className="mr-2 h-4 w-4 text-green-500" />
+                                                        WhatsApp
+                                                    </DropdownMenuItem>
+
+                                                    {/* FACEBOOK */}
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            const url = encodeURIComponent(window.location.href);
+                                                            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <Facebook className="mr-2 h-4 w-4 text-blue-600" />
+                                                        Facebook
+                                                    </DropdownMenuItem>
+
+                                                    {/* TWITTER / X */}
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            const text = encodeURIComponent(`Lihat produk ${product.name}`);
+                                                            const url = encodeURIComponent(window.location.href);
+                                                            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <Twitter className="mr-2 h-4 w-4 text-sky-500" />
+                                                        Twitter / X
+                                                    </DropdownMenuItem>
+
+                                                    {/* INSTAGRAM */}
+                                                    <DropdownMenuItem
+                                                        onClick={async () => {
+                                                            await navigator.clipboard.writeText(window.location.href);
+                                                            toast.success("Link disalin", {
+                                                                description: "Tempel link di Instagram Story atau Bio",
+                                                            });
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <Instagram className="mr-2 h-4 w-4 text-pink-500" />
+                                                        Instagram
+                                                    </DropdownMenuItem>
+
+                                                    {/* COPY LINK */}
+                                                    <DropdownMenuItem
+                                                        onClick={async () => {
+                                                            await navigator.clipboard.writeText(window.location.href);
+                                                            toast.success("Link berhasil disalin", {
+                                                                description: product.name,
+                                                            });
+                                                        }}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <Link2 className="mr-2 h-4 w-4" />
+                                                        Salin Link
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* ===================================================
-                                🔥 ACCORDION-STYLE SEAMLESS SLATE-900 FORM SECTION
-                            =================================================== */}
-                            {isQuoteFormOpen && (
-                                <div className="bg-slate-900 dark:bg-zinc-900 rounded-xl p-6 border border-slate-800 dark:border-zinc-800 shadow-xl space-y-6 transition-all duration-300 animate-in fade-in slide-in-from-top-4">
-                                    <div className="space-y-2 border-b border-slate-800 dark:border-zinc-800 pb-4">
-                                        <div className="flex items-center gap-2 text-orange-500">
-                                            <Container className="w-5 h-5 animate-bounce" />
-                                            <span className="text-xs font-black tracking-widest uppercase text-orange-600 dark:text-orange-400">
-                                                Dapatkan Penawaran
-                                            </span>
-                                        </div>
-                                        <h3 className="text-xl font-black text-white dark:text-white tracking-tight">
-                                            Konsultasi & Cek Harga Kontainer
-                                        </h3>
-                                        <p className="text-slate-300 dark:text-zinc-300 text-sm leading-relaxed">
-                                            Ingin <strong>jual, beli, sewa, atau modifikasi container</strong>? Hubungi marketing kami sekarang untuk mendapatkan penawaran harga terbaik kami.
-                                        </p>
-                                    </div>
-                                    
-                                    <form onSubmit={handleQuoteSubmit} className="space-y-4">
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
-                                                Nama Lengkap Anda
-                                            </label>
-                                            <input 
-                                                type="text" required value={quoteForm.name}
-                                                onChange={e => setQuoteForm({...quoteForm, name: e.target.value})}
-                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-white dark:text-zinc-100 placeholder-slate-600 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
-                                                placeholder="Contoh: Bpk. Bambang"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
-                                                Nomor WhatsApp / Email
-                                            </label>
-                                            <input 
-                                                type="text" required value={quoteForm.contact}
-                                                onChange={e => setQuoteForm({...quoteForm, contact: e.target.value})}
-                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-white dark:text-zinc-100 placeholder-slate-600 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
-                                                placeholder="Contoh: 081234xxxx / nama@email.com"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
-                                                Rencana Penggunaan / Spesifikasi Kustom
-                                            </label>
-                                            <textarea 
-                                                rows={3} required value={quoteForm.message}
-                                                onChange={e => setQuoteForm({...quoteForm, message: e.target.value})}
-                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-white dark:text-zinc-100 placeholder-slate-600 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition resize-none leading-relaxed font-medium" 
-                                                placeholder="Contoh: Pasang AC 1 PK, sekat partisi triplek, jendela geser..."
-                                            />
-                                        </div>
-
-                                        <button 
-                                            type="submit"
-                                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-black py-3.5 px-5 rounded-xl shadow-lg shadow-orange-500/20 transition text-sm uppercase tracking-wide mt-3 active:scale-95"
-                                        >
-                                            <Send className="w-4 h-4" /> Permintaan Penawaran
-                                        </button>
-                                    </form>
-                                </div>
-                            )}
-
-                            {/* Tabs Content Area */}
-                            <div className="mt-4 space-y-4">
-                                <div className="flex border-b border-zinc-200 dark:border-zinc-800">
+                            <div className="mt-8 space-y-6">
+                                {/* ================= TABS HEADER NAV ================= */}
+                                <div className="flex border-b border-gray-200 dark:border-gray-800">
                                     <button
                                         type="button"
                                         onClick={() => setActiveTab('deskripsi')}
                                         className={`py-3 px-6 text-sm font-bold border-b-2 transition-all ${
                                             activeTab === 'deskripsi'
                                                 ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                                                : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                         }`}
                                     >
                                         Deskripsi Produk
                                     </button>
+
+                                    {/* Hanya munculkan tab spesifikasi jika datanya ada */}
                                     {hasSpecsData && (
                                         <button
                                             type="button"
@@ -621,7 +573,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                             className={`py-3 px-6 text-sm font-bold border-b-2 transition-all ${
                                                 activeTab === 'spesifikasi'
                                                     ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                                                    : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                                                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                             }`}
                                         >
                                             Spesifikasi
@@ -629,26 +581,36 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                     )}
                                 </div>
 
+                                {/* ================= TABS CONTENT CONTENT ================= */}
                                 <div className="py-2">
+                                    
+                                    {/* PANEL 1: DESKRIPSI (DENGAN EXPAND/COLLAPSE MENDATANG) */}
                                     {activeTab === 'deskripsi' && (
                                         <div className="space-y-4">
                                             <div className="relative">
                                                 <div 
                                                     ref={descRef}
-                                                    className="tinymce-content transition-all duration-300 overflow-hidden text-sm leading-relaxed text-zinc-700 dark:text-zinc-300"
-                                                    style={{ maxHeight: isOverflowing && !isDescExpanded ? '200px' : '9999px' }}
+                                                    className="tinymce-content transition-all duration-300 overflow-hidden"
+                                                    style={{
+                                                        // Jika teks panjang dan posisinya sedang tertutup, batasi 200px. Jika tidak, bebaskan.
+                                                        maxHeight: isOverflowing && !isDescExpanded ? '200px' : '9999px'
+                                                    }}
                                                     dangerouslySetInnerHTML={{ __html: product.description }} 
                                                 />
+                                                
+                                                {/* Gradien memudar HANYA muncul jika teks panjang DAN sedang posisi tertutup */}
                                                 {isOverflowing && !isDescExpanded && (
-                                                    <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white dark:from-zinc-950 to-transparent pointer-events-none" />
+                                                    <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-white dark:from-gray-900 to-transparent pointer-events-none" />
                                                 )}
                                             </div>
+
+                                            {/* Tombol pemicu Expand/Collapse HANYA muncul jika teks melebihi 200px */}
                                             {isOverflowing && (
                                                 <div className="flex justify-center pt-2">
                                                     <button
                                                         type="button"
                                                         onClick={() => setIsDescExpanded(!isDescExpanded)}
-                                                        className="inline-flex items-center gap-1.5 text-sm font-bold text-orange-500 hover:text-orange-600 transition"
+                                                        className="inline-flex items-center gap-1.5 text-sm font-bold text-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition"
                                                     >
                                                         <span>{isDescExpanded ? 'Sembunyikan' : 'Baca Selengkapnya'}</span>
                                                         {isDescExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -658,17 +620,43 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                         </div>
                                     )}
 
+                                    {/* PANEL 2: SPESIFIKASI TABLE (Hanya dirender jika aktif & data ada) */}
                                     {activeTab === 'spesifikasi' && hasSpecsData && (
-                                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-xs bg-white dark:bg-transparent">
-                                            <table className="w-full text-sm border-collapse">
-                                                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+                                        <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-2xs">
+                                            <table className="w-full text-sm border-collapse bg-white dark:bg-transparent">
+                                                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                                                    {/* 1. Kategori */}
+                                                    {/* {product.category && (
+                                                        <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition">
+                                                            <td className="px-5 py-3.5 text-gray-500 dark:text-gray-400 w-1/3">Kategori</td>
+                                                            <td className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white">
+                                                                {product.category?.name || '-'}
+                                                            </td>
+                                                        </tr>
+                                                    )} */}
+                                                    
+                                                    {/* 2. Merek */}
+                                                    {/* {product.brand && (
+                                                        <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition">
+                                                            <td className="px-5 py-3.5 text-gray-500 dark:text-gray-400">Merek</td>
+                                                            <td className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white">
+                                                                {product.brand.name}
+                                                            </td>
+                                                        </tr>
+                                                    )} */}
+
+                                                    {/* 3. Spesifikasi Fleksibel Tambahan */}
                                                     {product?.specific_specs?.map((spec, index) => (
-                                                        <tr key={index} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition">
-                                                            <td className="px-5 py-3.5 text-zinc-500 dark:text-zinc-400 w-1/3">{spec.label}</td>
-                                                            <td className="px-5 py-3.5 font-semibold text-zinc-900 dark:text-white">
+                                                        <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition">
+                                                            <td className="px-5 py-3.5 text-gray-500 dark:text-gray-400">
+                                                                {spec.label}
+                                                            </td>
+                                                            <td className="px-5 py-3.5 font-semibold text-gray-900 dark:text-white">
                                                                 <div>{spec.value}</div>
                                                                 {spec.note && (
-                                                                    <div className="mt-1 text-xs font-medium text-zinc-400 dark:text-zinc-500 italic">*{spec.note}</div>
+                                                                    <div className="mt-1 text-xs font-medium text-slate-400 dark:text-slate-500 italic">
+                                                                        *{spec.note}
+                                                                    </div>
                                                                 )}
                                                             </td>
                                                         </tr>
@@ -680,11 +668,12 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                 </div>
                             </div>
 
-                            {/* Tags */}
+
+                            {/* Tags/Keywords */}
                             {product.tags && product.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-2 pt-4">
+                                <div className="mt-8 flex flex-wrap gap-2">
                                     {product.tags.map((tag, index) => (
-                                        <span key={index} className="text-[11px] font-medium px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-md">
+                                        <span key={index} className="text-[11px] font-medium px-2.5 py-1 bg-gray-100 text-gray-500 rounded-md hover:bg-gray-200 cursor-default transition-colors">
                                             #{tag}
                                         </span>
                                     ))}
@@ -695,18 +684,17 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
 
                     {/* Related Products */}
                     {relatedProducts.length > 0 && (
-                        <div className="mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800">
-                            <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Produk Terkait</h2>
+                        <div className="mt-16">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Produk Terkait</h2>
                             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                                {relatedProducts.map((relatedProduct) => (
-                                    <ProductCard key={relatedProduct.id} product={relatedProduct} />
-                                ))}
+                                {relatedProducts.map((relatedProduct) => {
+                                    return <ProductCard key={relatedProduct.id} product={relatedProduct} />;
+                                })}
                             </div>
                         </div>
                     )}
                 </div>
             </div>
-
             {/* Order Modal */}
             <Dialog open={isOrderModalOpen} onClose={() => setIsOrderModalOpen(false)} className="relative z-50">
                 {/* Backdrop dengan blur lebih halus */}
