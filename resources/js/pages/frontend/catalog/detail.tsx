@@ -337,7 +337,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                             <li aria-current="page">
                                 <div className="flex items-center">
                                     <span className="mx-2 text-zinc-400 dark:text-zinc-600">/</span>
-                                    <span className="text-zinc-500 dark:text-zinc-400 truncate max-w-[200px]">{product.name}</span>
+                                    <span className="text-zinc-500 dark:text-zinc-400">{product.name}</span>
                                 </div>
                             </li>
                         </ol>
@@ -561,7 +561,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                             <input 
                                                 type="text" required value={quoteForm.name}
                                                 onChange={e => setQuoteForm({...quoteForm, name: e.target.value})}
-                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-white dark:text-zinc-100 placeholder-slate-600 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
+                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
                                                 placeholder="Contoh: Bpk. Bambang"
                                             />
                                         </div>
@@ -573,7 +573,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                             <input 
                                                 type="text" required value={quoteForm.contact}
                                                 onChange={e => setQuoteForm({...quoteForm, contact: e.target.value})}
-                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-white dark:text-zinc-100 placeholder-slate-600 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
+                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
                                                 placeholder="Contoh: 081234xxxx / nama@email.com"
                                             />
                                         </div>
@@ -585,7 +585,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                             <textarea 
                                                 rows={3} required value={quoteForm.message}
                                                 onChange={e => setQuoteForm({...quoteForm, message: e.target.value})}
-                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-white dark:text-zinc-100 placeholder-slate-600 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition resize-none leading-relaxed font-medium" 
+                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition resize-none leading-relaxed font-medium" 
                                                 placeholder="Contoh: Pasang AC 1 PK, sekat partisi triplek, jendela geser..."
                                             />
                                         </div>

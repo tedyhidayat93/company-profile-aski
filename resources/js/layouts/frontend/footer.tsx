@@ -146,16 +146,22 @@ export default function Footer() {
               Daftar Unit Container
             </h3>
             <ul className="space-y-2.5">
-              {footerProducts.map((product: any) => (
-                <li key={product.id}>
-                  <Link
-                    href={`/katalog/${product.slug}`}
-                    className="line-clamp-1 text-sm text-gray-400 transition-colors hover:text-orange-400"
-                  >
-                    {product.name}
-                  </Link>
-                </li>
-              ))}
+              {productCategories
+                .filter((cat) => cat.slug === 'container')
+                .map((cat) => 
+                  // Menggunakan React.Fragment atau fragment kosong agar struktur DOM tetap rapi
+                  // dan langsung me-looping sub-item (items) di dalamnya
+                  cat.items?.map((item: any, i: number) => (
+                    <li key={i}>
+                      <Link
+                        href={item.href}
+                        className="text-sm text-gray-400 transition-colors hover:text-orange-400 block truncate"
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))
+                )}
             </ul>
           </div>
 
@@ -207,52 +213,6 @@ export default function Footer() {
           </div>
 
         </div>
-
-        {/* SEPARATE SECTION: Kategori Produk Kami (Full Width di Bawah Grid Utama) */}
-        {productCategories.length > 0 && (
-          <div className="mt-14 border-t border-gray-900 pt-10">
-            <h3 className="mb-6 text-xs font-bold uppercase tracking-widest text-white text-center sm:text-left">
-              Kategori Produk Kami
-            </h3>
-            
-            {/* Grid dinamis menyesuaikan jumlah kategori produk */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {productCategories.filter(cat => cat.slug === 'container').map((cat, index) => (
-                <div key={index} className="space-y-3 rounded-xl border border-gray-950 bg-gray-900/30 p-4 transition-all duration-300 hover:bg-gray-900/60 hover:border-gray-800">
-                  <div className="space-y-1">
-                    <Link href={`/produk/${cat.slug}`} className="inline-block">
-                      <span className="text-sm font-bold uppercase tracking-wider text-orange-500 hover:text-orange-400 transition-colors">
-                        {cat.title}
-                      </span>
-                    </Link>
-                    {cat.description && (
-                      <div 
-                        className="text-[11px] text-gray-500 leading-normal line-clamp-2" 
-                        dangerouslySetInnerHTML={{ __html: cat.meta_description || cat.description || '' }} 
-                      />
-                    )}
-                  </div>
-
-                  {/* Sub-item / child links produk */}
-                  <ul className="space-y-2 border-t border-gray-800/60 pt-3 mt-1">
-                    {cat.items?.map((item, i) => (
-                      <li key={i}>
-                        <Link href={item.href} className="text-xs text-gray-400 hover:text-orange-400 transition-colors block truncate">
-                          • {item.name}
-                        </Link>
-                      </li>
-                    ))}
-                    <li className="pt-1">
-                      <Link href={`/produk/${cat.slug}`} className="inline-block text-[11px] font-semibold text-orange-500/90 hover:text-orange-400 transition-colors">
-                        Lihat Semua {cat.title} →
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Bottom Copyright Section */}
         <div className="mt-14 flex flex-col gap-4 border-t border-gray-900 pt-6 text-xs text-gray-500 md:flex-row md:items-center md:justify-between">

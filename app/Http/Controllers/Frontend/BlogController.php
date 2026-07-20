@@ -59,7 +59,7 @@ class BlogController extends Controller
                 ->filter()
                 ->countBy()
                 ->sortDesc()
-                ->take(10)
+                ->take(8)
                 ->keys()
                 ->values();
         });
@@ -101,7 +101,7 @@ class BlogController extends Controller
         // 1. Ambil All Posts Utama terlebih dahulu
         $allPosts = (clone $baseQuery)
             ->latest('published_at')
-            ->paginate(10)
+            ->paginate(15)
             ->withQueryString();
 
         // OPTIMASI: Recent posts diambil langsung dari 5 item pertama allPosts (Hemat 1 Query Besar!)
@@ -110,8 +110,8 @@ class BlogController extends Controller
         // 2. Kondisional Cache untuk Headline dan Most Read
         if ($isFiltered) {
             // Jika user sedang mencari sesuatu, jalankan query dinamis tanpa cache
-            $headlinePosts = (clone $baseQuery)->headline()->latest('published_at')->limit(5)->get();
-            $mostReadPosts = (clone $baseQuery)->orderByDesc('views_count')->limit(5)->get();
+            $headlinePosts = (clone $baseQuery)->headline()->latest('published_at')->limit(6)->get();
+            $mostReadPosts = (clone $baseQuery)->orderByDesc('views_count')->limit(3)->get();
         } else {
             // Jika halaman depan normal (tanpa filter), ambil dari Cache (Hemat 2 Query Berat!)
             $headlinePosts = Article::query()->published()->with(['author:id,name', 'category:id,name,slug'])->headline()->latest('published_at')->limit(5)->get();
@@ -169,7 +169,7 @@ class BlogController extends Controller
             $seo['description'] = 'Artikel dengan tag "' . $cleanTag . '"';
         }
 
-        $products = $this->getRandomProducts(null, 20);
+        $products = $this->getRandomProducts(null, 10);
         
         return Inertia::render('frontend/blog/index', [
             'random_products' => $products,
@@ -230,7 +230,7 @@ class BlogController extends Controller
                 return $item;
             });
 
-        $products = $this->getRandomProducts(null, 8);
+        $products = $this->getRandomProducts(null, 6);
 
             
         return Inertia::render('frontend/blog/detail', [

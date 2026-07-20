@@ -1,136 +1,130 @@
 import * as React from "react"
-import { Link } from "@inertiajs/react" // Import Link dari Inertia untuk SPA navigation
-import {
-  ChevronLeft,
-  ChevronLeftIcon,
-  ChevronRight,
-  ChevronRightIcon,
-  MoreHorizontalIcon,
-} from "lucide-react"
-
+import { Link } from "@inertiajs/react"
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/components/ui/button" // Hapus import type Button jika tidak dipakai langsung
+import { buttonVariants } from "@/components/ui/button"
 
-// 1. Definisikan tipe data links bawaan Laravel/Inertia
 export interface InertiaPaginationLink {
   url: string | null
   label: string
   active: boolean
 }
 
-// 2. Perbarui Props untuk komponen Pagination utama
 interface PaginationProps extends React.ComponentProps<"nav"> {
   links?: InertiaPaginationLink[]
 }
 
 function Pagination({ className, links, ...props }: PaginationProps) {
-  if (links) {
-    return (
-      <nav
-        role="navigation"
-        aria-label="pagination"
-        data-slot="pagination"
-        className={cn("mx-auto flex w-full justify-center", className)}
-        {...props}
-      >
-        <PaginationContent>
-          {links.map((link, idx) => {
-            const isPrevious = link.label.toLowerCase().includes("previous") || link.label.includes("&laquo;");
-            const isNext = link.label.toLowerCase().includes("next") || link.label.includes("&raquo;");
-
-            // 1. Hilangkan tombol jika tidak ada URL pautannya (opsional, jika ingin disembunyikan saat di halaman pertama/terakhir)
-            if (!link.url && (isPrevious || isNext)) {
-              return null;
-            }
-
-            return (
-              <PaginationItem key={idx}>
-                {link.label.includes("...") ? (
-                  <PaginationEllipsis />
-                ) : isPrevious ? (
-                  /* 2. Kustomisasi Tombol SEBELUMNYA + Ikon */
-                  <PaginationLink
-                    href={link.url ?? "#"}
-                    isActive={link.active}
-                    className="gap-1 pl-2.5 text-xs font-semibold"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span>Sebelumnya</span>
-                  </PaginationLink>
-                ) : isNext ? (
-                  /* 3. Kustomisasi Tombol SELANJUTNYA + Ikon */
-                  <PaginationLink
-                    href={link.url ?? "#"}
-                    isActive={link.active}
-                    className="gap-1 pr-2.5 text-xs font-semibold"
-                  >
-                    <span>Selanjutnya</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </PaginationLink>
-                ) : (
-                  /* 4. Render Angka Halaman Biasa */
-                  <PaginationLink
-                    href={link.url ?? "#"}
-                    isActive={link.active}
-                    dangerouslySetInnerHTML={{ __html: link.label }}
-                  />
-                )}
-              </PaginationItem>
-            );
-          })}
-        </PaginationContent>
-      </nav>
-    );
-  }
+  if (!links || links.length <= 1) return null;
 
   return (
     <nav
       role="navigation"
-      aria-label="pagination"
+      aria-label="Navigasi Halaman"
       data-slot="pagination"
-      className={cn("mx-auto flex w-full justify-center", className)}
+      className={cn("mx-auto flex w-full justify-center pt-4", className)}
       {...props}
-    />
+    >
+      <PaginationContent>
+        {links.map((link, idx) => {
+          // Deteksi fleksibel untuk tombol "Sebelumnya" dari Laravel
+          const isPrevious = 
+            link.label.toLowerCase().includes("previous") || 
+            link.label.includes("&laquo;") || 
+            link.label.includes("‹") ||
+            link.label.toLowerCase().includes("sebelumnya");
+
+          // Deteksi fleksibel untuk tombol "Selanjutnya" dari Laravel
+          const isNext = 
+            link.label.toLowerCase().includes("next") || 
+            link.label.includes("&raquo;") || 
+            link.label.includes("›") ||
+            link.label.toLowerCase().includes("selanjutnya");
+
+          // Jika tidak ada URL dan merupakan tombol navigasi arah, kita sembunyikan atau beri style disabled
+          if (!link.url && (isPrevious || isNext)) {
+            return (
+              <PaginationItem key={idx} className="opacity-40 pointer-events-none">
+                <span className={cn(buttonVariants({ variant: "ghost", size: "default" }), "gap-1 text-sm font-bold text-slate-400")}>
+                  {isPrevious && <ChevronLeft className="h-4 w-4" />}
+                  <span className="hidden sm:inline">{isPrevious ? "Sebelumnya" : "Selanjutnya"}</span>
+                  {isNext && <ChevronRight className="h-4 w-4" />}
+                </span>
+              </PaginationItem>
+            );
+          }
+
+          return (
+            <PaginationItem key={idx}>
+              {link.label.includes("...") ? (
+                <PaginationEllipsis />
+              ) : isPrevious ? (
+                <PaginationLink
+                  href={link.url ?? "#"}
+                  isActive={link.active}
+                  className="gap-1 px-3 text-sm font-bold text-slate-700 dark:text-slate-300 hover:text-orange-500 transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sebelumnya</span>
+                </PaginationLink>
+              ) : isNext ? (
+                <PaginationLink
+                  href={link.url ?? "#"}
+                  isActive={link.active}
+                  className="gap-1 px-3 text-sm font-bold text-slate-700 dark:text-slate-300 hover:text-orange-500 transition-colors"
+                >
+                  <span className="hidden sm:inline">Selanjutnya</span>
+                  <ChevronRight className="h-4 w-4" />
+                </PaginationLink>
+              ) : (
+                <PaginationLink
+                  href={link.url ?? "#"}
+                  isActive={link.active}
+                  className="text-sm font-bold"
+                  dangerouslySetInnerHTML={{ __html: link.label }}
+                />
+              )}
+            </PaginationItem>
+          );
+        })}
+      </PaginationContent>
+    </nav>
   );
 }
 
-function PaginationContent({
-  className,
-  ...props
-}: React.ComponentProps<"ul">) {
+function PaginationContent({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
       data-slot="pagination-content"
-      className={cn("flex flex-row items-center gap-1", className)}
+      className={cn("flex flex-row items-center gap-1.5 bg-slate-50 dark:bg-slate-900/40 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-800", className)}
       {...props}
     />
   )
 }
 
-function PaginationItem({ ...props }: React.ComponentProps<"li">) {
-  return <li data-slot="pagination-item" {...props} />
+function PaginationItem({ className, ...props }: React.ComponentProps<"li">) {
+  return <li data-slot="pagination-item" className={cn("list-none", className)} {...props} />
 }
 
 type PaginationLinkProps = {
   isActive?: boolean
-} & React.ComponentProps<typeof Link> // Ubah ke typeof Link Inertia agar SPA tidak reload halaman
+} & React.ComponentProps<typeof Link>
 
-function PaginationLink({
-  className,
-  isActive,
-  ...props
-}: PaginationLinkProps) {
+function PaginationLink({ className, isActive, ...props }: PaginationLinkProps) {
   return (
-    <Link // Gunakan Link dari Inertia
+    <Link
       aria-current={isActive ? "page" : undefined}
       data-slot="pagination-link"
       data-active={isActive}
       className={cn(
         buttonVariants({
-          variant: isActive ? "outline" : "ghost",
+          variant: isActive ? "default" : "ghost",
           size: "icon",
         }),
-        isActive && "border-orange-300 text-orange-600 bg-orange-400/20", // Menyamakan dengan active state menu Anda sebelumnya
+        "rounded-xl font-bold transition-all duration-200 cursor-pointer size-10",
+        isActive 
+          ? "bg-orange-500 text-white hover:bg-orange-600 shadow-md shadow-orange-500/20 border-transparent" 
+          : "text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white",
         className
       )}
       {...props}
@@ -138,51 +132,16 @@ function PaginationLink({
   )
 }
 
-function PaginationPrevious({
-  className,
-  ...props
-}: React.ComponentProps<typeof PaginationLink>) {
-  return (
-    <PaginationLink
-      aria-label="Go to previous page"
-      className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
-      {...props}
-    >
-      <ChevronLeftIcon className="size-4" />
-      <span className="hidden sm:block">Previous</span>
-    </PaginationLink>
-  )
-}
-
-function PaginationNext({
-  className,
-  ...props
-}: React.ComponentProps<typeof PaginationLink>) {
-  return (
-    <PaginationLink
-      aria-label="Go to next page"
-      className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
-      {...props}
-    >
-      <span className="hidden sm:block">Next</span>
-      <ChevronRightIcon className="size-4" />
-    </PaginationLink>
-  )
-}
-
-function PaginationEllipsis({
-  className,
-  ...props
-}: React.ComponentProps<"span">) {
+function PaginationEllipsis({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
       aria-hidden
       data-slot="pagination-ellipsis"
-      className={cn("flex size-9 items-center justify-center", className)}
+      className={cn("flex size-10 items-center justify-center text-slate-400", className)}
       {...props}
     >
-      <MoreHorizontalIcon className="size-4" />
-      <span className="sr-only">More pages</span>
+      <MoreHorizontal className="size-4" />
+      <span className="sr-only">Halaman Tambahan</span>
     </span>
   )
 }
@@ -192,7 +151,5 @@ export {
   PaginationContent,
   PaginationLink,
   PaginationItem,
-  PaginationPrevious,
-  PaginationNext,
   PaginationEllipsis,
 }

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Loader } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Loader, Pin } from 'lucide-react';
 
 interface Props {
   // No props needed for create
@@ -26,6 +26,7 @@ export default function ClientCreate({}: Props) {
     pic: '',
     image: null as File | null,
     is_active: true,
+    is_pinned: false, // 👈 Inisialisasi state default baru
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -51,6 +52,7 @@ export default function ClientCreate({}: Props) {
 
       // boolean → string
       is_active: data.is_active ? '1' : '0',
+      is_pinned: data.is_pinned ? '1' : '0', // 👈 Konversi boolean ke string '1' / '0' untuk form data
     }));
 
     post('/cpanel/cms/client', {
@@ -234,14 +236,30 @@ export default function ClientCreate({}: Props) {
                     {errors.address && <p className="text-sm text-red-600">{errors.address}</p>}
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                    <Checkbox
-                        id="is_active"
-                        checked={data.is_active}
-                        onCheckedChange={(checked) => setData('is_active', checked as boolean)}
-                    />
-                    <Label htmlFor="is_active">Aktif</Label>
-                    {errors.is_active && <p className="text-sm text-red-600">{errors.is_active}</p>}
+                    {/* 🚀 Wrapper container untuk sekumpulan field bertipe checkbox */}
+                    <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="is_active"
+                            checked={data.is_active}
+                            onCheckedChange={(checked) => setData('is_active', checked as boolean)}
+                        />
+                        <Label htmlFor="is_active" className="cursor-pointer">Aktif</Label>
+                        {errors.is_active && <p className="text-sm text-red-600">{errors.is_active}</p>}
+                      </div>
+
+                      {/* 🚀 Checkbox Baru untuk Is Pinned */}
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="is_pinned"
+                          checked={data.is_pinned}
+                          onCheckedChange={(checked) => setData('is_pinned', checked as boolean)}
+                        />
+                        <Label htmlFor="is_pinned" className="cursor-pointer flex items-center gap-1">
+                          <Pin className="h-3 w-3" /> Sematkan di Hero Section
+                        </Label>
+                        {errors.is_pinned && <p className="text-sm text-red-600">{errors.is_pinned}</p>}
+                      </div>
                     </div>
 
                     <div className="flex justify-end space-x-4">

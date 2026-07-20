@@ -18,9 +18,11 @@ class ClientController extends Controller
         // Apply permission middleware to all methods
         $this->middleware('permission:client-list')->only(['index', 'show']);
         $this->middleware('permission:client-create')->only(['create', 'store']);
-        $this->middleware('permission:client-edit')->only(['edit', 'update', 'toggleStatus']);
+        // Menambahkan togglePinned ke dalam middleware permission client-edit
+        $this->middleware('permission:client-edit')->only(['edit', 'update', 'toggleStatus', 'togglePinned']);
         $this->middleware('permission:client-delete')->only(['destroy']);
     }
+    
     public function index(Request $request)
     {
         Gate::authorize('client-list');
@@ -34,12 +36,18 @@ class ClientController extends Controller
                 $isActive = $request->boolean('active');
                 return $query->where('is_active', $isActive);
             })
+            // Tambahan filter jika di backpanel ingin memfilter yang di-pin saja
+            ->when($request->has('pinned'), function ($query) use ($request) {
+                $isPinned = $request->boolean('pinned');
+                return $query->where('is_pinned', $isPinned);
+            })
             ->ordered()
             ->paginate(10);
 
         return Inertia::render('backpanel/client/index', [
             'clients' => $clients,
-            'filters' => $request->only(['search', 'active'])
+            // Menambahkan 'pinned' ke dalam filters agar state pencarian terjaga
+            'filters' => $request->only(['search', 'active', 'pinned'])
         ]);
     }
 
@@ -63,6 +71,7 @@ class ClientController extends Controller
             'pic' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'is_active' => 'sometimes|boolean',
+            'is_pinned' => 'sometimes|boolean', // 👈 Tambah validasi is_pinned
         ]);
 
         if ($request->hasFile('image')) {
@@ -74,6 +83,11 @@ class ClientController extends Controller
         $validated['is_active'] = isset($validated['is_active']) 
             ? (bool) $validated['is_active'] 
             : true;
+
+        // Handle default value untuk is_pinned saat create
+        $validated['is_pinned'] = isset($validated['is_pinned']) 
+            ? (bool) $validated['is_pinned'] 
+            : false;
 
         Client::create($validated);
 
@@ -118,6 +132,7 @@ class ClientController extends Controller
             'pic' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'is_active' => 'sometimes|boolean',
+            'is_pinned' => 'sometimes|boolean', // 👈 Tambah validasi is_pinned
         ]);
 
         // Handle image upload
@@ -145,6 +160,11 @@ class ClientController extends Controller
         $validated['is_active'] = isset($validated['is_active']) 
             ? (bool) $validated['is_active'] 
             : $client->is_active;
+
+        // Handle boolean field untuk is_pinned saat update
+        $validated['is_pinned'] = isset($validated['is_pinned']) 
+            ? (bool) $validated['is_pinned'] 
+            : $client->is_pinned;
 
         // Update client
         $client->update($validated);
@@ -179,5 +199,17 @@ class ClientController extends Controller
 
         return redirect()->route('cms.client.index')
             ->with('success', 'Status klien berhasil diperbarui');
+    }
+
+    public function togglePinned($id)
+    {
+        Gate::authorize('client-edit');
+        
+        $client = Client::findOrFail($id);
+        $client->is_pinned = !$client->is_pinned;
+        $client->save();
+
+        return redirect()->route('cms.client.index')
+            ->with('success', 'Status pin klien berhasil diperbarui');
     }
 }

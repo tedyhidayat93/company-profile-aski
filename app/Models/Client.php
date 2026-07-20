@@ -19,10 +19,12 @@ class Client extends Model
         'pic',
         'image',
         'is_active',
+        'is_pinned',
         'sequence',
     ];
 
     protected $casts = [
+        'is_pinned' => 'boolean',
         'is_active' => 'boolean',
         'sequence' => 'integer',
         'deleted_at' => 'datetime',
@@ -36,6 +38,6 @@ class Client extends Model
 
     public function scopeOrdered($query)
     {
-        return $query->orderBy('sequence', 'asc')->orderBy('name', 'asc');
+        return $query->orderBy('is_pinned', 'desc')->orderBy('sequence', 'asc');
     }
 }

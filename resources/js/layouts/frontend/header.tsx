@@ -71,12 +71,12 @@ export default function Header() {
   // Penentuan isActive menggunakan pencocokan path murni & sub-path secara presisi
   const navLinks = useMemo(() => {
     return [
-      { 
-        name: 'Beranda', 
-        id: 'home', 
-        href: '/', 
-        isActive: currentPathname === '/' 
-      },
+      // { 
+      //   name: 'Beranda', 
+      //   id: 'home', 
+      //   href: '/', 
+      //   isActive: currentPathname === '/' 
+      // },
       { 
         name: 'Layanan', 
         id: 'services', 

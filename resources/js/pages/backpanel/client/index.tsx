@@ -27,7 +27,9 @@ import {
   MapPin,
   User,
   Image as ImageIcon,
-  Eye
+  Eye,
+  Pin,    // 👈 Icon Baru
+  PinOff  // 👈 Icon Baru
 } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 
@@ -41,6 +43,7 @@ interface Client {
   pic?: string;
   image?: string;
   is_active: boolean;
+  is_pinned: boolean; // 👈 Tambah properti baru
   sequence: number;
   created_at: string;
   updated_at: string;
@@ -59,6 +62,7 @@ interface Props {
   filters: {
     search?: string;
     active?: string;
+    pinned?: string; // 👈 Tambah filter baru
   };
 }
 
@@ -66,6 +70,7 @@ export default function ClientIndex({ clients, filters }: Props) {
 
   const [search, setSearch] = React.useState(filters.search || '');
   const [activeFilter, setActiveFilter] = React.useState(filters.active || 'all');
+  const [pinnedFilter, setPinnedFilter] = React.useState(filters.pinned || 'all'); // 👈 State filter baru
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -89,9 +94,28 @@ export default function ClientIndex({ clients, filters }: Props) {
     router.get(`/cpanel/cms/client?${params.toString()}`, {}, { preserveState: true });
   };
 
+  // 🚀 Handler Baru untuk filter Pinned
+  const handlePinnedFilter = (value: string) => {
+    setPinnedFilter(value);
+    const params = new URLSearchParams(window.location.search);
+    if (value !== 'all') {
+      params.set('pinned', value);
+    } else {
+      params.delete('pinned');
+    }
+    router.get(`/cpanel/cms/client?${params.toString()}`, {}, { preserveState: true });
+  };
+
   const handleToggleStatus = (id: number) => {
     router.patch(`/cpanel/cms/client/${id}/toggle-status`);
   };
+
+  // 🚀 Handler Baru untuk Toggle status Pin
+  const handleTogglePinned = (id: number) => {
+    router.patch(`/cpanel/cms/client/${id}/toggle-pinned`, {}, {
+        preserveScroll: true,
+    });
+    };
 
   const handleDelete = (id: number) => {
     if (confirm('Apakah Anda yakin ingin menghapus klien ini?')) {
@@ -128,7 +152,7 @@ export default function ClientIndex({ clients, filters }: Props) {
 
             <Card>
                 <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end mb-4"> {/* Ubah md:grid-cols-3 jadi md:grid-cols-4 */}
                         {/* Search */}
                         <div className="space-y-1 md:col-span-2">
                             <label className="text-xs font-medium text-gray-600">
@@ -147,10 +171,10 @@ export default function ClientIndex({ clients, filters }: Props) {
                             </div>
                         </div>
 
-                        {/* Status */}
+                        {/* Status Active */}
                         <div className="space-y-1">
                             <label className="text-xs font-medium text-gray-600">
-                            Status
+                            Status Aktif
                             </label>
 
                             <Select
@@ -169,6 +193,29 @@ export default function ClientIndex({ clients, filters }: Props) {
                             </SelectContent>
                             </Select>
                         </div>
+
+                        {/* 🚀 Filter Baru: Status Pin */}
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium text-gray-600">
+                            Status Pin (Hero)
+                            </label>
+
+                            <Select
+                            value={pinnedFilter}
+                            onValueChange={handlePinnedFilter}
+                            >
+                            <SelectTrigger className="w-full">
+                                <Pin className="mr-2 h-4 w-4 text-gray-500" />
+                                <SelectValue placeholder="Pinned" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                <SelectItem value="all">Semua</SelectItem>
+                                <SelectItem value="true">Di-pin</SelectItem>
+                                <SelectItem value="false">Tidak Di-pin</SelectItem>
+                            </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     <Table>
@@ -179,6 +226,7 @@ export default function ClientIndex({ clients, filters }: Props) {
                             <TableHead>Kontak</TableHead>
                             <TableHead>PIC</TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead>Hero Pin</TableHead> {/* 👈 Header Kolom Baru */}
                             <TableHead>Dibuat</TableHead>
                             <TableHead className="text-right">Aksi</TableHead>
                         </TableRow>
@@ -247,12 +295,38 @@ export default function ClientIndex({ clients, filters }: Props) {
                                 </div>
                             </TableCell>
                             <TableCell>
-                                {client.is_active ? (
-                                <Badge variant="default" className="bg-green-100 text-green-800">Aktif</Badge>
-                                ) : (
-                                <Badge variant="secondary">Tidak Aktif</Badge>
-                                )}
+                                <button 
+                                  onClick={() => handleToggleStatus(client.id)}
+                                  className="focus:outline-none"
+                                  title="Klik untuk mengubah status"
+                                >
+                                  {client.is_active ? (
+                                    <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer">Aktif</Badge>
+                                  ) : (
+                                    <Badge variant="secondary" className="cursor-pointer hover:bg-gray-200">Tidak Aktif</Badge>
+                                  )}
+                                </button>
                             </TableCell>
+                            
+                            {/* 🚀 Kolom Baru: Status Pin Hero */}
+                            <TableCell>
+                                <button
+                                  onClick={() => handleTogglePinned(client.id)}
+                                  className="focus:outline-none"
+                                  title="Klik untuk mengubah status pin"
+                                >
+                                  {client.is_pinned ? (
+                                    <Badge variant="default" className="bg-blue-100 text-blue-800 hover:bg-blue-200 cursor-pointer flex items-center w-fit gap-1">
+                                      <Pin className="h-3 w-3 fill-current" /> Di-pin
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-gray-400 border-gray-200 hover:bg-gray-50 cursor-pointer flex items-center w-fit gap-1">
+                                      <PinOff className="h-3 w-3" /> Biasa
+                                    </Badge>
+                                  )}
+                                </button>
+                            </TableCell>
+
                             <TableCell>
                                 <div className="text-sm text-gray-600">
                                 {formatDate(client.created_at)}
@@ -278,6 +352,22 @@ export default function ClientIndex({ clients, filters }: Props) {
                                         Edit
                                     </Link>
                                     </DropdownMenuItem>
+                                    
+                                    {/* 🚀 Opsi Tambahan Baru di Dropdown Menu Action */}
+                                    <DropdownMenuItem onClick={() => handleTogglePinned(client.id)}>
+                                      {client.is_pinned ? (
+                                        <>
+                                          <PinOff className="mr-2 h-4 w-4 text-orange-500" />
+                                          Lepas Pin
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Pin className="mr-2 h-4 w-4 text-blue-500" />
+                                          Sematkan Pin
+                                        </>
+                                      )}
+                                    </DropdownMenuItem>
+
                                     <DropdownMenuItem 
                                     onClick={() => handleDelete(client.id)}
                                     className="text-red-600"

@@ -99,6 +99,7 @@ export default function Homepage({
         <HeroHomepageSection 
           products={products}
           searchQuery={searchQuery}
+          clients={clients.filter(client => client.is_pinned === true || client.is_pinned === 1)}
           setSearchQuery={setSearchQuery}
           handleSearch={handleSearch}
           isSearching={isSearching}

@@ -136,17 +136,15 @@ class HomepageController extends Controller
                     ->where('is_active', true)
                     ->orderBy('sequence')
                     ->get([
-                        'id',
                         'name',
+                        'is_pinned',
                         'image',
                     ])
                     ->map(function ($client) {
 
                         return [
-                            'id' => $client->id,
-
                             'name' => $client->name,
-
+                            'is_pinned' => $client->is_pinned,
                             'logo' => $client->image
                                 ? '/storage/' . $client->image
                                 : '/images/placeholder.png',

@@ -81,11 +81,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('', [ClientController::class, 'index'])->name('index');
                 Route::get('create', [ClientController::class, 'create'])->name('create');
                 Route::post('', [ClientController::class, 'store'])->name('store');
+                
+                Route::patch('{id}/toggle-pinned', [ClientController::class, 'togglePinned'])->name('toggle-pinned');
+                Route::patch('{id}/toggle-status', [ClientController::class, 'toggleStatus'])->name('toggle-status');
+
                 Route::get('{id}', [ClientController::class, 'show'])->name('show');
                 Route::get('edit/{id}', [ClientController::class, 'edit'])->name('edit');
                 Route::match(['post', 'put'], '{id}', [ClientController::class, 'update'])->name('update');
                 Route::delete('{id}', [ClientController::class, 'destroy'])->name('destroy');
-                Route::patch('{id}/toggle-status', [ClientController::class, 'toggleStatus'])->name('toggle-status');
             });
 
             // Testimonials

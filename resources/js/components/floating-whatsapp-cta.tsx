@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, X, Phone, User, FileText, Send, MessageCircleQuestion, PhoneCall, PhoneIncoming, LucidePhone } from 'lucide-react';
+import { X, Phone, User, FileText, Send, LucidePhone } from 'lucide-react';
 import { useConfig } from '@/utils/config';
 
 export default function FloatingWhatsAppCTA() {
@@ -88,7 +88,7 @@ export default function FloatingWhatsAppCTA() {
 
                     {/* Deskripsi Pengantar Gaya Editorial */}
                     <p className="text-base text-zinc-800 dark:text-zinc-300 leading-relaxed mb-5 font-normal">
-                        Silakan isi nama dan pertanyaan Anda di bawah ini. Tim kami akan langsung memandu Anda melalui percakapan WhatsApp.
+                        Dapatkan Penawaran terabik dari kami atau konsultasikan kepada kami kebutuhan Container anda. Tim kami akan langsung memandu Anda melalui percakapan WhatsApp.
                     </p>
 
                     {/* FORM INTERAKTIF */}
@@ -97,7 +97,7 @@ export default function FloatingWhatsAppCTA() {
                         {/* Input 1: Nama */}
                         <div className="space-y-1.5 group">
                             <label className="text-sm font-extrabold text-zinc-950 dark:text-white block">
-                                Nama Lengkap Anda:
+                                Nama Lengkap Anda
                             </label>
                             <div className="relative">
                                 <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-zinc-400 group-focus-within:text-emerald-600 transition-colors">
@@ -117,7 +117,7 @@ export default function FloatingWhatsAppCTA() {
                         {/* Input 2: Isi Pesan */}
                         <div className="space-y-1.5 group">
                             <label className="text-sm font-extrabold text-zinc-950 dark:text-white block">
-                                Pertanyaan atau Pesan Anda:
+                                Pertanyaan atau Pesan Anda
                             </label>
                             <div className="relative">
                                 <span className="absolute top-3.5 left-0 flex items-center pl-3.5 pointer-events-none text-zinc-400 group-focus-within:text-emerald-600 transition-colors">
