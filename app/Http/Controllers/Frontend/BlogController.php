@@ -101,7 +101,7 @@ class BlogController extends Controller
         // 1. Ambil All Posts Utama terlebih dahulu
         $allPosts = (clone $baseQuery)
             ->latest('published_at')
-            ->paginate(15)
+            ->paginate(12)
             ->withQueryString();
 
         // OPTIMASI: Recent posts diambil langsung dari 5 item pertama allPosts (Hemat 1 Query Besar!)
@@ -169,7 +169,7 @@ class BlogController extends Controller
             $seo['description'] = 'Artikel dengan tag "' . $cleanTag . '"';
         }
 
-        $products = $this->getRandomProducts(null, 10);
+        $products = $this->getRandomProducts(null, 6);
         
         return Inertia::render('frontend/blog/index', [
             'random_products' => $products,

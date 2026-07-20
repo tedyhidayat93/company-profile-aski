@@ -116,7 +116,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
     useEffect(() => {
         if (descRef.current) {
             // Jika tinggi asli element lebih besar dari 200px, set true
-            const hasOverflow = descRef.current.scrollHeight > 200;
+            const hasOverflow = descRef.current.scrollHeight > 400;
             setIsOverflowing(hasOverflow);
         }
     }, [product.description, activeTab]);
@@ -561,7 +561,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                             <input 
                                                 type="text" required value={quoteForm.name}
                                                 onChange={e => setQuoteForm({...quoteForm, name: e.target.value})}
-                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
+                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
                                                 placeholder="Contoh: Bpk. Bambang"
                                             />
                                         </div>
@@ -573,7 +573,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                             <input 
                                                 type="text" required value={quoteForm.contact}
                                                 onChange={e => setQuoteForm({...quoteForm, contact: e.target.value})}
-                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
+                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
                                                 placeholder="Contoh: 081234xxxx / nama@email.com"
                                             />
                                         </div>
@@ -585,7 +585,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                             <textarea 
                                                 rows={3} required value={quoteForm.message}
                                                 onChange={e => setQuoteForm({...quoteForm, message: e.target.value})}
-                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition resize-none leading-relaxed font-medium" 
+                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition resize-none leading-relaxed font-medium" 
                                                 placeholder="Contoh: Pasang AC 1 PK, sekat partisi triplek, jendela geser..."
                                             />
                                         </div>
@@ -636,7 +636,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                                 <div 
                                                     ref={descRef}
                                                     className="tinymce-content transition-all duration-300 overflow-hidden text-sm leading-relaxed text-zinc-700 dark:text-zinc-300"
-                                                    style={{ maxHeight: isOverflowing && !isDescExpanded ? '200px' : '9999px' }}
+                                                    style={{ maxHeight: isOverflowing && !isDescExpanded ? '400px' : '9999px' }}
                                                     dangerouslySetInnerHTML={{ __html: product.description }} 
                                                 />
                                                 {isOverflowing && !isDescExpanded && (

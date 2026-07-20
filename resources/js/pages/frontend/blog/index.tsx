@@ -114,7 +114,7 @@ export default function BlogIndex({
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const phone = "6281282336464"; 
-        const text = `Halo, saya tertarik dengan produk container Anda.\n\n*Nama:* ${form.name}\n*Email:* ${form.email}\n*Kebutuhan Projek:* ${form.subject}\n*Pesan Tambahan:* ${form.message}`;
+        const text = `Halo, saya tertarik dengan produk container Anda.\n\n*Nama:* ${form.name}\n*Kontak:* ${form.email}\n*Kebutuhan Projek:* ${form.subject}\n*Pesan Tambahan:* ${form.message}`;
         window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`, '_blank');
     };
 
@@ -266,10 +266,11 @@ export default function BlogIndex({
                   <section aria-label="Artikel Pilihan Utama" className="grid grid-cols-1 md:grid-cols-12 gap-5 mb-14">
                       {/* 🟧 KARTU UTAMA (KIRI) */}
                       {headline_posts[0] && (
-                          <article className="md:col-span-8 group relative aspect-[16/10] md:aspect-auto md:h-[420px] w-full rounded-2xl overflow-hidden bg-slate-950 shadow-md border border-slate-100 dark:border-slate-900 isolation-auto">
+                          <article className="md:col-span-8 group relative aspect-[16/10] md:aspect-auto md:h-[420px] w-full rounded-2xl overflow-hidden bg-slate-950 shadow-md border border-slate-100 dark:border-slate-900">
                               <img
                                   src={`/storage/${headline_posts[0].featured_image}`}
-                                  className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:scale-[1.01] transition-transform duration-700 ease-out transform-gpu"
+                                  className="absolute inset-0 w-full h-full object-cover opacity-85 hover:brightness-95 transition-transform duration-700 ease-out"
+                                  loading="lazy"
                                   onError={handleImageError} alt={headline_posts[0].title} decoding="async"
                               />
                               {/* Gradasi gelap di bagian bawah untuk menjamin keterbacaan teks */}
@@ -294,10 +295,11 @@ export default function BlogIndex({
                       {/* 🟧 KARTU SEKUNDER (KANAN STACK) */}
                       <div className="md:col-span-4 grid grid-cols-1 gap-5">
                           {headline_posts.slice(1, 3).map((post) => (
-                              <article key={post.id} className="group relative aspect-[16/9.5] md:aspect-auto md:h-[200px] w-full rounded-2xl overflow-hidden bg-slate-950 shadow-md border border-slate-100 dark:border-slate-900 isolation-auto">
+                              <article key={post.id} className="group relative aspect-[16/9.5] md:aspect-auto md:h-[200px] w-full rounded-2xl overflow-hidden bg-slate-950 shadow-md border border-slate-100 dark:border-slate-900">
                                   <img
                                       src={`/storage/${post.featured_image}`}
-                                      className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-[1.01] transition-transform duration-500 transform-gpu"
+                                      loading="lazy"
+                                      className="absolute inset-0 w-full h-full object-cover opacity-80 hover:brightness-95 transition-transform duration-500"
                                       onError={handleImageError} alt={post.title} decoding="async"
                                   />
                                   {/* Gradasi gelap disesuaikan untuk kartu yang lebih kecil */}
@@ -340,10 +342,10 @@ export default function BlogIndex({
                                 {most_read_posts[0] && (
                                     <div className="space-y-4 p-3 border border-slate-150 dark:border-slate-900/60 rounded-3xl bg-slate-50/30 dark:bg-slate-900/10 shadow-xs transition-all">
                                         {/* 📸 AREA GAMBAR BANNER */}
-                                        <Link href={`/${most_read_posts[0].slug}`} className="block w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-150 dark:border-slate-800 shadow-xs relative isolation-auto">
+                                        <Link href={`/${most_read_posts[0].slug}`} className="block w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-150 dark:border-slate-800 shadow-xs relative">
                                             <img 
                                                 src={`/storage/${most_read_posts[0].featured_image}`} 
-                                                className="absolute inset-0 w-full h-full object-cover transform-gpu group-hover:scale-[1.01] transition-transform duration-700 ease-out" 
+                                                className="absolute inset-0 w-full h-full object-cover hover:brightness-95 transition-transform duration-700 ease-out" 
                                                 onError={handleImageError} 
                                                 alt={most_read_posts[0].title}
                                             />
@@ -383,10 +385,10 @@ export default function BlogIndex({
                             <div className="lg:col-span-5 flex flex-col justify-between gap-6">
                                 {recent_posts.slice(0, 4).map((post) => (
                                     <article key={post.id} className="group/item flex gap-4 items-start border-b border-slate-100 dark:border-slate-900 pb-5 last:border-0 last:pb-0">
-                                        <Link href={`/${post.slug}`} className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-150 dark:border-slate-800 block relative isolation-auto">
+                                        <Link href={`/${post.slug}`} className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-150 dark:border-slate-800 block relative">
                                             <img 
                                                 src={`/storage/${post.featured_image}`} 
-                                                className="absolute inset-0 w-full h-full object-cover transform-gpu group-hover/item:scale-105 transition-transform duration-500" 
+                                                className="absolute inset-0 w-full h-full object-cover" 
                                                 onError={handleImageError} 
                                                 alt={post.title}
                                             />
@@ -438,8 +440,8 @@ export default function BlogIndex({
                                 {all_posts.data.map((post) => (
                                     <article key={post.id} className="group flex flex-col space-y-3.5">
                                         {/* Area Gambar */}
-                                        <Link href={`/${post.slug}`} className="w-full aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-900 block relative border border-slate-150 dark:border-slate-800/60 shadow-2xs isolation-auto">
-                                            <img src={`/storage/${post.featured_image}`} className="absolute inset-0 w-full h-full object-cover transform-gpu group-hover:scale-103 transition-transform duration-500" onError={handleImageError} alt={post.title} loading="lazy" decoding="async" />
+                                        <Link href={`/${post.slug}`} className="w-full aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-900 block relative border border-slate-150 dark:border-slate-800/60 shadow-2xs">
+                                            <img src={`/storage/${post.featured_image}`} className="absolute inset-0 w-full h-full object-cover hover:brightness-95 duration-500" onError={handleImageError} alt={post.title} loading="lazy" decoding="async" />
                                             {post.category && (
                                                 <span className="absolute top-3 left-3 text-xs font-black uppercase tracking-wider bg-white/95 text-slate-900 dark:bg-slate-900/95 dark:text-white px-2.5 py-0.5 rounded-md shadow-xs z-10">
                                                     {post.category.name}
@@ -485,7 +487,7 @@ export default function BlogIndex({
                     <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-8 w-full border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-900 pt-8 lg:pt-0 lg:pl-8">
                         
                         {/* 🌟 WIDGET 1: FORM PENAWARAN HARGA CONTAINER */}
-                        <div className="bg-slate-900 sticky top-20 dark:bg-slate-900 text-white rounded-2xl p-6 shadow-xl border border-slate-800 relative overflow-hidden">
+                        <div className="bg-slate-900 dark:bg-slate-900 text-white rounded-2xl p-6 shadow-xl border border-slate-800 relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/10 rounded-full blur-xl pointer-events-none" />
                             <div className="border-b border-slate-800 pb-4 mb-4">
                                 <h3 className="text-base font-black uppercase tracking-wide text-white flex items-center gap-2">
@@ -504,19 +506,19 @@ export default function BlogIndex({
                                         required
                                         value={form.name}
                                         onChange={e => setForm({...form, name: e.target.value})}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white! placeholder-slate-400 focus:outline-none focus:text-black! focus:border-orange-500 transition" 
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:text-black! focus:border-orange-500 transition" 
                                         placeholder="Contoh: Budi Santoso"
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold text-slate-300">Alamat Email Kerja</label>
+                                    <label className="text-xs font-bold text-slate-300">Email / WhatsApp / Telepon</label>
                                     <input 
-                                        type="email" 
+                                        type="text" 
                                         required
                                         value={form.email}
                                         onChange={e => setForm({...form, email: e.target.value})}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white! placeholder-slate-400 focus:outline-none focus:text-black! focus:border-orange-500 transition" 
-                                        placeholder="nama@perusahaan.com"
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:text-black! focus:border-orange-500 transition" 
+                                        placeholder="Email/WhatsApp/Telephone..."
                                     />
                                 </div>
                                 <div className="space-y-1">
@@ -526,7 +528,7 @@ export default function BlogIndex({
                                         required
                                         value={form.subject}
                                         onChange={e => setForm({...form, subject: e.target.value})}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white! placeholder-slate-400 focus:outline-none focus:text-black! focus:border-orange-500 transition" 
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:text-black! focus:border-orange-500 transition" 
                                         placeholder="Contoh: Booth Container Kuliner 20ft"
                                     />
                                 </div>
@@ -537,7 +539,7 @@ export default function BlogIndex({
                                         required
                                         value={form.message}
                                         onChange={e => setForm({...form, message: e.target.value})}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white! placeholder-slate-400 focus:outline-none focus:text-black! focus:border-orange-500 transition resize-none" 
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:text-black! focus:border-orange-500 transition resize-none" 
                                         placeholder="Sebutkan estimasi ukuran, fasilitas kustom, atau lokasi pengiriman unit..."
                                     />
                                 </div>
@@ -564,7 +566,7 @@ export default function BlogIndex({
                                     {random_products.map((product) => (
                                         <Link 
                                             key={product.id} 
-                                            href={`/produk/${product.slug}`}
+                                            href={`/katalog/${product.slug}`}
                                             className="group flex flex-col bg-slate-50 dark:bg-slate-900/40 rounded-xl overflow-hidden border border-slate-200/50 dark:border-slate-800 p-2 hover:bg-slate-100/60 dark:hover:bg-slate-800/80 transition-all shadow-xs"
                                         >
                                             <div className="aspect-[4/3] w-full rounded-lg overflow-hidden relative bg-slate-200 dark:bg-slate-800 mb-2">
@@ -572,7 +574,7 @@ export default function BlogIndex({
                                                     src={product.image} 
                                                     alt={product.name}
                                                     onError={handleImageError}
-                                                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    className="absolute inset-0 w-full h-full object-cover"
                                                     loading="lazy"
                                                     decoding="async"
                                                 />

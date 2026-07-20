@@ -102,7 +102,7 @@ export default function Header() {
         isActive: currentPathname === '/info' || currentPathname.startsWith('/info/') 
       },
       { 
-        name: 'Kontak', 
+        name: 'Minta Penawaran', 
         id: 'contact', 
         href: '/kontak', 
         isActive: currentPathname === '/kontak' || currentPathname.startsWith('/kontak/') 
