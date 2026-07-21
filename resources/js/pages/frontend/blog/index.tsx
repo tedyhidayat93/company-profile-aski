@@ -138,7 +138,7 @@ export default function BlogIndex({
                 <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-start justify-center pt-24 px-4 transition-all animate-in fade-in duration-200">
                     <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-2xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-in slide-in-from-top-4 duration-200">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Cari Artikel & Edukasi</h3>
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Cari Artikel</h3>
                             <button onClick={() => setIsSearchOpen(false)} className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
                                 <X className="w-5 h-5" />
                             </button>
@@ -152,7 +152,7 @@ export default function BlogIndex({
                                     placeholder="Ketik topik container yang ingin Anda cari..."
                                     value={data.search}
                                     onChange={(e) => setData('search', e.target.value)}
-                                    className="h-12 pl-11 text-sm rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-visible:ring-orange-500"
+                                    className="h-12 pl-11 text-base rounded-xl bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-visible:ring-orange-500 font-bold"
                                 />
                             </div>
                             <Button type="submit" className="h-12 rounded-xl text-sm font-bold bg-orange-500 hover:bg-orange-600 text-white px-6 shadow-md shadow-orange-500/20 cursor-pointer">
@@ -480,7 +480,7 @@ export default function BlogIndex({
                     </div>
 
                     {/* BILIK KANAN (SIDEBAR WIDGET) */}
-                    <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-8 w-full border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-900 pt-8 lg:pt-0 lg:pl-8">
+                    <aside className="lg:col-span-4 space-y-8 w-full border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-900 pt-8 lg:pt-0 lg:pl-8">
                         
                         {/* 🌟 WIDGET 1: FORM PENAWARAN HARGA CONTAINER */}
                         <div className="bg-slate-900 dark:bg-slate-900 text-white rounded-2xl p-6 shadow-xl border border-slate-800 relative overflow-hidden">
