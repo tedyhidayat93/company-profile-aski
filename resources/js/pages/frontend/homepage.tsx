@@ -109,7 +109,7 @@ export default function Homepage({
         />
 
         {/* services Section */}
-        <section id="services" className="bg-white py-20 dark:bg-gray-900">
+        <section id="services" className="bg-white py-10 dark:bg-gray-900">
           <div className="container mx-auto px-4">
             <div className="mb-16 text-center">
               <h2 className="text-3xl font-bold mb-1 dark:text-orange-400">{getConfig('services_title', 'Layanan Kami')}</h2>

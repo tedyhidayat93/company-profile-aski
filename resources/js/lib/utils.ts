@@ -87,6 +87,14 @@ export function formatDate(date: string): string {
   }).format(d).replace(',', ''); // Menghapus koma bawaan toLocale standar
 }
 
+export const formatDateArticle = (date: string) =>
+    new Date(date).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+    });
+
+
 export const flattenCategories = (
   categories: Category[],
   level = 0

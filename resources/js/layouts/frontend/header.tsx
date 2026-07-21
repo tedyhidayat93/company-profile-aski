@@ -348,7 +348,7 @@ export default function Header() {
                     <a href={whatsappUrl}><Phone className="h-4 w-4" />Hubungi Kami</a>
                   </Button>
                   <Link href="/katalog" className="flex h-10 items-center px-5 rounded-full border border-slate-700 bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 transition-colors gap-2">
-                    <LayoutDashboardIcon className="h-4 w-4" />Katalog Unit
+                    <LayoutDashboardIcon className="h-4 w-4" />Katalog
                   </Link>
                 </div>
 

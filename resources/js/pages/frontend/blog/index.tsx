@@ -6,8 +6,8 @@ import { handleImageError } from '@/utils/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
-import { useConfig } from '@/utils/config';
 import { Pagination } from '@/components/ui/pagination';
+import { formatDateArticle } from '@/lib/utils';
 
 type BlogPost = {
     id: number;
@@ -61,7 +61,6 @@ export default function BlogIndex({
     filters = { search: '', category: '', tag: '' },
     seo
 }: Props) {
-    const { getConfig } = useConfig();
     
     const { data, setData, get } = useForm({
         search: filters.search || '',
@@ -117,13 +116,6 @@ export default function BlogIndex({
         const text = `Halo, saya tertarik dengan produk container Anda.\n\n*Nama:* ${form.name}\n*Kontak:* ${form.email}\n*Kebutuhan Projek:* ${form.subject}\n*Pesan Tambahan:* ${form.message}`;
         window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`, '_blank');
     };
-
-    const formatDate = (date: string) =>
-        new Date(date).toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-        });
 
     const activeCategoryName = useMemo(() => {
         if (!filters.category) return '';
@@ -348,6 +340,8 @@ export default function BlogIndex({
                                                 className="absolute inset-0 w-full h-full object-cover hover:brightness-95 transition-transform duration-700 ease-out" 
                                                 onError={handleImageError} 
                                                 alt={most_read_posts[0].title}
+                                                loading="lazy"
+                                                decoding="async"
                                             />
                                         </Link>
 
@@ -391,6 +385,8 @@ export default function BlogIndex({
                                                 className="absolute inset-0 w-full h-full object-cover" 
                                                 onError={handleImageError} 
                                                 alt={post.title}
+                                                loading="lazy"
+                                                decoding="async"
                                             />
                                         </Link>
                                         <div className="flex-1 flex flex-col justify-between h-24 sm:h-28 py-0.5">
@@ -468,7 +464,7 @@ export default function BlogIndex({
                                                 <span className="truncate max-w-[100px] text-slate-600 dark:text-slate-300 font-semibold">
                                                     {post.author?.name || 'Tim Ahli'}
                                                 </span>
-                                                <span>{formatDate(post.published_at)}</span>
+                                                <span>{formatDateArticle(post.published_at)}</span>
                                             </div>
                                         </div>
                                     </article>
