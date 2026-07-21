@@ -323,7 +323,9 @@ class BlogController extends Controller
                 'id'       => $product->id,
                 'name'     => $product->name,
                 'slug'     => $product->slug,
-                'image'    => $product->coverImage ? resolve_image_path($product->coverImage->path) : asset('images/placeholder.png'),
+                'image'    => resolve_image_path(
+                                    $product->coverImage?->image_path
+                                ),
                 'brand'    => $product->brand ? $product->brand->name : null,
                 'category' => $product->category ? [
                     'id'   => $product->category->id,

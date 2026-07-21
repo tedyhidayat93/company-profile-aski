@@ -14,12 +14,13 @@ import {
     CheckCircle,
     Newspaper,
     Check,
-    FolderOpen
+    FolderOpen,
+    BoxIcon
 } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
-import { FeaturedProductsBanner } from '../catalog';
+import { formatDateArticle } from '@/lib/utils';
 
 interface Article {
     id: number;
@@ -63,13 +64,7 @@ const XIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 export default function BlogDetail({ post, related_posts = [], random_products = [], seo }: BlogDetailProps) {
     const { getConfig } = useConfig();
     const [copied, setCopied] = useState(false);
-    
-    const formatDate = (date: string) =>
-        new Date(date).toLocaleDateString('id-ID', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
+
 
     const readingTime = post.reading_time || Math.ceil(post.content.split(' ').length / 200);
     const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
@@ -118,11 +113,6 @@ export default function BlogDetail({ post, related_posts = [], random_products =
 
                 {/* --- MAIN CONTAINER --- */}
                 <div className="max-w-7xl mx-auto px-4 py-8">
-                    {random_products.length > 0 && (
-                        <div className="block lg:hidden mb-6 rounded-2xl overflow-hidden">
-                            <FeaturedProductsBanner products={random_products} />
-                        </div>
-                    )}
                     
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
                         
@@ -139,10 +129,10 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                                 </h1>
 
                                 {/* Meta Informasi */}
-                                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-zinc-600 dark:text-zinc-400 font-medium pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-zinc-600 dark:text-zinc-400 font-medium pt-4 border-t border-zinc-100 dark:border-zinc-800">
                                     <span>Oleh: <strong className="text-zinc-900 dark:text-zinc-100">{post.author?.name || 'Tim Redaksi'}</strong></span>
                                     <span className="text-zinc-300 dark:text-zinc-700">•</span>
-                                    <span className="flex items-center gap-1.5 flex-nowrap"><Calendar className="w-4 h-4 text-zinc-400" /> {formatDate(post.published_at)}</span>
+                                    <span className="flex items-center gap-1.5 flex-nowrap"><Calendar className="w-4 h-4 text-zinc-400" /> {formatDateArticle(post.published_at)}</span>
                                     <span className="text-zinc-300 dark:text-zinc-700">•</span>
                                     <span className="flex items-center gap-1.5 flex-nowrap"><Clock className="w-4 h-4 text-zinc-400" /> {readingTime} mnt baca</span>
                                     <span className="text-zinc-300 dark:text-zinc-700">•</span>
@@ -280,9 +270,44 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                                 </div>
                             </div>
 
-                            {random_products.length > 0 && (
-                                <div className="hidden lg:block rounded-2xl overflow-hidden bg-slate-100">
-                                    <FeaturedProductsBanner products={random_products} />
+                                {random_products.length > 0 && (
+                                <div className="space-y-4 pt-2">
+                                    <div className="flex items-center gap-2 text-slate-950 dark:text-white border-b border-slate-100 dark:border-slate-900 pb-3">
+                                        <BoxIcon className="h-4 w-4 text-orange-500 stroke-[2.5]" />
+                                        <h3 className="text-sm font-black uppercase tracking-wider">
+                                            Rekomendasi Unit Pilihan
+                                        </h3>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {random_products.map((product) => (
+                                            <Link 
+                                                key={product.id} 
+                                                href={`/katalog/${product.slug}`}
+                                                className="group flex flex-col bg-slate-50 dark:bg-slate-900/40 rounded-xl overflow-hidden border border-slate-200/50 dark:border-slate-800 p-2 hover:bg-slate-100/60 dark:hover:bg-slate-800/80 transition-all shadow-xs"
+                                            >
+                                                <div className="aspect-[4/3] w-full rounded-lg overflow-hidden relative bg-slate-200 dark:bg-slate-800 mb-2">
+                                                    <img 
+                                                        src={product.image} 
+                                                        alt={product.name}
+                                                        onError={handleImageError}
+                                                        className="absolute inset-0 w-full h-full object-cover"
+                                                        loading="lazy"
+                                                        decoding="async"
+                                                    />
+                                                </div>
+                                                <div className="flex-1 flex flex-col justify-between">
+                                                    <h4 className="text-xs font-extrabold text-slate-900 dark:text-slate-200 line-clamp-2 leading-tight group-hover:text-orange-500 transition-colors">
+                                                        {product.name}
+                                                    </h4>
+                                                    {product.category && (
+                                                        <span className="text-[10px] font-bold text-slate-400 mt-1 block uppercase tracking-wide">
+                                                            {product.category.name}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
