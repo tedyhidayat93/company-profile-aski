@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,9 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pagination } from '@/components/ui/pagination-custom';
-import HeadingSmall from '@/components/heading-small';
 import HeaderTitle from '@/components/header-title';
 import { type BreadcrumbItem } from '@/types';
 import { formatDate } from '@/lib/utils';
@@ -19,15 +17,12 @@ import { type DateRange } from 'react-day-picker';
 import { setDateParam } from '@/utils/date';
 import { 
   Search, 
-  Filter, 
-  Eye, 
-  Calendar, 
+  Eye,  
   Globe, 
   Monitor, 
   Smartphone, 
   Tablet,
   MapPin,
-  User,
   Clock,
   Activity
 } from 'lucide-react';
@@ -117,16 +112,20 @@ const getDeviceIcon = (device: string) => {
   }
 };
 
+// --- PEMBARUAN: Penyesuaian warna badge untuk aksi leads formulir baru ---
 const getActionColor = (action: string) => {
   switch (action) {
     case 'visit':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
     case 'click':
-      return 'bg-green-100 text-green-800';
+      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
     case 'submit':
-      return 'bg-orange-100 text-orange-800';
+    case 'contact_page_submit':
+      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+    case 'whatsapp_quote_request':
+      return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300';
   }
 };
 
@@ -283,7 +282,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                       <Input
                         id="search"
                         type="text"
-                        placeholder="Cari log pengunjung..."
+                        placeholder="Cari berdasarkan halaman, IP, kota, atau isi deskripsi pesan..."
                         value={data.search}
                         onChange={(e) => setData('search', e.target.value)}
                         className="mt-1"
@@ -305,6 +304,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                       </Select>
                     </div>
 
+                    {/* --- PEMBARUAN: Pilihan Dropdown Filter Aksi Diperluas Dinamis --- */}
                     <div>
                       <Label htmlFor="action">Aksi</Label>
                       <Select value={data.action} onValueChange={(value) => setData('action', value)}>
@@ -315,7 +315,18 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                           <SelectItem value="all">Semua aksi</SelectItem>
                           <SelectItem value="visit">Kunjungan</SelectItem>
                           <SelectItem value="click">Klik</SelectItem>
-                          <SelectItem value="submit">Submit</SelectItem>
+                          <SelectItem value="submit">Submit Umum</SelectItem>
+                          <SelectItem value="contact_page_submit">Form Kontak (Leads)</SelectItem>
+                          <SelectItem value="whatsapp_quote_request">Klik CTA WhatsApp</SelectItem>
+                          
+                          {/* Opsi Tambahan Otomatis dari Database yang Unik Diluar List Manual */}
+                          {Object.keys(statistics.by_action || {})
+                            .filter(act => !['all', 'visit', 'click', 'submit', 'contact_page_submit', 'whatsapp_quote_request'].includes(act))
+                            .map((customAction) => (
+                              <SelectItem key={customAction} value={customAction}>
+                                <span className="capitalize">{customAction.replace(/_/g, ' ')}</span>
+                              </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -392,7 +403,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                         </div>
                       </TableCell>
                       <TableCell>
-                        <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">
+                        <code className="text-xs bg-gray-100 dark:bg-slate-800 px-1 py-0.5 rounded">
                           {log.ip_address}
                         </code>
                       </TableCell>
@@ -403,8 +414,9 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={cn(getActionColor(log.action))}>
-                          {log.action}
+                        {/* Memanggil getActionColor dengan dukungan tipe aksi baru */}
+                        <Badge className={cn("capitalize shadow-none border-0 font-semibold", getActionColor(log.action))}>
+                          {log.action.replace(/_/g, ' ')}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -416,7 +428,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                         <div className="flex items-center gap-1">
                           {log.country && <MapPin className="h-3 w-3" />}
                           <span className="text-sm">
-                            {log.full_location || 'Unknown'}
+                            {log.full_location || `${log.city ?? ''}, ${log.country ?? 'Unknown'}`}
                           </span>
                         </div>
                       </TableCell>
@@ -427,6 +439,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm" asChild>
+                          {/* Rute dinamis admin disesuaikan dengan breadcrumb cpanel */}
                           <Link href={`/cpanel/analytics/visitor-logs/${log.id}`}>
                             <Eye className="h-4 w-4" />
                           </Link>
@@ -447,7 +460,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                 onPageChange={(page: number) => {
                   const url = new URL(window.location.href);
                   url.searchParams.set('page', page.toString());
-                  router.get(url.toString());
+                  router.get(url.toString(), {}, { preserveScroll: true, preserveState: true });
                 }}
               />
             )}

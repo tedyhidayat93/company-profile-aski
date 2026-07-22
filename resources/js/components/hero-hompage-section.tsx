@@ -131,7 +131,7 @@ export default function HeroSection({
                       <img
                         src={client.logo}
                         alt={client.name}
-                        className="w-full h-full object-contain grayscale opacity-85 hover:opacity-100 transition-all"
+                        className="w-full h-full object-contain filter grayscale-70 hover:grayscale-0 opacity-85 hover:opacity-100 transition-all"
                         onError={(e) => { (e.target as HTMLImageElement).src = '/images/placeholder.png'; }}
                       />
                     </div>
@@ -148,7 +148,7 @@ export default function HeroSection({
                       <img
                         src={client.logo}
                         alt={client.name}
-                        className="w-full h-full object-contain grayscale opacity-85 hover:opacity-100 transition-all"
+                        className="w-full h-full object-contain filter grayscale-70 hover:grayscale-0 opacity-85 hover:opacity-100 transition-all"
                         onError={(e) => { (e.target as HTMLImageElement).src = '/images/placeholder.png'; }}
                       />
                     </div>

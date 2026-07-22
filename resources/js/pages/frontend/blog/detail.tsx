@@ -21,6 +21,7 @@ import { handleImageError } from '@/utils/image';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import { formatDateArticle } from '@/lib/utils';
+import QuoteMiniFormCard from '@/components/quote-mini-form-card';
 
 interface Article {
     id: number;
@@ -252,23 +253,7 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                         <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-8 w-full">
                             
                             {/* Kotak Hubungi Konsultasi WA (Gaya Flat Bersih) */}
-                            <div className="bg-zinc-950 text-white p-6 sm:p-8 rounded-2xl relative overflow-hidden">
-                                <div className="space-y-4 relative z-10">
-                                    <h3 className="text-xl font-extrabold tracking-tight text-white leading-snug">
-                                        Dapatkan Penawaran Container
-                                    </h3>
-                                    <p className="text-zinc-100 text-sm font-medium leading-relaxed">
-                                        Hubungi tim marketing pelayanan ramah kami secara langsung. Kami siap memandu dan memberikan penawaran harga terbaik & diskon bulan ini.
-                                    </p>
-                                    <a 
-                                        href={`https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=${getConfig('whatsapp_message', 'Halo%20Alumoda%2C%20saya%20ingin%20bertanya')}`} 
-                                        target="_blank"
-                                        className="inline-flex w-full h-12 justify-center items-center bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm transition-all active:scale-[0.98]"
-                                    >
-                                        <PhoneCall className="w-4 h-4 mr-2" /> Hubungi via WhatsApp
-                                    </a>
-                                </div>
-                            </div>
+                            <QuoteMiniFormCard pageName={`Blog Article - ${post.slug}`} />
 
                                 {random_products.length > 0 && (
                                 <div className="space-y-4 pt-2">

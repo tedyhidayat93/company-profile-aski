@@ -4,16 +4,22 @@ namespace App\Http\Controllers\BackPanel\Analytics;
 
 use App\Http\Controllers\Controller;
 use App\Models\LogVisitor;
+use App\Traits\TracksVisitors; // 1. Tambahkan Trait Anda di sini
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator; // Tambahkan untuk validasi API
+use Illuminate\Support\Facades\Cache;     // Tambahkan untuk anti-bruteforce lock
 
 class VisitorLogController extends Controller
 {
+    // 2. Gunakan trait tracking visitor Anda
+    use TracksVisitors;
+
     public function __construct()
     {
-        // Apply permission middleware to all methods
-        $this->middleware('permission:visitor-log-list')->only(['index', 'show']);
+        // 3. Pastikan 'storeLeadsLog' dikecualikan (except) agar bisa diakses publik/frontend
+        $this->middleware('permission:visitor-log-list')->except(['storeLeadsLog']);
     }
 
     public function index(Request $request)
@@ -101,5 +107,70 @@ class VisitorLogController extends Controller
                 ->limit(5)
                 ->get(['page', 'ip_address', 'device', 'created_at']),
         ];
+    }
+
+    /**
+     * =========================================================================
+     * ENDPOINT API: Menyimpan log interaksi Leads (WhatsApp/Contact Submit)
+     * Proteksi Bruteforce & Content Duplicate Check via Cache Lock
+     * =========================================================================
+     */
+    public function storeLeadsLog(Request $request)
+    {
+        // 1. Validasi struktur kiriman data dari frontend React
+        $validator = Validator::make($request->all(), [
+            'name'        => 'required|string|max:100',
+            'company'     => 'nullable|string|max:150',
+            'phone'       => 'required|string|max:30',
+            'email'       => 'required|email|max:100',
+            'subject'     => 'required|string|max:200',
+            'message'     => 'required|string|max:2000',
+            'source_page' => 'required|string|max:100',
+            'action_type' => 'required|string|max:50',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data formulir tidak valid.',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        // 2. Proteksi Lapis Kedua (Mencegah spam konten yang persis sama berulang kali)
+        $ip = $request->ip();
+        $contentHash = md5($ip . '_' . $request->phone . '_' . substr($request->message, 0, 50));
+        $antiSpamKey = 'leads_lock_' . $contentHash;
+
+        if (Cache::has($antiSpamKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesan serupa sedang kami proses, mohon tunggu sebentar.'
+            ], 422);
+        }
+
+        // Simpan lock selama 5 menit untuk data yang identik
+        Cache::put($antiSpamKey, true, 300);
+
+        // 3. Format teks log deskripsi & panggil trait visitor tracking
+        $logMessage = sprintf(
+            "Leads Form Submit -> Perusahaan: %s | Kebutuhan: %s | Pesan: %s",
+            $request->company ?? 'Perorangan',
+            $request->subject,
+            $request->message
+        );
+
+        // Memanfaatkan method trackAction bawaan trait TracksVisitors Anda
+        $this->trackAction(
+            $request,
+            $request->action_type, // 'contact_page_submit'
+            $request->source_page, // 'contact-us'
+            $logMessage
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil merekam log interaksi data visitor.'
+        ], 200);
     }
 }

@@ -18,7 +18,7 @@ class BlogController extends Controller
 
     public function index(Request $request)
     {
-        // $this->trackPageVisit($request, 'Blog Index');
+        $this->trackPageVisit($request, 'Blog Index');
 
         $filters = [
             'search' => $request->string('search')->toString(),
@@ -127,7 +127,7 @@ class BlogController extends Controller
             $mostReadPosts = (clone $baseQuery)->orderByDesc('views_count')->limit(3)->get();
         } else {
             // Jika halaman depan normal, ambil dari Cache + Batasi kolom (Hemat resource shared hosting)
-            $headlinePosts = Cache::remember('blog_headline_posts', now()->addHours(2), function () use ($articleColumns) {
+            $headlinePosts = Cache::remember('blog_headline_posts', now()->addMinutes(30), function () use ($articleColumns) {
                 return Article::query()->published()
                     ->select($articleColumns)
                     ->with(['author:id,name', 'category:id,name,slug'])

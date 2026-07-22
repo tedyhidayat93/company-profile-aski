@@ -27,6 +27,8 @@ class DashboardController extends Controller
             'websiteTrafficData' => $this->buildWebsiteTrafficData(),
             'countryStats' => $this->getCountryStats(),
             'regionStats' => $this->getRegionStats(),
+            'topPopularArticles' => $this->getTopPopularArticles(),
+            'latestArticles'     => $this->getLatestArticles(),
         ]);
     }
 
@@ -138,6 +140,45 @@ class DashboardController extends Controller
         }
 
         return file_exists(public_path($path)) ? $path : '/images/placeholder.png';
+    }
+
+    // ================= 📰 ARTICLES (NEW ADDITIONS) =================
+    
+    /**
+     * Mengambil artikel terpopuler berdasarkan jumlah views terbanyak.
+     */
+    private function getTopPopularArticles(): array
+    {
+        return Article::where('views', '>', 0)
+            ->orderByDesc('views')
+            ->take(5)
+            ->get()
+            ->map(fn ($article) => [
+                'id' => $article->id,
+                'title' => $article->title,
+                'views' => $article->views,
+                'published_time' => $article->published_at ? Carbon::parse($article->published_at)->diffForHumans() : '-',
+                'image' => $article->featured_image ? resolve_image_path($article->featured_image) : null,
+                'slug' => $article->slug,
+            ])->toArray();
+    }
+
+    /**
+     * Mengambil artikel terbaru berdasarkan tanggal publikasi teranyar.
+     */
+    private function getLatestArticles(): array
+    {
+        return Article::orderByDesc('published_at')
+            ->take(5)
+            ->get()
+            ->map(fn ($article) => [
+                'id' => $article->id,
+                'title' => $article->title,
+                'published_time' => $article->published_at ? Carbon::parse($article->published_at)->diffForHumans() : '-',
+                'image' => $article->featured_image ? resolve_image_path($article->featured_image) : null,
+                'views' => $article->views,
+                'slug' => $article->slug,
+            ])->toArray();
     }
 
     // ================= ORDERS =================

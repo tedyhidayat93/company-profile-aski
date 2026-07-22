@@ -31,6 +31,7 @@ import {
   ShoppingBag,
   Calendar1,
   ArrowRight,
+  BookOpen,
 } from 'lucide-react';
 import { OrderStatusBadge } from '@/utils/order-status';
 import { Button } from '@/components/ui/button';
@@ -55,7 +56,14 @@ interface WebsiteTrafficData {
   thisYear: TrafficData[];
 }
 
-type DateFilter = 'today' | 'thisMonth' | 'last3Months' | 'thisYear';
+interface ArticleData {
+  id: number;
+  title: string;
+  views?: number;
+  published_time?: string;
+  image: string | null;
+  slug: string;
+}
 
 interface Props {
   stats: Array<{
@@ -92,6 +100,8 @@ interface Props {
   websiteTrafficData: WebsiteTrafficData;
   countryStats: CountryData[];
   regionStats: RegionData[];
+  topPopularArticles: ArticleData[];
+  latestArticles: ArticleData[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -123,10 +133,11 @@ export default function Dashboard({
   orderStats,
   topSearchedProducts,
   latestProducts,
-  // recentOrders,
   websiteTrafficData,
   countryStats,
   regionStats,
+  topPopularArticles = [],
+  latestArticles = [],
 }: Props) {
 
     const [recentOrdersStats, setRecentOrders] = useState<any[]>([]);
@@ -154,30 +165,12 @@ export default function Dashboard({
         }
       };
   
-      /*
-      |--------------------------------------------------------------------------
-      | Initial Fetch
-      |--------------------------------------------------------------------------
-      */
-  
       fetchRecentOrders();
-  
-      /*
-      |--------------------------------------------------------------------------
-      | Polling
-      |--------------------------------------------------------------------------
-      */
   
       const interval = setInterval(
         fetchRecentOrders,
         10000
       );
-  
-      /*
-      |--------------------------------------------------------------------------
-      | Cleanup
-      |--------------------------------------------------------------------------
-      */
   
       return () => clearInterval(interval);
   
@@ -188,18 +181,16 @@ export default function Dashboard({
       <Head title="Dashboard" />
 
       <div className="space-y-4 p-6 min-h-screen">
-        {/* Header Section dengan Aksi Cepat */}
+        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <HeaderTitle
             title="Dashboard"
-            description="Pantau performa aktivitas bisnis Anda hari ini."
+            description="Pantau performa aktivitas situs web hari ini."
           />
-          <div className="flex items-center gap-2">
-            {/* Tambahkan button aksi global jika perlu, misal: Export Report */}
-          </div>
+          <div className="flex items-center gap-2"></div>
         </div>
 
-        {/* Top Stats Overview - Lebih Bersih */}
+        {/* Top Stats Overview */}
         <div className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {stats.map((stat) => {
             const Icon = iconMap[stat.icon] || Package;
@@ -228,7 +219,6 @@ export default function Dashboard({
 
                   {/* Bubble Accent Layers */}
                   <div className="pointer-events-none absolute inset-0 overflow-hidden">
-
                     {/* Big Bubble */}
                     <div
                       className={`
@@ -319,11 +309,9 @@ export default function Dashboard({
                         group-hover:translate-x-2
                       `}
                     />
-
                   </div>
 
                   <CardContent className="relative z-10">
-                    {/* Content */}
                     <div className="space-y-1">
                       <p
                         className="
@@ -342,7 +330,6 @@ export default function Dashboard({
                           text-slate-900
                           sm:text-3xl
                           xl:text-4xl
-
                           transition-all duration-300
                           group-hover:tracking-tighter
                         "
@@ -357,6 +344,14 @@ export default function Dashboard({
           })}
         </div>
 
+        {/* Traffic Visitors */}
+        <TrafficVisitorCharts
+          websiteTrafficData={websiteTrafficData}
+          countryStats={countryStats}
+          regionStats={regionStats}
+        />
+
+        {/* Daftar Pesanan Terbaru */}
         <Card className="border-none gap-0 shadow-sm ring-1 ring-slate-200 min-h-[370px] p-0 overflow-hidden">
           <CardHeader className="flex flex-col bg-slate-800 md:flex-row items-center justify-between space-y-0 py-4">
             <div>
@@ -364,15 +359,15 @@ export default function Dashboard({
               <p className="text-sm text-slate-300">Pesanan terbaru 24 jam terakhir</p>
             </div>
             <div className="relative">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/cpanel/crm/orders">Lihat Semua <ArrowRight className="h-4 w-4 ml-1 inline-block" /></Link>
-            </Button>
-            {recentOrdersStats.length > 0 && (
-              <Badge className="absolute animate-pulse -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-600">
-                {recentOrdersStats.length}
-              </Badge>
-            )}
-          </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/cpanel/crm/orders">Lihat Semua <ArrowRight className="h-4 w-4 ml-1 inline-block" /></Link>
+              </Button>
+              {recentOrdersStats.length > 0 && (
+                <Badge className="absolute animate-pulse -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-600">
+                  {recentOrdersStats.length}
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="w-full overflow-x-auto">
@@ -386,7 +381,6 @@ export default function Dashboard({
                     <TableHead className="pt-7 pb-4 text-right pr-6 text-xs uppercase tracking-wider font-semibold">Total Nilai</TableHead>
                   </TableRow>
                 </TableHeader>
-                
                 <TableBody>
                   {recentOrdersStats.length > 0 ? (
                     recentOrdersStats.map((order: any) => (
@@ -395,7 +389,6 @@ export default function Dashboard({
                         onClick={() => window.location.href = `/cpanel/crm/orders/${order.id}`} 
                         className="group hover:bg-slate-50/80 transition-all cursor-pointer border-b"
                       >
-                        {/* ID Pesanan */}
                         <TableCell className="pl-6 space-y-2">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700">
                             #{order.order_number}
@@ -404,8 +397,6 @@ export default function Dashboard({
                             <Calendar1 className="h-3 w-3 ml-1" /> {formatDate(order.created_at)}
                           </span>
                         </TableCell>
-
-                        {/* Pelanggan */}
                         <TableCell>
                           <div className="flex items-start gap-3">
                             <div className="flex flex-col">
@@ -419,15 +410,12 @@ export default function Dashboard({
                             </div>
                           </div>
                         </TableCell>
-
-                        {/* Produk & Catatan */}
                         <TableCell className="max-w-[250px]">
                           <div className="flex flex-col">
                             <span className="font-medium text-slate-800">{order.product_name}</span>
                             <span className="text-xs text-slate-500">
                               {order.quantity} Unit &times; {formatCurrencyDisplay(order.product_price)}
                             </span>
-                            
                             {order.notes && (
                               <div className="mt-2 text-wrap p-1 bg-amber-50/50 border-l-2 border-amber-200 rounded text-[11px] text-amber-800 leading-relaxed italic">
                                 &ldquo;{order.notes}&rdquo;
@@ -435,19 +423,14 @@ export default function Dashboard({
                             )}
                           </div>
                         </TableCell>
-
-                        {/* Status */}
                         <TableCell>
                           <OrderStatusBadge status={order.status} />
                         </TableCell>
-
-                        {/* Total Harga */}
                         <TableCell className="text-right pr-6">
                           <div className="flex flex-col items-end">
                             <span className="font-bold text-slate-900 text-base">
                               {formatCurrencyDisplay(order.total_price)}
                             </span>
-                            {/* <span className="text-[10px] text-slate-400 uppercase font-medium">Pembayaran Selesai</span> */}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -473,20 +456,26 @@ export default function Dashboard({
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-sm ring-1 ring-slate-200">
-          <CardHeader>
-            <CardTitle className="text-base font-bold">Produk Paling Banyak Dilihat</CardTitle>
-          </CardHeader>
-          {/* Mengubah container menjadi Grid Responsif (1 kolom di HP, 2 di tablet, 4 di desktop) */}
+        {/* Produk Paling Banyak Dilihat */}
+        <Card className="border-none shadow-sm ring-1 ring-slate-200 pt-0 overflow-hidden">
+          <div className="p-6 border-b border-zinc-100 dark:border-zinc-900 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-800 dark:bg-zinc-900/20">
+            <div>
+              <h2 className="text-lg font-bold text-orange-300 dark:text-zinc-50 tracking-tight">
+                Produk Paling Banyak Dilihat
+              </h2>
+              <p className="text-xs text-zinc-100 dark:text-zinc-500 mt-0.5">
+                Akumulasi total produk yang paling sering diklik oleh pengunjung
+              </p>
+            </div>
+          </div>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 min-h-67">
             {topSearchedProducts.length > 0 ? (
               topSearchedProducts.map((product) => (
                 <div 
                   onClick={() => window.location.href = `/cpanel/cms/product/${product.id}`} 
                   key={product.id} 
-                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-orange-500/20 hover:bg-slate-50/50 transition-all cursor-pointer group"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-300 shadow hover:border-orange-500/20 hover:bg-slate-50/50 transition-all cursor-pointer group"
                 >
-                  {/* Foto Produk */}
                   <div className="w-12 h-12 shrink-0 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200/60">
                     {product.image_path ? (
                       <img 
@@ -498,8 +487,6 @@ export default function Dashboard({
                       <span className="font-bold text-slate-400 text-[10px]">NO IMG</span>
                     )}
                   </div>
-
-                  {/* Detail Produk */}
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-slate-800 group-hover:text-orange-500 transition-colors truncate">
                       {product.name}
@@ -511,7 +498,6 @@ export default function Dashboard({
                 </div>
               ))
             ) : (
-              /* State Kosong (col-span-full agar memenuhi seluruh lebar grid) */
               <div className="col-span-full flex flex-col min-h-52 items-center justify-center py-8 text-center">
                 <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
                   <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -519,18 +505,124 @@ export default function Dashboard({
                   </svg>
                 </div>
                 <p className="text-sm text-slate-500 font-medium">Belum ada data pencarian</p>
-                <p className="text-xs text-slate-400 mt-1">Produk yang dicari akan muncul di sini</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* traffic Visitors */}
-        <TrafficVisitorCharts
-          websiteTrafficData={websiteTrafficData}
-          countryStats={countryStats}
-          regionStats={regionStats}
-        />
+        {/* Dua Komponen Baru: Artikel Terpopuler & Artikel Terbaru */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* Artikel Terpopuler */}
+          <Card className="border-none shadow-sm ring-1 ring-slate-200 pt-0 overflow-hidden">
+            <div className="p-6 border-b border-zinc-100 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-800">
+              <div>
+                <h2 className="text-lg font-bold text-orange-300 tracking-tight flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-orange-300" /> Artikel Terpopuler
+                </h2>
+                <p className="text-xs text-zinc-100 mt-0.5">
+                  Artikel blog dengan akumulasi jumlah pembaca terbanyak
+                </p>
+              </div>
+            </div>
+            <CardContent className="space-y-3 min-h-lg">
+              {topPopularArticles.length > 0 ? (
+                topPopularArticles.map((article) => (
+                  <div 
+                    onClick={() => window.open(`/${article.slug}`, '_blank', 'noopener,noreferrer')}
+                    key={article.id}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-300 shadow hover:border-orange-500/20 hover:bg-slate-50/50 transition-all cursor-pointer group"
+                  >
+                    <div className="w-12 h-12 shrink-0 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200/60">
+                      {article.image ? (
+                        <img 
+                          src={article.image} 
+                          alt={article.title}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <FileText className="w-5 h-5 text-slate-400" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-800 group-hover:text-orange-500 transition-colors truncate">
+                        {article.title}
+                      </p>
+                      <div className="flex items-center gap-3">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {article.published_time}
+                        </p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5 flex items-center gap-1">
+                          <Eye className="w-3 h-3" /> {article.views?.toLocaleString()} Dilihat
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex flex-col h-56 items-center justify-center text-center opacity-60">
+                  <p className="text-sm text-slate-500 font-medium">Belum ada statistik artikel populer</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Artikel Terbaru */}
+          <Card className="border-none shadow-sm ring-1 ring-slate-200 pt-0 overflow-hidden">
+            <div className="p-6 border-b border-zinc-100 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-800">
+              <div>
+                <h2 className="text-lg font-bold text-orange-300 tracking-tight flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-orange-300" /> Artikel Terbaru
+                </h2>
+                <p className="text-xs text-zinc-100 mt-0.5">
+                  Rilisan publikasi artikel yang baru saja diterbitkan
+                </p>
+              </div>
+            </div>
+            <CardContent className="space-y-3 min-h-lg">
+              {latestArticles.length > 0 ? (
+                latestArticles.map((article) => (
+                  <div 
+                    onClick={() => window.open(`/${article.slug}`, '_blank', 'noopener,noreferrer')}
+                    key={article.id}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-300 shadow hover:border-orange-500/20 hover:bg-slate-50/50 transition-all cursor-pointer group"
+                  >
+                    <div className="w-12 h-12 shrink-0 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200/60">
+                      {article.image ? (
+                        <img 
+                          src={article.image} 
+                          alt={article.title}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <FileText className="w-5 h-5 text-slate-400" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-800 group-hover:text-orange-500 transition-colors truncate">
+                        {article.title}
+                      </p>
+                      <div className="flex items-center gap-3">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {article.published_time}
+                        </p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5 flex items-center gap-1">
+                          <Eye className="w-3 h-3" /> {article.views?.toLocaleString()} Dilihat
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex flex-col h-56 items-center justify-center text-center opacity-60">
+                  <p className="text-sm text-slate-500 font-medium">Belum ada artikel yang rilis</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+        </div>
+
       </div>
     </AppLayout>
   );

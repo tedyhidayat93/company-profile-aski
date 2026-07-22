@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   AreaChart,
   Area,
@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { List } from 'lucide-react';
+import { List, Globe, BarChart3, MapPin, ActivitySquare } from 'lucide-react';
 
 interface TrafficData {
   time?: string;
@@ -38,187 +38,248 @@ interface RegionData {
   visitors: number;
 }
 
+type ActiveTab = 'traffic' | 'country' | 'region';
+
 export default function TrafficVisitorCharts({
   websiteTrafficData,
-  countryStats,
-  regionStats,
+  countryStats = [],
+  regionStats = [],
 }: {
   websiteTrafficData: WebsiteTrafficData;
   countryStats: CountryData[];
   regionStats: RegionData[];
 }) {
-  const [filter, setFilter] = React.useState<keyof WebsiteTrafficData>('thisMonth');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('traffic');
+  const [filter, setFilter] = useState<keyof WebsiteTrafficData>('thisMonth');
 
-  const currentData = websiteTrafficData[filter];
+  // Menentukan Key untuk XAxis Grafik Utama
+  const currentData = websiteTrafficData[filter] || [];
   const dataKey = filter === 'today' ? 'time' : 'date';
 
-  const isEmpty = !currentData || currentData.length === 0;
-  const isAllZero = currentData?.every((d) => d.visitors === 0);
+  const isEmpty = currentData.length === 0;
+  const isAllZero = useMemo(() => currentData.every((d) => d.visitors === 0), [currentData]);
+
+  // Konfigurasi Filter Waktu
+  const timeFilters = [
+    { key: 'today', label: 'Hari Ini' },
+    { key: 'thisMonth', label: 'Bulan Ini' },
+    { key: 'last3Months', label: '3 Bulan' },
+    { key: 'thisYear', label: '1 Tahun' },
+  ] as const;
 
   return (
-    <div className="space-y-6">
-
-      {/* ================= TRAFFIC MAIN ================= */}
-      <div className="relative overflow-hidden rounded-2xl border backdrop-blur-xl shadow-sm p-6">
-
-        {/* Glow effect */}
-        <div className="absolute -top-20 -right-20 w-60 h-60 bg-blue-500/10 blur-3xl rounded-full" />
-
-        {/* Header */}
-        <div className="flex flex-col md:flex-row gap-2 items-center justify-between mb-6 relative z-10">
-          <div>
-            <h2 className="text-xl font-bold text-slate-800">
-              Trafik Kunjungan Situs
-            </h2>
-            <p className="text-xs text-slate-400">
-              Monitoring pengunjung secara realtime
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/cpanel/analytics/visitor-logs">
-                <List className="h-4 w-4 mr-2" />
-                Lihat Detail
-              </Link>
-            </Button>
-            <select
-              className="bg-white border rounded-lg px-3 py-1.5 text-sm shadow-sm focus:ring-2 focus:ring-blue-500"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as any)}
-            >
-              <option value="today">Hari Ini</option>
-              <option value="thisMonth">Bulan Ini</option>
-              <option value="last3Months">3 Bulan</option>
-              <option value="thisYear">Tahun</option>
-            </select>
-          </div>
+    <div className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xs overflow-hidden">
+      
+      {/* ─── HEADER & TABS CONTROL ─── */}
+      <div className="p-6 border-b border-zinc-100 dark:border-zinc-900 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-800 dark:bg-zinc-900/20">
+        <div>
+          <h2 className="text-lg font-bold text-orange-300 dark:text-zinc-50 tracking-tight">
+            Analisis Pengunjung
+          </h2>
+          <p className="text-xs text-zinc-100 dark:text-zinc-500 mt-0.5">
+            Pantau performa trafik dan demografi situs Anda
+          </p>
         </div>
 
-        {/* Chart */}
-        <div className="h-[320px] relative z-10">
-          {!isEmpty && (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={currentData}>
-                <defs>
-                  <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-
-                <XAxis
-                  dataKey={dataKey}
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
-                />
-
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
-                />
-
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: '12px',
-                    border: '1px solid #e2e8f0',
-                    fontSize: '12px',
-                  }}
-                />
-
-                <Area
-                  type="monotone"
-                  dataKey="visitors"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill="url(#colorVisitors)"
-                  activeDot={{ r: 6 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
-
-          {isEmpty && (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mb-3">
-                📊
-              </div>
-              <p className="text-sm text-slate-500">Belum ada data trafik</p>
-            </div>
-          )}
-
-          {isAllZero && !isEmpty && (
-            <div className="absolute bottom-0 left-0 right-0 text-center text-xs text-slate-400">
-              Belum ada aktivitas (0 visitors)
-            </div>
-          )}
+        {/* Navigation Tabs */}
+        <div className="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl w-full sm:w-auto">
+          <button
+            onClick={() => setActiveTab('traffic')}
+            className={`flex items-center justify-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all flex-1 sm:flex-initial ${
+              activeTab === 'traffic'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-xs'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            Kunjungan Situs
+          </button>
+          <button
+            onClick={() => setActiveTab('country')}
+            className={`flex items-center justify-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all flex-1 sm:flex-initial ${
+              activeTab === 'country'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-xs'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5" />
+            Negara
+          </button>
+          <button
+            onClick={() => setActiveTab('region')}
+            className={`flex items-center justify-center gap-2 text-xs font-bold px-4 py-2 rounded-lg transition-all flex-1 sm:flex-initial ${
+              activeTab === 'region'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-xs'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900'
+            }`}
+          >
+            <MapPin className="w-3.5 h-3.5" />
+            Wilayah
+          </button>
         </div>
       </div>
 
-      {/* ================= COUNTRY & REGION ================= */}
-      <div className="grid md:grid-cols-2 gap-6">
-
-        {/* COUNTRY */}
-        <div className="rounded-2xl border backdrop-blur-xl p-5 shadow-sm">
-          <h3 className="text-xl font-semibold text-slate-700 mb-4">
-            Per Negara
-          </h3>
-
-          <div className="h-[250px]">
-            <ResponsiveContainer>
-              <BarChart data={countryStats} layout="vertical">
-                <XAxis type="number" hide />
-                <YAxis
-                  dataKey="country"
-                  type="category"
-                  tick={{ fontSize: 12 }}
-                />
-
-                <Tooltip />
-
-                <Bar dataKey="visitors" radius={[0, 8, 8, 0]}>
-                  {countryStats.map((_, i) => (
-                    <Cell key={i} fill="#3b82f6" fillOpacity={1 - i * 0.1} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+      {/* ─── CHARTS SUB-HEADER (SUB-FILTERS & LOG ACTION) ─── */}
+      <div className="px-6 pt-5 pb-2 flex flex-wrap gap-3 items-center justify-between">
+        <div>
+          {activeTab === 'traffic' ? (
+            <div className="flex gap-1 bg-zinc-50 dark:bg-zinc-900/60 p-1 border border-zinc-200/60 dark:border-zinc-800 rounded-xl">
+              {timeFilters.map((tf) => (
+                <button
+                  key={tf.key}
+                  onClick={() => setFilter(tf.key)}
+                  className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                    filter === tf.key
+                      ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50'
+                  }`}
+                >
+                  {tf.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <span className="text-xs font-extrabold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+              Peringkat Teratas Demografi
+            </span>
+          )}
         </div>
 
-        {/* REGION */}
-        <div className="rounded-2xl border backdrop-blur-xl p-5 shadow-sm">
-          <h3 className="text-xl font-semibold text-slate-700 mb-4">
-            Per Wilayah
-          </h3>
+        <Button variant="secondary" size="sm" className="h-8 text-xs font-bold rounded-xl" asChild>
+          <Link href="/cpanel/analytics/visitor-logs">
+            <ActivitySquare className="h-3.5 w-3.5 mr-1.5" />
+            Lihat Detail
+          </Link>
+        </Button>
+      </div>
 
-          <div className="h-[250px]">
-            <ResponsiveContainer>
-              <BarChart data={regionStats} layout="vertical">
-                <XAxis type="number" hide />
-                <YAxis
-                  dataKey="region"
-                  type="category"
-                  tick={{ fontSize: 12 }}
-                />
+      {/* ─── MAIN CONTENT DISPLAY ─── */}
+      <div className="p-6 h-[340px] relative">
+        
+        {/* TAB 1: TRAFIK KUNJUNGAN UTAMA */}
+        {activeTab === 'traffic' && (
+          <>
+            {!isEmpty ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={currentData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f4f4f5" className="dark:stroke-zinc-800/60" />
+                  <XAxis
+                    dataKey={dataKey}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#a1a1aa', fontSize: 11, fontWeight: 500 }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#a1a1aa', fontSize: 11, fontWeight: 500 }}
+                  />
+                  <Tooltip
+                    cursor={{ stroke: '#2563eb', strokeWidth: 1, strokeDasharray: '4 4' }}
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      borderRadius: '12px',
+                      border: '1px solid #e4e4e7',
+                      fontSize: '12px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="visitors"
+                    name="Pengunjung"
+                    stroke="#2563eb"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#colorVisitors)"
+                    activeDot={{ r: 5, strokeWidth: 0, fill: '#2563eb' }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="text-xl mb-2">📊</div>
+                <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-500">Belum ada data rekaman trafik</p>
+              </div>
+            )}
+            
+            {isAllZero && !isEmpty && (
+              <div className="absolute bottom-6 left-0 right-0 text-center text-[11px] font-medium text-zinc-400 bg-white/80 dark:bg-zinc-950/85 py-1 backdrop-blur-xs">
+                Tidak ada aktivitas dari pengunjung (0 visitors)
+              </div>
+            )}
+          </>
+        )}
 
-                <Tooltip />
-
-                <Bar dataKey="visitors" radius={[0, 8, 8, 0]}>
-                  {regionStats.map((_, i) => (
-                    <Cell key={i} fill="#10b981" fillOpacity={1 - i * 0.1} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+        {/* TAB 2: DEMOGRAFI NEGARA */}
+        {activeTab === 'country' && (
+          <div className="w-full h-full">
+            {countryStats.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={countryStats} layout="vertical" margin={{ top: 5, right: 15, left: 10, bottom: 5 }}>
+                  <XAxis type="number" hide />
+                  <YAxis
+                    dataKey="country"
+                    type="category"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#71717a', fontSize: 11, fontWeight: 600 }}
+                    width={90}
+                  />
+                  <Tooltip cursor={{ fill: 'transparent' }} />
+                  <Bar dataKey="visitors" name="Pengunjung" radius={[0, 6, 6, 0]} barSize={14}>
+                    {countryStats.map((_, i) => (
+                      <Cell key={i} fill="#2563eb" fillOpacity={Math.max(0.3, 1 - i * 0.15)} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="text-xl mb-2">🌍</div>
+                <p className="text-xs font-semibold text-zinc-400">Data negara belum terekam</p>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
+        {/* TAB 3: DEMOGRAFI WILAYAH */}
+        {activeTab === 'region' && (
+          <div className="w-full h-full">
+            {regionStats.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={regionStats} layout="vertical" margin={{ top: 5, right: 15, left: 10, bottom: 5 }}>
+                  <XAxis type="number" hide />
+                  <YAxis
+                    dataKey="region"
+                    type="category"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#71717a', fontSize: 11, fontWeight: 600 }}
+                    width={90}
+                  />
+                  <Tooltip cursor={{ fill: 'transparent' }} />
+                  <Bar dataKey="visitors" name="Pengunjung" radius={[0, 6, 6, 0]} barSize={14}>
+                    {regionStats.map((_, i) => (
+                      <Cell key={i} fill="#10b981" fillOpacity={Math.max(0.3, 1 - i * 0.15)} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="text-xl mb-2">📍</div>
+                <p className="text-xs font-semibold text-zinc-400">Data wilayah belum terekam</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

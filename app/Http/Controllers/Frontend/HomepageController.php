@@ -134,6 +134,7 @@ class HomepageController extends Controller
 
                 return Client::query()
                     ->where('is_active', true)
+                    ->orderBy('is_pinned', 'desc')
                     ->orderBy('sequence')
                     ->get([
                         'name',
