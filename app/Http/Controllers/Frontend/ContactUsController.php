@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Cache; // Pastikan Cache di-import
 use Inertia\Inertia;
 use App\Models\Service;
 use App\Traits\TracksVisitors;
+use App\Support\Enums\PageList;
+use App\Support\Enums\VisitorAction;
 
 class ContactUsController extends Controller
 {
@@ -16,7 +18,7 @@ class ContactUsController extends Controller
 
     public function index(Request $request)
     {
-        $this->trackPageVisit($request, 'Contact Us Index');
+        $this->trackPageVisit($request, PageList::CONTACT_US->value, 'Membuka halaman ' . PageList::CONTACT_US->label());
         
         $getConfigs = Configuration::query()
             ->pluck('value', 'key');
@@ -70,7 +72,7 @@ class ContactUsController extends Controller
     public function about(Request $request)
     {
         // Catatan: sesuaikan string tracking jika ini memang halaman About Us
-        $this->trackPageVisit($request, 'About Us Index');
+        $this->trackPageVisit($request, PageList::ABOUT_US->value, 'Membuka halaman ' . PageList::ABOUT_US->label());
         
         $getConfigs = Configuration::query()
             ->pluck('value', 'key');
@@ -167,20 +169,5 @@ class ContactUsController extends Controller
             'seo'  => $seo,
             'data' => $data,
         ]);
-    }
-
-    private function resolveImagePath(?string $path): string
-    {
-        $baseUrl = rtrim(config('app.url'), '/');
-        
-        if (empty($path)) {
-            return $baseUrl . '/images/placeholder.png';
-        }
-
-        if (filter_var($path, FILTER_VALIDATE_URL)) {
-            return $path;
-        }
-
-        return $baseUrl . '/storage/' . ltrim($path, '/');
     }
 }

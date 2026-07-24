@@ -4,7 +4,10 @@ namespace App\Http\Controllers\BackPanel\Analytics;
 
 use App\Http\Controllers\Controller;
 use App\Models\LogVisitor;
+use Illuminate\Validation\Rules\Enum;
 use App\Traits\TracksVisitors; // 1. Tambahkan Trait Anda di sini
+use App\Support\Enums\VisitorAction;
+use App\Support\Enums\PageList;      // <-- Import Enum Halaman
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Gate;
@@ -61,6 +64,7 @@ class VisitorLogController extends Controller
 
         return Inertia::render('backpanel/analytics/visitor-logs/index', [
             'visitorLogs' => $visitorLogs,
+            'actionOptions' => VisitorAction::getOptions(),
             'filters' => $request->only(['search', 'device', 'action', 'date_from', 'date_to', 'per_page']),
             'statistics' => $visitorStatistics,
         ]);
@@ -112,21 +116,22 @@ class VisitorLogController extends Controller
     /**
      * =========================================================================
      * ENDPOINT API: Menyimpan log interaksi Leads (WhatsApp/Contact Submit)
+     * Bersifat Universal untuk Segala Komponen & Halaman (Nullable Friendly)
      * Proteksi Bruteforce & Content Duplicate Check via Cache Lock
      * =========================================================================
      */
     public function storeLeadsLog(Request $request)
     {
-        // 1. Validasi struktur kiriman data dari frontend React
+        // 1. Validasi struktur data
         $validator = Validator::make($request->all(), [
             'name'        => 'required|string|max:100',
             'company'     => 'nullable|string|max:150',
-            'phone'       => 'required|string|max:30',
-            'email'       => 'required|email|max:100',
-            'subject'     => 'required|string|max:200',
+            'phone'       => 'nullable|string|max:30',   
+            'email'       => 'nullable|email|max:100',    
+            'subject'     => 'nullable|string|max:200',  
             'message'     => 'required|string|max:2000',
-            'source_page' => 'required|string|max:100',
-            'action_type' => 'required|string|max:50',
+            'source_page' => ['required', 'string', new Enum(PageList::class)],
+            'action_type' => ['required', 'string', new Enum(VisitorAction::class)],
         ]);
 
         if ($validator->fails()) {
@@ -137,34 +142,59 @@ class VisitorLogController extends Controller
             ], 422);
         }
 
-        // 2. Proteksi Lapis Kedua (Mencegah spam konten yang persis sama berulang kali)
+        // 2. Proteksi Anti-Spam / Double-Click Presisi
         $ip = $request->ip();
-        $contentHash = md5($ip . '_' . $request->phone . '_' . substr($request->message, 0, 50));
+        $identifier = $request->phone ?? $request->email ?? $request->name ?? 'anonymous';
+        
+        $actionStr = $request->action_type instanceof VisitorAction ? $request->action_type->value : $request->action_type;
+        $pageStr = $request->source_page instanceof PageList ? $request->source_page->value : $request->source_page;
+
+        // Racikan Hash menyertakan action_type dan sha1(message). 
+        // Ini menjamin: Jika aksi/tombolnya berbeda, atau isi pesannya berbeda, HASH AKAN BERBEDA (Lolos).
+        // Tapi jika aksi dan pesan SAMA PERSIS diklik berulang kali, HASH AKAN SAMA (Terblokir).
+        $contentHash = md5(
+            $ip . '_' . 
+            $actionStr . '_' . 
+            $pageStr . '_' . 
+            trim($identifier) . '_' . 
+            sha1($request->message)
+        );
+        
         $antiSpamKey = 'leads_lock_' . $contentHash;
 
         if (Cache::has($antiSpamKey)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Pesan serupa sedang kami proses, mohon tunggu sebentar.'
-            ], 422);
+                'message' => 'Pesan serupa sedang diproses, mohon tunggu sebentar.'
+            ], 422); // Mengembalikan 422 agar sisi Axios React tahu ini terblokir/debounce
         }
 
-        // Simpan lock selama 5 menit untuk data yang identik
-        Cache::put($antiSpamKey, true, 300);
+        // Kunci selama 4 detik untuk mencegah spam klik ganda pada tombol & pesan yang sama
+        Cache::put($antiSpamKey, true, 4);
 
-        // 3. Format teks log deskripsi & panggil trait visitor tracking
-        $logMessage = sprintf(
-            "Leads Form Submit -> Perusahaan: %s | Kebutuhan: %s | Pesan: %s",
-            $request->company ?? 'Perorangan',
-            $request->subject,
-            $request->message
-        );
+        // 3. Format teks log deskripsi
+        $details = [];
+        if ($request->company) $details[] = "Perusahaan: {$request->company}";
+        if ($request->subject) $details[] = "Kebutuhan: {$request->subject}";
+        
+        $shortMessage = mb_strimwidth($request->message, 0, 60, "...");
+        $details[] = "Pesan: {$shortMessage}";
 
-        // Memanfaatkan method trackAction bawaan trait TracksVisitors Anda
+        $logMessage = "Leads Form Submit [" . implode(' | ', $details) . "]";
+
+        // 4. Catat Aksi Ke Database
+        $action = $request->action_type instanceof VisitorAction 
+            ? $request->action_type->value 
+            : VisitorAction::from($request->action_type)->value;
+
+        $page = $request->source_page instanceof PageList 
+            ? $request->source_page->value 
+            : PageList::from($request->source_page)->value;
+
         $this->trackAction(
             $request,
-            $request->action_type, // 'contact_page_submit'
-            $request->source_page, // 'contact-us'
+            $action,
+            $page,
             $logMessage
         );
 

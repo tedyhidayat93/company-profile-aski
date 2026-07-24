@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { 
     ShoppingCart,
     Heart,
@@ -26,11 +26,11 @@ import {
     FileText
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useWishlist } from '@/hooks/useWishlist';
 import FrontendLayout from '@/layouts/frontend-layout';
 import ProductCard from '@/components/ProductCard';
-import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { handleImageError } from '@/utils/image';
 import { formatPrice } from '@/utils/currency';
@@ -49,6 +49,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useConfig } from '@/utils/config';
+import MiniProductContactBar from '@/components/mini-product-contact-bar';
 
 
 type OrderFormData = {
@@ -73,6 +74,8 @@ interface ImagesGalleryPreview {
 
 export default function Detail({ product, relatedProducts, seo }: DetailProps) {
     const { getConfig } = useConfig();
+    const { visitorActions = {}, appPages = {} } = usePage().props as any;
+    const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
     const [quantity, setQuantity] = useState(1);
     const [productImages, setProductImages] = useState<ImagesGalleryPreview[]>([]);
     const [activeTab, setActiveTab] = useState<'deskripsi' | 'spesifikasi'>('deskripsi');
@@ -112,14 +115,35 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
     const [isQuoteFormOpen, setIsQuoteFormOpen] = useState(false);
     const descRef = useRef<HTMLDivElement>(null);
 
-    // Effect untuk memantau apakah teks melebihi batas 200px
-    useEffect(() => {
-        if (descRef.current) {
-            // Jika tinggi asli element lebih besar dari 200px, set true
-            const hasOverflow = descRef.current.scrollHeight > 400;
-            setIsOverflowing(hasOverflow);
+    const detectPageName = (): string => {
+        if (typeof window === 'undefined') return appPages.UNKNOWN || 'unknown_page';
+
+        const path = window.location.pathname;
+        const segments = path.split('/').filter(Boolean);
+
+        switch (true) {
+            case (path === '/' || path === ''): return appPages.HOMEPAGE;
+            case (path === '/kontak'): return appPages.CONTACT_US;
+            case (path === '/tentang-kami'): return appPages.ABOUT_US;
+            case (path === '/sitemap' || path === '/sitemap.xml'): return appPages.SITEMAP;
+            case (path === '/layanan'): return appPages.SERVICE_INDEX;
+            case (path.startsWith('/layanan/')): return appPages.SERVICE_SHOW;
+            case (path === '/produk'): return appPages.PRODUCT_INDEX;
+            case (path.startsWith('/produk/')): return appPages.PRODUCT_DETAIL;
+            case (path === '/katalog' || path === '/katalog/'): return appPages.CATALOG_INDEX;
+            case (path.startsWith('/katalog/kategori/')): return appPages.CATALOG_CATEGORY;
+            case (path.startsWith('/katalog/')): return appPages.CATALOG_SHOW;
+            case (path === '/testimonial' || path === '/testimonial/'): return appPages.TESTIMONIAL_INDEX;
+            case (path === '/testimonial/maps'): return appPages.TESTIMONIAL_MAPS;
+            case (path === '/info' || path === '/info/'): return appPages.BLOG_INDEX;
+            case (path.startsWith('/info/kategori/')): return appPages.BLOG_CATEGORY;
+            case (path.startsWith('/info/tag/')): return appPages.BLOG_TAG;
+            case (segments.length === 1): return appPages.BLOG_DETAIL;
+            default: return appPages.UNKNOWN || 'unknown_page';
         }
-    }, [product.description, activeTab]);
+    };
+
+    const pageName = detectPageName();
     
     const [formData, setFormData] = useState<OrderFormData>({
         companyName: '',
@@ -245,24 +269,47 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
         message: ''
     });
 
-    const handleQuoteSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+    const handleQuoteSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
         e.preventDefault();
         
         const cleanPhone = getConfig('contact_whatsapp', '6281282336464').replace(/[^0-9]/g, '');
         
-        // Format teks WhatsApp otomatis rapi
-        const waMessage = encodeURIComponent(
-            `Halo Sales, saya ingin meminta Penawaran Resmi untuk produk berikut:\n\n` +
-            `*PRODUK:* ${product.name}\n` +
-            `*Link:* ${window.location.href}\n\n` +
-            `*DATA PEMOHON:*\n` +
-            `• Nama: ${quoteForm.name}\n` +
-            `• Kontak (WA/Email): ${quoteForm.contact}\n` +
-            `• Detail Pesanan: ${quoteForm.message}\n\n` +
-            `Mohon segera kirimkan estimasi harga dan ketersediaan unitnya. Terima kasih.`
-        );
+        // Fungsi pembantu untuk redirect ke WhatsApp
+        const redirectToWhatsApp = () => {
+            const waMessage = encodeURIComponent(
+                `Halo Sales, saya ingin meminta Penawaran Resmi untuk produk berikut:\n\n` +
+                `*PRODUK:* ${product.name}\n` +
+                `*Link:* ${currentUrl}\n\n` +
+                `*DATA PEMOHON:*\n` +
+                `• Nama: ${quoteForm.name}\n` +
+                `• Kontak (WA/Email): ${quoteForm.contact}\n` +
+                `• Detail Pesanan: ${quoteForm.message}\n\n` +
+                `Mohon segera kirimkan estimasi harga dan ketersediaan unitnya. Terima kasih.\n\n` +
+                `_(Dikirim via: ${pageName})_`
+            );
 
-        window.open(`https://wa.me/${cleanPhone}?text=${waMessage}`, '_blank');
+            window.open(`https://wa.me/${cleanPhone}?text=${waMessage}`, '_blank', 'noopener,noreferrer');
+        };
+
+        try {
+            // Kirim data formulir request penawaran ke backend analitik
+            await axios.post('/api/visitor-logs/leads', {
+                name: quoteForm.name,
+                phone: quoteForm.contact, // Dilempar ke kolom telepon analitik backend
+                message: `Meminta penawaran resmi produk: ${product.name}. Detail: ${quoteForm.message}`,
+                source_page: pageName,
+                source_url: currentUrl,
+                action_type: visitorActions.WA_QUOTE_CATALOG_DETAIL || 'whatsapp_quote_catalog_detail'
+            });
+
+            // Beri jeda 500ms agar data masuk DB secara sempurna
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            redirectToWhatsApp();
+        } catch (error) {
+            console.error('Gagal mencatat log quotation, langsung mengalihkan ke WhatsApp:', error);
+            // Fallback jika API backend bermasalah agar user experience tidak terputus
+            redirectToWhatsApp();
+        }
     };
     
     // Get wishlist state and actions
@@ -300,6 +347,16 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
             setQuantity(newQty);
         }
     };
+
+
+    // Effect untuk memantau apakah teks melebihi batas 200px
+    useEffect(() => {
+        if (descRef.current) {
+            // Jika tinggi asli element lebih besar dari 200px, set true
+            const hasOverflow = descRef.current.scrollHeight > 400;
+            setIsOverflowing(hasOverflow);
+        }
+    }, [product.description, activeTab]);
 
     return (
         <FrontendLayout>
@@ -351,33 +408,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                             <SingleGalleryPreview images={productImages} />
                             
                             {/* Hubungi Sales Kontak Bar Cepat */}
-                            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-zinc-50 border border-zinc-200/60 rounded-xl dark:bg-zinc-900/40 dark:border-zinc-800">
-                                <div className="flex items-center gap-3 w-full sm:w-auto">
-                                    <div className="p-2 bg-green-500/10 rounded-lg text-green-600 dark:text-green-400 shrink-0">
-                                        <Phone className="h-5 w-5 animate-pulse" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                                            Punya Pertanyaan Mengenai Unit Ini?
-                                        </span>
-                                        <span className="text-sm font-extrabold text-zinc-700 dark:text-zinc-200 tracking-wide">
-                                            {getConfig('contact_phone', '081282336464')}
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <button
-                                    onClick={() => {
-                                        const cleanPhone = getConfig('contact_whatsapp', '6281282336464').replace(/[^0-9]/g, '');
-                                        const message = encodeURIComponent(`Halo Sales, saya tertarik dengan produk kontainer ini:\n\n*${product.name}*\nLink: ${window.location.href}\n\nMohon informasi ketersediaan unit dan penawaran harganya.`);
-                                        window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
-                                    }}
-                                    className="w-full sm:w-auto h-10 px-4 cursor-pointer inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all active:scale-[0.98]"
-                                >
-                                    <MessageSquare className="h-4 w-4" />
-                                    Tanya Sales via WA
-                                </button>
-                            </div>
+                           <MiniProductContactBar product={product} />
                         </div>
 
                         {/* KOLOM KANAN: Detail & Informasi Bisnis */}

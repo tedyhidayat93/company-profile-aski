@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use App\Traits\TracksVisitors;
+use App\Support\Enums\PageList;
+use App\Support\Enums\VisitorAction;
 
 class ServiceController extends Controller
 {
@@ -18,7 +20,7 @@ class ServiceController extends Controller
 
     public function index(Request $request)
     {
-        $this->trackPageVisit($request, 'Service Index');
+        $this->trackPageVisit($request, PageList::SERVICE_INDEX->value, 'Membuka halaman ' . PageList::SERVICE_INDEX->label());
 
         /*
         |--------------------------------------------------------------------------
@@ -85,7 +87,7 @@ class ServiceController extends Controller
 
     public function show(Request $request, string $slug)
     {
-        $this->trackPageVisit($request, 'Service Detail - ' . $slug);
+        $this->trackPageVisit($request, PageList::SERVICE_SHOW->value, 'Membuka halaman ' . PageList::SERVICE_SHOW->label());
 
         // Mengambil detail service berdasarkan slug
         $service = Service::query()
@@ -149,7 +151,7 @@ class ServiceController extends Controller
 
     public function products(Request $request)
     {
-        $this->trackPageVisit($request, 'Our Products Index');
+        $this->trackPageVisit($request, PageList::PRODUCT_INDEX->value, 'Membuka halaman ' . PageList::PRODUCT_INDEX->label());
 
         /*
         |--------------------------------------------------------------------------
@@ -182,7 +184,7 @@ class ServiceController extends Controller
 
     public function productDetail(Request $request, string $slug)
     {
-        $this->trackPageVisit($request, 'Product Detail - ' . $slug);
+        $this->trackPageVisit($request, PageList::PRODUCT_DETAIL->value, 'Membuka halaman ' . PageList::PRODUCT_DETAIL->label());
 
         // Mengambil detail kategori produk berdasarkan slug
         $productCategory = Category::query()

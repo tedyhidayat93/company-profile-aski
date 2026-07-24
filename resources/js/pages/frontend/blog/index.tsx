@@ -1,14 +1,13 @@
 import { useState, useMemo } from 'react';
-import { Link, useForm, router } from '@inertiajs/react';
+import { Link, useForm, router, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
-import { Eye, Search,  Tag, BoxIcon, Send, X, ArrowUpRight, RotateCcw } from 'lucide-react';
+import { Eye, Search,  Tag, BoxIcon, X, ArrowUpRight, RotateCcw } from 'lucide-react';
 import { handleImageError } from '@/utils/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import SeoHead, { SeoHeadProps } from '@/components/seo-head';
 import { Pagination } from '@/components/ui/pagination';
-import { formatDateArticle } from '@/lib/utils';
-import { useConfig } from '@/utils/config';
+import { formatDateArticle } from '@/lib/utils'; 
 import QuoteMiniFormCard from '@/components/quote-mini-form-card';
 
 type BlogPost = {
@@ -63,6 +62,7 @@ export default function BlogIndex({
     filters = { search: '', category: '', tag: '' },
     seo
 }: Props) {
+    const { appPages = {} } = usePage().props as any;
     
     const { data, setData, get } = useForm({
         search: filters.search || '',
@@ -477,7 +477,7 @@ export default function BlogIndex({
                     <aside className="lg:col-span-4 space-y-8 w-full border-t lg:border-t-0 lg:border-l border-slate-200 pt-8 lg:pt-0 lg:pl-8">
                         
                         {/* 🌟 WIDGET 1: FORM PENAWARAN HARGA CONTAINER */}
-                        <QuoteMiniFormCard pageName="Blog Index" />
+                        <QuoteMiniFormCard pageName={appPages.BLOG_INDEX} />
 
                         {/* WIDGET 2: REKOMENDASI PRODUK CONTAINER PILIHAN */}
                         {random_products.length > 0 && (

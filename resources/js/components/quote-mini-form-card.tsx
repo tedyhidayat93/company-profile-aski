@@ -21,8 +21,7 @@ interface QuoteFormCardProps {
 export default function QuoteMiniFormCard({ pageName, orientation = 'vertical' }: QuoteFormCardProps) {
   const { getConfig } = useConfig();
   
-  // Mengambil info halaman dari konteks Inertia.js
-  const { url } = usePage(); // `url` akan berisi path & query string saat ini (misal: /produk/office-container?ref=footer)
+  const { url, visitorActions = {} } = usePage().props as any;
 
   const [form, setForm] = useState<FormState>({
     name: '',
@@ -48,7 +47,7 @@ export default function QuoteMiniFormCard({ pageName, orientation = 'vertical' }
     // Mendapatkan URL penuh dari browser atau fallback ke Inertia
     const currentUrl = typeof window !== 'undefined' ? window.location.href : url;
 
-    // 1. Definisikan fungsi untuk membuka WhatsApp agar bisa dipakai berulang
+    // Definisikan fungsi untuk membuka WhatsApp agar bisa dipakai berulang
     const redirectToWhatsApp = () => {
         const whatsappPhone = getConfig('contact_whatsapp', '6281282336464');
         const companyText = form.company ? `\n*Perusahaan:* ${form.company}` : '';
@@ -56,19 +55,19 @@ export default function QuoteMiniFormCard({ pageName, orientation = 'vertical' }
         const text = `Halo, saya tertarik dengan produk container Anda.\n\n*Nama:* ${form.name}${companyText}\n*Email:* ${form.email}\n*WhatsApp/Telp:* ${form.phone}\n*Kebutuhan Projek:* ${form.subject}\n*Pesan Tambahan:* ${form.message}\n\n_(Dikirim via halaman: ${pageName})_\n_(URL Sumber: ${currentUrl})_`;
         
         window.open(
-        `https://api.whatsapp.com/send?phone=${whatsappPhone}&text=${encodeURIComponent(text)}`, 
-        '_blank', 
-        'noopener,noreferrer'
+          `https://api.whatsapp.com/send?phone=${whatsappPhone}&text=${encodeURIComponent(text)}`, 
+          '_blank', 
+          'noopener,noreferrer'
         );
     };
 
     try {
-        // 2. Coba simpan ke Back-End terlebih dahulu
+        // 3. Simpan ke Back-End menggunakan Shorthand Enum yang tersinkronisasi
         await axios.post('/api/visitor-logs/leads', {
-        ...form,
-        source_page: pageName, 
-        source_url: currentUrl, 
-        action_type: 'whatsapp_quote_request'
+            ...form,
+            source_page: pageName, 
+            source_url: currentUrl,
+            action_type: visitorActions.WA_MINI_FORM_QUOTE_REQUEST || '' 
         });
 
         // Beri jeda 600ms jika berhasil, agar proses simpan BE benar-benar selesai
@@ -79,14 +78,14 @@ export default function QuoteMiniFormCard({ pageName, orientation = 'vertical' }
         redirectToWhatsApp();
 
     } catch (error) {
-        // 3. JIKA GAGAL: Log error hanya di konsol dev agar tidak mengganggu user
+        // JIKA GAGAL: Log error hanya di konsol dev agar tidak mengganggu user
         console.error('Gagal menyimpan ke BE, mengalihkan langsung ke WhatsApp:', error);
         
         // Tanpa jeda, langsung matikan loading & langsung buka WhatsApp secara seamless
         setIsSubmitting(false);
         redirectToWhatsApp();
     }
-    };
+  };
 
   const isHorizontal = orientation === 'horizontal';
 

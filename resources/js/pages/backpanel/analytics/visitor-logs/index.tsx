@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, useForm, router, Link } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react'; // 🟧 Ditambahkan untuk membaca Global Props
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -65,6 +66,10 @@ interface Props {
       active: boolean;
     }>;
   };
+  actionOptions: Array<{
+    label: string,
+    value: string
+  }>
   filters: {
     search?: string;
     device?: string;
@@ -112,24 +117,27 @@ const getDeviceIcon = (device: string) => {
   }
 };
 
-// --- PEMBARUAN: Penyesuaian warna badge untuk aksi leads formulir baru ---
+// 🧼 WARNA BADGE: Dibersihkan dari utilitas dark mode
 const getActionColor = (action: string) => {
   switch (action) {
     case 'visit':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      return 'bg-blue-100 text-blue-800';
     case 'click':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      return 'bg-green-100 text-green-800';
     case 'submit':
     case 'contact_page_submit':
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+      return 'bg-orange-100 text-orange-800';
     case 'whatsapp_quote_request':
-      return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300';
+      return 'bg-emerald-100 text-emerald-800';
     default:
-      return 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300';
+      return 'bg-slate-100 text-slate-800';
   }
 };
 
-export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Props) {
+export default function VisitorLogIndex({ visitorLogs, actionOptions, filters, statistics }: Props) {
+  // 🟧 Mengambil fallback key/objek jika dibutuhkan di frontend
+  const { visitorActions = {} } = usePage().props as any;
+
   const [dateRange, setDateRange] = React.useState<DateRange>({
     from: filters.date_from ? new Date(filters.date_from) : undefined,
     to: filters.date_to ? new Date(filters.date_to) : undefined,
@@ -177,6 +185,12 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
     });
   };
 
+  // 📝 Helper untuk menampilkan label cantik pada baris tabel berdasarkan array options
+  const getActionLabel = (actionValue: string) => {
+    const found = actionOptions.find((opt) => opt.value === actionValue);
+    return found ? found.label : actionValue.replace(/_/g, ' ');
+  };
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Visitor Logs" />
@@ -187,11 +201,11 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
           <HeaderTitle title="Log Pengunjung" description="Pantau dan analisis aktivitas pengunjung website" />
         </div>
 
-        {/* Statistics Cards */}
+        {/* Statistics Cards - Bebas dari properti dark mode */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
           {/* TOTAL VISITORS */}
-          <Card className="border-blue-100 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/40">
+          <Card className="border-blue-100 bg-gradient-to-br from-blue-50 to-white">
             <CardContent className="px-6 flex items-center justify-between">
               <div>
                 <p className="text-xs text-blue-600 font-medium">Total Pengunjung</p>
@@ -199,14 +213,14 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                   {statistics.total_visitors.toLocaleString()}
                 </h3>
               </div>
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/40">
+              <div className="p-2 rounded-lg bg-blue-100">
                 <Activity className="h-5 w-5 text-blue-600" />
               </div>
             </CardContent>
           </Card>
 
           {/* UNIQUE IPS */}
-          <Card className="border-purple-100 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/40">
+          <Card className="border-purple-100 bg-gradient-to-br from-purple-50 to-white">
             <CardContent className="px-6 flex items-center justify-between">
               <div>
                 <p className="text-xs text-purple-600 font-medium">IP Unik</p>
@@ -214,14 +228,14 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                   {statistics.unique_ips.toLocaleString()}
                 </h3>
               </div>
-              <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/40">
+              <div className="p-2 rounded-lg bg-purple-100">
                 <Globe className="h-5 w-5 text-purple-600" />
               </div>
             </CardContent>
           </Card>
 
           {/* TOP DEVICE */}
-          <Card className="border-orange-100 bg-gradient-to-br from-orange-50 to-white dark:from-orange-950/40">
+          <Card className="border-orange-100 bg-gradient-to-br from-orange-50 to-white">
             <CardContent className="px-6 flex items-center justify-between">
               <div>
                 <p className="text-xs text-orange-600 font-medium">Perangkat Terbanyak</p>
@@ -236,14 +250,14 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                     : 0} kunjungan
                 </p>
               </div>
-              <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/40">
+              <div className="p-2 rounded-lg bg-orange-100">
                 <Monitor className="h-5 w-5 text-orange-600" />
               </div>
             </CardContent>
           </Card>
 
           {/* TOP COUNTRY */}
-          <Card className="border-green-100 bg-gradient-to-br from-green-50 to-white dark:from-green-950/40">
+          <Card className="border-green-100 bg-gradient-to-br from-green-50 to-white">
             <CardContent className="px-6 flex items-center justify-between">
               <div>
                 <p className="text-xs text-green-600 font-medium">Negara Terbanyak</p>
@@ -254,7 +268,7 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                   {statistics.by_country.length > 0 ? statistics.by_country[0].count : 0} kunjungan
                 </p>
               </div>
-              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/40">
+              <div className="p-2 rounded-lg bg-green-100">
                 <MapPin className="h-5 w-5 text-green-600" />
               </div>
             </CardContent>
@@ -304,24 +318,23 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                       </Select>
                     </div>
 
-                    {/* --- PEMBARUAN: Pilihan Dropdown Filter Aksi Diperluas Dinamis --- */}
+                    {/* --- 📋 Opsi Utama dari File Constants.php Sinkron Sempurna --- */}
                     <div>
-                      <Label htmlFor="action">Aksi</Label>
+                      <Label htmlFor="action">Aktivitas</Label>
                       <Select value={data.action} onValueChange={(value) => setData('action', value)}>
                         <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Semua aksi" />
+                          <SelectValue placeholder="Semua Aktivitas" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">Semua aksi</SelectItem>
-                          <SelectItem value="visit">Kunjungan</SelectItem>
-                          <SelectItem value="click">Klik</SelectItem>
-                          <SelectItem value="submit">Submit Umum</SelectItem>
-                          <SelectItem value="contact_page_submit">Form Kontak (Leads)</SelectItem>
-                          <SelectItem value="whatsapp_quote_request">Klik CTA WhatsApp</SelectItem>
+                          {actionOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
                           
-                          {/* Opsi Tambahan Otomatis dari Database yang Unik Diluar List Manual */}
+                          {/* 🔄 Opsi Tambahan Otomatis dari Database */}
                           {Object.keys(statistics.by_action || {})
-                            .filter(act => !['all', 'visit', 'click', 'submit', 'contact_page_submit', 'whatsapp_quote_request'].includes(act))
+                            .filter(act => !actionOptions.some(option => option.value === act))
                             .map((customAction) => (
                               <SelectItem key={customAction} value={customAction}>
                                 <span className="capitalize">{customAction.replace(/_/g, ' ')}</span>
@@ -379,10 +392,10 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                     <TableHead>Waktu</TableHead>
                     <TableHead>Alamat IP</TableHead>
                     <TableHead>Perangkat</TableHead>
-                    <TableHead>Aksi</TableHead>
+                    <TableHead>Aktivitas</TableHead>
                     <TableHead>Halaman</TableHead>
                     <TableHead>Lokasi</TableHead>
-                    <TableHead>Agent</TableHead>
+                    {/* <TableHead>Agent</TableHead> */}
                     <TableHead className="text-right">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -392,18 +405,13 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <div className="text-sm">
-                              {formatDate(log.created_at)}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {new Date(log.created_at).toLocaleTimeString()}
-                            </div>
+                          <div className="text-sm">
+                            {formatDate(log.created_at)}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <code className="text-xs bg-gray-100 dark:bg-slate-800 px-1 py-0.5 rounded">
+                        <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">
                           {log.ip_address}
                         </code>
                       </TableCell>
@@ -414,9 +422,9 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                         </div>
                       </TableCell>
                       <TableCell>
-                        {/* Memanggil getActionColor dengan dukungan tipe aksi baru */}
-                        <Badge className={cn("capitalize shadow-none border-0 font-semibold", getActionColor(log.action))}>
-                          {log.action.replace(/_/g, ' ')}
+                        {/* ✨ Menggunakan getActionLabel() agar menampilkan deskripsi teks penuh yang rapi di tabel */}
+                        <Badge className={cn("normal-case shadow-none border-0 font-semibold text-center whitespace-normal max-w-[200px]", getActionColor(log.action))}>
+                          {getActionLabel(log.action)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -432,16 +440,15 @@ export default function VisitorLogIndex({ visitorLogs, filters, statistics }: Pr
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      {/* <TableCell>
                         <div className="max-w-xs truncate text-xs text-muted-foreground" title={log.user_agent}>
                           {log.user_agent}
                         </div>
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm" asChild>
-                          {/* Rute dinamis admin disesuaikan dengan breadcrumb cpanel */}
                           <Link href={`/cpanel/analytics/visitor-logs/${log.id}`}>
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4" /> Detail
                           </Link>
                         </Button>
                       </TableCell>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import axios from 'axios'; // <-- Impor Axios untuk analitik
 import { 
   Phone, Mail, X, Heart, Menu, LogInIcon, LayoutDashboardIcon, ChevronDown,
   BoxIcon,
@@ -29,7 +30,6 @@ export interface MenuCategory {
   items: MenuItem[];
 }
 
-// Styling base untuk semua tombol Navigasi agar konsisten
 const navItemClassName = (isActive: boolean) => `
   inline-flex items-center gap-1 rounded-full border-2 font-bold px-3 py-1.5 xl:px-5 sm:text-xs xl:text-sm 2xl:text-base dark:text-gray-300 transition-colors cursor-pointer outline-none whitespace-nowrap
   ${isActive 
@@ -40,7 +40,7 @@ const navItemClassName = (isActive: boolean) => `
 
 export default function Header() {
   const { url } = usePage();
-  const { auth } = usePage().props as any;
+  const { auth, visitorActions = {}, appPages = {} } = usePage().props as any; // <-- Ekstrak properti analitik dari global props
   const { getConfig } = useConfig();
   const { wishlist, removeFromWishlist } = useWishlist();
 
@@ -50,7 +50,6 @@ export default function Header() {
   const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   
-  // Ekstrak pathname murni (contoh: '/layanan?search=x' atau '/layanan#id' menjadi '/layanan')
   const currentPathname = useMemo(() => {
     if (!url) return '/';
     try {
@@ -60,6 +59,7 @@ export default function Header() {
     }
   }, [url]);
 
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const isHomepage = currentPathname === '/';
   const logoImage = getConfig('site_logo', '') ? `/storage/${getConfig('site_logo', '')}` : '/images/logo-main.png';
 
@@ -68,21 +68,43 @@ export default function Header() {
     productCategories: MenuCategory[];
   };
 
-  // Penentuan isActive menggunakan pencocokan path murni & sub-path secara presisi
+  // Fungsi Deteksi Halaman Otomatis Berdasarkan URL Path
+  const detectPageName = (): string => {
+    if (typeof window === 'undefined') return appPages.UNKNOWN || 'unknown_page';
+    const path = window.location.pathname;
+    const segments = path.split('/').filter(Boolean);
+
+    switch (true) {
+      case (path === '/' || path === ''): return appPages.HOMEPAGE;
+      case (path === '/kontak'): return appPages.CONTACT_US;
+      case (path === '/tentang-kami'): return appPages.ABOUT_US;
+      case (path === '/sitemap' || path === '/sitemap.xml'): return appPages.SITEMAP;
+      case (path === '/layanan'): return appPages.SERVICE_INDEX;
+      case (path.startsWith('/layanan/')): return appPages.SERVICE_SHOW;
+      case (path === '/produk'): return appPages.PRODUCT_INDEX;
+      case (path.startsWith('/produk/')): return appPages.PRODUCT_DETAIL;
+      case (path === '/katalog' || path === '/katalog/'): return appPages.CATALOG_INDEX;
+      case (path.startsWith('/katalog/kategori/')): return appPages.CATALOG_CATEGORY;
+      case (path.startsWith('/katalog/')): return appPages.CATALOG_SHOW;
+      case (path === '/testimonial' || path === '/testimonial/'): return appPages.TESTIMONIAL_INDEX;
+      case (path === '/testimonial/maps'): return appPages.TESTIMONIAL_MAPS;
+      case (path === '/info' || path === '/info/'): return appPages.BLOG_INDEX;
+      case (path.startsWith('/info/kategori/')): return appPages.BLOG_CATEGORY;
+      case (path.startsWith('/info/tag/')): return appPages.BLOG_TAG;
+      case (segments.length === 1): return appPages.BLOG_DETAIL;
+      default: return appPages.UNKNOWN || 'unknown_page';
+    }
+  };
+
+  const pageName = detectPageName();
+
   const navLinks = useMemo(() => {
     return [
-      // { 
-      //   name: 'Beranda', 
-      //   id: 'home', 
-      //   href: '/', 
-      //   isActive: currentPathname === '/' 
-      // },
       { 
         name: 'Layanan', 
         id: 'services', 
         href: '/layanan', 
         type: 'dropdown-services', 
-        
         isActive: currentPathname === '/layanan' || currentPathname.startsWith('/layanan/') 
       },
       { 
@@ -90,7 +112,6 @@ export default function Header() {
         id: 'products', 
         href: '/katalog', 
         type: 'dropdown-products', 
-        // Aktif jika di /katalog, /katalog/sub, /catalog, ATAU /catalog/sub
         isActive: 
           currentPathname === '/katalog' || currentPathname.startsWith('/katalog/') ||
           currentPathname === '/catalog' || currentPathname.startsWith('/catalog/')
@@ -128,7 +149,32 @@ export default function Header() {
     }
   };
 
-  const whatsappUrl = `https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=${getConfig('whatsapp_message', 'Halo%20Alumoda%2C%20saya%20ingin%20bertanya')}`;
+  // Handler Klik Terintegrasi Analitik Backend (Tipe Aksi: whatsapp_top_navbar_direct_click)
+  const handleNavbarWaClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    const cleanPhone = getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '');
+    
+    const openWhatsApp = () => {
+      const defaultMessage = getConfig('whatsapp_message', 'Halo Alumoda, saya ingin bertanya');
+      const trackingText = `\n\n_(Dikirim via: Top Navbar - ${pageName})_\n_(URL: ${currentUrl})_`;
+      const fullWaLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(defaultMessage + trackingText)}`;
+      window.open(fullWaLink, '_blank', 'noopener,noreferrer');
+    };
+
+    try {
+      await axios.post('/api/visitor-logs/leads', {
+        name: 'Visitor Navbar Click',
+        message: `Melakukan klik tombol WhatsApp pada bagian atas navigasi (Header Navbar).`,
+        source_page: pageName,
+        source_url: currentUrl,
+        action_type: visitorActions.WA_TOP_NAVBAR_DIRECT_CLICK || 'whatsapp_top_navbar_direct_click'
+      });
+      openWhatsApp();
+    } catch (error) {
+      console.error('Gagal merekam analitik top navbar, langsung mengalihkan ke WhatsApp:', error);
+      openWhatsApp(); // Fallback secure
+    }
+  };
 
   return (
     <>
@@ -180,7 +226,6 @@ export default function Header() {
               {/* Desktop Nav Links */}
               <div className="hidden lg:flex items-center">
                 {navLinks.map((link) => {
-                  // Rendering CUSTOM DROPDOWN LAYANAN
                   if (link.type === 'dropdown-services') {
                     return (
                       <div 
@@ -203,7 +248,6 @@ export default function Header() {
                           ${isServicesDropdownOpen ? 'opacity-100 scale-y-100 pointer-events-auto visible' : 'opacity-0 scale-y-95 pointer-events-none invisible'}`}
                         >
                           <div className="container mx-auto grid grid-cols-12 gap-6">
-                            {/* Kolom Kiri: Informasi Singkat Kategori */}
                             <div className="col-span-4 border-r border-slate-100 dark:border-slate-800 pr-6 space-y-2">
                               <div className="inline-flex items-center justify-center p-2 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600">
                                 <BoxIcon className="h-5 w-5" />
@@ -219,7 +263,6 @@ export default function Header() {
                               </Link>
                             </div>
 
-                            {/* Kolom Kanan: Grid Item Layanan dengan Gambar di Sampingnya */}
                             <div className="col-span-8 grid grid-cols-2 gap-4 divide">
                               {footerServices.map((item, key) => (
                                 <Link 
@@ -227,7 +270,6 @@ export default function Header() {
                                   href={`/layanan/${item.slug}`} 
                                   className="group flex gap-4 p-3 rounded-xl hover:border-l-4 hover:border-orange-400 hover:bg-orange-50/50 dark:hover:bg-slate-800 transition-all items-center"
                                 >
-                                  {/* 📸 FOTO LAYANAN DI SAMPING TEKS */}
                                   <div className="w-16 h-16 shrink-0 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200/60 dark:border-slate-700">
                                     <img
                                       src={item.image}
@@ -237,7 +279,6 @@ export default function Header() {
                                     />
                                   </div>
 
-                                  {/* TEKS DETAIL LAYANAN */}
                                   <div className="min-w-0 flex-1">
                                     <span className="block text-base font-bold text-slate-800 dark:text-slate-100 group-hover:text-orange-500 transition-colors truncate">
                                       {item.name}
@@ -255,7 +296,6 @@ export default function Header() {
                     );
                   }
 
-                  // Rendering CUSTOM DROPDOWN PRODUK
                   if (link.type === 'dropdown-products') {
                     return (
                       <div 
@@ -318,7 +358,6 @@ export default function Header() {
                     );
                   }
 
-                  // Rendering MENU LINK STANDAR (Home, Artikel, Kontak) Menggunakan <Link> Inertia
                   return (
                     <Link
                       key={link.id}
@@ -343,9 +382,13 @@ export default function Header() {
                   {wishlist.length > 0 && <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">{wishlist.length}</span>}
                 </button>
 
+                {/* Tombol Hubungi Kami Desktop Ber-analitik */}
                 <div className="hidden lg:flex items-center space-x-3">
-                  <Button asChild className="flex h-10 items-center px-5 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-sm font-semibold hover:bg-orange-100 transition-colors gap-2">
-                    <a href={whatsappUrl}><Phone className="h-4 w-4" />Hubungi Kami</a>
+                  <Button 
+                    onClick={handleNavbarWaClick} 
+                    className="flex h-10 items-center px-5 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-sm font-semibold hover:bg-orange-100 transition-colors gap-2 cursor-pointer"
+                  >
+                    <Phone className="h-4 w-4" />Hubungi Kami
                   </Button>
                   <Link href="/katalog" className="flex h-10 items-center px-5 rounded-full border border-slate-700 bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 transition-colors gap-2">
                     <LayoutDashboardIcon className="h-4 w-4" />Katalog
@@ -446,16 +489,14 @@ export default function Header() {
               
               <hr className="border-gray-200 dark:border-slate-800" />
               
-              {/* Bagian CTA Action Buttons (Dibuat seimbang, presisi, dan proporsional untuk mobile) */}
+              {/* Tombol Hubungi Kami Mobile Ber-analitik */}
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <Button 
-                  asChild 
-                  className="w-full justify-center py-5 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm rounded-xl transition-colors flex items-center gap-2"
+                  onClick={handleNavbarWaClick} 
+                  className="w-full justify-center py-5 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
                 >
-                  <a href={whatsappUrl}>
-                    <Phone className="h-4 w-4 shrink-0" />
-                    Hubungi Kami
-                  </a>
+                  <Phone className="h-4 w-4 shrink-0" />
+                  Hubungi Kami
                 </Button>
                 
                 <Link 

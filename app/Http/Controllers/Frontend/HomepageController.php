@@ -15,6 +15,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Support\Enums\PageList;
+use App\Support\Enums\VisitorAction;
 
 class HomepageController extends Controller
 {
@@ -30,10 +32,8 @@ class HomepageController extends Controller
         Request $request
     ): Response {
 
-        $this->trackPageVisit(
-            $request,
-            'Homepage'
-        );
+        $this->trackPageVisit($request, PageList::HOMEPAGE->value, 'Membuka halaman ' . PageList::HOMEPAGE->label());
+        
 
         /*
         |--------------------------------------------------------------------------

@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import { useConfig } from '@/utils/config';
-import axios from 'axios'; // Ditambahkan untuk trigger tracking simpan ke database
-
+import axios from 'axios'; 
+import { usePage } from '@inertiajs/react';
 interface Props {
     seo: SeoHeadProps;
     data: {
@@ -106,6 +106,8 @@ export default function ContactUs({ seo, data }: Props) {
         subject: '', 
         message: '' 
     });
+
+    const { url, visitorActions = {}, appPages = {} } = usePage().props as any;
     
     const [activeTab, setActiveTab] = useState<'vision' | 'mission'>('vision');
     const [isExpanded, setIsExpanded] = useState(false);
@@ -120,8 +122,8 @@ export default function ContactUs({ seo, data }: Props) {
             // 1. Simpan rekaman leads log visitor ke database untuk kebutuhan analitik panel admin
             await axios.post('/api/visitor-logs/leads', {
                 ...form,
-                source_page: 'contact-us',
-                action_type: 'contact_page_submit'
+                source_page: appPages.CONTACT_US,
+                action_type: visitorActions.WA_CONTACT_PAGE_SUBMIT || ''
             });
         } catch (error) {
             // Log error tetap dicatat konsol, namun tidak menghentikan proses pengalihan ke WhatsApp

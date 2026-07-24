@@ -9,6 +9,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use App\Traits\TracksVisitors;
 use Illuminate\Support\Facades\Gate;
+use App\Support\Enums\PageList;
+use App\Support\Enums\VisitorAction;
 
 class TestimonialController extends Controller
 {
@@ -17,7 +19,7 @@ class TestimonialController extends Controller
     public function index(Request $request): Response
     {
         // Track visitor
-        $this->trackPageVisit($request, 'Testimonials');
+        $this->trackPageVisit($request, PageList::TESTIMONIAL_INDEX->value, 'Membuka halaman ' . PageList::TESTIMONIAL_INDEX->label());
         
         // Get all testimonials for listing page
         $testimonials = Testimonial::public()
@@ -136,7 +138,9 @@ class TestimonialController extends Controller
     public function submit(Request $request)
     {
         // Track visitor
-        $this->trackPageVisit($request, 'Testimonial Submission');
+        if ($request->isMethod('get')) {
+            $this->trackPageVisit($request, PageList::TESTIMONIAL_FORM->value, 'Membuka halaman ' . PageList::TESTIMONIAL_FORM->label());
+        }
 
         // Handle POST request - form submission
         if ($request->isMethod('post')) {

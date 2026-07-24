@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import FrontendLayout from '@/layouts/frontend-layout';
 import { 
     Calendar, 
@@ -9,7 +9,6 @@ import {
     Eye, 
     MessageCircle, 
     Copy, 
-    PhoneCall, 
     Tag,
     CheckCircle,
     Newspaper,
@@ -65,6 +64,7 @@ const XIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 export default function BlogDetail({ post, related_posts = [], random_products = [], seo }: BlogDetailProps) {
     const { getConfig } = useConfig();
     const [copied, setCopied] = useState(false);
+    const { appPages = {} } = usePage().props as any;
 
 
     const readingTime = post.reading_time || Math.ceil(post.content.split(' ').length / 200);
@@ -253,7 +253,7 @@ export default function BlogDetail({ post, related_posts = [], random_products =
                         <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-8 w-full">
                             
                             {/* Kotak Hubungi Konsultasi WA (Gaya Flat Bersih) */}
-                            <QuoteMiniFormCard pageName={`Blog Article - ${post.slug}`} />
+                            <QuoteMiniFormCard pageName={appPages.BLOG_DETAIL} />
 
                                 {random_products.length > 0 && (
                                 <div className="space-y-4 pt-2">

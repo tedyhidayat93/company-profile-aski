@@ -24,59 +24,34 @@ trait TracksVisitors
     protected function trackVisitor(Request $request, string $action, string $page, string $message = '')
     {
         try {
-            // Debug: Log tracking attempt
-            // \Log::info("Visitor tracking attempt", [
-            //     'page' => $page,
-            //     'action' => $action,
-            //     'ip' => $request->ip(),
-            //     'user_agent' => $request->userAgent(),
-            // ]);
-
             // Skip tracking for crawlers and bots
             if (class_exists('Jaybizzle\LaravelCrawlerDetect\Facades\LaravelCrawlerDetect')) {
                 if (LaravelCrawlerDetect::isCrawler()) {
-                    // \Log::info("Visitor skipped: Detected as crawler", [
-                    //     'ip' => $request->ip(),
-                    //     'user_agent' => $request->userAgent(),
-                    // ]);
                     return;
                 }
             } else {
                 \Log::warning("LaravelCrawlerDetect not available, skipping bot detection");
             }
 
-            // Rate limiting: Skip if same IP visited same page recently (within 1 hour)
-            $cacheKey = 'visitor_' . $request->ip() . '_' . md5($page);
+            // --- PERBAIKAN UTAMA PADA TRAIT ---
+            // Buat cacheKey unik dengan menggabungkan IP, Halaman, Aksi, DAN md5 dari pesan/logMessage.
+            // Dengan cara ini, database hanya akan memblokir jika isi pesan & jenis tombolnya 100% identik.
+            $cacheKey = 'visitor_' . $request->ip() . '_' . md5($page . '_' . $action . '_' . $message);
+            
             if (Cache::has($cacheKey)) {
-                // \Log::info("Visitor skipped: Rate limited", [
-                //     'cache_key' => $cacheKey,
-                //     'ip' => $request->ip(),
-                //     'page' => $page,
-                // ]);
-                return; // Skip duplicate tracking
+                return; // Skip duplicate tracking jika tombol & isi log-nya sama persis
             }
 
             // Get visitor information (minimal for performance)
             $visitorData = $this->getVisitorData($request, $action, $page, $message);
 
-            // Debug: Log visitor data before save
-            // \Log::info("Saving visitor data", [
-            //     'data_keys' => array_keys($visitorData),
-            //     'ip' => $visitorData['ip_address'],
-            //     'page' => $visitorData['page'],
-            // ]);
-
             // Save to log_visitors table (will be cleaned up automatically)
             $logVisitor = LogVisitor::create($visitorData);
 
-            // Debug: Log successful save
-            // \Log::info("Visitor data saved successfully", [
-            //     'log_visitor_id' => $logVisitor->id,
-            //     'page' => $page,
-            // ]);
-
-            // Set cache to prevent duplicate tracking for 1 hour
-            Cache::put($cacheKey, true, 3600);
+            // --- PENYESUAIAN WAKTU LOCK (2 DETIK) ---
+            // Set cache anti-double click selama 2 detik agar tidak terlalu lama mengunci aksi lain 
+            // namun tetap aman meredam double click tidak sengaja pada tombol yang sama.
+            Cache::put($cacheKey, true, 2);
 
             // Update real-time statistics (optional, for immediate dashboard updates)
             $this->updateRealtimeStats($page);
@@ -112,9 +87,6 @@ trait TracksVisitors
         
         // Detect device type (fast regex)
         $device = $this->detectDevice($userAgent);
-        
-        // Skip ISP info for performance (optional, can be enabled if needed)
-        // $provider = $this->getISPInfo($ipAddress);
 
         return [
             'action' => $action,
@@ -271,8 +243,6 @@ trait TracksVisitors
                 return 'Local Network';
             }
 
-            // You can use various services to get ISP info
-            // For now, using ip-api.com which includes ISP info
             $response = @file_get_contents("http://ip-api.com/json/{$ip}?fields=status,isp,query");
             
             if ($response) {
@@ -295,11 +265,13 @@ trait TracksVisitors
      *
      * @param Request $request
      * @param string $pageName
+     * @param string $message (Opsional untuk custom deskripsi)
      * @return void
      */
-    protected function trackPageVisit(Request $request, string $pageName)
+    protected function trackPageVisit(Request $request, string $pageName, string $message = '')
     {
-        $this->trackVisitor($request, 'visit', $pageName, "Visited {$pageName} page");
+        $logMessage = $message ?: "Visited {$pageName} page";
+        $this->trackVisitor($request, 'visit', $pageName, $logMessage);
     }
 
     /**

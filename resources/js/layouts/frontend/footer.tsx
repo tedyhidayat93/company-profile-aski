@@ -6,6 +6,7 @@ import { usePage } from '@inertiajs/react';
 import { cleanHtml } from '@/utils/stringHelper';
 import { handleImageError } from '@/utils/image';
 import { MenuCategory } from './header';
+import axios from 'axios';
 
 const socialIcons = {
   Facebook: Facebook,
@@ -26,7 +27,72 @@ export default function Footer() {
   };
 
   const logoImage = getConfig('site_logo', '') ? `/storage/${getConfig('site_logo', '')}` : '/images/logo-main.png';
-  
+
+  // 1. Ambil properti global props dari Inertia & ambil data rute saat ini
+  const { visitorActions = {}, appPages = {} } = usePage().props as any;
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+  // 2. Fungsi Deteksi Halaman Otomatis Berdasarkan URL Path
+  const detectPageName = (): string => {
+      if (typeof window === 'undefined') return appPages.UNKNOWN || 'unknown_page';
+
+      const path = window.location.pathname;
+      const segments = path.split('/').filter(Boolean);
+
+      switch (true) {
+          case (path === '/' || path === ''): return appPages.HOMEPAGE;
+          case (path === '/kontak'): return appPages.CONTACT_US;
+          case (path === '/tentang-kami'): return appPages.ABOUT_US;
+          case (path === '/sitemap' || path === '/sitemap.xml'): return appPages.SITEMAP;
+          case (path === '/layanan'): return appPages.SERVICE_INDEX;
+          case (path.startsWith('/layanan/')): return appPages.SERVICE_SHOW;
+          case (path === '/produk'): return appPages.PRODUCT_INDEX;
+          case (path.startsWith('/produk/')): return appPages.PRODUCT_DETAIL;
+          case (path === '/katalog' || path === '/katalog/'): return appPages.CATALOG_INDEX;
+          case (path.startsWith('/katalog/kategori/')): return appPages.CATALOG_CATEGORY;
+          case (path.startsWith('/katalog/')): return appPages.CATALOG_SHOW;
+          case (path === '/testimonial' || path === '/testimonial/'): return appPages.TESTIMONIAL_INDEX;
+          case (path === '/testimonial/maps'): return appPages.TESTIMONIAL_MAPS;
+          case (path === '/info' || path === '/info/'): return appPages.BLOG_INDEX;
+          case (path.startsWith('/info/kategori/')): return appPages.BLOG_CATEGORY;
+          case (path.startsWith('/info/tag/')): return appPages.BLOG_TAG;
+          case (segments.length === 1): return appPages.BLOG_DETAIL;
+          default: return appPages.UNKNOWN || 'unknown_page';
+      }
+  };
+
+  const pageName = detectPageName();
+
+  const handleFooterWaClick = async () => {
+      const cleanPhone = getConfig('contact_whatsapp', CONTACT_INFO.whatsapp).replace(/[^0-9]/g, '');
+      
+      const openWhatsApp = () => {
+          const defaultMessage = getConfig('whatsapp_message', 'Halo Alumoda, saya ingin bertanya');
+          const trackingText = `\n\n_(Dikirim via: Footer - ${pageName})_\n_(URL: ${currentUrl})_`;
+          const fullWaLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(defaultMessage + trackingText)}`;
+          
+          window.open(fullWaLink, '_blank', 'noopener,noreferrer');
+      };
+
+      try {
+          // Kirim analitik ke backend (Aksi: whatsapp_footer_direct_click)
+          await axios.post('/api/visitor-logs/leads', {
+              name: 'Visitor Footer Click',
+              message: `Melakukan klik tombol WhatsApp pada bagian footer website.`,
+              source_page: pageName,
+              source_url: currentUrl,
+              action_type: visitorActions.WA_FOOTER_DIRECT_CLICK || 'whatsapp_footer_direct_click'
+          });
+
+          // Buka tautan chat WhatsApp secara instan
+          openWhatsApp();
+      } catch (error) {
+          console.error('Gagal merekam analitik footer, langsung mengalihkan ke WhatsApp:', error);
+          // Fallback jika API backend bermasalah agar user experience tidak terputus
+          openWhatsApp();
+      }
+  };
+
   return (
     <footer className="bg-gray-950 text-gray-300">
       <div className="container mx-auto px-4 py-14">
@@ -199,15 +265,14 @@ export default function Footer() {
                 />
               </li>
               <li className="pt-1">
-                <a
-                  href={`https://wa.me/${getConfig('contact_whatsapp', CONTACT_INFO.whatsapp)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-lg transition-colors w-full justify-center"
+                <button
+                    type="button"
+                    onClick={handleFooterWaClick}
+                    className="inline-flex items-center gap-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-lg transition-colors w-full justify-center cursor-pointer active:scale-[0.98]"
                 >
-                  <MessageCircle className="h-4 w-4" />
-                  Hubungi via WhatsApp
-                </a>
+                    <MessageCircle className="h-4 w-4" />
+                    Hubungi via WhatsApp
+                </button>
               </li>
             </ul>
           </div>

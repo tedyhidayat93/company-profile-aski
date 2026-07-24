@@ -1,180 +1,276 @@
 import { useState, useEffect } from 'react';
-import { X, Phone, User, FileText, Send, LucidePhone } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import axios from 'axios';
+import { X, Phone, User, FileText, Send, LucidePhone, Loader2 } from 'lucide-react';
 import { useConfig } from '@/utils/config';
 
 export default function FloatingWhatsAppCTA() {
-    const { getConfig } = useConfig();
-    const [isOpen, setIsOpen] = useState(false);
+  const { getConfig } = useConfig();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 1. Ambil properti global props dari Inertia & ambil data rute saat ini
+  const { visitorActions = {}, appPages = {} } = usePage().props as any;
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+  // Fungsi Deteksi Halaman Otomatis Berdasarkan URL Path (Pendekatan Switch Case Clean)
+    const detectPageName = (): string => {
+    if (typeof window === 'undefined') return appPages.UNKNOWN || 'unknown_page';
+
+    const path = window.location.pathname;
+    const segments = path.split('/').filter(Boolean);
+
+    switch (true) {
+        // 1. Static Pages & Root
+        case (path === '/' || path === ''):
+        return appPages.HOMEPAGE;
+        case (path === '/kontak'):
+        return appPages.CONTACT_US;
+        case (path === '/tentang-kami'):
+        return appPages.ABOUT_US;
+        case (path === '/sitemap' || path === '/sitemap.xml'):
+        return appPages.SITEMAP;
+
+        // 2. Services Section
+        case (path === '/layanan'):
+        return appPages.SERVICE_INDEX;
+        case (path.startsWith('/layanan/')):
+        return appPages.SERVICE_SHOW;
+
+        // 3. Products Section
+        case (path === '/produk'):
+        return appPages.PRODUCT_INDEX;
+        case (path.startsWith('/produk/')):
+        return appPages.PRODUCT_DETAIL;
+
+        // 4. Catalog Section
+        case (path === '/katalog' || path === '/katalog/'):
+        return appPages.CATALOG_INDEX;
+        case (path.startsWith('/katalog/kategori/')):
+        return appPages.CATALOG_CATEGORY;
+        case (path.startsWith('/katalog/')):
+        return appPages.CATALOG_SHOW;
+
+        // 5. Testimonial Section
+        case (path === '/testimonial' || path === '/testimonial/'):
+        return appPages.TESTIMONIAL_INDEX;
+        case (path === '/testimonial/maps'):
+        return appPages.TESTIMONIAL_MAPS;
+
+        // 6. Blog / Info Section
+        case (path === '/info' || path === '/info/'):
+        return appPages.BLOG_INDEX;
+        case (path.startsWith('/info/kategori/')):
+        return appPages.BLOG_CATEGORY;
+        case (path.startsWith('/info/tag/')):
+        return appPages.BLOG_TAG;
+
+        // 7. Catch-All Route (e.g., domain.com/judul-artikel)
+        case (segments.length === 1):
+        return appPages.BLOG_DETAIL;
+
+        // Default Fallback
+        default:
+        return appPages.UNKNOWN || 'unknown_page';
+    }
+    };
+
+  const pageName = detectPageName();
+
+  // State untuk form isian
+  const [formData, setFormData] = useState({
+    name: '',
+    message: ''
+  });
+
+  // Pengecekan localStorage untuk pembatasan popup otomatis per 3 jam
+  useEffect(() => {
+    const STORAGE_KEY = 'alumoda_cta_dismissed_at';
+    const THREE_HOURS = 3 * 60 * 60 * 1000;
+    const now = Date.now();
+    const dismissedAt = localStorage.getItem(STORAGE_KEY);
+
+    if (!dismissedAt) {
+      const timer = setTimeout(() => setIsOpen(true), 2500);
+      return () => clearTimeout(timer);
+    } else {
+      const timePassed = now - parseInt(dismissedAt, 10);
+      if (timePassed > THREE_HOURS) {
+        localStorage.removeItem(STORAGE_KEY);
+        const timer = setTimeout(() => setIsOpen(true), 2500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
+
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsOpen(false);
+    localStorage.setItem('alumoda_cta_dismissed_at', Date.now().toString());
+  };
+
+  // 3. Fungsi Eksekusi Alih ke WhatsApp
+  const redirectToWhatsApp = () => {
+    const waNumber = getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '');
+    const defaultMessage = getConfig('whatsapp_message', 'Halo Alumoda');
     
-    // State untuk form isian
-    const [formData, setFormData] = useState({
-        name: '',
-        message: ''
-    });
+    let textParams = `${defaultMessage}`;
+    if (formData.name) textParams += `\n\n*Nama:* ${formData.name}`;
+    if (formData.message) textParams += `\n*Layanan/Pesan:* ${formData.message}`;
+    textParams += `\n\n_(Dikirim via: ${pageName})_\n_(URL: ${currentUrl})_`;
 
-    // Pengecekan localStorage untuk pembatasan 3 jam
-    useEffect(() => {
-        const STORAGE_KEY = 'alumoda_cta_dismissed_at';
-        const THREE_HOURS = 3 * 60 * 60 * 1000;
-        const now = Date.now();
-        const dismissedAt = localStorage.getItem(STORAGE_KEY);
+    const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(textParams)}`;
+    
+    window.open(waLink, '_blank', 'noopener,noreferrer');
+    setFormData({ name: '', message: '' }); // Reset form
+    setIsOpen(false);
+  };
 
-        if (!dismissedAt) {
-            const timer = setTimeout(() => setIsOpen(true), 2500);
-            return () => clearTimeout(timer);
-        } else {
-            const timePassed = now - parseInt(dismissedAt, 10);
-            if (timePassed > THREE_HOURS) {
-                localStorage.removeItem(STORAGE_KEY);
-                const timer = setTimeout(() => setIsOpen(true), 2500);
-                return () => clearTimeout(timer);
-            }
-        }
-    }, []);
+  // 4. Form Submit Handler Terintegrasi Log Analitik Backend
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-    const handleClose = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setIsOpen(false);
-        localStorage.setItem('alumoda_cta_dismissed_at', Date.now().toString());
-    };
+    try {
+      // Rekam data leads ke Backend dengan Action WA_GLOBAL_FLOATING
+      await axios.post('/api/visitor-logs/leads', {
+        name: formData.name,
+        message: formData.message,
+        source_page: pageName,
+        source_url: currentUrl,
+        action_type: visitorActions.WA_GLOBAL_FLOATING || ''
+      });
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+      // Memberikan jeda singkat agar proses penyimpanan di backend tuntas
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setIsSubmitting(false);
+      redirectToWhatsApp();
+    } catch (error) {
+      console.error('Gagal menyimpan log analitik, mengalihkan langsung ke WhatsApp:', error);
+      setIsSubmitting(false);
+      redirectToWhatsApp();
+    }
+  };
 
-        const waNumber = getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '');
-        const defaultMessage = getConfig('whatsapp_message', 'Halo Alumoda');
-        
-        // Menyusun teks kustom dari form
-        let textParams = `${defaultMessage}`;
-        if (formData.name) textParams += `\n\nNama: ${formData.name}`;
-        if (formData.message) textParams += `\nLayanan/Pesan: ${formData.message}`;
+  return (
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 w-[calc(100vw-32px)] sm:w-[380px] font-sans">
+      
+      {/* 💬 POPUP KOTAK DIALOG + FORM EDITORIAL */}
+      {isOpen && (
+        <div className="w-full bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-800 rounded-2xl shadow-2xl p-6 relative animate-in fade-in slide-in-from-bottom-5 duration-300">
+          
+          <button 
+            onClick={handleClose}
+            disabled={isSubmitting}
+            className="absolute top-4 right-4 p-2 rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
+            aria-label="Tutup jendela bantuan"
+          >
+            <X className="w-5 h-5 stroke-[2.5]" />
+          </button>
 
-        const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(textParams)}`;
-        
-        // Buka tab baru WhatsApp
-        window.open(waLink, '_blank', 'noopener,noreferrer');
-        setIsOpen(false);
-    };
-
-    return (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 w-[calc(100vw-32px)] sm:w-[380px] font-sans">
-            
-            {/* 💬 POPUP KOTAK DIALOG + FORM EDITORIAL */}
-            {isOpen && (
-                <div className="w-full bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-800 rounded-2xl shadow-2xl p-6 relative animate-in fade-in slide-in-from-bottom-5 duration-300">
-                    
-                    {/* Tombol Tutup Silang (X) yang Besar */}
-                    <button 
-                        onClick={handleClose}
-                        className="absolute top-4 right-4 p-2 rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-150 dark:hover:bg-zinc-800 transition-colors"
-                        aria-label="Tutup jendela bantuan"
-                    >
-                        <X className="w-5 h-5 stroke-[2.5]" />
-                    </button>
-
-                    {/* Header Profil Pelayanan */}
-                    <div className="flex items-center gap-3.5 mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
-                        <div className="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center text-white shrink-0 shadow-md">
-                            <Phone className="w-5 h-5 fill-white" />
-                        </div>
-                        <div>
-                            <h4 className="text-base font-extrabold text-zinc-950 dark:text-white leading-snug">Layanan Pelanggan 24/7</h4>
-                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 mt-0.5">
-                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                                Online • Tanggapan Cepat
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Deskripsi Pengantar Gaya Editorial */}
-                    <p className="text-base text-zinc-800 dark:text-zinc-300 leading-relaxed mb-5 font-normal">
-                        Dapatkan Penawaran terabik dari kami atau konsultasikan kepada kami kebutuhan Container anda. Tim kami akan langsung memandu Anda melalui percakapan WhatsApp.
-                    </p>
-
-                    {/* FORM INTERAKTIF */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        
-                        {/* Input 1: Nama */}
-                        <div className="space-y-1.5 group">
-                            <label className="text-sm font-extrabold text-zinc-950 dark:text-white block">
-                                Nama Lengkap Anda
-                            </label>
-                            <div className="relative">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-zinc-400 group-focus-within:text-emerald-600 transition-colors">
-                                    <User className="w-5 h-5 stroke-[2]" />
-                                </span>
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder="Contoh: Budi Santoso"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full h-12 pl-11 pr-4 rounded-xl border-2 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-base font-medium text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500 transition-colors"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Input 2: Isi Pesan */}
-                        <div className="space-y-1.5 group">
-                            <label className="text-sm font-extrabold text-zinc-950 dark:text-white block">
-                                Pertanyaan atau Pesan Anda
-                            </label>
-                            <div className="relative">
-                                <span className="absolute top-3.5 left-0 flex items-center pl-3.5 pointer-events-none text-zinc-400 group-focus-within:text-emerald-600 transition-colors">
-                                    <FileText className="w-5 h-5 stroke-[2]" />
-                                </span>
-                                <textarea
-                                    required
-                                    rows={3}
-                                    placeholder="Tuliskan produk atau bantuan yang Anda perlukan di sini..."
-                                    value={formData.message}
-                                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                    className="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-base font-medium text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500 transition-colors resize-none leading-relaxed"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Tombol Kirim Besar & Mantap */}
-                        <button
-                            type="submit"
-                            className="flex h-13 w-full items-center justify-center gap-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-base transition-all shadow-md shadow-emerald-600/20 active:scale-[0.99]"
-                        >
-                            <Send className="w-5 h-5 fill-white" />
-                            Kirim Pertanyaan via WhatsApp
-                        </button>
-                    </form>
-                </div>
-            )}
-
-            <div className="relative group/button flex items-center gap-3">
-                
-                {/* 💡 Tooltip Hint (Muncul otomatis di sebelah kiri tombol saat belum dibuka) */}
-                {!isOpen && (
-                    <div className="absolute right-20 bg-zinc-900 text-white text-xs font-bold px-3 py-2 rounded-xl whitespace-nowrap shadow-md opacity-0 scale-95 pointer-events-none translate-x-2 group-hover/button:opacity-100 group-hover/button:scale-100 group-hover/button:translate-x-0 transition-all duration-255 font-sans after:content-[''] after:absolute after:top-1/2 after:-right-1 after:-mt-1 after:border-4 after:border-y-transparent after:border-r-transparent after:border-l-zinc-900 hidden sm:block">
-                        Butuh bantuan? Chat / hubungi kami di sini!
-                    </div>
-                )}
-
-                {/* Efek Lingkaran Denyut (Hanya aktif saat popup tertutup agar eye-catching) */}
-                {!isOpen && (
-                    <span className="absolute inset-0 rounded-full bg-emerald-500 opacity-60 animate-ping pointer-events-none" />
-                )}
-
-                {/* Tombol Utama */}
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className={`w-16 h-16 rounded-full bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center text-white shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 border-2 border-white dark:border-zinc-800 focus:outline-none cursor-pointer relative z-10`}
-                    aria-label="Buka formulir chat WhatsApp"
-                >
-                    {isOpen ? (
-                        <X className="w-7 h-7 stroke-[2.5] animate-in spin-in-90 duration-200" />
-                    ) : (
-                        <LucidePhone className="w-8 h-8 fill-white hover:rotate-12 transition-transform duration-200" />
-                    )}
-                </button>
+          <div className="flex items-center gap-3.5 mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center text-white shrink-0 shadow-md">
+              <Phone className="w-5 h-5 fill-white" />
             </div>
-            
+            <div>
+              <h4 className="text-base font-extrabold text-zinc-950 dark:text-white leading-snug">Layanan Pelanggan 24/7</h4>
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 mt-0.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                Online • Tanggapan Cepat
+              </span>
+            </div>
+          </div>
 
+          <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed mb-5 font-normal">
+            Dapatkan Penawaran terbaik dari kami atau konsultasikan kepada kami kebutuhan Container Anda. Tim kami akan langsung memandu Anda melalui percakapan WhatsApp.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5 group">
+              <label className="text-sm font-extrabold text-zinc-950 dark:text-white block">
+                Nama Lengkap Anda
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-zinc-400 group-focus-within:text-emerald-600 transition-colors">
+                  <User className="w-5 h-5 stroke-[2]" />
+                </span>
+                <input
+                  type="text"
+                  required
+                  disabled={isSubmitting}
+                  placeholder="Contoh: Budi Santoso"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full h-12 pl-11 pr-4 rounded-xl border-2 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-base font-medium text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500 transition-colors disabled:opacity-60"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5 group">
+              <label className="text-sm font-extrabold text-zinc-950 dark:text-white block">
+                Pertanyaan atau Pesan Anda
+              </label>
+              <div className="relative">
+                <span className="absolute top-3.5 left-0 flex items-center pl-3.5 pointer-events-none text-zinc-400 group-focus-within:text-emerald-600 transition-colors">
+                  <FileText className="w-5 h-5 stroke-[2]" />
+                </span>
+                <textarea
+                  required
+                  rows={3}
+                  disabled={isSubmitting}
+                  placeholder="Tuliskan produk atau bantuan yang Anda perlukan di sini..."
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-base font-medium text-zinc-950 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500 transition-colors resize-none leading-relaxed disabled:opacity-60"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex h-12 w-full items-center justify-center gap-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-700 text-white font-extrabold rounded-xl text-base transition-all shadow-md shadow-emerald-600/20 active:scale-[0.99] cursor-pointer disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Memproses Ke WhatsApp...
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5 fill-white" />
+                  Kirim Pertanyaan via WhatsApp
+                </>
+              )}
+            </button>
+          </form>
         </div>
-    );
+      )}
+
+      <div className="relative group/button flex items-center gap-3">
+        {!isOpen && (
+          <div className="absolute right-20 bg-zinc-900 text-white text-xs font-bold px-3 py-2 rounded-xl whitespace-nowrap shadow-md opacity-0 scale-95 pointer-events-none translate-x-2 group-hover/button:opacity-100 group-hover/button:scale-100 group-hover/button:translate-x-0 transition-all duration-200 after:content-[''] after:absolute after:top-1/2 after:-right-1 after:-mt-1 after:border-4 after:border-y-transparent after:border-r-transparent after:border-l-zinc-900 hidden sm:block">
+            Butuh bantuan? Chat / hubungi kami di sini!
+          </div>
+        )}
+
+        {!isOpen && (
+          <span className="absolute inset-0 rounded-full bg-emerald-500 opacity-60 animate-ping pointer-events-none" />
+        )}
+
+        <button
+          onClick={() => !isSubmitting && setIsOpen(!isOpen)}
+          disabled={isSubmitting}
+          className="w-16 h-16 rounded-full bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center text-white shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 border-2 border-white dark:border-zinc-800 focus:outline-none cursor-pointer relative z-10 disabled:opacity-80"
+          aria-label="Buka formulir chat WhatsApp"
+        >
+          {isOpen ? (
+            <X className="w-7 h-7 stroke-[2.5] animate-in spin-in-90 duration-200" />
+          ) : (
+            <LucidePhone className="w-8 h-8 fill-white hover:rotate-12 transition-transform duration-200" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
 }

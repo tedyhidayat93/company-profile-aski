@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Cache;
 use App\Traits\TracksVisitors;
+use App\Support\Enums\PageList;
+use App\Support\Enums\VisitorAction;
 
 class BlogController extends Controller
 {
@@ -18,7 +20,7 @@ class BlogController extends Controller
 
     public function index(Request $request)
     {
-        $this->trackPageVisit($request, 'Blog Index');
+        $this->trackPageVisit($request, PageList::BLOG_INDEX->value, 'Membuka halaman ' . PageList::BLOG_INDEX->label());
 
         $filters = [
             'search' => $request->string('search')->toString(),
@@ -210,7 +212,8 @@ class BlogController extends Controller
 
     public function show(Request $request, string $slug)
     {
-        $this->trackPageVisit($request, 'Blog Article - ' . $slug);
+        $this->trackPageVisit($request, PageList::BLOG_DETAIL->value, 'Membuka halaman ' . PageList::BLOG_DETAIL->label());
+
 
         $post = Article::query()
             ->published()

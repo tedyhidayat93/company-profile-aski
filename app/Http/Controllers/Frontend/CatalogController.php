@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use App\Support\Enums\PageList;
+use App\Support\Enums\VisitorAction;
 
 class CatalogController extends Controller
 {
@@ -37,10 +39,7 @@ class CatalogController extends Controller
 
     public function index(Request $request)
     {
-        $this->trackPageVisit(
-            $request,
-            'Product Catalog'
-        );
+        $this->trackPageVisit($request, PageList::CATALOG_INDEX->value, 'Membuka halaman ' . PageList::CATALOG_INDEX->label());
 
         $filters = [
             'search'    => $request->string('search')->toString(),
@@ -292,10 +291,7 @@ class CatalogController extends Controller
         Request $request,
         string $slug
     ) {
-        $this->trackPageVisit(
-            $request,
-            'Product Detail - ' . $slug
-        );
+        $this->trackPageVisit($request, PageList::CATALOG_SHOW->value, 'Membuka halaman ' . PageList::CATALOG_SHOW->label());
 
         $product = Product::query()
             ->published()

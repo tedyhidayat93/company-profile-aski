@@ -7,6 +7,7 @@ import SeoHead from '@/components/seo-head';
 import { useConfig } from '@/utils/config';
 import CtaSection from '@/components/cta-section';
 import { FeaturedProductsBanner } from '../catalog';
+import ProductInquiryCard from '@/components/product-inquiry-card';
 
 interface Props {
     product: {
@@ -205,42 +206,7 @@ export default function ProductDetail({ product, products = [], related_categori
                     <aside className="lg:col-span-4 space-y-6">
                         
                         {/* Brosur Order Box (CTA) Universal */}
-                        <div className="bg-slate-950 text-white p-6 md:p-8 border-t-4 border-orange-500 shadow-md relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-2 bg-orange-500 text-slate-950 font-black text-[9px] tracking-widest uppercase">
-                                INQUIRY BROSUR
-                            </div>
-                            
-                            <h3 className="text-xl font-black uppercase mb-1 text-white tracking-tight">
-                                Hubungi TIM AHLI KAMI
-                            </h3>
-                            <p className="text-slate-400 text-xs mb-6 font-medium leading-relaxed">
-                                Konsultasikan rencana proyek, kustomisasi ruang, manajemen sewa kontainer, atau estimasi pengadaan unit {product.title} langsung bersama tim ahli kami.
-                            </p>
-                            
-                            <div className="space-y-3">
-                                <a 
-                                    href={`https://wa.me/${getConfig('contact_whatsapp', '6281282336464').replace(/\D/g, '')}?text=${waMessage}`} 
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex w-full justify-center items-center gap-2 bg-orange-500 hover:bg-orange-600 text-slate-950 font-black py-3.5 px-6 transition duration-200 text-xs uppercase tracking-widest"
-                                >
-                                    <PhoneCall className="w-3.5 h-3.5" />
-                                    Minta Penawaran Harga
-                                </a>
-
-                                {getConfig('company_profile_pdf') && (
-                                    <a 
-                                        href={`/storage/${getConfig('company_profile_pdf')}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex w-full justify-center items-center gap-2 bg-transparent hover:bg-white/5 border border-white/20 text-white font-bold py-3 px-6 transition duration-200 text-xs uppercase tracking-widest"
-                                    >
-                                        <Download className="w-3.5 h-3.5" />
-                                        Download Brosur Spesifikasi
-                                    </a>
-                                )}
-                            </div>
-                        </div>
+                        <ProductInquiryCard product={product} />
 
                         {/* Brosur Index Kategori */}
                         <div className="bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-6">
