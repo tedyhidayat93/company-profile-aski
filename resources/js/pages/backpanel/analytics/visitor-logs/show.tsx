@@ -24,6 +24,16 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { cn } from '@/lib/utils';
 
+const customMarkerIcon = new L.Icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  iconSize: [25, 41],         // Ukuran standar marker bawaan leaflet
+  iconAnchor: [12, 41],       // Titik tumpu ujung bawah jarum marker
+  popupAnchor: [1, -34],      // Posisi kemunculan popup dari marker
+  shadowSize: [41, 41],
+});
+
 // Fix untuk default marker icon Leaflet yang sering hilang saat bundling (Vite/Webpack)
 // @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
@@ -229,7 +239,9 @@ export default function VisitorLogShow({ visitorLog }: Props) {
                           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         />
-                        <Marker position={position}>
+                        
+                        {/* Tambahkan properti icon={customMarkerIcon} di bawah ini */}
+                        <Marker position={position} icon={customMarkerIcon}>
                           <Popup>
                             <div className="text-xs font-sans space-y-1">
                               <p className="font-bold">{visitorLog.ip_address}</p>
