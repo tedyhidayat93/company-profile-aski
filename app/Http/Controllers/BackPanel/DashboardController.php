@@ -113,9 +113,9 @@ class DashboardController extends Controller
     private function getTopSearchedProducts(): array
     {
         $products = Product::with(['category', 'coverImage'])
-            ->where('views_count', '>', 0)
+            ->where('views', '>', 0)
             ->where('status', 'published')
-            ->orderByDesc('views_count')
+            ->orderByDesc('views')
             ->take(12)
             ->get();
 
