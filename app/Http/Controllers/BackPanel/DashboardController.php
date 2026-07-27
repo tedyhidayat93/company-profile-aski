@@ -176,7 +176,7 @@ class DashboardController extends Controller
                 'title' => $article->title,
                 'published_time' => $article->published_at ? Carbon::parse($article->published_at)->diffForHumans() : '-',
                 'image' => $article->featured_image ? resolve_image_path($article->featured_image) : null,
-                'views' => $article->views,
+                'views' => $article->views_count,
                 'slug' => $article->slug,
             ])->toArray();
     }
