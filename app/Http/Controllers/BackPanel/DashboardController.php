@@ -156,7 +156,7 @@ class DashboardController extends Controller
             ->map(fn ($article) => [
                 'id' => $article->id,
                 'title' => $article->title,
-                'views' => $article->views,
+                'views' => $article->views_count,
                 'published_time' => $article->published_at ? Carbon::parse($article->published_at)->diffForHumans() : '-',
                 'image' => $article->featured_image ? resolve_image_path($article->featured_image) : null,
                 'slug' => $article->slug,
