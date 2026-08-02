@@ -21,52 +21,35 @@ trait TracksVisitors
      * @param string $message
      * @return void
      */
-    protected function trackVisitor(Request $request, string $action, string $page, string $message = '')
+    protected function trackVisitor(Request $request, string $action, string $page, string $message = ''): ?LogVisitor
     {
         try {
-            // Skip tracking for crawlers and bots
             if (class_exists('Jaybizzle\LaravelCrawlerDetect\Facades\LaravelCrawlerDetect')) {
                 if (LaravelCrawlerDetect::isCrawler()) {
-                    return;
+                    return null;
                 }
-            } else {
-                \Log::warning("LaravelCrawlerDetect not available, skipping bot detection");
             }
 
-            // --- PERBAIKAN UTAMA PADA TRAIT ---
-            // Buat cacheKey unik dengan menggabungkan IP, Halaman, Aksi, DAN md5 dari pesan/logMessage.
-            // Dengan cara ini, database hanya akan memblokir jika isi pesan & jenis tombolnya 100% identik.
             $cacheKey = 'visitor_' . $request->ip() . '_' . md5($page . '_' . $action . '_' . $message);
             
             if (Cache::has($cacheKey)) {
-                return; // Skip duplicate tracking jika tombol & isi log-nya sama persis
+                // Jika sudah ada di cache, coba ambil record terakhir yang sudah ada di database untuk IP ini
+                return LogVisitor::where('ip_address', $request->ip())->latest('timestamp')->first();
             }
 
-            // Get visitor information (minimal for performance)
             $visitorData = $this->getVisitorData($request, $action, $page, $message);
-
-            // Save to log_visitors table (will be cleaned up automatically)
             $logVisitor = LogVisitor::create($visitorData);
 
-            // --- PENYESUAIAN WAKTU LOCK (2 DETIK) ---
-            // Set cache anti-double click selama 2 detik agar tidak terlalu lama mengunci aksi lain 
-            // namun tetap aman meredam double click tidak sengaja pada tombol yang sama.
             Cache::put($cacheKey, true, 2);
-
-            // Update real-time statistics (optional, for immediate dashboard updates)
             $this->updateRealtimeStats($page);
 
+            return $logVisitor; // 👈 Kembalikan instance model
         } catch (\Exception $e) {
-            // Log detailed error for debugging
-            \Log::error('Visitor tracking failed: ' . $e->getMessage(), [
-                'exception' => $e,
-                'page' => $page,
-                'action' => $action,
-                'ip' => $request->ip(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            \Log::error('Visitor tracking failed: ' . $e->getMessage());
+            return null;
         }
     }
+
 
     /**
      * Get visitor data from request (optimized for performance)
@@ -284,9 +267,9 @@ trait TracksVisitors
      * @param string $message
      * @return void
      */
-    protected function trackAction(Request $request, string $action, string $page, string $message = '')
+    protected function trackAction(Request $request, string $action, string $page, string $message = ''): ?LogVisitor
     {
-        $this->trackVisitor($request, $action, $page, $message);
+        return $this->trackVisitor($request, $action, $page, $message);
     }
 
     /**

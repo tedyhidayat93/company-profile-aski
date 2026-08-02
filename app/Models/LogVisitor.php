@@ -44,6 +44,11 @@ class LogVisitor extends Model
      */
     public $timestamps = true;
 
+    public function lead()
+    {
+        return $this->hasOne(Lead::class, 'log_visitor_id');
+    }
+
     /**
      * Get the human readable device type.
      *
@@ -58,6 +63,7 @@ class LogVisitor extends Model
             default => 'Unknown',
         };
     }
+    
 
     /**
      * Get the full location string.

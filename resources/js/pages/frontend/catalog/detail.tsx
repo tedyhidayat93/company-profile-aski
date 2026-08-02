@@ -23,7 +23,8 @@ import {
     MessageSquare,
     Send,
     Container,
-    FileText
+    FileText,
+    ExternalLink
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
@@ -77,6 +78,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
     const { visitorActions = {}, appPages = {} } = usePage().props as any;
     const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
     const [quantity, setQuantity] = useState(1);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
     const [productImages, setProductImages] = useState<ImagesGalleryPreview[]>([]);
     const [activeTab, setActiveTab] = useState<'deskripsi' | 'spesifikasi'>('deskripsi');
     const hasSpecsData = !!((product.specific_specs && product.specific_specs.length > 0));
@@ -262,15 +264,18 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
         }
     };
 
-    // // State untuk Form Penawaran Baru
+    // State untuk Form Penawaran Baru dengan email, phone, dan is_approve_terms
     const [quoteForm, setQuoteForm] = useState({
         name: '',
-        contact: '',
-        message: ''
+        email: '',
+        phone: '',
+        message: '',
+        is_approve_terms: false
     });
 
     const handleQuoteSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
         e.preventDefault();
+        if (!quoteForm.is_approve_terms) return;
         
         const cleanPhone = getConfig('contact_whatsapp', '6281282336464').replace(/[^0-9]/g, '');
         
@@ -282,7 +287,8 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                 `*Link:* ${currentUrl}\n\n` +
                 `*DATA PEMOHON:*\n` +
                 `• Nama: ${quoteForm.name}\n` +
-                `• Kontak (WA/Email): ${quoteForm.contact}\n` +
+                `• Email: ${quoteForm.email}\n` +
+                `• WhatsApp/Telp: ${quoteForm.phone}\n` +
                 `• Detail Pesanan: ${quoteForm.message}\n\n` +
                 `Mohon segera kirimkan estimasi harga dan ketersediaan unitnya. Terima kasih.\n\n` +
                 `_(Dikirim via: ${pageName})_`
@@ -292,11 +298,13 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
         };
 
         try {
-            // Kirim data formulir request penawaran ke backend analitik
+            // Kirim data formulir request penawaran ke backend analitik lengkap dengan is_approve_terms
             await axios.post('/api/visitor-logs/leads', {
                 name: quoteForm.name,
-                phone: quoteForm.contact, // Dilempar ke kolom telepon analitik backend
+                email: quoteForm.email,
+                phone: quoteForm.phone,
                 message: `Meminta penawaran resmi produk: ${product.name}. Detail: ${quoteForm.message}`,
+                is_approve_terms: quoteForm.is_approve_terms,
                 source_page: pageName,
                 source_url: currentUrl,
                 action_type: visitorActions.WA_QUOTE_CATALOG_DETAIL || 'whatsapp_quote_catalog_detail'
@@ -585,6 +593,7 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                     </div>
                                     
                                     <form onSubmit={handleQuoteSubmit} className="space-y-4">
+                                        {/* Nama Lengkap */}
                                         <div className="space-y-1.5">
                                             <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
                                                 Nama Lengkap Anda
@@ -597,18 +606,33 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                             />
                                         </div>
 
+                                        {/* Email */}
                                         <div className="space-y-1.5">
                                             <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
-                                                Nomor WhatsApp / Email
+                                                Email Aktif
                                             </label>
                                             <input 
-                                                type="text" required value={quoteForm.contact}
-                                                onChange={e => setQuoteForm({...quoteForm, contact: e.target.value})}
+                                                type="email" required value={quoteForm.email}
+                                                onChange={e => setQuoteForm({...quoteForm, email: e.target.value})}
                                                 className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
-                                                placeholder="Contoh: 081234xxxx / nama@email.com"
+                                                placeholder="Contoh: nama@email.com"
                                             />
                                         </div>
 
+                                        {/* Nomor WhatsApp */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
+                                                Nomor WhatsApp
+                                            </label>
+                                            <input 
+                                                type="tel" required value={quoteForm.phone}
+                                                onChange={e => setQuoteForm({...quoteForm, phone: e.target.value})}
+                                                className="w-full bg-slate-950 dark:bg-zinc-950 border border-slate-800 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition font-medium" 
+                                                placeholder="Contoh: 08123456789"
+                                            />
+                                        </div>
+
+                                        {/* Rencana Penggunaan / Pesan */}
                                         <div className="space-y-1.5">
                                             <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
                                                 Rencana Penggunaan / Spesifikasi Kustom
@@ -621,9 +645,38 @@ export default function Detail({ product, relatedProducts, seo }: DetailProps) {
                                             />
                                         </div>
 
+                                        {/* Checkbox Persetujuan Privasi (is_approve_terms) */}
+                                        <div className="pt-1">
+                                            <label className="flex items-start gap-2.5 cursor-pointer group select-none">
+                                                <div className="relative flex items-center mt-0.5">
+                                                    <input
+                                                        type="checkbox"
+                                                        required
+                                                        checked={quoteForm.is_approve_terms}
+                                                        onChange={e => setQuoteForm({...quoteForm, is_approve_terms: e.target.checked})}
+                                                        className="peer sr-only"
+                                                    />
+                                                    <div className="w-4 h-4 rounded border border-slate-700 bg-slate-950 dark:bg-zinc-950 peer-checked:bg-orange-500 peer-checked:border-orange-500 transition-all flex items-center justify-center">
+                                                        <Check className="w-3 h-3 text-white stroke-[3] opacity-0 peer-checked:opacity-100 transition-opacity" />
+                                                    </div>
+                                                </div>
+                                                <div className="text-xs text-slate-300 dark:text-zinc-300 leading-tight">
+                                                    <span className="font-medium text-slate-200">Saya menyetujui</span> pengumpulan data ini semata-mata untuk komunikasi transaksi, penawaran harga, &amp; administrasi kerjasama. 
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPrivacyModal(true)}
+                                                        className="text-orange-500 hover:text-orange-400 font-bold ml-1 inline-flex items-center gap-0.5 underline cursor-pointer"
+                                                    >
+                                                        Detail <ExternalLink className="w-2.5 h-2.5" />
+                                                    </button>
+                                                </div>
+                                            </label>
+                                        </div>
+
                                         <button 
                                             type="submit"
-                                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-black py-3.5 px-5 rounded-xl shadow-lg shadow-orange-500/20 transition text-sm uppercase tracking-wide mt-3 active:scale-95"
+                                            disabled={!quoteForm.is_approve_terms}
+                                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 disabled:from-slate-800 disabled:to-slate-800 text-white disabled:text-slate-500 font-black py-3.5 px-5 rounded-xl shadow-lg shadow-orange-500/20 transition text-sm uppercase tracking-wide mt-3 active:scale-95 cursor-pointer disabled:cursor-not-allowed"
                                         >
                                             <Send className="w-4 h-4" /> Permintaan Penawaran
                                         </button>

@@ -4,16 +4,19 @@ namespace App\Http\Controllers\BackPanel\Analytics;
 
 use App\Http\Controllers\Controller;
 use App\Models\LogVisitor;
-use Illuminate\Validation\Rules\Enum;
+use App\Models\Lead;
+use App\Models\Customer;
 use App\Traits\TracksVisitors;
+use App\Support\Enums\LeadType;
 use App\Support\Enums\VisitorAction;
 use App\Support\Enums\PageList;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Validation\Rules\Enum;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Builder;
+use Inertia\Inertia;
 use Carbon\Carbon;
 
 class VisitorLogController extends Controller
@@ -246,20 +249,18 @@ class VisitorLogController extends Controller
         ];
     }
 
-    /**
-     * ENDPOINT API: Menyimpan log interaksi Leads (WhatsApp/Contact Submit)
-     */
     public function storeLeadsLog(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'        => 'required|string|max:100',
-            'company'     => 'nullable|string|max:150',
-            'phone'       => 'nullable|string|max:30',
-            'email'       => 'nullable|email|max:100',
-            'subject'     => 'nullable|string|max:200',
-            'message'     => 'required|string|max:2000',
-            'source_page' => ['required', 'string', new Enum(PageList::class)],
-            'action_type' => ['required', 'string', new Enum(VisitorAction::class)],
+            'name'             => 'required|string|max:100',
+            'company'          => 'nullable|string|max:150',
+            'phone'            => 'nullable|string|max:30',
+            'email'            => 'nullable|email|max:100',
+            'is_approve_terms' => ['sometimes', 'accepted'],
+            'subject'          => 'nullable|string|max:200',
+            'message'          => 'required|string|max:2000',
+            'source_page'      => ['required', 'string', new Enum(PageList::class)],
+            'action_type'      => ['required', 'string', new Enum(VisitorAction::class)],
         ]);
 
         if ($validator->fails()) {
@@ -295,15 +296,6 @@ class VisitorLogController extends Controller
 
         Cache::put($antiSpamKey, true, 4);
 
-        $details = [];
-        if ($request->company) $details[] = "Perusahaan: {$request->company}";
-        if ($request->subject) $details[] = "Kebutuhan: {$request->subject}";
-
-        $shortMessage = mb_strimwidth($request->message, 0, 60, "...");
-        $details[] = "Pesan: {$shortMessage}";
-
-        $logMessage = "Leads Form Submit [" . implode(' | ', $details) . "]";
-
         $action = $request->action_type instanceof VisitorAction
             ? $request->action_type->value
             : VisitorAction::from($request->action_type)->value;
@@ -312,11 +304,52 @@ class VisitorLogController extends Controller
             ? $request->source_page->value
             : PageList::from($request->source_page)->value;
 
-        $this->trackAction($request, $action, $page, $logMessage);
+        $leadType = str_contains(strtolower($action), 'whatsapp') 
+            ? LeadType::WHATSAPP 
+            : LeadType::CONTACT_FORM;
+
+        $fullMessage = $request->message;
+        if ($request->company || $request->subject) {
+            $metaInfo = [];
+            if ($request->company) $metaInfo[] = "Perusahaan: {$request->company}";
+            if ($request->subject) $metaInfo[] = "Subjek/Kebutuhan: {$request->subject}";
+            $fullMessage = "[" . implode(' | ', $metaInfo) . "] \n\n" . $request->message;
+        }
+
+        $details = [];
+        if ($request->company) $details[] = "Perusahaan: {$request->company}";
+        if ($request->subject) $details[] = "Kebutuhan: {$request->subject}";
+        $shortMessage = mb_strimwidth($request->message, 0, 60, "...");
+        $details[] = "Pesan: {$shortMessage}";
+        $logMessage = "Leads Form Submit [" . implode(' | ', $details) . "]";
+
+        $visitorLog = $this->trackAction($request, $action, $page, $logMessage);
+        $visitorLogId = $visitorLog?->id;
+
+        Customer::syncFromLead([
+            'name'  => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+        ]);
+
+        Lead::capture(
+            request: new Request([
+                'name'       => $request->name,
+                'phone'      => $request->phone,
+                'email'      => $request->email,
+                'message'    => $fullMessage,
+                'action'     => $action,
+                'is_approve_terms' => $request->boolean('is_approve_terms'),
+                'page_url'   => $request->input('page_url', url()->previous()),
+            ]),
+            type: $leadType,
+            action: $action,
+            logVisitorId: $visitorLogId
+        );
 
         return response()->json([
             'success' => true,
-            'message' => 'Berhasil merekam log interaksi data visitor.',
+            'message' => 'Berhasil merekam log interaksi dan data leads.',
         ], 200);
     }
 }

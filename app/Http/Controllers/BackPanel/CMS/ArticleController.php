@@ -31,7 +31,8 @@ class ArticleController extends Controller
     {
         Gate::authorize('article-list');
         
-        $articles = Article::when($request->search, function ($query, $search) {
+        $articles = Article::select('id', 'title', 'slug', 'status', 'author_id', 'featured_image', 'category_id', 'is_headline', 'views_count', 'published_at')
+            ->when($request->search, function ($query, $search) {
                 return $query->where('title', 'like', "%{$search}%")
                     ->orWhere('content', 'like', "%{$search}%")
                     ->orWhere('excerpt', 'like', "%{$search}%");

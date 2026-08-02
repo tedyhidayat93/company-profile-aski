@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\BackPanel;
 
+use App\Support\Enums\VisitorAction;
+use App\Support\Enums\LeadType;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Service;
 use App\Models\Customer;
+use App\Models\Lead;
 use App\Models\Order;
 use App\Models\Article;
 use App\Models\Testimonial;
@@ -29,6 +32,7 @@ class DashboardController extends Controller
             'regionStats' => $this->getRegionStats(),
             'topPopularArticles' => $this->getTopPopularArticles(),
             'latestArticles'     => $this->getLatestArticles(),
+            'whatsappLeads'      => $this->getLatestWhatsappLeads(),
         ]);
     }
 
@@ -292,5 +296,91 @@ class DashboardController extends Controller
             'recentOrders' =>
                 Order::getWaitingToCheckRecentOrders(),
         ]);
+    }
+
+    // ================= WHATSAPP LEADS =================
+
+   private function getLatestWhatsappLeads(): array
+    {
+        $whatsappActions = [
+            VisitorAction::WA_QUOTE_CATALOG_DETAIL->value,
+            VisitorAction::WA_CONTACT_PAGE_SUBMIT->value,
+            VisitorAction::WA_MINI_FORM_QUOTE_REQUEST->value,
+            VisitorAction::WA_ONPAGE_DIRECT_CLICK->value,
+            VisitorAction::WA_TOP_NAVBAR_DIRECT_CLICK->value,
+            VisitorAction::WA_FOOTER_DIRECT_CLICK->value,
+            VisitorAction::WA_GLOBAL_FLOATING->value,
+        ];
+
+        // 1. Hitung total keseluruhan (leads WhatsApp + log_visitor WhatsApp lama yang tidak punya relasi lead)
+        $totalLeads = Lead::ofType(LeadType::WHATSAPP)->count();
+        $totalOldLogs = LogVisitor::whereIn('action', $whatsappActions)
+            ->whereDoesntHave('lead') // Pastikan tidak terhitung ganda jika sudah terhubung ke tabel leads
+            ->count();
+        
+        $totalAll = $totalLeads + $totalOldLogs;
+
+        // 2. Ambil data terbaru dari tabel Leads
+        $leadsData = Lead::ofType(LeadType::WHATSAPP)
+            ->latest('timestamp')
+            ->take(10)
+            ->get()
+            ->map(function ($item) {
+                $actionEnum = VisitorAction::tryFrom($item->action);
+                return [
+                    'id'           => $item->id,
+                    'name'         => $item->name ?? 'Anonymous',
+                    'phone'        => $item->phone ?? '-',
+                    'email'        => $item->email ?? '-',
+                    'ip_address'   => $item->ip_address,
+                    'country'      => $item->country,
+                    'region'       => $item->region,
+                    'action'       => $item->action,
+                    'action_label' => $actionEnum ? $actionEnum->label() : $item->action,
+                    'page_url'     => $item->page_url ?? '-',
+                    'page'         => '-', // atau sesuaikan jika ada kolom page
+                    'message'      => $item->message ?? '-',
+                    'timestamp'    => $item->timestamp,
+                    'time'         => $item->timestamp ? Carbon::parse($item->timestamp)->diffForHumans() : '-',
+                ];
+            });
+
+        // 3. Ambil data lama dari LogVisitor yang belum masuk ke Leads
+        $oldLogsData = LogVisitor::whereIn('action', $whatsappActions)
+            ->whereDoesntHave('lead')
+            ->latest('timestamp')
+            ->take(10)
+            ->get()
+            ->map(function ($item) {
+                $actionEnum = VisitorAction::tryFrom($item->action);
+                return [
+                    'id'           => 'log_visitor_' . $item->id,
+                    'name'         => 'Visitor (Legacy)', // Data lama di log visitor biasanya belum ada nama
+                    'phone'        => '-',
+                    'email'        => '-',
+                    'ip_address'   => $item->ip_address,
+                    'country'      => $item->country,
+                    'region'       => $item->region,
+                    'action'       => $item->action,
+                    'action_label' => $actionEnum ? $actionEnum->label() : $item->action,
+                    'page_url'     => $item->url_path ?? '-',
+                    'page'         => $item->page ?? '-',
+                    'message'      => $item->message ?? '-',
+                    'timestamp'    => $item->timestamp,
+                    'time'         => $item->timestamp ? Carbon::parse($item->timestamp)->diffForHumans() : '-',
+                ];
+            });
+
+        // 4. Gabungkan kedua koleksi, urutkan berdasarkan timestamp terbaru, lalu ambil 5 teratas
+        $merged = $leadsData->concat($oldLogsData)
+            ->sortByDesc('timestamp')
+            ->take(5)
+            ->values()
+            ->toArray();
+
+        return [
+            'total'  => $totalAll,
+            'latest' => $merged,
+        ];
     }
 }

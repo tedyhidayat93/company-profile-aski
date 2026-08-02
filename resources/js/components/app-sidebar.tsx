@@ -14,6 +14,7 @@ import { type NavGroupItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
   Activity,
+  ActivityIcon,
   BarChart,
   BookmarkCheck,
   BookOpen,
@@ -32,6 +33,7 @@ import {
   ShoppingCart,
   StarIcon,
   Tag,
+  UserCheckIcon,
   UserCircle,
   Users,
   UsersIcon,
@@ -49,13 +51,19 @@ const mainNavGroups: NavGroupItem[] = [
           icon: LayoutGrid,
         },
         {
-          title: 'Daftar Pesanan',
+          title: 'Pesanan',
           href: '/cpanel/crm/orders',
           icon: ShoppingCart,
           permission: 'order-list',
         },
         {
-          title: 'Posting Artikel',
+          title: 'Pospek',
+          href: '/cpanel/crm/leads',
+          icon: UserCheckIcon,
+          permission: '',
+        },
+        {
+          title: 'Artikel',
           href: '/cpanel/cms/article',
           icon: FileText,
           permission: 'article-list',
@@ -115,7 +123,7 @@ const mainNavGroups: NavGroupItem[] = [
           permission: 'testimonial-list',
         },
         {
-          title: 'Akun Pengguna',
+          title: 'Pengguna',
           href: '/cpanel/authorization/user-management',
           icon: UsersIcon,
           permission: 'user-list',

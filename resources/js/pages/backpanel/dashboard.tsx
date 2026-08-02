@@ -32,6 +32,8 @@ import {
   Calendar1,
   ArrowRight,
   BookOpen,
+  Globe,
+  MapPin,
 } from 'lucide-react';
 import { OrderStatusBadge } from '@/utils/order-status';
 import { Button } from '@/components/ui/button';
@@ -63,6 +65,26 @@ interface ArticleData {
   published_time?: string;
   image: string | null;
   slug: string;
+}
+
+interface WhatsappLeadItem {
+  id: number;
+  ip_address: string;
+  name: string;
+  phone: string;
+  country: string | null;
+  region: string | null;
+  action: string;
+  action_label: string;
+  page_url: string;
+  page: string;
+  message: string;
+  time: string;
+}
+
+interface WhatsappLeadsData {
+  total: number;
+  latest: WhatsappLeadItem[];
 }
 
 interface Props {
@@ -102,6 +124,7 @@ interface Props {
   regionStats: RegionData[];
   topPopularArticles: ArticleData[];
   latestArticles: ArticleData[];
+  whatsappLeads: WhatsappLeadsData;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -138,6 +161,7 @@ export default function Dashboard({
   regionStats,
   topPopularArticles = [],
   latestArticles = [],
+  whatsappLeads = { total: 0, latest: [] },
 }: Props) {
 
     const [recentOrdersStats, setRecentOrders] = useState<any[]>([]);
@@ -344,171 +368,285 @@ export default function Dashboard({
           })}
         </div>
 
-        {/* Traffic Visitors */}
-        <TrafficVisitorCharts
-          websiteTrafficData={websiteTrafficData}
-          countryStats={countryStats}
-          regionStats={regionStats}
-        />
+        <div className="grid gap-4 lg:grid-cols-4">
 
-        {/* Daftar Pesanan Terbaru */}
-        <Card className="border-none gap-0 shadow-sm ring-1 ring-slate-200 min-h-[370px] p-0 overflow-hidden">
-          <CardHeader className="flex flex-col bg-slate-800 md:flex-row items-center justify-between space-y-0 py-4">
-            <div>
-              <CardTitle className="text-lg font-bold text-orange-300">Daftar Pesanan Terbaru</CardTitle>
-              <p className="text-sm text-slate-300">Pesanan terbaru 24 jam terakhir</p>
+          {/* Produk Paling Banyak Dilihat */}
+          <Card className="border-none shadow-sm ring-1 ring-slate-200 pt-0 overflow-hidden">
+            <div className="p-6 border-b border-zinc-100 dark:border-zinc-900 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-800 dark:bg-zinc-900/20">
+              <div>
+                <h2 className="text-lg font-bold text-orange-300 dark:text-zinc-50 tracking-tight">
+                  Produk Paling Banyak Dilihat
+                </h2>
+                <p className="text-xs text-zinc-100 dark:text-zinc-500 mt-0.5">
+                  Produk yang paling sering diklik oleh pengunjung
+                </p>
+              </div>
             </div>
-            <div className="relative">
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/cpanel/crm/orders">Lihat Semua <ArrowRight className="h-4 w-4 ml-1 inline-block" /></Link>
-              </Button>
-              {recentOrdersStats.length > 0 && (
-                <Badge className="absolute animate-pulse -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-600">
-                  {recentOrdersStats.length}
-                </Badge>
+            <CardContent className="grid grid-cols-1 gap-2 max-h-85 overflow-y-auto">
+              {topSearchedProducts.length > 0 ? (
+                topSearchedProducts.map((product) => (
+                  <div 
+                    onClick={() => window.location.href = `/cpanel/cms/product/${product.id}`} 
+                    key={product.id} 
+                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-300 shadow hover:border-orange-500/20 hover:bg-slate-50/50 transition-all cursor-pointer group"
+                  >
+                    <div className="w-12 h-12 shrink-0 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200/60">
+                      {product.image_path ? (
+                        <img 
+                          src={product.image_path} 
+                          alt={product.name}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <span className="font-bold text-slate-400 text-[10px]">NO IMG</span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-800 group-hover:text-orange-500 transition-colors truncate">
+                        {product.name}
+                      </p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+                        {product.searches}x Dilihat
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full flex flex-col min-h-52 items-center justify-center py-8 text-center">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                    <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-slate-500 font-medium">Belum ada data pencarian</p>
+                </div>
               )}
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="w-full overflow-x-auto">
-              <Table className="w-full min-w-[200px] -mt-2">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pt-7 pb-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>
-                    <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Pelanggan</TableHead>
-                    <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Detail Produk</TableHead>
-                    <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Status</TableHead>
-                    <TableHead className="pt-7 pb-4 text-right pr-6 text-xs uppercase tracking-wider font-semibold">Total Nilai</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentOrdersStats.length > 0 ? (
-                    recentOrdersStats.map((order: any) => (
-                      <TableRow 
-                        key={order.id} 
-                        onClick={() => window.location.href = `/cpanel/crm/orders/${order.id}`} 
-                        className="group hover:bg-slate-50/80 transition-all cursor-pointer border-b"
-                      >
-                        <TableCell className="pl-6 space-y-2">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700">
-                            #{order.order_number}
-                          </span>
-                          <span className="text-xs pl-1 text-slate-400 flex items-center gap-1">
-                            <Calendar1 className="h-3 w-3 ml-1" /> {formatDate(order.created_at)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-start gap-3">
+            </CardContent>
+          </Card>
+
+          <div className="lg:col-span-3">
+            {/* Traffic Visitors */}
+            <TrafficVisitorCharts
+              websiteTrafficData={websiteTrafficData}
+              countryStats={countryStats}
+              regionStats={regionStats}
+            />
+          </div>
+        </div>
+
+
+
+        <div className="grid lg:grid-cols-2 gap-4">
+          {/* Daftar Leads WhatsApp Terbaru di Dashboard */}
+          <Card className="border-none gap-0 shadow-sm ring-1 ring-slate-200 min-h-[320px] p-0 overflow-hidden">
+            <CardHeader className="flex flex-col bg-emerald-800 md:flex-row items-center justify-between space-y-0 py-4 px-6">
+              <div>
+                <CardTitle className="text-lg font-bold text-emerald-100 flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-emerald-300" /> Leads WhatsApp Terbaru
+                </CardTitle>
+                <p className="text-sm text-emerald-200/80">Total seluruh interaksi/leads WhatsApp masuk: <span className="font-bold text-white">{whatsappLeads.total.toLocaleString()}</span></p>
+              </div>
+              <div className="relative">
+                <Button variant="outline" size="sm" className="bg-emerald-700 border-emerald-600 text-white hover:bg-emerald-600 hover:text-white" asChild>
+                  <Link href="/cpanel/crm/leads">Lihat Semua Leads <ArrowRight className="h-4 w-4 ml-1 inline-block" /></Link>
+                </Button>
+                {whatsappLeads.total > 0 && (
+                  <Badge className="absolute animate-pulse -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-amber-500 text-white">
+                    {whatsappLeads.total > 99 ? '99+' : whatsappLeads.total}
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="w-full overflow-x-auto">
+                <Table className="w-full min-w-[750px] -mt-2">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pt-7 pb-4 pl-6 text-xs uppercase tracking-wider font-semibold">Waktu</TableHead>
+                      <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Pengunjung & Kontak</TableHead>
+                      <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Aksi / Preview Pesan</TableHead>
+                      <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Lokasi / IP</TableHead>
+                      <TableHead className="pt-7 pb-4 text-right pr-6 text-xs uppercase tracking-wider font-semibold">Aksi</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {whatsappLeads.latest.length > 0 ? (
+                      whatsappLeads.latest.map((lead, index) => (
+                        <TableRow key={index} className="group hover:bg-slate-50/80 transition-all border-b align-top">
+                          <TableCell className="pl-6 pt-4 whitespace-nowrap">
+                            <span className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                              <Clock className="h-3 w-3 text-slate-400" /> {lead.time}
+                            </span>
+                          </TableCell>
+
+                          <TableCell className="pt-4">
                             <div className="flex flex-col">
-                              <span className="font-semibold text-slate-900 leading-none mb-1">{order.company_name}</span>
-                              <div className="flex flex-col gap-0.5">
-                                <span className="text-xs text-slate-500 flex items-center gap-1">
-                                  <User className="h-3 w-3" /> {order.pic_name}
-                                </span>
-                                <span className="text-[11px] text-slate-400 italic font-light">{order.phone}</span>
-                              </div>
+                              <span className="text-xs font-bold text-slate-900">{lead.name}</span>
+                              <span className="text-xs text-slate-500 font-mono">{lead.phone}</span>
+                            </div>
+                          </TableCell>
+
+                          <TableCell className="pt-4 max-w-[280px]">
+                            <div className="flex flex-col gap-1.5">
+                              <span className="inline-flex items-center w-fit px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                {lead.action_label}
+                              </span>
+                              {lead.message && lead.message !== '-' && (
+                                <p className="text-xs text-slate-600 bg-slate-100/80 p-1.5 rounded border border-slate-200/50 line-clamp-2 italic" title={lead.message}>
+                                  "{lead.message}"
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          <TableCell className="pt-4 whitespace-nowrap">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-xs text-slate-700 flex items-center gap-1 font-medium">
+                                <MapPin className="h-3 w-3 text-slate-400" /> {lead.region ? `${lead.region}, ` : ''} {lead.country || 'Unknown'}
+                              </span>
+                              <span className="text-[11px] text-slate-400 font-mono">{lead.ip_address}</span>
+                            </div>
+                          </TableCell>
+
+                          <TableCell className="text-right pt-4 pr-6 whitespace-nowrap">
+                            {lead.id ? (
+                              <Button variant="outline" size="sm" className="h-7 text-xs" asChild>
+                                <Link href={`/cpanel/crm/leads/${lead.id}`}>
+                                  <Eye className="w-3.5 h-3.5 mr-1 text-blue-600" /> Detail
+                                </Link>
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-slate-400 italic">Legacy Log</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-48 text-center">
+                          <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
+                            <div className="p-4 rounded-full bg-slate-50">
+                              <MessageSquare className="h-8 w-8 text-slate-300" />
+                            </div>
+                            <div>
+                              <p className="text-base font-semibold text-slate-900">Belum Ada Leads WhatsApp</p>
+                              <p className="text-sm text-slate-500">Interaksi tombol WhatsApp pengunjung akan tampil di sini.</p>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-[250px]">
-                          <div className="flex flex-col">
-                            <span className="font-medium text-slate-800">{order.product_name}</span>
-                            <span className="text-xs text-slate-500">
-                              {order.quantity} Unit &times; {formatCurrencyDisplay(order.product_price)}
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Daftar Pesanan Terbaru */}
+          <Card className="border-none gap-0 shadow-sm ring-1 ring-slate-200 min-h-[370px] p-0 overflow-hidden">
+            <CardHeader className="flex flex-col bg-slate-800 md:flex-row items-center justify-between space-y-0 py-4">
+              <div>
+                <CardTitle className="text-lg font-bold text-orange-300">Daftar Pesanan Terbaru</CardTitle>
+                <p className="text-sm text-slate-300">Pesanan terbaru 24 jam terakhir</p>
+              </div>
+              <div className="relative">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/cpanel/crm/orders">Lihat Semua <ArrowRight className="h-4 w-4 ml-1 inline-block" /></Link>
+                </Button>
+                {recentOrdersStats.length > 0 && (
+                  <Badge className="absolute animate-pulse -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 hover:bg-red-600">
+                    {recentOrdersStats.length}
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="w-full overflow-x-auto">
+                <Table className="w-full min-w-[200px] -mt-2">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pt-7 pb-4 pl-6 text-xs uppercase tracking-wider font-semibold">ID Pesanan</TableHead>
+                      <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Pelanggan</TableHead>
+                      <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Detail Produk</TableHead>
+                      <TableHead className="pt-7 pb-4 text-xs uppercase tracking-wider font-semibold">Status</TableHead>
+                      <TableHead className="pt-7 pb-4 text-right pr-6 text-xs uppercase tracking-wider font-semibold">Total Nilai</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentOrdersStats.length > 0 ? (
+                      recentOrdersStats.map((order: any) => (
+                        <TableRow 
+                          key={order.id} 
+                          onClick={() => window.location.href = `/cpanel/crm/orders/${order.id}`} 
+                          className="group hover:bg-slate-50/80 transition-all cursor-pointer border-b"
+                        >
+                          <TableCell className="pl-6 space-y-2">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700">
+                              #{order.order_number}
                             </span>
-                            {order.notes && (
-                              <div className="mt-2 text-wrap p-1 bg-amber-50/50 border-l-2 border-amber-200 rounded text-[11px] text-amber-800 leading-relaxed italic">
-                                &ldquo;{order.notes}&rdquo;
+                            <span className="text-xs pl-1 text-slate-400 flex items-center gap-1">
+                              <Calendar1 className="h-3 w-3 ml-1" /> {formatDate(order.created_at)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-start gap-3">
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-slate-900 leading-none mb-1">{order.company_name}</span>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                                    <User className="h-3 w-3" /> {order.pic_name}
+                                  </span>
+                                  <span className="text-[11px] text-slate-400 italic font-light">{order.phone}</span>
+                                </div>
                               </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <OrderStatusBadge status={order.status} />
-                        </TableCell>
-                        <TableCell className="text-right pr-6">
-                          <div className="flex flex-col items-end">
-                            <span className="font-bold text-slate-900 text-base">
-                              {formatCurrencyDisplay(order.total_price)}
-                            </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-[250px]">
+                            <div className="flex flex-col">
+                              <span className="font-medium text-slate-800">{order.product_name}</span>
+                              <span className="text-xs text-slate-500">
+                                {order.quantity} Unit &times; {formatCurrencyDisplay(order.product_price)}
+                              </span>
+                              {order.notes && (
+                                <div className="mt-2 text-wrap p-1 bg-amber-50/50 border-l-2 border-amber-200 rounded text-[11px] text-amber-800 leading-relaxed italic">
+                                  &ldquo;{order.notes}&rdquo;
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <OrderStatusBadge status={order.status} />
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                            <div className="flex flex-col items-end">
+                              <span className="font-bold text-slate-900 text-base">
+                                {formatCurrencyDisplay(order.total_price)}
+                              </span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-64 text-center">
+                          <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
+                            <div className="p-4 rounded-full bg-slate-50">
+                              <ShoppingBag className="h-8 w-8 text-slate-300" />
+                            </div>
+                            <div>
+                              <p className="text-base font-semibold text-slate-900">Belum Ada Pesanan</p>
+                              <p className="text-sm text-slate-500">Daftar transaksi pelanggan akan tampil di sini.</p>
+                            </div>
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="h-64 text-center">
-                        <div className="flex flex-col items-center justify-center space-y-3 opacity-60">
-                          <div className="p-4 rounded-full bg-slate-50">
-                            <ShoppingBag className="h-8 w-8 text-slate-300" />
-                          </div>
-                          <div>
-                            <p className="text-base font-semibold text-slate-900">Belum Ada Pesanan</p>
-                            <p className="text-sm text-slate-500">Daftar transaksi pelanggan akan tampil di sini.</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Produk Paling Banyak Dilihat */}
-        <Card className="border-none shadow-sm ring-1 ring-slate-200 pt-0 overflow-hidden">
-          <div className="p-6 border-b border-zinc-100 dark:border-zinc-900 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-800 dark:bg-zinc-900/20">
-            <div>
-              <h2 className="text-lg font-bold text-orange-300 dark:text-zinc-50 tracking-tight">
-                Produk Paling Banyak Dilihat
-              </h2>
-              <p className="text-xs text-zinc-100 dark:text-zinc-500 mt-0.5">
-                Akumulasi total produk yang paling sering diklik oleh pengunjung
-              </p>
-            </div>
-          </div>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 min-h-67">
-            {topSearchedProducts.length > 0 ? (
-              topSearchedProducts.map((product) => (
-                <div 
-                  onClick={() => window.location.href = `/cpanel/cms/product/${product.id}`} 
-                  key={product.id} 
-                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-300 shadow hover:border-orange-500/20 hover:bg-slate-50/50 transition-all cursor-pointer group"
-                >
-                  <div className="w-12 h-12 shrink-0 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200/60">
-                    {product.image_path ? (
-                      <img 
-                        src={product.image_path} 
-                        alt={product.name}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <span className="font-bold text-slate-400 text-[10px]">NO IMG</span>
                     )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-800 group-hover:text-orange-500 transition-colors truncate">
-                      {product.name}
-                    </p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
-                      {product.searches} Dilihat
-                    </p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="col-span-full flex flex-col min-h-52 items-center justify-center py-8 text-center">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
-                  <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <p className="text-sm text-slate-500 font-medium">Belum ada data pencarian</p>
+                  </TableBody>
+                </Table>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Dua Komponen Baru: Artikel Terpopuler & Artikel Terbaru */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

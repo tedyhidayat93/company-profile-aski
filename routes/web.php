@@ -18,6 +18,7 @@ use App\Http\Controllers\BackPanel\CMS\TestimonialController;
 use App\Http\Controllers\BackPanel\CMS\ProductController;
 use App\Http\Controllers\BackPanel\CMS\ArticleController;
 use App\Http\Controllers\BackPanel\CRM\OrderController;
+use App\Http\Controllers\BackPanel\CRM\LeadController;
 use App\Http\Controllers\BackPanel\CRM\CustomerController;
 use App\Http\Controllers\BackPanel\Settings\{
     ProfileController,
@@ -194,6 +195,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::match(['post', 'put'], '{id}', [CustomerController::class, 'update'])->name('update');
                 Route::delete('{id}', [CustomerController::class, 'destroy'])->name('destroy');
                 Route::patch('{id}/toggle-status', [CustomerController::class, 'toggleStatus'])->name('toggle-status');
+            });
+
+            // Leads
+            Route::prefix('leads')->name('leads.')->group(function () {
+                Route::get('', [LeadController::class, 'index'])->name('index');
+                Route::get('{id}', [LeadController::class, 'show'])->name('show');
+                Route::delete('{id}', [LeadController::class, 'destroy'])->name('destroy');
             });
         });
     

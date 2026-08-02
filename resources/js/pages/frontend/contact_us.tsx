@@ -10,12 +10,17 @@ import {
     Send,
     Building2,
     Target,
-    Compass
+    Compass,
+    Check,
+    ShieldCheck,
+    X,
+    ExternalLink
 } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import { useConfig } from '@/utils/config';
 import axios from 'axios'; 
 import { usePage } from '@inertiajs/react';
+
 interface Props {
     seo: SeoHeadProps;
     data: {
@@ -97,14 +102,15 @@ StaticMapsSection.displayName = 'StaticMapsSection';
 export default function ContactUs({ seo, data }: Props) {
     const { getConfig } = useConfig();
     
-    // Menambahkan field 'company' agar sinkron dengan kebutuhan tracking data korporasi
+    // Menambahkan field 'is_approve_terms' untuk persetujuan privasi
     const [form, setForm] = useState({ 
         name: '', 
         company: '', 
         phone: '', 
         email: '', 
         subject: '', 
-        message: '' 
+        message: '',
+        is_approve_terms: false 
     });
 
     const { url, visitorActions = {}, appPages = {} } = usePage().props as any;
@@ -113,9 +119,11 @@ export default function ContactUs({ seo, data }: Props) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isTabExpanded, setIsTabExpanded] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false); // State modal detail privasi
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!form.is_approve_terms) return;
         setIsSubmitting(true);
 
         try {
@@ -342,14 +350,14 @@ export default function ContactUs({ seo, data }: Props) {
                             )}
                         </div>
 
-                        {/* --- FORM UTAMA KINI SUDAH TERINKLUSI FIELD NAMA PERUSAHAAN & DB LOGGER --- */}
+                        {/* --- FORM UTAMA DENGAN CHECKBOX PERSETUJUAN & MODAL PRIVASI --- */}
                         <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 md:p-12 border border-slate-100 dark:border-slate-800 shadow-xl space-y-8">
                             <div className="space-y-1">
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                                     Kirim Pesan Langsung
                                 </h3>
                                 <p className="text-slate-500 dark:text-slate-400 text-base">
-                                    Isi data di bawah ini untuk memulai konsultasi dengan marketing kami atau mendapatkan penawran.
+                                    Isi data di bawah ini untuk memulai konsultasi dengan marketing kami atau mendapatkan penawaran.
                                 </p>
                             </div>
 
@@ -438,10 +446,38 @@ export default function ContactUs({ seo, data }: Props) {
                                     />
                                 </div>
 
+                                {/* ☑️ CHECKBOX PERSETUJUAN (is_approve_terms) */}
+                                <div className="pt-1">
+                                    <label className="flex items-start gap-2.5 cursor-pointer group select-none">
+                                        <div className="relative flex items-center mt-0.5">
+                                            <input
+                                                type="checkbox"
+                                                required
+                                                checked={form.is_approve_terms}
+                                                onChange={e => setForm({...form, is_approve_terms: e.target.checked})}
+                                                className="peer sr-only"
+                                            />
+                                            <div className="w-4 h-4 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 peer-checked:bg-orange-500 peer-checked:border-orange-500 transition-all flex items-center justify-center">
+                                                <Check className="w-3 h-3 text-white stroke-[3] opacity-0 peer-checked:opacity-100 transition-opacity" />
+                                            </div>
+                                        </div>
+                                        <div className="text-xs text-slate-600 dark:text-slate-300 leading-tight">
+                                            <span className="font-medium text-slate-800 dark:text-slate-200">Saya menyetujui</span> pengumpulan data ini semata-mata untuk komunikasi transaksi, penawaran harga, &amp; administrasi kerjasama. 
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPrivacyModal(true)}
+                                                className="text-orange-600 dark:text-orange-400 font-bold ml-1 inline-flex items-center gap-0.5 underline cursor-pointer hover:text-orange-700"
+                                            >
+                                                Detail <ExternalLink className="w-2.5 h-2.5" />
+                                            </button>
+                                        </div>
+                                    </label>
+                                </div>
+
                                 <button 
                                     type="submit"
-                                    disabled={isSubmitting}
-                                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-orange-500/10 transition duration-200 text-sm mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    disabled={isSubmitting || !form.is_approve_terms}
+                                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-slate-200 disabled:to-slate-200 dark:disabled:from-slate-800 dark:disabled:to-slate-800 text-white disabled:text-slate-400 font-bold py-3 px-6 rounded-xl shadow-lg shadow-orange-500/10 transition duration-200 text-sm mt-2 cursor-pointer disabled:cursor-not-allowed"
                                 >
                                     <Send className="w-4 h-4" /> 
                                     {isSubmitting ? 'Memproses Log...' : 'Kirim via WhatsApp Fast Response'}
@@ -466,6 +502,73 @@ export default function ContactUs({ seo, data }: Props) {
                     </section>
                 )}
             </main>
+
+            {/* 🛡️ MODAL DETAIL KEBIJAKAN PRIVASI & PENGGUNAAN DATA */}
+            {showPrivacyModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-6 relative animate-in zoom-in-95 duration-200 font-sans">
+                        
+                        <button
+                            type="button"
+                            onClick={() => setShowPrivacyModal(false)}
+                            className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                        >
+                            <X className="w-5 h-5 stroke-[2.5]" />
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-2xl bg-orange-50 dark:bg-orange-950/50 flex items-center justify-center text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800/60">
+                                <ShieldCheck className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-950 dark:text-white">Komitmen Keamanan & Privasi Data</h3>
+                                <span className="text-xs text-slate-500 font-medium">Perlindungan Data Konsumen Alumoda</span>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
+                            <p>
+                                Kami sangat menghargai privasi dan kerahasiaan informasi pribadi Anda. Setiap data yang Anda masukkan dikelola secara ketat dengan ketentuan sebagai berikut:
+                            </p>
+                            
+                            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 space-y-2">
+                                <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                    Eksklusif untuk Komunikasi Internal
+                                </h4>
+                                <p>
+                                    Data Anda <strong>tidak akan pernah</strong> diperjualbelikan, disewakan, atau dibagikan kepada pihak ketiga manapun di luar kepentingan operasional perusahaan.
+                                </p>
+                            </div>
+
+                            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 space-y-2">
+                                <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                    Keperluan Transaksi & Penawaran Kerjasama
+                                </h4>
+                                <p>
+                                    Informasi yang Anda berikan digunakan semata-mata untuk mempermudah komunikasi awal, menyusun proposal penawaran harga (Quotation), serta proses administrasi transaksi resmi (seperti pembuatan dokumen Surat Perjanjian Kerja / Invoice) apabila terjalin kerjasama bisnis dengan kami.
+                                </p>
+                            </div>
+
+                            <p className="text-[11px] text-slate-500 pt-1">
+                                Jika Anda memiliki pertanyaan lebih lanjut mengenai kebijakan ini, silakan hubungi tim kami langsung melalui kontak yang tersedia.
+                            </p>
+                        </div>
+
+                        <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setShowPrivacyModal(false)}
+                                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md"
+                            >
+                                Saya Mengerti &amp; Setuju
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            )}
         </FrontendLayout>
     );
 }
