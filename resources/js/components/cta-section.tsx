@@ -30,6 +30,7 @@ export default function CtaSection () {
             case (path.startsWith('/katalog/kategori/')): return appPages.CATALOG_CATEGORY;
             case (path.startsWith('/katalog/')): return appPages.CATALOG_SHOW;
             case (path === '/testimonial' || path === '/testimonial/'): return appPages.TESTIMONIAL_INDEX;
+            case (path === '/portofolio' || path === '/portofolio/'): return appPages.PORTFOLIO_INDEX;
             case (path === '/testimonial/maps'): return appPages.TESTIMONIAL_MAPS;
             case (path === '/info' || path === '/info/'): return appPages.BLOG_INDEX;
             case (path.startsWith('/info/kategori/')): return appPages.BLOG_CATEGORY;

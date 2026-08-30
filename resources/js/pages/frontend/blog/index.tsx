@@ -266,11 +266,11 @@ export default function BlogIndex({
                                 <span className="self-start text-xs font-black uppercase tracking-wider bg-orange-500 text-white px-2.5 py-1 rounded-md shadow-sm">
                                     SOROTAN UTAMA
                                 </span>
-                                <Link href={`/${headline_posts[0].slug}`} className="block duration-200">
+                                <a href={`/${headline_posts[0].slug}`} className="block duration-200">
                                     <h3 className="text-xl sm:text-2xl transition-colors font-black text-white group-hover:text-orange-500 tracking-tight leading-tight line-clamp-2">
                                         {headline_posts[0].title}
                                     </h3>
-                                </Link>
+                                </a>
                                 <p className="text-slate-200 text-sm line-clamp-2 opacity-95 font-normal max-w-2xl leading-relaxed">
                                     {headline_posts[0].excerpt}
                                 </p>
@@ -297,11 +297,11 @@ export default function BlogIndex({
                                             {post.category.name}
                                         </span>
                                     )}
-                                    <Link href={`/${post.slug}`} className="duration-200">
+                                    <a href={`/${post.slug}`} className="duration-200">
                                         <h4 className="font-extrabold text-base transition-colors text-white group-hover:text-orange-500 tracking-tight line-clamp-2 leading-snug">
                                             {post.title}
                                         </h4>
-                                    </Link>
+                                    </a>
                                 </div>
                             </article>
                         ))}
@@ -328,7 +328,7 @@ export default function BlogIndex({
                                 {most_read_posts[0] && (
                                     <div className="space-y-4 p-3 border border-slate-150 rounded-3xl bg-slate-50/30 shadow-xs transition-all">
                                         {/* 📸 AREA GAMBAR BANNER */}
-                                        <Link href={`/${most_read_posts[0].slug}`} className="block w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 border border-slate-150 shadow-xs relative">
+                                        <a href={`/${most_read_posts[0].slug}`} className="block w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 border border-slate-150 shadow-xs relative">
                                             <img 
                                                 src={`/storage/${most_read_posts[0].featured_image}`} 
                                                 className="absolute inset-0 w-full h-full object-cover hover:brightness-95 transition-transform duration-700 ease-out" 
@@ -337,15 +337,15 @@ export default function BlogIndex({
                                                 loading="lazy"
                                                 decoding="async"
                                             />
-                                        </Link>
+                                        </a>
 
                                         {/* 📝 AREA KONTEN TEKS */}
                                         <div className="space-y-4 p-2">
-                                            <Link href={`/${most_read_posts[0].slug}`} className="block">
+                                            <a href={`/${most_read_posts[0].slug}`} className="block">
                                                 <h3 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight leading-snug group-hover:text-orange-500 transition-colors duration-200">
                                                     {most_read_posts[0].title}
                                                 </h3>
-                                            </Link>
+                                            </a>
                                             
                                             <div className="flex items-center justify-between gap-4 pt-1">
                                                 {/* BADGE KATEGORI KUSTOM */}
@@ -373,7 +373,7 @@ export default function BlogIndex({
                             <div className="lg:col-span-5 flex flex-col justify-between gap-6">
                                 {recent_posts.slice(0, 4).map((post) => (
                                     <article key={post.id} className="group/item flex gap-4 items-start border-b border-slate-100 pb-5 last:border-0 last:pb-0">
-                                        <Link href={`/${post.slug}`} className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 overflow-hidden rounded-2xl bg-slate-100 border border-slate-150 block relative">
+                                        <a href={`/${post.slug}`} className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 overflow-hidden rounded-2xl bg-slate-100 border border-slate-150 block relative">
                                             <img 
                                                 src={`/storage/${post.featured_image}`} 
                                                 className="absolute inset-0 w-full h-full object-cover" 
@@ -382,14 +382,14 @@ export default function BlogIndex({
                                                 loading="lazy"
                                                 decoding="async"
                                             />
-                                        </Link>
+                                        </a>
                                         <div className="flex-1 flex flex-col justify-between h-24 sm:h-28 py-0.5">
                                             <div className="space-y-1">
-                                                <Link href={`/${post.slug}`} className="block">
+                                                <a href={`/${post.slug}`} className="block">
                                                     <h4 className="text-base font-extrabold text-slate-950 tracking-tight leading-snug line-clamp-2 group-hover/item:text-orange-500 transition-colors">
                                                         {post.title}
                                                     </h4>
-                                                </Link>
+                                                </a>
                                                 <p className="text-xs text-slate-500 line-clamp-1 font-normal">
                                                     {post.excerpt}
                                                 </p>
@@ -430,24 +430,24 @@ export default function BlogIndex({
                                 {all_posts.data.map((post) => (
                                     <article key={post.id} className="group flex flex-col space-y-3.5">
                                         {/* Area Gambar */}
-                                        <Link href={`/${post.slug}`} className="w-full aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 block relative border border-slate-150 shadow-2xs">
+                                        <a href={`/${post.slug}`} className="w-full aspect-[16/10] overflow-hidden rounded-2xl bg-slate-100 block relative border border-slate-150 shadow-2xs">
                                             <img src={`/storage/${post.featured_image}`} className="absolute inset-0 w-full h-full object-cover hover:brightness-95 duration-500" onError={handleImageError} alt={post.title} loading="lazy" decoding="async" />
                                             {post.category && (
                                                 <span className="absolute top-3 left-3 text-xs font-black uppercase tracking-wider bg-white/95 text-slate-900 px-2.5 py-0.5 rounded-md shadow-xs z-10">
                                                     {post.category.name}
                                                 </span>
                                             )}
-                                        </Link>
+                                        </a>
 
                                         {/* Bagian Konten */}
                                         <div className="flex-1 flex flex-col justify-between space-y-2">
                                             <div className="space-y-1.5">
-                                                <Link href={`/${post.slug}`} className="flex items-start justify-between gap-1 group/title text-slate-950">
+                                                <a href={`/${post.slug}`} className="flex items-start justify-between gap-1 group/title text-slate-950">
                                                     <h3 className="font-extrabold text-base tracking-tight leading-snug line-clamp-2 group-hover/title:text-orange-500 transition-colors">
                                                         {post.title}
                                                     </h3>
                                                     <ArrowUpRight className="w-4 h-4 shrink-0 text-slate-400 group-hover/title:text-orange-500 group-hover/title:translate-x-0.5 group-hover/title:-translate-y-0.5 transition-all mt-0.5" />
-                                                </Link>
+                                                </a>
                                                 <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed font-normal">
                                                     {post.excerpt}
                                                 </p>

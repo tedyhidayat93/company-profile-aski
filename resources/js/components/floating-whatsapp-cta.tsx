@@ -164,11 +164,11 @@ export default function FloatingWhatsAppCTA() {
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 w-[calc(100vw-32px)] sm:w-[380px] font-sans">
+      <div className="fixed bottom-3 right-3 z-50 flex flex-col items-end gap-3 w-[calc(100vw-32px)] sm:w-[380px] font-sans">
         
         {/* 💬 POPUP KOTAK DIALOG + FORM EDITORIAL */}
         {isOpen && (
-          <div className="w-full bg-white dark:bg-zinc-900 border-4 border-orange-500 dark:border-zinc-800 rounded-2xl shadow-xl p-6 relative animate-in fade-in slide-in-from-bottom-5 duration-300 max-h-[90vh] overflow-y-auto">
+          <div className="w-full bg-white dark:bg-zinc-900 border-4 border-orange-500 dark:border-zinc-800 rounded-2xl shadow-xl p-4 lg:p-6 relative animate-in fade-in slide-in-from-bottom-5 duration-300 max-h-[85vh] overflow-y-auto">
             
             <button 
               onClick={handleClose}
@@ -300,7 +300,7 @@ export default function FloatingWhatsAppCTA() {
                       onClick={() => setShowPrivacyModal(true)}
                       className="text-emerald-600 dark:text-emerald-400 font-bold ml-1 hover:underline inline-flex items-center gap-0.5"
                     >
-                      Detail <ExternalLink className="w-2.5 h-2.5" />
+                      Pelajari <ExternalLink className="w-2.5 h-2.5" />
                     </button>
                   </div>
                 </label>
@@ -309,7 +309,7 @@ export default function FloatingWhatsAppCTA() {
               <button
                 type="submit"
                 disabled={isSubmitting || !formData.is_approve_terms}
-                className="flex h-12 w-full items-center justify-center gap-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-300 dark:disabled:bg-zinc-800 text-white disabled:text-zinc-500 font-extrabold rounded-xl text-base transition-all shadow-md shadow-emerald-600/20 active:scale-[0.99] cursor-pointer disabled:cursor-not-allowed"
+                className="flex h-12 w-full items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-300 dark:disabled:bg-zinc-800 text-white disabled:text-zinc-500 font-extrabold rounded-xl text-sm lg:text-sm transition-all shadow-md shadow-emerald-600/20 active:scale-[0.99] cursor-pointer disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>

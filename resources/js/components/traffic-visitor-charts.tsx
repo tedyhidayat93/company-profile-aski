@@ -74,7 +74,7 @@ export default function TrafficVisitorCharts({
       <div className="p-6 border-b border-zinc-100 dark:border-zinc-900 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-800 dark:bg-zinc-900/20">
         <div>
           <h2 className="text-lg font-bold text-orange-300 dark:text-zinc-50 tracking-tight">
-            Analitik Web & Interaksi
+            Analitik Interaksi Kunjungan Website
           </h2>
           <p className="text-xs text-zinc-100 dark:text-zinc-500 mt-0.5">
             Pantau performa trafik dan demografi situs Anda

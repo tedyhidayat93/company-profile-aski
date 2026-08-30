@@ -210,7 +210,7 @@ class BlogController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $slug)
+    public function showInertia(Request $request, string $slug)
     {
         $this->trackPageVisit($request, PageList::BLOG_DETAIL->value, 'Membuka halaman ' . PageList::BLOG_DETAIL->label());
 
@@ -282,6 +282,67 @@ class BlogController extends Controller
         ]);
     }
 
+    public function show(Request $request, string $slug)
+    {
+        $this->trackPageVisit($request, PageList::BLOG_DETAIL->value, 'Membuka halaman ' . PageList::BLOG_DETAIL->label());
+
+        $post = Article::query()
+            ->published()
+            ->with([
+                'author:id,name',
+                'category:id,name,slug',
+            ])
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        $post->increment('views_count');
+        $post->featured_image = resolve_image_path($post->featured_image);
+
+        // Posts Terkait
+        $relatedPosts = Article::query()
+            ->published()
+            ->where('id', '!=', $post->id)
+            ->when($post->category_id, function ($query) use ($post) {
+                $query->where('category_id', $post->category_id);
+            })
+            ->latest('published_at')
+            ->limit(3)
+            ->get([
+                'id',
+                'title',
+                'slug',
+                'featured_image',
+                'excerpt',
+                'published_at'
+            ])
+            ->map(function ($item) {
+                $item->featured_image = resolve_image_path($item->featured_image);
+                return $item;
+            });
+
+        $products = $this->getRandomProducts(null, 6);
+
+        // Susun Metadata SEO
+        $seo = [
+            'title'       => $post->meta_title ? strip_tags($post->meta_title) : $post->title,
+            'description' => ($post->meta_description ? strip_tags($post->meta_description) : null)
+                ?: (($post->excerpt ? strip_tags($post->excerpt) : null)
+                    ?: str($post->content)->stripTags()->limit(160)->trim()->toString()
+                ),
+            'image'       => $post->featured_image,
+            'keywords'    => $post->meta_keywords 
+                ? strip_tags($post->meta_keywords) 
+                : (is_array($post->tags) ? implode(', ', array_map('strip_tags', $post->tags)) : ''),
+            'type'        => 'article',
+            'url'         => request()->url(),
+            'published_at'=> $post->published_at,
+            'updated_at'  => $post->updated_at,
+        ];
+
+        // RETURN KE BLADE VIEW alih-alih Inertia
+        return view('frontend.blog.detail', compact('post', 'relatedPosts', 'products', 'seo'));
+    }
+
     public function category(string $slug)
     {
         return redirect()->route('article.index', [
@@ -338,4 +399,229 @@ class BlogController extends Controller
             ];
         });
     }
+
+    // Portfolio
+
+    public function portfolioIndex(Request $request)
+    {
+        $this->trackPageVisit($request, PageList::PORTFOLIO_INDEX->value, 'Membuka halaman ' . PageList::PORTFOLIO_INDEX->label());
+
+        $filters = [
+            'search' => $request->string('search')->toString(),
+            'tag'    => $request->string('tag')->toString(),
+        ];
+
+        // Kolom spesifik yang hanya dibutuhkan oleh React untuk merender portofolio secara ringan
+        $articleColumns = [
+            'id', 
+            'title', 
+            'slug', 
+            'excerpt', 
+            'featured_image', 
+            'category_id', 
+            'author_id', 
+            'published_at', 
+            'views_count'
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Optimized Base Query (Filtered strictly by category 'portfolio')
+        |--------------------------------------------------------------------------
+        */
+        $allPosts = Article::query()
+            ->published()
+            ->select($articleColumns)
+            ->with([
+                'author:id,name',
+                'category:id,name,slug',
+            ])
+            // Filter wajib: Hanya ambil artikel dengan slug kategori 'portfolio'
+            ->whereHas('category', function ($q) {
+                $q->where('slug', 'portofolio');
+            })
+            ->when($filters['search'], function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                        ->orWhere('excerpt', 'like', "%{$search}%")
+                        ->orWhere('content', 'like', "%{$search}%");
+                });
+            })
+            ->when($filters['tag'], function ($query, $tag) {
+                $query->where('tags', 'like', "%{$tag}%");
+            })
+            ->latest('published_at')
+            ->paginate(12)
+            ->withQueryString();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Minimal SEO Config
+        |--------------------------------------------------------------------------
+        */
+        $seoConfigs = Cache::remember('portfolio_seo_configs', now()->addDays(1), function () {
+            return Configuration::query()
+                ->whereIn('key', [
+                    'article_meta_image',
+                    'article_meta_title',
+                    'article_meta_description',
+                    'meta_keywords',
+                ])
+                ->pluck('value', 'key');
+        });
+
+        $seo = [
+            'title' => !empty($seoConfigs['article_meta_title']) ? strip_tags($seoConfigs['article_meta_title']) : 'Portofolio Kami',
+            'description' => !empty($seoConfigs['article_meta_description']) ? strip_tags($seoConfigs['article_meta_description']) : 'Daftar portofolio dan hasil pekerjaan terbaik kami...',
+            'keywords' => !empty($seoConfigs['meta_keywords']) ? strip_tags($seoConfigs['meta_keywords']) : 'portofolio, project',
+            'image' => !empty($seoConfigs['article_meta_image']) ? asset('storage/' . $seoConfigs['article_meta_image']) : asset('images/placeholder.png'),
+            'contentType' => 'website',
+        ];
+
+        if (!empty($filters['search'])) {
+            $cleanSearch = strip_tags($filters['search']);
+            $seo['title'] = 'Pencarian Portofolio "' . $cleanSearch . '"';
+            $seo['description'] = 'Hasil pencarian portofolio untuk "' . $cleanSearch . '"';
+        }
+
+        // Mengirimkan data seminimal mungkin ke frontend agar performa sangat ringan
+        return Inertia::render('frontend/portfolio/index', [
+            'all_posts' => $allPosts,
+            'filters'   => $filters,
+            'seo'       => $seo,
+        ]);
+    }
+
+    public function portfolioDetail(Request $request, string $slug)
+    {
+        // Sesuaikan enum atau identifier pelacakan halaman jika diperlukan (misal: PORTFOLIO_SHOW)
+        $this->trackPageVisit($request, PageList::PORTFOLIO_SHOW->value, 'Membuka halaman ' . PageList::PORTFOLIO_SHOW->label());
+
+        $post = Article::query()
+            ->published()
+            ->with([
+                'author:id,name',
+                'category:id,name,slug',
+            ])
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        $post->increment('views_count');
+        
+        $post->featured_image = resolve_image_path($post->featured_image);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Related Portfolio Posts (Optimized Columns)
+        |--------------------------------------------------------------------------
+        */
+        $relatedPosts = Article::query()
+            ->published()
+            ->where('id', '!=', $post->id)
+            ->when($post->category_id, function ($query) use ($post) {
+                $query->where('category_id', $post->category_id);
+            })
+            ->latest('published_at')
+            ->limit(3)
+            ->get([
+                'id',
+                'title',
+                'slug',
+                'featured_image',
+                'excerpt',
+                'published_at'
+            ])
+            ->map(function ($item) {
+                $item->featured_image = resolve_image_path($item->featured_image);
+                return $item;
+            });
+
+        $products = $this->getRandomProducts(null, 6);
+
+        return Inertia::render('frontend/portfolio/detail', [
+            'post'            => $post,
+            'random_products' => $products,
+            'related_posts'   => $relatedPosts,
+            'seo' => [
+                'title'       => $post->meta_title ? strip_tags($post->meta_title) : $post->title,
+                'description' => ($post->meta_description ? strip_tags($post->meta_description) : null)
+                    ?: (($post->excerpt ? strip_tags($post->excerpt) : null)
+                        ?: str($post->content)
+                            ->stripTags()
+                            ->limit(160)
+                            ->trim()
+                            ->toString()
+                    ),
+                'image'       => $post->featured_image,
+                'keywords'    => $post->meta_keywords 
+                    ? strip_tags($post->meta_keywords) 
+                    : (is_array($post->tags)
+                        ? implode(', ', array_map('strip_tags', $post->tags))
+                        : ''
+                    ),
+                'type'        => 'article',
+            ],
+        ]);
+    }
+
+    // public function portfolioDetail(Request $request, string $slug)
+    // {
+    //     $this->trackPageVisit($request, PageList::PORTFOLIO_SHOW->value, 'Membuka halaman ' . PageList::PORTFOLIO_SHOW->label());
+
+    //     $post = Article::query()
+    //         ->published()
+    //         ->with([
+    //             'author:id,name',
+    //             'category:id,name,slug',
+    //         ])
+    //         ->where('slug', $slug)
+    //         ->firstOrFail();
+
+    //     $post->increment('views_count');
+    //     $post->featured_image = resolve_image_path($post->featured_image);
+
+    //     // Posts Terkait
+    //     $relatedPosts = Article::query()
+    //         ->published()
+    //         ->where('id', '!=', $post->id)
+    //         ->when($post->category_id, function ($query) use ($post) {
+    //             $query->where('category_id', $post->category_id);
+    //         })
+    //         ->latest('published_at')
+    //         ->limit(3)
+    //         ->get([
+    //             'id',
+    //             'title',
+    //             'slug',
+    //             'featured_image',
+    //             'excerpt',
+    //             'published_at'
+    //         ])
+    //         ->map(function ($item) {
+    //             $item->featured_image = resolve_image_path($item->featured_image);
+    //             return $item;
+    //         });
+
+    //     $products = $this->getRandomProducts(null, 6);
+
+    //     // Susun Metadata SEO
+    //     $seo = [
+    //         'title'       => $post->meta_title ? strip_tags($post->meta_title) : $post->title,
+    //         'description' => ($post->meta_description ? strip_tags($post->meta_description) : null)
+    //             ?: (($post->excerpt ? strip_tags($post->excerpt) : null)
+    //                 ?: str($post->content)->stripTags()->limit(160)->trim()->toString()
+    //             ),
+    //         'image'       => $post->featured_image,
+    //         'keywords'    => $post->meta_keywords 
+    //             ? strip_tags($post->meta_keywords) 
+    //             : (is_array($post->tags) ? implode(', ', array_map('strip_tags', $post->tags)) : ''),
+    //         'type'        => 'article',
+    //         'url'         => request()->url(),
+    //         'published_at'=> $post->published_at,
+    //         'updated_at'  => $post->updated_at,
+    //     ];
+
+    //     // RETURN KE BLADE VIEW alih-alih Inertia
+    //     return view('frontend.portfolio.detail', compact('post', 'relatedPosts', 'products', 'seo'));
+    // }
 }

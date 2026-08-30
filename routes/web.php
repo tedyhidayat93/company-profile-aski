@@ -324,6 +324,11 @@ Route::prefix('info')->name('article.')->group(function () {
     Route::get('/tag/{slug}', [BlogController::class, 'tag'])->name('tag');
 });
 
+Route::prefix('portofolio')->name('portfolio.')->group(function () {
+    Route::get('/', [BlogController::class, 'portfolioIndex'])->name('index');
+    Route::get('/{slug}', [BlogController::class, 'portfolioDetail'])->name('detail');
+});
+
 Route::get('/cc/{token}', function (string $token) {
     $secureToken = env('ROUTE_CLEAR_TOKEN');
 

@@ -31,7 +31,7 @@ export interface MenuCategory {
 }
 
 const navItemClassName = (isActive: boolean) => `
-  inline-flex items-center gap-1 rounded-full border-2 font-bold px-3 py-1.5 xl:px-5 sm:text-xs xl:text-sm 2xl:text-base dark:text-gray-300 transition-colors cursor-pointer outline-none whitespace-nowrap
+  inline-flex items-center gap-1 rounded-full border font-bold px-3 py-1.5 xl:px-5 sm:text-xs lg:text-sm xl:text-base dark:text-gray-300 transition-colors cursor-pointer outline-none whitespace-nowrap
   ${isActive 
     ? 'border-orange-300 text-orange-600 bg-orange-400/20' 
     : 'border-white text-gray-900 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-400/20'
@@ -40,7 +40,7 @@ const navItemClassName = (isActive: boolean) => `
 
 export default function Header() {
   const { url } = usePage();
-  const { auth, visitorActions = {}, appPages = {} } = usePage().props as any; // <-- Ekstrak properti analitik dari global props
+  const { auth, visitorActions = {}, portfolioItems = [], appPages = {} } = usePage().props as any;
   const { getConfig } = useConfig();
   const { wishlist, removeFromWishlist } = useWishlist();
 
@@ -49,6 +49,7 @@ export default function Header() {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
+  const [isPortfolioDropdownOpen, setIsPortfolioDropdownOpen] = useState(false);
   
   const currentPathname = useMemo(() => {
     if (!url) return '/';
@@ -116,8 +117,17 @@ export default function Header() {
           currentPathname === '/katalog' || currentPathname.startsWith('/katalog/') ||
           currentPathname === '/catalog' || currentPathname.startsWith('/catalog/')
       },
+      // { 
+      //   name: 'Portofolio', 
+      //   id: 'portfolio', 
+      //   href: '/portofolio', 
+      //   type: 'dropdown-portfolio', 
+      //   isActive: 
+      //     currentPathname === '/portofolio' || currentPathname.startsWith('/portofolio/') ||
+      //     currentPathname === '/portfolio' || currentPathname.startsWith('/portfolio/')
+      // },
       { 
-        name: 'Blog & Informasi', 
+        name: 'Blog', 
         id: 'article', 
         href: '/info', 
         isActive: currentPathname === '/info' || currentPathname.startsWith('/info/') 
@@ -214,7 +224,7 @@ export default function Header() {
             <div className="flex items-center justify-between h-16 lg:h-20">
               
               {/* Logo */}
-              <Link href="/" className="flex-shrink-0 h-12 w-auto">
+              <Link href="/" className="flex-shrink-0 h-7 lg:h-8 xl:h-10 w-auto">
                 <img
                   src={logoImage}
                   alt={getConfig('site_name', 'Alumoda Sinergi Kontainer Indonesia')}
@@ -248,13 +258,13 @@ export default function Header() {
                           ${isServicesDropdownOpen ? 'opacity-100 scale-y-100 pointer-events-auto visible' : 'opacity-0 scale-y-95 pointer-events-none invisible'}`}
                         >
                           <div className="container mx-auto grid grid-cols-12 gap-6">
-                            <div className="col-span-4 border-r border-slate-100 dark:border-slate-800 pr-6 space-y-2">
+                            <div className="col-span-4 border-r flex flex-col items-start border-slate-100 dark:border-slate-800 pr-6 space-y-2">
                               <div className="inline-flex items-center justify-center p-2 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600">
                                 <BoxIcon className="h-5 w-5" />
                               </div>
-                              <h4 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wider text-orange-500">
+                              <span className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-wider text-orange-500">
                                 {getConfig('services_meta_title', 'Layanan Kami')}
-                              </h4>
+                              </span>
                               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
                                 {getConfig('services_meta_description', 'Kami melayani fabrikasi kustom, modifikasi arsitektural, hingga penyediaan unit tangguh untuk operasional logistik berskala nasional.')}
                               </p>
@@ -296,6 +306,106 @@ export default function Header() {
                     );
                   }
 
+                  if (link.type === 'dropdown-portfolio') {
+                    return (
+                      <div 
+                        key={link.id}
+                        className="py-4"
+                        onMouseEnter={() => setIsPortfolioDropdownOpen(true)}
+                        onMouseLeave={() => setIsPortfolioDropdownOpen(false)}
+                      >
+                        <Link
+                          href={link.href}
+                          onClick={(e) => handleScrollTo(e, link.id, link.href)}
+                          className={navItemClassName(link.isActive || isPortfolioDropdownOpen)}
+                        >
+                          <span>{link.name}</span>
+                          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isPortfolioDropdownOpen ? 'rotate-180' : ''}`} />
+                        </Link>
+
+                        <div className={`absolute left-0 right-0 top-full w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-xl transition-all duration-300 origin-top z-50
+                          ${isPortfolioDropdownOpen ? 'opacity-100 scale-y-100 pointer-events-auto visible' : 'opacity-0 scale-y-95 pointer-events-none invisible'}`}
+                        >
+                          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-12 gap-8">
+                            
+                            {/* Kolom Kiri: Informasi & Tombol Utama */}
+                            <div className="col-span-3 border-r border-slate-100 dark:border-slate-800 pr-6 space-y-3 flex flex-col justify-between">
+                              <div className="space-y-3">
+                                <div className="inline-flex items-center justify-center p-2 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600">
+                                  <LayoutDashboardIcon className="h-5 w-5" />
+                                </div>
+                                <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                                  {getConfig('portfolio_meta_title', 'Galeri Portofolio')}
+                                </h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                                  {getConfig('portfolio_meta_description', 'Lihat hasil dokumentasi proyek kontainer dan pengerjaan terbaik kami.')}
+                                </p>
+                              </div>
+                              
+                              {/* Tombol Selengkapnya Menuju Halaman Portfolio */}
+                              <div className="pt-4">
+                                <Link 
+                                  href="/portofolio" 
+                                  className="inline-flex items-center justify-center w-full px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm gap-1 group"
+                                >
+                                  <span>Selengkapnya</span>
+                                  <span className="transform group-hover:translate-x-1 transition-transform">→</span>
+                                </Link>
+                              </div>
+                            </div>
+
+                            {/* Kolom Kanan: Slide Grid Preview 4 Item Portfolio */}
+                            <div className="col-span-9">
+                              {/* Menggunakan flex-nowrap & overflow-x-auto agar bisa di-slide/geser jika layar menyempit */}
+                              <div className="flex lg:grid lg:grid-cols-3 gap-4 overflow-x-auto pb-2 snap-x scrollbar-none">
+                                
+                                {/* Batasi isi array portfolio hanya sampai 4 item dengan .slice(0, 4) */}
+                                {portfolioItems && portfolioItems.slice(0, 4).map((item: any, index: number) => (
+                                  <Link 
+                                    key={index} 
+                                    href={`/portofolio/${item.slug}`} // Seluruh kartu sekarang bisa diklik langsung menuju detail
+                                    className="min-w-[220px] lg:min-w-0 flex-shrink-0 snap-start relative aspect-[4/3] w-full bg-slate-200 dark:bg-slate-700 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 group transition-all duration-300 shadow-sm"
+                                  >
+                                    {/* 1. Bagian Foto Preview Project (Full Background) */}
+                                    <img 
+                                      src={item.featured_image || '/images/placeholder.png'} 
+                                      alt={item.title}
+                                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                    />
+
+                                    {/* 2. Lapisan Gelap (Overlay) agar teks di tengah mudah dibaca */}
+                                    <div className="absolute inset-0 bg-slate-950/40 group-hover:bg-slate-950/50 transition-colors duration-300" />
+
+                                    {/* 3. Kontainer Judul di Tengah (Centered Content) */}
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10">
+                                      <span className="text-sm font-medium tracking-wide text-white drop-shadow-md line-clamp-3 uppercase">
+                                        {item.title}
+                                      </span>
+                                      
+                                      {/* Tombol Detail/Indikator Interaktif Kecil di bawah judul */}
+                                      <span className="mt-2 text-[11px] font-bold text-orange-400 opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 inline-flex items-center gap-1 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/20">
+                                        Lihat Proyek →
+                                      </span>
+                                    </div>
+                                  </Link>
+
+                                ))}
+                                
+                              </div>
+                            </div>
+
+                          </div>
+                          
+                          {/* Footer Dropdown */}
+                          <div className="bg-slate-50 dark:bg-slate-950/40 border-t border-slate-100 dark:border-slate-800 py-2.5 text-center text-[11px] text-slate-400 font-medium">
+                            {getConfig('portfolio_footer_text', 'Menampilkan 4 Proyek Terbaru — Garansi Struktur & Kebocoran Unit Terjamin')}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+
                   if (link.type === 'dropdown-products') {
                     return (
                       <div 
@@ -328,7 +438,7 @@ export default function Header() {
                                 <div key={index} className="space-y-3 group p-4 rounded-xl hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                                   <div className="space-y-0.5">
                                     <Link href={`/produk/${cat.slug}`} className="flex items-center">
-                                      <h4 className="text-base font-black italic tracking-wider group-hover:text-orange-600 text-slate-900 dark:text-slate-100 uppercase text-orange-600">{cat.title}</h4>
+                                      <span className="text-base font-black italic tracking-wider group-hover:text-orange-600 text-slate-900 dark:text-slate-100 uppercase text-orange-600">{cat.title}</span>
                                     </Link>
                                     {cat.description && <div className="space-y-4 text-xs! text-slate-500! font-medium" dangerouslySetInnerHTML={{ __html: cat.meta_description || cat.description || ''  }} />}
                                   </div>
@@ -386,11 +496,11 @@ export default function Header() {
                 <div className="hidden lg:flex items-center space-x-3">
                   <Button 
                     onClick={handleNavbarWaClick} 
-                    className="flex h-10 items-center px-5 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-sm font-semibold hover:bg-orange-100 transition-colors gap-2 cursor-pointer"
+                    className="flex h-10 items-center px-4 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-xs xl:text-sm font-semibold hover:bg-orange-100 transition-colors gap-2 cursor-pointer"
                   >
                     <Phone className="h-4 w-4" />Hubungi Kami
                   </Button>
-                  <Link href="/katalog" className="flex h-10 items-center px-5 rounded-full border border-slate-700 bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 transition-colors gap-2">
+                  <Link href="/katalog" className="flex h-10 items-center px-4 rounded-full border border-slate-700 bg-slate-800 text-white text-xs xl:text-sm font-semibold hover:bg-slate-900 transition-colors gap-2">
                     <LayoutDashboardIcon className="h-4 w-4" />Katalog
                   </Link>
                 </div>

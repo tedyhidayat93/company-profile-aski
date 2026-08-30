@@ -128,10 +128,10 @@ export default function QuoteMiniFormCard({ pageName, orientation = 'vertical' }
               <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider block mb-1">
                 Segera Hubungi Kami
               </span>
-              <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-wide uppercase leading-snug">
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-wide uppercase leading-snug">
                 Dapatkan Penawaran
               </h3>
-              <p className="text-sm text-slate-650 dark:text-slate-300 mt-2 font-bold leading-relaxed">
+              <p className="text-sm text-slate-650 dark:text-slate-300 mt-2 font-medium leading-relaxed">
                 Silakan isi formulir untuk mendapatkan estimasi harga container atau pengerjaan unit kontainer kustom Anda.
               </p>
             </div>
@@ -182,7 +182,7 @@ export default function QuoteMiniFormCard({ pageName, orientation = 'vertical' }
 
                 {/* WhatsApp */}
                 <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Nomor WhatsApp</label>
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Nomor Telepon</label>
                   <input
                     type="tel"
                     required
@@ -271,7 +271,7 @@ export default function QuoteMiniFormCard({ pageName, orientation = 'vertical' }
                   className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white disabled:text-slate-500 font-bold py-2.5 px-4 rounded-lg shadow-sm transition duration-150 text-sm uppercase tracking-wide cursor-pointer disabled:cursor-not-allowed"
                 >
                   <Send className="w-4 h-4" /> 
-                  {isSubmitting ? 'Memproses...' : 'Kirim via WhatsApp'}
+                  {isSubmitting ? 'Memproses...' : 'Kirim Permintaan Penawaran'}
                 </button>
               </div>
             </form>

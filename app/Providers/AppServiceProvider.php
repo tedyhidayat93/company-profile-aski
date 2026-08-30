@@ -180,15 +180,42 @@ class AppServiceProvider extends ServiceProvider
 
         ]);
 
-        View::share('siteconfig',
-            Cache::rememberForever('siteconfig.public', function () {
-                return Configuration::orderBy('group')
-                    ->orderBy('label')
-                    ->get()
-                    ->mapWithKeys(fn ($config) => [
-                        $config->key => $config->value
-                    ]);
+        // 1. Share Konfigurasi Situs ke seluruh Blade View
+        View::share('siteconfig', Cache::rememberForever('siteconfig.public', function () {
+            return Configuration::pluck('value', 'key')->toArray();
+        }));
+
+        // 2. Share Layanan Footer
+        View::share('footerServices', Cache::remember('shared.footer.services', now()->addHours(6), function () {
+            return Service::getAllForFooter();
+        }));
+
+        // 3. Share Portfolio Items Dropdown Navbar
+        View::share('portfolioItems', Cache::remember('shared.header.portfolio', now()->addHours(2), function () {
+            return Article::whereHas('category', function ($q) {
+                $q->where('slug', 'portofolio');
             })
-        );
+            ->latest()
+            ->take(4)
+            ->get(['title', 'slug', 'excerpt', 'featured_image'])->toArray();
+        }));
+
+        // 4. Share Kategori Produk Dropdown Navbar
+        View::share('productCategories', Cache::remember('shared.header.categories', now()->addHours(2), function () {
+            return Category::ofType('product')
+                ->root()
+                ->active()
+                ->orderBy('lft')
+                ->with(['children' => fn($q) => $q->active()->orderBy('lft')])
+                ->get()
+                ->map(fn($root) => [
+                    'title' => $root->name,
+                    'slug'  => $root->slug,
+                    'items' => $root->children->map(fn($child) => [
+                        'name' => $child->name,
+                        'href' => "/produk/{$child->slug}",
+                    ])->toArray()
+                ]);
+        }));
     }
 }

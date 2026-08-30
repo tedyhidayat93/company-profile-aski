@@ -1,9 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Syne:wght@400..800&display=swap');
+
 @import 'tailwindcss';
 
 @import 'tw-animate-css';
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
 
 @custom-variant dark (&:is(.dark *));
 
@@ -60,6 +63,10 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   --animate-marquee: marquee 25s linear infinite;
+
+  --font-heading: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Poppins", sans-serif;
+  
 
   @keyframes marquee {
     from { transform: translateX(0%); }
@@ -216,7 +223,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-primary text-primary font-sans;
+    @apply bg-primary text-primary ;
   }
   html {
     scroll-behavior: smooth;
@@ -229,7 +236,8 @@
   h4,
   h5,
   h6 {
-    @apply font-bold text-gray-900 dark:text-white;
+    @apply font-black! text-gray-900 dark:text-white;
+    font-family: var(--font-heading);
   }
   h1 {
     @apply text-4xl md:text-5xl lg:text-6xl;
@@ -242,6 +250,10 @@
   }
   p {
     @apply text-gray-600 dark:text-gray-300 xl:text-base/7;
+  }
+
+  input, select, textarea, button, a, li, td, p, div {
+    font-family: var(--font-body);
   }
 
   input {
@@ -273,6 +285,7 @@
   thead tr th:first-child{
     @apply overflow-hidden rounded-l-lg pl-6!;
   }
+
 
   /* TinyMCE Content */
   .tinymce-content {

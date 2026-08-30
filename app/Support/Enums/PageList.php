@@ -14,6 +14,8 @@ enum PageList: string
     case PRODUCT_DETAIL = 'product_detail';
     case CATALOG_INDEX = 'catalog_index';
     case CATALOG_SHOW = 'catalog_show';
+    case PORTFOLIO_INDEX = 'portfolio_index';
+    case PORTFOLIO_SHOW = 'portfolio_show';
     case CATALOG_CATEGORY = 'catalog_category';
     case TESTIMONIAL_INDEX = 'testimonial_index';
     case TESTIMONIAL_FORM = 'testimonial_form';
@@ -37,6 +39,8 @@ enum PageList: string
             self::CATALOG_INDEX => 'Katalog',
             self::CATALOG_SHOW => 'Detail Katalog',
             self::CATALOG_CATEGORY => 'Kategori Katalog',
+            self::PORTFOLIO_INDEX => 'Portofolio',
+            self::PORTFOLIO_SHOW => 'Detail Portofolio',
             self::TESTIMONIAL_INDEX => 'Testimonial',
             self::TESTIMONIAL_FORM => 'Form Testimonial',
             self::BLOG_INDEX => 'Blog / Info',

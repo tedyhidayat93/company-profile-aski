@@ -110,7 +110,7 @@ export default function Footer() {
                 onError={(e) => handleImageError(e, '/images/logo-main.png', 'Logo')}
               />
             </Link>
-            <p className="mt-4 text-sm leading-relaxed text-gray-400">
+            <p className="mt-4 text-base leading-relaxed text-gray-400">
               {getConfig(
                 'meta_description',
                 'Solusi terpercaya untuk kebutuhan kontainer Anda dengan layanan profesional dan berkualitas.'
@@ -170,7 +170,7 @@ export default function Footer() {
 
           {/* Kolom 1: Navigation */}
           <div>
-            <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-white">
+            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-white">
               Informasi Perusahaan
             </h3>
             <ul className="space-y-2.5">
@@ -189,7 +189,7 @@ export default function Footer() {
 
           {/* Kolom 2: Services */}
           <div>
-            <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-white">
+            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-white">
               Layanan Kami
             </h3>
             <ul className="space-y-2.5">
@@ -208,7 +208,7 @@ export default function Footer() {
 
           {/* Kolom 3: Catalog */}
           <div>
-            <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-white">
+            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-white">
               Daftar Unit Container
             </h3>
             <ul className="space-y-2.5">
@@ -233,7 +233,7 @@ export default function Footer() {
 
           {/* Kolom 4: Contact & Maps */}
           <div>
-            <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-white">
+            <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-white">
               Kontak & Alamat
             </h3>
             <ul className="space-y-3 text-sm text-gray-400">
@@ -281,11 +281,11 @@ export default function Footer() {
 
         {/* Bottom Copyright Section */}
         <div className="mt-14 flex flex-col gap-4 border-t border-gray-900 pt-6 text-xs text-gray-500 md:flex-row md:items-center md:justify-between">
-          <div className="order-2 md:order-1 space-y-1">
+          <div className="order-2 md:order-1 space-y-1 text-sm">
             <p className="text-gray-400 font-medium">
               © {new Date().getFullYear()} <span className="text-orange-500">{getConfig('site_name', 'Your Company')}</span>. All Rights Reserved.
             </p>
-            <p className="text-[11px] text-gray-600 max-w-xl leading-relaxed">
+            <p className="text-xs text-gray-600 max-w-xl leading-relaxed">
               Situs ini dilindungi oleh reCAPTCHA. Hubungan keamanan latar belakang tunduk pada{' '}
               <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-orange-400 underline transition-colors">Kebijakan Privasi</a>
               {' '}dan{' '}
@@ -293,7 +293,7 @@ export default function Footer() {
             </p>
           </div>
 
-          <p className="text-gray-400 font-medium order-1 md:order-2 italic">
+          <p className="text-gray-400 font-medium text-sm order-1 md:order-2 italic">
             {getConfig('site_tagline', '')}
           </p>
         </div>

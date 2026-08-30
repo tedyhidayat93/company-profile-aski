@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
+use App\Support\Enums\GalleryModule;
+
 
 class Article extends Model
 {
@@ -55,6 +57,12 @@ class Article extends Model
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    public function galleries()
+    {
+        return $this->hasMany(Gallery::class, 'parent_id')
+                    ->where('module', GalleryModule::BLOG); // Sesuaikan dengan enum modul blog Anda
     }
 
     /**

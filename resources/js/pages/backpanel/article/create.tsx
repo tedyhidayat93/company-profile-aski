@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import FlashMessage from '@/components/flash-message';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, FileText, Upload, Tag as TagIcon, Calendar, Loader } from 'lucide-react';
+import { ArrowLeft, Save, FileText, Upload, Tag as TagIcon, Calendar, Loader, Plus, Trash2 } from 'lucide-react';
 import TinyMCEEditor from '@/components/TinyMCEEditor';
 import TreeSelect from '@/components/tree-select';
 import { flattenCategories } from '@/lib/utils';
@@ -20,6 +20,13 @@ interface Author {
   name: string;
 }
 
+interface GalleryItem {
+  file: File | null;
+  title: string;
+  description: string;
+  preview: string | null;
+}
+
 interface Props {
   authors: Author[];
   blogCategories: Array<{ id: number; name: string; slug: string; type: string; is_active: boolean; }>;
@@ -27,18 +34,9 @@ interface Props {
 
 export default function ArticleCreate({ authors, blogCategories }: Props) {
   const breadcrumbs: BreadcrumbItem[] = [
-    {
-      title: 'CMS',
-      href: '/cpanel/cms',
-    },
-    {
-      title: 'Artikel',
-      href: '/cpanel/cms/article',
-    },
-    {
-      title: 'Buat',
-      href: '/cpanel/cms/article/create',
-    },
+    { title: 'CMS', href: '/cpanel/cms' },
+    { title: 'Artikel', href: '/cpanel/cms/article' },
+    { title: 'Buat', href: '/cpanel/cms/article/create' },
   ];
 
   const [tags, setTags] = useState<string[]>([]);
@@ -46,12 +44,16 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
   const [featuredImagePreview, setFeaturedImagePreview] = useState<string | null>(null);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
-  const { data, setData, post, processing, transform, errors, reset }= useForm({
+  // State untuk baris galeri dinamis (more_images dengan detail title & description textarea)
+  const [moreImages, setMoreImages] = useState<GalleryItem[]>([]);
+
+  const { data, setData, post, processing, transform, errors, reset } = useForm({
     title: '',
     slug: '',
     content: '',
     excerpt: '',
     featured_image: null as File | null,
+    more_images: [] as Array<{ file: File | null; title: string; description: string }>,
     status: 'draft',
     published_at: '',
     author_id: '',
@@ -67,14 +69,13 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
     const { name, value } = e.target;
     setData(name as keyof typeof data, value);
     
-    // Auto-generate slug from title only if slug hasn't been manually edited
     if (name === 'title' && !slugManuallyEdited) {
       const slugValue = value
         .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
-        .replace(/\s+/g, '-') // Replace spaces with hyphens
-        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-        .trim(); // Remove leading/trailing spaces and hyphens
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
       setData('slug', slugValue);
     }
   };
@@ -82,7 +83,7 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setData('slug', value);
-    setSlugManuallyEdited(true); // Mark as manually edited when user types in slug field
+    setSlugManuallyEdited(true);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,6 +95,40 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
         setFeaturedImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  // Handler untuk menambah baris galeri baru
+  const addGalleryRow = () => {
+    setMoreImages([...moreImages, { file: null, title: '', description: '', preview: null }]);
+  };
+
+  // Handler untuk menghapus baris galeri
+  const removeGalleryRow = (index: number) => {
+    const updated = moreImages.filter((_, i) => i !== index);
+    setMoreImages(updated);
+  };
+
+  // Handler untuk mengubah nilai pada baris galeri tertentu
+  const handleGalleryChange = (index: number, field: keyof GalleryItem, value: any) => {
+    const updated = [...moreImages];
+    if (field === 'file') {
+      const file = value;
+      updated[index].file = file;
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          updated[index].preview = reader.result as string;
+          setMoreImages([...updated]);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        updated[index].preview = null;
+        setMoreImages([...updated]);
+      }
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+      setMoreImages(updated);
     }
   };
 
@@ -113,20 +148,23 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
 
     transform((data) => ({
       ...data,
-
-      // gunakan latest tags state
       tags,
+      // Kirim data galeri dinamis yang bersih (hanya file, title, description)
+      more_images: moreImages.map(item => ({
+        file: item.file,
+        title: item.title,
+        description: item.description,
+      })),
     }));
 
     post('/cpanel/cms/article', {
       forceFormData: true,
-
       onSuccess: () => {
         reset();
-
         setTags([]);
         setTagInput('');
         setFeaturedImagePreview(null);
+        setMoreImages([]);
         setSlugManuallyEdited(false);
       },
     });
@@ -211,30 +249,103 @@ export default function ArticleCreate({ authors, blogCategories }: Props) {
                 {errors.content && <p className="text-sm text-red-600">{errors.content}</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="featured_image">Gambar Utama</Label>
-                  <Input
-                    id="featured_image"
-                    name="featured_image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                  <small>*Maksimal 2 MB, format: JPG, PNG, GIF</small>
-                  {errors.featured_image && <p className="text-sm text-red-600">{errors.featured_image}</p>}
-                  {featuredImagePreview && (
-                    <div className="mt-2">
-                      <img
-                        src={featuredImagePreview}
-                        alt="Preview"
-                        className="h-32 w-auto rounded-lg object-cover"
-                      />
-                    </div>
-                  )}
+              {/* Gambar Utama */}
+              <div className="space-y-2">
+                <Label htmlFor="featured_image">Gambar Utama</Label>
+                <Input
+                  id="featured_image"
+                  name="featured_image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                <small className="block text-muted-foreground">*Maksimal 5 MB, format: JPG, PNG, GIF</small>
+                {errors.featured_image && <p className="text-sm text-red-600">{errors.featured_image}</p>}
+                {featuredImagePreview && (
+                  <div className="mt-2 inline-block">
+                    <img
+                      src={featuredImagePreview}
+                      alt="Preview"
+                      className="h-32 w-auto rounded-lg object-cover border"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Bagian Galeri Tambahan (Dynamic Rows dengan Title & Textarea Description) */}
+              <div className="space-y-4 border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-bold">Galeri Tambahan (Multiple dengan Detail)</Label>
+                    <p className="text-xs text-muted-foreground">Tambahkan gambar galeri lengkap beserta judul dan deskripsinya.</p>
+                  </div>
+                  <Button type="button" onClick={addGalleryRow} variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-1" /> Tambah Gambar
+                  </Button>
                 </div>
-                
+
+                {moreImages.map((item, index) => (
+                  <div key={index} className="p-4 border rounded-lg bg-gray-50/50 space-y-3 relative">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-semibold text-muted-foreground">Galeri #{index + 1}</span>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => removeGalleryRow(index)}
+                        className="text-red-500 hover:text-red-700 h-8 px-2"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" /> Hapus
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Upload File & Preview */}
+                      <div className="space-y-2">
+                        <Label>Pilih Berkas *</Label>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleGalleryChange(index, 'file', e.target.files?.[0] || null)}
+                          className="file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700"
+                        />
+                        {item.preview && (
+                          <img src={item.preview} alt="Gallery Preview" className="h-16 w-auto rounded object-cover border mt-1" />
+                        )}
+                      </div>
+
+                      {/* Title */}
+                      <div className="space-y-2">
+                        <Label>Judul Gambar</Label>
+                        <Input
+                          type="text"
+                          value={item.title}
+                          onChange={(e) => handleGalleryChange(index, 'title', e.target.value)}
+                          placeholder="Judul galeri..."
+                        />
+                      </div>
+
+                      {/* Description menggunakan Textarea */}
+                      <div className="space-y-2">
+                        <Label>Deskripsi</Label>
+                        <Textarea
+                          value={item.description}
+                          onChange={(e) => handleGalleryChange(index, 'description', e.target.value)}
+                          placeholder="Deskripsi galeri..."
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {moreImages.length === 0 && (
+                  <p className="text-xs text-gray-400 italic">Belum ada galeri tambahan yang ditambahkan.</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 border-t pt-4">
                 <div className="space-y-2">
                   <Label htmlFor="published_at">Tanggal Terbit</Label>
                   <Input

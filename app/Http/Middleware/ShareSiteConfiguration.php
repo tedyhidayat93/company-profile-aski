@@ -24,12 +24,12 @@ class ShareSiteConfiguration
             ->get()
             ->map(function ($config) {
                 return [
-                    'id' => $config->id,
+                    // 'id' => $config->id,
                     'key' => $config->key,
                     'value' => $config->value,
-                    'type' => $config->type,
+                    // 'type' => $config->type,
                     'label' => $config->label,
-                    'description' => $config->description,
+                    // 'description' => $config->description,
                     'group' => $config->group,
                 ];
             });
@@ -39,7 +39,7 @@ class ShareSiteConfiguration
         
         Inertia::share('siteconfig', $siteconfig);
         Inertia::share('siteconfig_simple', $siteconfigSimple);
-        View::share('siteconfig', $siteconfig);
+        // View::share('siteconfig', $siteconfig);
 
         return $next($request);
     }

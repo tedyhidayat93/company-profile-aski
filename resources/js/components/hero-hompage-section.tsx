@@ -56,15 +56,13 @@ export default function HeroSection({
 
   return (
     <section id="home" className="w-full bg-white dark:bg-slate-950 sm:pt-4 pb-3 px-0 sm:px-6 lg:px-8">
-      {/* 🔲 CONTAINER UTAMA: Menggunakan Slate Pekat (Mendekati Hitam/Abu Baja) agar Aksen Oranye Menyala */}
-      <div className="sm:max-w-[94vw] mx-auto relative bg-slate-900 dark:bg-slate-950 border border-slate-800 rounded-b-4xl sm:rounded-3xl lg:rounded-[2rem] xl:rounded-[3.5rem] p-3 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 min-h-[600px] lg:min-h-[680px] overflow-hidden items-stretch">
+      <div className="sm:max-w-[94vw] mx-auto relative bg-slate-900 dark:bg-slate-950 border border-slate-800 rounded-b-4xl sm:rounded-3xl lg:rounded-[2rem] xl:rounded-[3.5rem] p-3 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 min-h-[400px] lg:min-h-[680px] overflow-hidden items-stretch">
         
-        {/* ================= 📝 SISI KIRI: TEXT CONTENT & SEARCH ================= */}
         <div className="col-span-1 lg:col-span-6 flex flex-col justify-between py-8 pl-4 pr-2 sm:pl-6 lg:pl-10 z-10 space-y-12">
           
           <div className="space-y-6">
             {/* Judul Besar dengan sentuhan aksen teks Oranye */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black text-white tracking-tight leading-[1.1]">
+            <h1 className="text-3xl sm:text-4xl lg:text-4xl xl:text-[54px] font-black text-white tracking-tight leading-[1.1]">
               <span dangerouslySetInnerHTML={{ 
                 __html: getConfig('hero_title', 'Sewa, Jual Beli & <br/><span className="text-orange-500">Repair Container</span>') 
               }} />
@@ -108,7 +106,7 @@ export default function HeroSection({
             </div>
           </div>
 
-          {/* 👥 BOTTOM LEFT AREA: Avatar Stack Clients */}
+          {/* BOTTOM LEFT AREA: Avatar Stack Clients */}
           {clients && clients.length > 0 && (
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 select-none pt-4 border-t border-white/5 w-full overflow-hidden">
               
@@ -162,7 +160,6 @@ export default function HeroSection({
 
         </div>
 
-        {/* ================= 🖼️ SISI KANAN: HERO IMAGE FULL FRAME CARD ================= */}
         <div className="col-span-1 lg:col-span-6 relative w-full h-[400px] lg:h-auto rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden group shadow-2xl border border-slate-800">
           
           {/* Gambar Latar Belakang Utama Dinamis */}

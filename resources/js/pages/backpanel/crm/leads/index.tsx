@@ -316,7 +316,7 @@ export default function LeadIndex({ leads, filters = {}, pageOptions = [] }: Pro
                       {/* 3. Preview Pesan */}
                       <TableCell className="py-3.5 max-w-[260px]">
                         {lead.message ? (
-                          <p className="text-xs text-slate-600 bg-slate-50/80 p-2 rounded border border-slate-200/60 line-clamp-2 italic" title={lead.message}>
+                          <p className="text-xs text-slate-600 bg-slate-50/80 p-2 rounded border border-slate-200/60 line-clamp-2 italic text-wrap" title={lead.message}>
                             "{lead.message}"
                           </p>
                         ) : (

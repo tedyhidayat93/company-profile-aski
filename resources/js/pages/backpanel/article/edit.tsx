@@ -10,13 +10,20 @@ import AppLayout from '@/layouts/app-layout';
 import HeaderTitle from '@/components/header-title';
 import FlashMessage from '@/components/flash-message';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Save, FileText, Upload, Tag as TagIcon, Calendar, Loader } from 'lucide-react';
+import { ArrowLeft, Save, FileText, Upload, Tag as TagIcon, Calendar, Loader, Plus, Trash2 } from 'lucide-react';
 import TinyMCEEditor from '@/components/TinyMCEEditor';
 import TreeSelect from '@/components/tree-select';
 
 interface Author {
   id: number;
   name: string;
+}
+
+interface GalleryImage {
+  id: number;
+  title?: string;
+  description?: string;
+  image_path?: string;
 }
 
 interface Article {
@@ -26,6 +33,7 @@ interface Article {
   content: string;
   excerpt?: string;
   featured_image?: string;
+  galleries?: GalleryImage[];
   status: string;
   published_at?: string;
   author_id: number;
@@ -44,6 +52,13 @@ interface Article {
   };
   created_at: string;
   updated_at: string;
+}
+
+interface GalleryItem {
+  file: File | null;
+  title: string;
+  description: string;
+  preview: string | null;
 }
 
 interface Props {
@@ -76,12 +91,20 @@ export default function ArticleEdit({ article, authors, blogCategories }: Props)
   );
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
+  // State untuk galeri yang sudah ada di database (bisa diedit langsung atau dihapus ID-nya)
+  const [existingGalleries, setExistingGalleries] = useState<GalleryImage[]>(article.galleries || []);
+  const [deletedGalleryIds, setDeletedGalleryIds] = useState<number[]>([]);
+
+  // State untuk baris galeri tambahan dinamis baru
+  const [moreImages, setMoreImages] = useState<GalleryItem[]>([]);
+
   const { data, setData, post, processing, transform, errors, reset } = useForm({
     title: article.title,
     slug: article.slug,
     content: article.content,
     excerpt: article.excerpt || '',
     featured_image: null as File | null,
+    more_images: [] as Array<{ file: File | null; title: string; description: string }>,
     status: article.status,
     published_at: article.published_at ? new Date(article.published_at).toISOString().slice(0, 16) : '',
     author_id: article.author_id.toString(),
@@ -105,14 +128,13 @@ export default function ArticleEdit({ article, authors, blogCategories }: Props)
       setData(name as keyof typeof data, value);
     }
     
-    // Auto-generate slug from title only if slug hasn't been manually edited
     if (name === 'title' && !slugManuallyEdited) {
       const slugValue = value
         .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
-        .replace(/\s+/g, '-') // Replace spaces with hyphens
-        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-        .trim(); // Remove leading/trailing spaces and hyphens
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
       setData('slug', slugValue);
     }
   };
@@ -120,7 +142,7 @@ export default function ArticleEdit({ article, authors, blogCategories }: Props)
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setData('slug', value);
-    setSlugManuallyEdited(true); // Mark as manually edited when user types in slug field
+    setSlugManuallyEdited(true);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,6 +154,53 @@ export default function ArticleEdit({ article, authors, blogCategories }: Props)
         setFeaturedImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  // Handler untuk galeri tersimpan yang ingin diubah teks (title/description)
+  const handleExistingGalleryChange = (id: number, field: 'title' | 'description', value: string) => {
+    setExistingGalleries(prev =>
+      prev.map(item => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  // Handler untuk menghapus galeri yang sudah ada (dimasukkan ke list hapus)
+  const removeExistingGallery = (id: number) => {
+    setExistingGalleries(prev => prev.filter(item => item.id !== id));
+    setDeletedGalleryIds(prev => [...prev, id]);
+  };
+
+  // Handler untuk menambah baris galeri baru
+  const addGalleryRow = () => {
+    setMoreImages([...moreImages, { file: null, title: '', description: '', preview: null }]);
+  };
+
+  // Handler untuk menghapus baris galeri baru
+  const removeGalleryRow = (index: number) => {
+    const updated = moreImages.filter((_, i) => i !== index);
+    setMoreImages(updated);
+  };
+
+  // Handler untuk mengubah nilai pada baris galeri baru
+  const handleGalleryChange = (index: number, field: keyof GalleryItem, value: any) => {
+    const updated = [...moreImages];
+    if (field === 'file') {
+      const file = value;
+      updated[index].file = file;
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          updated[index].preview = reader.result as string;
+          setMoreImages([...updated]);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        updated[index].preview = null;
+        setMoreImages([...updated]);
+      }
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+      setMoreImages(updated);
     }
   };
 
@@ -150,19 +219,21 @@ export default function ArticleEdit({ article, authors, blogCategories }: Props)
     setData('tags', newTags);
   };
 
-  const handleSubmit = (
-    e: React.FormEvent
-  ) => {
-
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     transform((data) => ({
       ...data,
       _method: 'PUT',
       tags,
-
-      remove_featured_image:
-        removeFeaturedImage,
+      remove_featured_image: removeFeaturedImage,
+      existing_galleries: existingGalleries, // Kirim data galeri lama yang telah di-edit
+      deleted_gallery_ids: deletedGalleryIds, // Kirim ID galeri yang harus dihapus
+      more_images: moreImages.map(item => ({
+        file: item.file,
+        title: item.title,
+        description: item.description,
+      })),
     }));
 
     post(
@@ -172,10 +243,11 @@ export default function ArticleEdit({ article, authors, blogCategories }: Props)
       }
     );
   };
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Edit Artikel" />
-      {/* <FlashMessage /> */}
+      <FlashMessage />
       
       <div className="space-y-6 p-6">
         <div className="flex items-center space-x-4">
@@ -301,7 +373,139 @@ export default function ArticleEdit({ article, authors, blogCategories }: Props)
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              {/* Bagian Galeri yang Sudah Ada (Dapat Diedit & Dihapus) */}
+              {existingGalleries.length > 0 && (
+                <div className="space-y-4 border-t pt-4">
+                  <Label className="text-base font-bold">Galeri Tersimpan</Label>
+                  <div className="space-y-3">
+                    {existingGalleries.map((gallery) => (
+                      <div key={gallery.id} className="p-4 border rounded-lg bg-white space-y-3 relative">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-semibold text-muted-foreground">Galeri Existing</span>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => removeExistingGallery(gallery.id)}
+                            className="text-red-500 hover:text-red-700 h-8 px-2"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" /> Hapus
+                          </Button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                          {/* Tampilan Gambar */}
+                          <div>
+                            {gallery.image_path && (
+                              <img
+                                src={`/storage/${gallery.image_path}`}
+                                alt={gallery.title || 'Gallery'}
+                                className="h-20 w-auto rounded-md object-cover border"
+                              />
+                            )}
+                          </div>
+
+                          {/* Edit Title */}
+                          <div className="space-y-1">
+                            <Label className="text-xs">Judul Gambar</Label>
+                            <Input
+                              type="text"
+                              value={gallery.title || ''}
+                              onChange={(e) => handleExistingGalleryChange(gallery.id, 'title', e.target.value)}
+                              placeholder="Judul galeri..."
+                            />
+                          </div>
+
+                          {/* Edit Description */}
+                          <div className="space-y-1">
+                            <Label className="text-xs">Deskripsi</Label>
+                            <Textarea
+                              value={gallery.description || ''}
+                              onChange={(e) => handleExistingGalleryChange(gallery.id, 'description', e.target.value)}
+                              placeholder="Deskripsi galeri..."
+                              rows={2}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Bagian Galeri Tambahan Dinamis (Tambah Baris Baru) */}
+              <div className="space-y-4 border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-base font-bold">Tambah Galeri Baru</Label>
+                    <p className="text-xs text-muted-foreground">Tambahkan gambar galeri baru lengkap beserta judul dan deskripsinya.</p>
+                  </div>
+                  <Button type="button" onClick={addGalleryRow} variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-1" /> Tambah Gambar
+                  </Button>
+                </div>
+
+                {moreImages.map((item, index) => (
+                  <div key={index} className="p-4 border rounded-lg bg-gray-50/50 space-y-3 relative">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-semibold text-muted-foreground">Galeri Baru #{index + 1}</span>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => removeGalleryRow(index)}
+                        className="text-red-500 hover:text-red-700 h-8 px-2"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" /> Hapus
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Upload File & Preview */}
+                      <div className="space-y-2">
+                        <Label>Pilih Berkas *</Label>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleGalleryChange(index, 'file', e.target.files?.[0] || null)}
+                          className="file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700"
+                        />
+                        {item.preview && (
+                          <img src={item.preview} alt="Gallery Preview" className="h-16 w-auto rounded object-cover border mt-1" />
+                        )}
+                      </div>
+
+                      {/* Title */}
+                      <div className="space-y-2">
+                        <Label>Judul Gambar</Label>
+                        <Input
+                          type="text"
+                          value={item.title}
+                          onChange={(e) => handleGalleryChange(index, 'title', e.target.value)}
+                          placeholder="Judul galeri..."
+                        />
+                      </div>
+
+                      {/* Description menggunakan Textarea */}
+                      <div className="space-y-2">
+                        <Label>Deskripsi</Label>
+                        <Textarea
+                          value={item.description}
+                          onChange={(e) => handleGalleryChange(index, 'description', e.target.value)}
+                          placeholder="Deskripsi galeri..."
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {moreImages.length === 0 && (
+                  <p className="text-xs text-gray-400 italic">Belum ada galeri tambahan baru yang ditambahkan.</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 border-t pt-4">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status *</Label>
                   <Select value={data.status} onValueChange={(value) => {

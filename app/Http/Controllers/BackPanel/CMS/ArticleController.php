@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use App\Traits\HandlesSeoImage;
+use App\Models\Gallery;
+use App\Support\Enums\GalleryModule;
 
 class ArticleController extends Controller
 {
@@ -142,6 +144,13 @@ class ArticleController extends Controller
             'content' => 'required|string',
             'excerpt' => 'nullable|string|max:500',
             'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5048',
+            
+            // Validasi struktur baru untuk more_images (array objek)
+            'more_images' => 'nullable|array',
+            'more_images.*.file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5048',
+            'more_images.*.title' => 'nullable|string|max:255',
+            'more_images.*.description' => 'nullable|string',
+
             'status' => 'required|string|in:draft,published,archived',
             'published_at' => 'nullable|date',
             'author_id' => 'required|integer|exists:users,id',
@@ -163,12 +172,10 @@ class ArticleController extends Controller
         }
 
         if (isset($validated['tags'])) {
-            // If tags come as JSON string from frontend, decode it first
             if (is_string($validated['tags'])) {
                 $decodedTags = json_decode($validated['tags'], true);
                 $validated['tags'] = is_array($decodedTags) ? array_filter($decodedTags) : [];
             } else {
-                // If tags come as array, filter empty values
                 $validated['tags'] = array_filter($validated['tags']);
             }
             $this->insertNewTags($validated['tags'], 'article');
@@ -178,7 +185,7 @@ class ArticleController extends Controller
         $maxPosition = Article::max('position') ?? 0;
         $validated['position'] = $maxPosition + 1;
         $validated['is_headline'] = $validated['is_headline'] ?? false;
-        // Set default category_id to first blog category if not provided
+        
         if (!isset($validated['category_id']) || empty($validated['category_id'])) {
             $defaultCategory = Category::ofType('blog')->active()->first();
             $validated['category_id'] = $defaultCategory ? $defaultCategory->id : null;
@@ -191,12 +198,7 @@ class ArticleController extends Controller
         // Handle featured image upload
         if ($request->hasFile('featured_image')) {
             $image = $request->file('featured_image');
-
-            // $path = $image->store('articles', 'public');
-            // $validated['featured_image'] = $path;
-
-            $validated['featured_image'] =
-            $this->optimizeSeoImage(
+            $validated['featured_image'] = $this->optimizeSeoImage(
                 file: $image,
                 directory: 'articles',
                 width: 1200,
@@ -205,7 +207,31 @@ class ArticleController extends Controller
             );
         }
 
+        // Ambil data more_images lalu unset dari validated agar tidak ikut masuk ke tabel articles
+        $moreImagesInput = $request->input('more_images', []);
+        unset($validated['more_images']);
+
+        // Buat article
         $article = Article::create($validated);
+
+        // Handle More Images (Multi-upload gallery dinamis dengan title & description)
+        if (is_array($moreImagesInput)) {
+            foreach ($moreImagesInput as $index => $item) {
+                $file = $request->file("more_images.{$index}.file");
+
+                if ($file) {
+                    Gallery::storeImage(
+                        file: $file,
+                        module: GalleryModule::BLOG,
+                        parentId: $article->id,
+                        additionalData: [
+                            'title' => !empty($item['title']) ? $item['title'] : ($article->title . ' - Gallery ' . ($index + 1)),
+                            'description' => $item['description'] ?? null,
+                        ]
+                    );
+                }
+            }
+        }
 
         return redirect()->route('cms.article.index')
             ->with('success', 'Artikel berhasil dibuat');
@@ -226,8 +252,12 @@ class ArticleController extends Controller
     {
         Gate::authorize('article-edit');
         
-        $article = Article::findOrFail($id);
+        $article = Article::with(['galleries' => function ($query) {
+            $query->where('module', GalleryModule::BLOG)->orderBy('sequence', 'asc');
+        }])->findOrFail($id);
+
         $authors = User::orderBy('id', 'asc')->get();
+        
         $blogCategories = Category::with('children')
             ->root()
             ->active()
@@ -242,21 +272,15 @@ class ArticleController extends Controller
         ]);
     }
 
+    
     public function update(Request $request, $id)
     {
         Gate::authorize('article-edit');
 
         $article = Article::findOrFail($id);
 
-        /*
-        |--------------------------------------------------------------------------
-        | PREPARE REQUEST
-        |--------------------------------------------------------------------------
-        */
-
         $requestData = $request->all();
 
-        // Normalize tags
         if (
             $request->filled('tags') &&
             is_string($request->tags)
@@ -269,141 +293,46 @@ class ArticleController extends Controller
             ]);
         }
 
-        // Normalize boolean
         $request->merge([
             'is_headline' => $request->boolean('is_headline'),
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | VALIDATION
-        |--------------------------------------------------------------------------
-        */
-
         $validated = validator(
             $requestData,
             [
-                'title' => [
-                    'required',
-                    'string',
-                    'max:255',
-                ],
-
-                'slug' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                    // Rule::unique('articles')
-                    //     ->ignore($article->id),
-                ],
-
-                'content' => [
-                    'required',
-                    'string',
-                ],
-
-                'excerpt' => [
-                    'nullable',
-                    'string',
-                    'max:500',
-                ],
-
-                'status' => [
-                    'required',
-                    'in:draft,published,archived',
-                ],
-
-                'published_at' => [
-                    'nullable',
-                    'date',
-                ],
-
-                'author_id' => [
-                    'required',
-                    'exists:users,id',
-                ],
-
-                'meta_title' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'meta_description' => [
-                    'nullable',
-                    'string',
-                    'max:500',
-                ],
-
-                'meta_keywords' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'tags' => [
-                    'nullable',
-                    'array',
-                ],
-
-                'tags.*' => [
-                    'string',
-                    'max:50',
-                ],
-
-                'position' => [
-                    'nullable',
-                    'integer',
-                    'min:0',
-                ],
-
-                'is_headline' => [
-                    'boolean',
-                ],
-
-                'category_id' => [
-                    'nullable',
-                    'exists:categories,id',
-                ],
-
-                'featured_image' => [
-                    'nullable',
-                    'image',
-                    'mimes:jpg,jpeg,png,gif',
-                    'max:15048',
-                ],
-
-                'remove_featured_image' => [
-                    'nullable',
-                    'boolean',
-                ],
+                'title' => ['required', 'string', 'max:255'],
+                'slug' => ['nullable', 'string', 'max:255'],
+                'content' => ['required', 'string'],
+                'excerpt' => ['nullable', 'string', 'max:500'],
+                'status' => ['required', 'in:draft,published,archived'],
+                'published_at' => ['nullable', 'date'],
+                'author_id' => ['required', 'exists:users,id'],
+                'meta_title' => ['nullable', 'string', 'max:255'],
+                'meta_description' => ['nullable', 'string', 'max:500'],
+                'meta_keywords' => ['nullable', 'string', 'max:255'],
+                'tags' => ['nullable', 'array'],
+                'tags.*' => ['string', 'max:50'],
+                'position' => ['nullable', 'integer', 'min:0'],
+                'is_headline' => ['boolean'],
+                'category_id' => ['nullable', 'exists:categories,id'],
+                'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif', 'max:15048'],
+                'remove_featured_image' => ['nullable', 'boolean'],
+                
+                // Validasi struktur baru untuk update more_images
+                'more_images' => ['nullable', 'array'],
+                'more_images.*.file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif', 'max:15048'],
+                'more_images.*.title' => ['nullable', 'string', 'max:255'],
+                'more_images.*.description' => ['nullable', 'string'],
             ],
             [
-                'tags.array' =>
-                    'Tags harus berupa array.',
-
-                'is_headline.boolean' =>
-                    'Is headline harus berupa boolean.',
+                'tags.array' => 'Tags harus berupa array.',
+                'is_headline.boolean' => 'Is headline harus berupa boolean.',
             ]
         )->validate();
-
-        // dd($validated);
-
-        /*
-        |--------------------------------------------------------------------------
-        | SLUG
-        |--------------------------------------------------------------------------
-        */
 
         $validated['slug'] = filled($validated['slug'] ?? null)
             ? $validated['slug']
             : Str::slug($validated['title']);
-
-        /*
-        |--------------------------------------------------------------------------
-        | TAGS
-        |--------------------------------------------------------------------------
-        */
 
         $validated['tags'] = collect(
             $validated['tags'] ?? []
@@ -419,12 +348,6 @@ class ArticleController extends Controller
             );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | PUBLISHED AT
-        |--------------------------------------------------------------------------
-        */
-
         if (
             $validated['status'] === 'published' &&
             empty($validated['published_at'])
@@ -432,12 +355,7 @@ class ArticleController extends Controller
             $validated['published_at'] = now();
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | FEATURED IMAGE REMOVE
-        |--------------------------------------------------------------------------
-        */
-
+        // Handle Featured Image Removal
         if (
             $request->boolean('remove_featured_image') &&
             $article->featured_image
@@ -448,52 +366,50 @@ class ArticleController extends Controller
             $validated['featured_image'] = null;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | FEATURED IMAGE UPLOAD
-        |--------------------------------------------------------------------------
-        */
-
+        // Handle Featured Image Upload
         if ($request->hasFile('featured_image')) {
-            // Delete old image
             if ($article->featured_image) {
                 Storage::disk('public')
                     ->delete($article->featured_image);
             }
 
-            // $validated['featured_image'] =
-            //     $request
-            //         ->file('featured_image')
-            //         ->store('articles', 'public');
-
             $image = $request->file('featured_image');
-            $validated['featured_image'] =
-            $this->optimizeSeoImage(
+            $validated['featured_image'] = $this->optimizeSeoImage(
                 file: $image,
                 directory: 'articles',
                 width: 1200,
                 height: 630,
                 quality: 82
             );
-        }
-        
-
-        /*
-        |--------------------------------------------------------------------------
-        | UPDATE ARTICLE
-        |--------------------------------------------------------------------------
-        */
-
-        if (!$request->hasFile('featured_image')) {
+        } else {
             unset($validated['featured_image']);
         }
+
+        // Ambil data more_images lalu unset dari validated agar tidak ikut diupdate ke tabel articles
+        $moreImagesInput = $request->input('more_images', []);
+        unset($validated['more_images'], $validated['remove_featured_image']);
+
+        // Update data utama article
         $article->update($validated);
 
-        /*
-        |--------------------------------------------------------------------------
-        | RESPONSE
-        |--------------------------------------------------------------------------
-        */
+        // Handle penambahan `more_images` baru ke tabel galleries
+        if (is_array($moreImagesInput)) {
+            foreach ($moreImagesInput as $index => $item) {
+                $file = $request->file("more_images.{$index}.file");
+
+                if ($file) {
+                    Gallery::storeImage(
+                        file: $file,
+                        module: GalleryModule::BLOG,
+                        parentId: $article->id,
+                        additionalData: [
+                            'title' => !empty($item['title']) ? $item['title'] : ($article->title . ' - Gallery ' . ($index + 1)),
+                            'description' => $item['description'] ?? null,
+                        ]
+                    );
+                }
+            }
+        }
 
         return redirect()
             ->route('cms.article.index')

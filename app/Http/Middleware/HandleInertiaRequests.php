@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Foundation\Inspiring;
 use App\Support\Enums\VisitorAction;
 use App\Support\Enums\PageList;
+use App\Models\Article;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -48,6 +49,21 @@ class HandleInertiaRequests extends Middleware
             'actionOptions'  => VisitorAction::getOptions(),
             'visitorActions' => VisitorAction::getShorthandActions(),
             'appPages'       => PageList::getShorthandPages(),
+
+            'portfolioItems' => fn () => Article::whereHas('category', function ($q) {
+                    $q->where('slug', 'portofolio');
+                })      
+                ->latest()
+                ->take(4)
+                ->get(['title', 'slug', 'excerpt', 'featured_image'])
+                ->map(function ($item) {
+                    return [
+                        'title' => $item->title,
+                        'slug' => $item->slug,
+                        'excerpt' => $item->excerpt,
+                        'featured_image' => resolve_image_path($item->featured_image),
+                    ];
+                })
         ];
     }
 }
