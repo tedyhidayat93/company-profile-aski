@@ -165,9 +165,9 @@
                             >
                                 <div class="container mx-auto grid grid-cols-12 gap-6">
                                     <div class="col-span-4 border-r border-slate-100 dark:border-slate-800 pr-6 space-y-2">
-                                        <h4 class="text-xl font-black uppercase tracking-wider text-orange-500">
+                                        <span class="text-xl font-black uppercase tracking-wider text-orange-500">
                                             {{ $siteconfig['services_meta_title'] ?? 'Layanan Kami' }}
-                                        </h4>
+                                        </span>
                                         <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
                                             {{ $siteconfig['services_meta_description'] ?? 'Kami melayani fabrikasi kustom, modifikasi arsitektural, hingga penyediaan unit tangguh untuk operasional logistik berskala nasional.' }}
                                         </p>
@@ -220,7 +220,7 @@
                                         @foreach($productCategories ?? [] as $cat)
                                             <div class="space-y-3 p-4 rounded-xl hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                                                 <a href="/produk/{{ $cat['slug'] }}" class="block">
-                                                    <h4 class="text-base font-black italic tracking-wider text-orange-600 uppercase">{{ $cat['title'] }}</h4>
+                                                    <span class="text-base font-black italic tracking-wider text-orange-600 uppercase">{{ $cat['title'] }}</span>
                                                 </a>
                                                 <ul class="space-y-1.5 border-t border-slate-100 dark:border-slate-800/60 pt-2">
                                                     @foreach($cat['items'] ?? [] as $subItem)
