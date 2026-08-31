@@ -330,7 +330,7 @@
                 console.error('Gagal menyimpan ke BE, mengalihkan langsung ke WhatsApp:', error);
             } finally {
                 $btnSubmit.prop('disabled', false);
-                $btnText.text('Kirim Penawaran via WA');
+                $btnText.text('Kirim via WhatsApp');
                 
                 window.open(waUrl, '_blank', 'noopener,noreferrer');
                 

@@ -53,7 +53,7 @@
 
                 <!-- Gambar Utama -->
                 @if($post->featured_image)
-                    <div class="overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800 aspect-[16/9]">
+                    <div class="overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800 w-full h-auto">
                         <img 
                             src="{{ $post->featured_image }}" 
                             alt="{{ $post->title }}"
