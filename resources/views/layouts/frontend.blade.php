@@ -212,7 +212,7 @@
                             >
                                 <div class="container mx-auto grid grid-cols-12 gap-8">
                                     <div class="col-span-3 border-r border-slate-100 dark:border-slate-800 pr-6 space-y-3">
-                                        <h3 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">{{ $siteconfig['catalog_meta_title'] ?? 'Katalog Kontainer' }}</h3>
+                                        <span class="text-xl font-black tracking-tight text-slate-900 dark:text-white">{{ $siteconfig['catalog_meta_title'] ?? 'Katalog Kontainer' }}</span>
                                         <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">{{ $siteconfig['catalog_meta_description'] ?? 'Temukan pilihan dimensi kontainer kargo dan kreasi unit modifikasi custom standar internasional.' }}</p>
                                         <a href="/katalog" class="text-sm font-bold text-orange-500 hover:underline block pt-2">Lihat Semua Katalog →</a>
                                     </div>
@@ -388,7 +388,7 @@
 
                 <!-- Kolom 1 -->
                 <div>
-                    <h3 class="mb-4 text-sm font-bold uppercase tracking-widest text-white">Informasi Perusahaan</h3>
+                    <span class="mb-4 text-sm font-bold uppercase tracking-widest text-white">Informasi Perusahaan</span>
                     <ul class="space-y-2.5">
                         <li><a href="/" class="text-sm text-gray-400 hover:text-orange-400 transition-colors">Beranda</a></li>
                         <li><a href="/tentang-kami" class="text-sm text-gray-400 hover:text-orange-400 transition-colors">Tentang Kami</a></li>
@@ -402,7 +402,7 @@
 
                 <!-- Kolom 2 -->
                 <div>
-                    <h3 class="mb-4 text-sm font-bold uppercase tracking-widest text-white">Layanan Kami</h3>
+                    <span class="mb-4 text-sm font-bold uppercase tracking-widest text-white">Layanan Kami</span>
                     <ul class="space-y-2.5">
                         @foreach($footerServices ?? [] as $service)
                             <li>
@@ -416,7 +416,7 @@
 
                 <!-- Kolom 3 -->
                 <div>
-                    <h3 class="mb-4 text-sm font-bold uppercase tracking-widest text-white">Daftar Unit Container</h3>
+                    <span class="mb-4 text-sm font-bold uppercase tracking-widest text-white">Daftar Unit Container</span>
                     <ul class="space-y-2.5">
                         @if(isset($productCategories))
                             @foreach($productCategories as $cat)
@@ -436,7 +436,7 @@
 
                 <!-- Kolom 4 -->
                 <div>
-                    <h3 class="mb-4 text-sm font-bold uppercase tracking-widest text-white">Kontak & Alamat</h3>
+                    <span class="mb-4 text-sm font-bold uppercase tracking-widest text-white">Kontak & Alamat</span>
                     <ul class="space-y-3 text-sm text-gray-400">
                         <li class="flex gap-2.5 items-start">
                             <span class="text-xs leading-relaxed">{{ $address }}</span>
